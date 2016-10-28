@@ -22,7 +22,7 @@ func TestParse(t *testing.T) {
 			t.Errorf("case %d couldn't read file: %s", i, err.Error())
 		}
 
-		pkg := &DataPackage{}
+		pkg := &Package{}
 		if err := json.Unmarshal(data, pkg); err != c.err {
 			t.Errorf("case %d parse error mismatch. expected: '%s', got: '%s'", i, c.err, err)
 		}

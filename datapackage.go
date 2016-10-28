@@ -7,29 +7,29 @@ import (
 	"github.com/qri-io/jsontable"
 )
 
-type DataPackage struct {
-	Name             Name                       `json:"name"`
-	Title            string                     `json:"title"`
-	Description      string                     `json:"description,omitempty"`
-	Homepage         string                     `json:"description, omitempty"`
-	License          *License                   `json:"license,omitempty"`
-	Version          Version                    `json:"version,omitempty"`
-	Format           string                     `json:"format,omitempty"`
-	Keywords         []string                   `json:"keywords,omitempty"`
-	DataDependencies map[Name]Version           `json:"dataDependcies"`
-	Author           *Person                    `json:"author,omitempty"`
-	Contributors     []*Person                  `json:"contributors,omitempty"`
-	Sources          []*Source                  `json:"sources,omitempty"`
-	Resources        []*Resource                `json:"resources"`
-	Schemas          map[Name]*jsontable.Schema `json:"schemas,omitempty"`
+type Package struct {
+	Name             Name                      `json:"name"`
+	Title            string                    `json:"title"`
+	Description      string                    `json:"description,omitempty"`
+	Homepage         string                    `json:"description, omitempty"`
+	License          *License                  `json:"license,omitempty"`
+	Version          Version                   `json:"version,omitempty"`
+	Format           string                    `json:"format,omitempty"`
+	Keywords         []string                  `json:"keywords,omitempty"`
+	DataDependencies map[Name]Version          `json:"dataDependcies,omitempty"`
+	Author           *Person                   `json:"author,omitempty"`
+	Contributors     []*Person                 `json:"contributors,omitempty"`
+	Sources          []*Source                 `json:"sources,omitempty"`
+	Resources        []*Resource               `json:"resources"`
+	Schemas          map[Name]*jsontable.Table `json:"schemas,omitempty"`
 }
 
 // separate type for marshalling into
-type _datapackage DataPackage
+type _datapackage Package
 
 // MarshalJSON is a custom JSON implementation that delivers a uuid-string if the
 // model is blank, or a full object if data is present
-func (d DataPackage) MarshalJSON() ([]byte, error) {
+func (d Package) MarshalJSON() ([]byte, error) {
 	// // if we only have the Id, but not created & updated values
 	// // values, there's a very good chance this model hasn't been
 	// // read from the db, so let's return just an id string as a stub
@@ -46,13 +46,13 @@ func (d DataPackage) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarhalJSON can marshal in two forms: just an id string, or an object containing a full data model
-func (d *DataPackage) UnmarshalJSON(data []byte) error {
+func (d *Package) UnmarshalJSON(data []byte) error {
 	ds := _datapackage{}
 	if err := json.Unmarshal(data, &ds); err != nil {
 		return err
 	}
 
-	*d = DataPackage(ds)
+	*d = Package(ds)
 
 	// place schemas on individual resources
 	for name, s := range d.Schemas {
