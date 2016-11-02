@@ -1,4 +1,4 @@
-package datapackage
+package dataset
 
 // Source is a place that this datapackage drew it's information from
 type Source struct {

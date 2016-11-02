@@ -1,4 +1,4 @@
-package datapackage
+package dataset
 
 import (
 	"encoding/json"
@@ -35,6 +35,9 @@ func (f DataFormat) String() string {
 }
 
 func (f DataFormat) MarshalJSON() ([]byte, error) {
+	if f == UnknownDataFormat {
+		return nil, nil
+	}
 	return []byte(fmt.Sprintf(`"%s"`, f.String())), nil
 }
 

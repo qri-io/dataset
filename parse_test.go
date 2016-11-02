@@ -1,4 +1,4 @@
-package datapackage
+package dataset
 
 import (
 	"encoding/json"
@@ -22,8 +22,8 @@ func TestParse(t *testing.T) {
 			t.Errorf("case %d couldn't read file: %s", i, err.Error())
 		}
 
-		pkg := &Package{}
-		if err := json.Unmarshal(data, pkg); err != c.err {
+		ds := &Dataset{}
+		if err := json.Unmarshal(data, ds); err != c.err {
 			t.Errorf("case %d parse error mismatch. expected: '%s', got: '%s'", i, c.err, err)
 		}
 

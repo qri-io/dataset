@@ -1,4 +1,4 @@
-package datapackage
+package dataset
 
 import (
 	"encoding/json"
