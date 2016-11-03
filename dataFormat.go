@@ -34,6 +34,23 @@ func (f DataFormat) String() string {
 	return s
 }
 
+// ParseDataFormatString takes a string representation of a data format
+func ParseDataFormatString(s string) (df DataFormat, err error) {
+	df, ok := map[string]DataFormat{
+		"":     UnknownDataFormat,
+		"csv":  CsvDataFormat,
+		"json": JsonDataFormat,
+		"xml":  XmlDataFormat,
+		"xls":  XlsDataFormat,
+	}[s]
+	if !ok {
+		err = fmt.Errorf("invalid DataFormat %q", s)
+		df = UnknownDataFormat
+	}
+
+	return
+}
+
 func (f DataFormat) MarshalJSON() ([]byte, error) {
 	if f == UnknownDataFormat {
 		return nil, nil
@@ -47,17 +64,11 @@ func (f *DataFormat) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("Filed type should be a string, got %s", data)
 	}
 
-	got, ok := map[string]DataFormat{
-		"":     UnknownDataFormat,
-		"csv":  CsvDataFormat,
-		"json": JsonDataFormat,
-		"xml":  XmlDataFormat,
-		"xls":  XlsDataFormat,
-	}[s]
-	if !ok {
-		return fmt.Errorf("invalid DataFormat %q", s)
+	if df, err := ParseDataFormatString(s); err != nil {
+		return err
+	} else {
+		*f = df
 	}
 
-	*f = got
 	return nil
 }

@@ -13,17 +13,15 @@ import (
 )
 
 type Dataset struct {
-	// required. a dataset's name is the base of this path
-	Path Path `json:"path"`
-
+	// not required, but if it's here, it's gotta match the base of path
+	Name Name `json:"name,omitempty"`
+	// required for use with other datasets. a dataset's name is the base of this path
+	Path Path `json:"path,omitempty"`
 	// a dataset can be a source of data
 	DataSource
-
 	// A dataset can have child datasets
 	Datasets []*Dataset `json:"datasets,omitempty"`
-
 	// optional stufffff
-	Name         Name      `json:"name,omitempty"`
 	Author       *Person   `json:"author,omitempty"`
 	Title        string    `json:"title,omitempty"`
 	Image        string    `json:"image,omitempty"`
