@@ -28,11 +28,11 @@
     },
     {
       "name": "latitude_deg",
-      "type": "geopoint"
+      "type": "float"
     },
     {
       "name": "longitude_deg",
-      "type": "geopoint"
+      "type": "float"
     },
     {
       "name": "elevation_ft",

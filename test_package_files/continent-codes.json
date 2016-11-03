@@ -14,23 +14,21 @@
   ],
   "version": "0.1.0",
   "last_updated": "2016-03-25",
-  "resources": [
+  "datasets": [
     {
       "name": "continent-codes",
       "path": "data/continent-codes.csv",
       "description": "continent codes",
-      "schema": {
-        "fields": [
-          {
-            "name": "Code",
-            "type": "string"
-          },
-          {
-            "name": "Name",
-            "type": "string"
-          }
-        ]
-      }
+      "fields": [
+        {
+          "name": "Code",
+          "type": "string"
+        },
+        {
+          "name": "Name",
+          "type": "string"
+        }
+      ]
     }
   ]
 }

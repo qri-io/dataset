@@ -4,6 +4,7 @@ package dataset
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -17,8 +18,22 @@ type Dataset struct {
 	Name Name `json:"name,omitempty"`
 	// required for use with other datasets. a dataset's name is the base of this path
 	Path Path `json:"path,omitempty"`
-	// a dataset can be a source of data
-	DataSource
+
+	// at most one of these can be set
+	Url  string `json:"url,omitempty"`
+	File string `json:"file,omitempty"`
+	Data []byte `json:"data,omitempty"`
+	// This guy is required if data is going to be set
+	Format DataFormat `json:"format,omitempty"`
+	// This stuff defines the 'schema' for a dataset's data
+	Fields     []*Field `json:"fields,omitempty"`
+	PrimaryKey FieldKey `json:"primaryKey,omitempty"`
+	// optional-but-sometimes-necessary info
+	Mediatype string `json:"mediatype,omitempty"`
+	Encoding  string `json:"encoding,omitempty"`
+	Bytes     int    `json:"bytes,omitempty"`
+	Hash      string `json:"hash,omitempty"`
+
 	// A dataset can have child datasets
 	Datasets []*Dataset `json:"datasets,omitempty"`
 	// optional stufffff
@@ -26,7 +41,7 @@ type Dataset struct {
 	Title        string    `json:"title,omitempty"`
 	Image        string    `json:"image,omitempty"`
 	Description  string    `json:"description,omitempty"`
-	Homepage     string    `json:"homepage, omitempty"`
+	Homepage     string    `json:"homepage,omitempty"`
 	License      *License  `json:"license,omitempty"`
 	Version      Version   `json:"version,omitempty"`
 	Keywords     []string  `json:"keywords,omitempty"`
@@ -99,6 +114,16 @@ func (r *Dataset) Writer() (io.WriteCloser, error) {
 	return nil, fmt.Errorf("resource %s doesn't contain a path or data field to write to", r.Name)
 }
 
+// truthCount returns the number of arguments that are true
+func truthCount(args ...bool) (count int) {
+	for _, arg := range args {
+		if arg {
+			count++
+		}
+	}
+	return
+}
+
 // separate type for marshalling into
 type _dataset Dataset
 
@@ -110,6 +135,22 @@ func (d *Dataset) UnmarshalJSON(data []byte) error {
 	}
 
 	*d = Dataset(ds)
+	if err := d.ValidDataSource(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (ds *Dataset) ValidDataSource() error {
+	if count := truthCount(ds.Url != "", ds.File != "", len(ds.Data) > 0); count > 1 {
+		return errors.New("only one of url, file, or data can be set")
+	} else if count == 1 {
+		if ds.Format == UnknownDataFormat {
+			return errors.New("format is required for data source")
+		}
+	}
+
 	return nil
 }
 
