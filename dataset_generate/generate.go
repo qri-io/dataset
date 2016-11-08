@@ -13,7 +13,7 @@ func init() {
 }
 
 type RandomDatasetOpts struct {
-	Name        dataset.Name
+	Name        string
 	Title       string
 	NumDatasets int
 	Datasets    []*dataset.Dataset
@@ -24,7 +24,7 @@ type RandomDatasetOpts struct {
 
 func RandomDataset(options ...func(*RandomDatasetOpts)) *dataset.Dataset {
 	opt := &RandomDatasetOpts{
-		Name:      RandomName(16),
+		Name:      randString(16),
 		NumFields: rand.Intn(9) + 1,
 		Datatypes: nil,
 	}
@@ -57,10 +57,6 @@ func RandomDataset(options ...func(*RandomDatasetOpts)) *dataset.Dataset {
 	ds.Fields = opt.Fields
 
 	return ds
-}
-
-func RandomName(maxLength int) dataset.Name {
-	return dataset.Name(randString(rand.Intn(maxLength-1) + 1))
 }
 
 var alphaNumericRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")

@@ -47,7 +47,7 @@ func RandomFields(options ...func(*RandomFieldsOpt)) []*dataset.Field {
 // RandomFieldOpt are the options for RandomField
 type RandomFieldOpt struct {
 	// use a provided name instead of a random one
-	Name dataset.Name
+	Name string
 	// use a provided type instead of a random one
 	Type datatype.Type
 	// constrict random types to a provided set, blank means any valid datatype
@@ -57,7 +57,7 @@ type RandomFieldOpt struct {
 // RandomField generates a random field, optionally configured
 func RandomField(options ...func(*RandomFieldOpt)) *dataset.Field {
 	opt := &RandomFieldOpt{
-		Name:      RandomName(16),
+		Name:      randString(16),
 		Datatypes: nil,
 	}
 	for _, option := range options {

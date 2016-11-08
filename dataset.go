@@ -15,9 +15,9 @@ import (
 
 type Dataset struct {
 	// not required, but if it's here, it's gotta match the base of path
-	Name Name `json:"name,omitempty"`
+	Name string `json:"name,omitempty"`
 	// required for use with other datasets. a dataset's name is the base of this path
-	Path Path `json:"path,omitempty"`
+	Address Address `json:"address,omitempty"`
 
 	// at most one of these can be set
 	Url  string `json:"url,omitempty"`

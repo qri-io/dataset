@@ -4,7 +4,7 @@ import "github.com/qri-io/datatype"
 
 // Field represents a field descriptor
 type Field struct {
-	Name         Name              `json:"name"`
+	Name         string            `json:"name"`
 	Title        string            `json:"title,omitempty"`
 	Type         datatype.Type     `json:"type,omitempty"`
 	MissingValue interface{}       `json:"missingValue,omitempty"`
@@ -15,7 +15,7 @@ type Field struct {
 
 func NewShortField(name, dataType string) *Field {
 	return &Field{
-		Name: Name(name),
+		Name: name,
 		Type: datatype.TypeFromString(dataType),
 	}
 }

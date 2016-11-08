@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestNewPath(t *testing.T) {
+func TestNewAddress(t *testing.T) {
 	cases := []struct {
 		in, out []string
 	}{
@@ -17,7 +17,7 @@ func TestNewPath(t *testing.T) {
 		// {[]string{"handle", "", "table", "column", "row", "should_ignore"}, []string{"handle"}},
 	}
 	for i, c := range cases {
-		out := NewPath(c.in...)
+		out := NewAddress(c.in...)
 		for j, n := range out {
 			if n != c.out[j] {
 				t.Errorf("case %d slices don't match at index %d. expected: %s, got: %s", i, j, c.out, out)
@@ -27,7 +27,7 @@ func TestNewPath(t *testing.T) {
 	}
 }
 
-func TestValidPathString(t *testing.T) {
+func TestValidAddressString(t *testing.T) {
 	cases := []struct {
 		str    string
 		expect bool
@@ -42,23 +42,23 @@ func TestValidPathString(t *testing.T) {
 	}
 
 	for i, c := range cases {
-		if got := ValidPathString(c.str); got != c.expect {
+		if got := ValidAddressString(c.str); got != c.expect {
 			t.Errorf("case %d failed. %s should be %t", i, c.str, c.expect)
 		}
 	}
 }
 
-func TestPathMarshalJSON(t *testing.T) {
+func TestAddressMarshalJSON(t *testing.T) {
 	cases := []struct {
-		dt     Path
+		dt     Address
 		expect string
 		err    error
 	}{
-		{NewPath(""), "\"\"", nil},
-		{NewPath("one", "two", "three", "four"), "\"one.two.three.four\"", nil},
-		{NewPath("one.two.three.four"), "\"one.two.three.four\"", nil},
-		// {PathModify, "\"MODIFY\"", nil},
-		// {PathDelete, "\"DELETE\"", nil},
+		{NewAddress(""), "\"\"", nil},
+		{NewAddress("one", "two", "three", "four"), "\"one.two.three.four\"", nil},
+		{NewAddress("one.two.three.four"), "\"one.two.three.four\"", nil},
+		// {AddressModify, "\"MODIFY\"", nil},
+		// {AddressDelete, "\"DELETE\"", nil},
 	}
 
 	for i, c := range cases {
@@ -72,20 +72,20 @@ func TestPathMarshalJSON(t *testing.T) {
 	}
 }
 
-func TestPathUnmarshalJSON(t *testing.T) {
+func TestAddressUnmarshalJSON(t *testing.T) {
 	cases := []struct {
 		data []byte
-		dt   Path
+		dt   Address
 		err  error
 	}{
-		{[]byte("[\"\"]"), NewPath(""), nil},
-		{[]byte("[\"one.two.three.four\"]"), NewPath("one.two.three.four"), nil},
-		// {[]byte("[\"MODIFY\"]"), PathModify, nil},
-		// {[]byte("[\"DELETE\"]"), PathDelete, nil},
+		{[]byte("[\"\"]"), NewAddress(""), nil},
+		{[]byte("[\"one.two.three.four\"]"), NewAddress("one.two.three.four"), nil},
+		// {[]byte("[\"MODIFY\"]"), AddressModify, nil},
+		// {[]byte("[\"DELETE\"]"), AddressDelete, nil},
 	}
 
 	for i, c := range cases {
-		var dt []Path
+		var dt []Address
 		err := json.Unmarshal(c.data, &dt)
 		if err != c.err {
 			t.Errorf("case %d error mismatch. expected: %s, got: %s", i, c.err, err)
