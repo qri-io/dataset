@@ -88,6 +88,17 @@ func RandomRows(fields []*dataset.Field, numRows int) (rows [][]interface{}) {
 		}
 		rows[i] = row
 	}
+	return
+}
 
+func RandomStringRows(fields []*dataset.Field, numRows int) (rows [][]string) {
+	rows = make([][]string, numRows)
+	for i := 0; i < numRows; i++ {
+		row := make([]string, len(fields))
+		for j, field := range fields {
+			row[j] = datatype_generate.RandomStringValue(field.Type)
+		}
+		rows[i] = row
+	}
 	return
 }

@@ -10,7 +10,7 @@ import (
 func TestDatasetUnmarshallJSON(t *testing.T) {
 	cases := []struct {
 		FileName string
-		Name     Name
+		Name     string
 		err      error
 	}{
 		{"airport-codes.json", "airport-codes", nil},

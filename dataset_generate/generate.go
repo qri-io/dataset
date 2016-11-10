@@ -1,6 +1,8 @@
 package dataset_generate
 
 import (
+	"bytes"
+	"encoding/csv"
 	"math/rand"
 	"time"
 
@@ -18,15 +20,19 @@ type RandomDatasetOpts struct {
 	NumDatasets int
 	Datasets    []*dataset.Dataset
 	Datatypes   []datatype.Type
+	Format      dataset.DataFormat
 	NumFields   int
 	Fields      []*dataset.Field
+	NumRecords  int
 }
 
 func RandomDataset(options ...func(*RandomDatasetOpts)) *dataset.Dataset {
 	opt := &RandomDatasetOpts{
-		Name:      randString(16),
-		NumFields: rand.Intn(9) + 1,
-		Datatypes: nil,
+		Name:       randString(16),
+		NumFields:  rand.Intn(9) + 1,
+		Datatypes:  nil,
+		NumRecords: 0,
+		Format:     dataset.CsvDataFormat,
 	}
 
 	for _, option := range options {
@@ -52,14 +58,23 @@ func RandomDataset(options ...func(*RandomDatasetOpts)) *dataset.Dataset {
 	ds := &dataset.Dataset{
 		Name:     opt.Name,
 		Datasets: opt.Datasets,
+		Format:   opt.Format,
+		Fields:   opt.Fields,
 	}
 
-	ds.Fields = opt.Fields
+	if opt.NumRecords > 0 && opt.Format == dataset.CsvDataFormat {
+		buf := bytes.NewBuffer(nil)
+		if err := csv.NewWriter(buf).WriteAll(RandomStringRows(ds.Fields, opt.NumRecords)); err != nil {
+			panic(err)
+		}
+		ds.Data = buf.Bytes()
+	}
 
 	return ds
 }
 
 var alphaNumericRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+var alphaRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
 func randString(n int) string {
 	b := make([]rune, n)

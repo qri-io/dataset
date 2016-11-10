@@ -1,8 +1,8 @@
-// dataset is a modified format of the frictionless data datapackge format http://specs.frictionlessdata.io/data-packages
 package dataset
 
 import (
 	"bytes"
+	"encoding/csv"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,6 +12,8 @@ import (
 	"os"
 	"path/filepath"
 )
+
+var ErrNotFound = errors.New("Not Found")
 
 type Dataset struct {
 	// not required, but if it's here, it's gotta match the base of path
@@ -184,4 +186,70 @@ func (ds *Dataset) RowToBytes(row []interface{}) (bytes [][]byte, err error) {
 		bytes[i] = val
 	}
 	return
+}
+
+type WalkDatasetsFunc func(int, *Dataset) error
+
+func (ds *Dataset) WalkDatasets(depth int, fn WalkDatasetsFunc) (err error) {
+	// call once for base dataset
+	if err = fn(depth, ds); err != nil {
+		return
+	}
+
+	depth++
+	for _, d := range ds.Datasets {
+		if err = d.WalkDatasets(depth, fn); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func (ds *Dataset) DatasetForAddress(a Address) (match *Dataset, err error) {
+	err = ds.WalkDatasets(0, func(depth int, d *Dataset) error {
+		if a.Equal(ds.Address) {
+			match = d
+			return errors.New("EOF")
+		}
+		return nil
+	})
+
+	if err != nil && err.Error() == "EOF" {
+		return match, nil
+	}
+
+	return nil, ErrNotFound
+}
+
+type DataIteratorFunc func(int, [][]byte, error) error
+
+func (ds *Dataset) EachRow(fn DataIteratorFunc) error {
+	switch ds.Format {
+	case CsvDataFormat:
+		r := csv.NewReader(bytes.NewReader(ds.Data))
+		num := 1
+		for {
+			csvRec, err := r.Read()
+			if err != nil {
+				if err.Error() == "EOF" {
+					return nil
+				}
+				return err
+			}
+
+			rec := make([][]byte, len(csvRec))
+			for i, col := range csvRec {
+				rec[i] = []byte(col)
+			}
+
+			if err := fn(num, rec, err); err != nil {
+				return err
+			}
+			num++
+		}
+		// case dataset.JsonDataFormat:
+	}
+
+	return fmt.Errorf("cannot parse data format '%s'", ds.Format)
 }
