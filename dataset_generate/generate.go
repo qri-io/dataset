@@ -16,6 +16,7 @@ func init() {
 
 type RandomDatasetOpts struct {
 	Name        string
+	Address     dataset.Address
 	Title       string
 	NumDatasets int
 	Datasets    []*dataset.Dataset
@@ -27,8 +28,10 @@ type RandomDatasetOpts struct {
 }
 
 func RandomDataset(options ...func(*RandomDatasetOpts)) *dataset.Dataset {
+	name := randString(16)
 	opt := &RandomDatasetOpts{
-		Name:       randString(16),
+		Name:       name,
+		Address:    dataset.NewAddress(name),
 		NumFields:  rand.Intn(9) + 1,
 		Datatypes:  nil,
 		NumRecords: 0,
@@ -57,6 +60,7 @@ func RandomDataset(options ...func(*RandomDatasetOpts)) *dataset.Dataset {
 
 	ds := &dataset.Dataset{
 		Name:     opt.Name,
+		Address:  opt.Address,
 		Datasets: opt.Datasets,
 		Format:   opt.Format,
 		Fields:   opt.Fields,

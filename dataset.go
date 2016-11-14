@@ -51,6 +51,22 @@ type Dataset struct {
 	Sources      []*Source `json:"sources,omitempty"`
 }
 
+func (d *Dataset) FieldNames() (names []string) {
+	names = make([]string, len(d.Fields))
+	for i, f := range d.Fields {
+		names[i] = f.Name
+	}
+	return
+}
+
+func (d *Dataset) FieldTypeStrings() (types []string) {
+	types = make([]string, len(d.Fields))
+	for i, f := range d.Fields {
+		types[i] = f.Type.String()
+	}
+	return
+}
+
 // FetchBytes grabs the actual byte data that this resource represents
 // path is the path to the datapackage, and only needed if using the "path"
 // resource param
