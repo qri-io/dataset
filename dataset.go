@@ -67,9 +67,9 @@ func (d *Dataset) FieldTypeStrings() (types []string) {
 	return
 }
 
-// FetchBytes grabs the actual byte data that this resource represents
+// FetchBytes grabs the actual byte data that this dataset represents
 // path is the path to the datapackage, and only needed if using the "path"
-// resource param
+// dataset param
 func (r *Dataset) FetchBytes(path string) ([]byte, error) {
 	if len(r.Data) > 0 {
 		return r.Data, nil
@@ -85,7 +85,7 @@ func (r *Dataset) FetchBytes(path string) ([]byte, error) {
 		return ioutil.ReadAll(res.Body)
 	}
 
-	return nil, fmt.Errorf("resource %s doesn't contain a url, file, or data field to read from", r.Name)
+	return nil, fmt.Errorf("dataset %s doesn't contain a url, file, or data field to read from", r.Name)
 }
 
 func (r *Dataset) Reader() (io.Reader, error) {
@@ -100,7 +100,7 @@ func (r *Dataset) Reader() (io.Reader, error) {
 		}
 		return res.Body, nil
 	}
-	return nil, fmt.Errorf("resource %s doesn't contain a url, file, or data field to read from", r.Name)
+	return nil, fmt.Errorf("dataset %s doesn't contain a url, file, or data field to read from", r.Name)
 }
 
 type dataWriter struct {
@@ -126,10 +126,10 @@ func (r *Dataset) Writer() (io.WriteCloser, error) {
 	} else if r.File != "" {
 		return os.Open(r.File)
 	} else if r.Url != "" {
-		return nil, fmt.Errorf("can't write to url-based resource: %s", r.Url)
+		return nil, fmt.Errorf("can't write to url-based dataset: %s", r.Url)
 	}
 
-	return nil, fmt.Errorf("resource %s doesn't contain a path or data field to write to", r.Name)
+	return nil, fmt.Errorf("dataset %s doesn't contain a path or data field to write to", r.Name)
 }
 
 // truthCount returns the number of arguments that are true
@@ -260,6 +260,9 @@ func (ds *Dataset) EachRow(fn DataIteratorFunc) error {
 			}
 
 			if err := fn(num, rec, err); err != nil {
+				if err.Error() == "EOF" {
+					return nil
+				}
 				return err
 			}
 			num++
