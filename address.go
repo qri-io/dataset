@@ -42,22 +42,6 @@ func (a Address) Endpoint() string {
 	return "/" + strings.Join(a, "/")
 }
 
-func (ns *Address) UnmarshallJSON(data []byte) error {
-	// Extract the string from data.
-	var s string
-	if err := json.Unmarshal(data, &s); err != nil {
-		return fmt.Errorf("User type should be a string, got %s", data)
-	}
-
-	s = strings.TrimSpace(s)
-	if !ValidAddressString(s) {
-		return fmt.Errorf("Invalid address: %s", s)
-	}
-
-	*ns = NewAddress(s)
-	return nil
-}
-
 func (a Address) Equal(b Address) bool {
 	if len(a) != len(b) {
 		return false

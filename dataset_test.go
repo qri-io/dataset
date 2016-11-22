@@ -2,10 +2,21 @@ package dataset
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"testing"
 )
+
+func DatasetEqual(a, b *Dataset) error {
+	if !a.Address.Equal(b.Address) {
+		return fmt.Errorf("address mismatch: %s != %s", a.Address, b.Address)
+	}
+
+	// TODO - check other fields
+
+	return nil
+}
 
 func TestDatasetUnmarshallJSON(t *testing.T) {
 	cases := []struct {
@@ -18,7 +29,7 @@ func TestDatasetUnmarshallJSON(t *testing.T) {
 	}
 
 	for i, c := range cases {
-		data, err := ioutil.ReadFile(filepath.Join("test_package_files", c.FileName))
+		data, err := ioutil.ReadFile(filepath.Join("test_dataset_files", c.FileName))
 		if err != nil {
 			t.Errorf("case %d couldn't read file: %s", i, err.Error())
 		}

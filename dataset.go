@@ -13,6 +13,8 @@ import (
 	"path/filepath"
 )
 
+const DatasetFilename = "dataset.json"
+
 var ErrNotFound = errors.New("Not Found")
 
 type Dataset struct {
@@ -27,9 +29,11 @@ type Dataset struct {
 	Data []byte `json:"data,omitempty"`
 	// This guy is required if data is going to be set
 	Format DataFormat `json:"format,omitempty"`
-	// This stuff defines the 'schema' for a dataset's data
+	// Fields & PrimaryKey define the 'schema' for a dataset's data
 	Fields     []*Field `json:"fields,omitempty"`
 	PrimaryKey FieldKey `json:"primaryKey,omitempty"`
+	// An optional query that's used to calculate this dataset
+	Query *Query `json:"query,omitempty"`
 	// optional-but-sometimes-necessary info
 	Mediatype string `json:"mediatype,omitempty"`
 	Encoding  string `json:"encoding,omitempty"`
@@ -37,13 +41,15 @@ type Dataset struct {
 	Hash      string `json:"hash,omitempty"`
 
 	// A dataset can have child datasets
-	Datasets []*Dataset `json:"datasets,omitempty"`
+	Datasets *Datasets `json:"datasets,omitempty"`
 	// optional stufffff
 	Author       *Person   `json:"author,omitempty"`
 	Title        string    `json:"title,omitempty"`
 	Image        string    `json:"image,omitempty"`
 	Description  string    `json:"description,omitempty"`
 	Homepage     string    `json:"homepage,omitempty"`
+	IconImage    string    `json:"iconImage,omitempty"`
+	PosterImage  string    `json:"posterImage,omitempty"`
 	License      *License  `json:"license,omitempty"`
 	Version      Version   `json:"version,omitempty"`
 	Keywords     []string  `json:"keywords,omitempty"`
@@ -65,6 +71,14 @@ func (d *Dataset) FieldTypeStrings() (types []string) {
 		types[i] = f.Type.String()
 	}
 	return
+}
+
+func (d *Dataset) Children(path string) ([]*Dataset, error) {
+	if d.Datasets == nil {
+		return nil, nil
+	}
+
+	return d.Datasets.List(path)
 }
 
 // FetchBytes grabs the actual byte data that this dataset represents
@@ -212,10 +226,12 @@ func (ds *Dataset) WalkDatasets(depth int, fn WalkDatasetsFunc) (err error) {
 		return
 	}
 
-	depth++
-	for _, d := range ds.Datasets {
-		if err = d.WalkDatasets(depth, fn); err != nil {
-			return
+	if ds.Datasets != nil {
+		depth++
+		for _, d := range ds.Datasets.datasets {
+			if err = d.WalkDatasets(depth, fn); err != nil {
+				return
+			}
 		}
 	}
 
