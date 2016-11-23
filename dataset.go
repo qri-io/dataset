@@ -41,7 +41,8 @@ type Dataset struct {
 	Hash      string `json:"hash,omitempty"`
 
 	// A dataset can have child datasets
-	Datasets *Datasets `json:"datasets,omitempty"`
+	Subsets *Subsets `json:"datasets,omitempty"`
+
 	// optional stufffff
 	Author       *Person   `json:"author,omitempty"`
 	Title        string    `json:"title,omitempty"`
@@ -65,20 +66,21 @@ func (d *Dataset) FieldNames() (names []string) {
 	return
 }
 
+func (d *Dataset) FieldForName(name string) (*Field, error) {
+	for _, f := range d.Fields {
+		if f.Name == name {
+			return f, nil
+		}
+	}
+	return nil, ErrNotFound
+}
+
 func (d *Dataset) FieldTypeStrings() (types []string) {
 	types = make([]string, len(d.Fields))
 	for i, f := range d.Fields {
 		types[i] = f.Type.String()
 	}
 	return
-}
-
-func (d *Dataset) Children(path string) ([]*Dataset, error) {
-	if d.Datasets == nil {
-		return nil, nil
-	}
-
-	return d.Datasets.List(path)
 }
 
 // FetchBytes grabs the actual byte data that this dataset represents
@@ -226,9 +228,9 @@ func (ds *Dataset) WalkDatasets(depth int, fn WalkDatasetsFunc) (err error) {
 		return
 	}
 
-	if ds.Datasets != nil {
+	if ds.Subsets.Datasets != nil {
 		depth++
-		for _, d := range ds.Datasets.datasets {
+		for _, d := range ds.Subsets.Datasets {
 			if err = d.WalkDatasets(depth, fn); err != nil {
 				return
 			}

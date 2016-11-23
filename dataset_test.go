@@ -18,7 +18,7 @@ func DatasetEqual(a, b *Dataset) error {
 	return nil
 }
 
-func TestDatasetUnmarshallJSON(t *testing.T) {
+func TestDatasetUnmarshalJSON(t *testing.T) {
 	cases := []struct {
 		FileName string
 		Name     string

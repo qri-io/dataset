@@ -30,22 +30,22 @@ func ReadDatasetPaths(paths []string, e error) (datasets []*Dataset, err error) 
 	return
 }
 
-type Datasets struct {
-	folder   string
-	datasets []*Dataset
+// Subsets encompasses the methods for defining a dataset.
+type Subsets struct {
+	SubsetsFolder string
+	Datasets      []*Dataset
 }
 
-func (d Datasets) List(path string) ([]*Dataset, error) {
-	if d.datasets != nil {
-		return d.datasets, nil
+func (d Subsets) List(path string) ([]*Dataset, error) {
+	if d.Datasets != nil {
+		return d.Datasets, nil
 	}
 
 	return ReadDatasetPaths(DatasetFilepaths(path))
 }
 
-func (d Datasets) Walk(depth int, fn WalkDatasetsFunc) error {
-
-	for _, ds := range d.datasets {
+func (d Subsets) Walk(depth int, fn WalkDatasetsFunc) error {
+	for _, ds := range d.Datasets {
 		if err := ds.WalkDatasets(depth, fn); err != nil {
 			return err
 		}
@@ -54,28 +54,27 @@ func (d Datasets) Walk(depth int, fn WalkDatasetsFunc) error {
 	return nil
 }
 
-func (d *Datasets) UnmarshalJSON(data []byte) error {
+func (d *Subsets) UnmarshalJSON(data []byte) error {
 	var s string
 	if err := json.Unmarshal(data, &s); err == nil {
-		*d = Datasets{folder: s}
+		*d = Subsets{SubsetsFolder: s}
 		return nil
 	}
 
-	// _d := &_datasets
 	ds := make([]*Dataset, 0)
 	if err := json.Unmarshal(data, &ds); err != nil {
 		return err
 	}
 
-	*d = Datasets{
-		datasets: ds,
+	*d = Subsets{
+		Datasets: ds,
 	}
 	return nil
 }
 
-func (d Datasets) MarshalJSON() ([]byte, error) {
-	if d.folder != "" {
-		return []byte(fmt.Sprintf(`%s`, d.folder)), nil
+func (d Subsets) MarshalJSON() ([]byte, error) {
+	if d.SubsetsFolder != "" {
+		return []byte(fmt.Sprintf(`%s`, d.SubsetsFolder)), nil
 	}
-	return json.Marshal(d.datasets)
+	return json.Marshal(d.Datasets)
 }
