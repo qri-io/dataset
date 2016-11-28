@@ -41,7 +41,7 @@ type Dataset struct {
 	Hash      string `json:"hash,omitempty"`
 
 	// A dataset can have child datasets
-	Subsets *Subsets `json:"datasets,omitempty"`
+	Datasets []*Dataset `json:"datasets,omitempty"`
 
 	// optional stufffff
 	Author       *Person   `json:"author,omitempty"`
@@ -81,30 +81,6 @@ func (d *Dataset) FieldTypeStrings() (types []string) {
 		types[i] = f.Type.String()
 	}
 	return
-}
-
-func (d *Dataset) Children() []*Dataset {
-	if d.Subsets == nil {
-		return nil
-	}
-	return d.Subsets.Datasets
-}
-
-func (d *Dataset) AddChild(ch *Dataset) error {
-	if d.Subsets == nil {
-		d.Subsets = &Subsets{Datasets: []*Dataset{ch}}
-	} else {
-		if !ch.Address.IsEmpty() {
-			for _, ds := range d.Subsets.Datasets {
-				if ds.Address.Equal(ch.Address) {
-					return fmt.Errorf("address already in use: %s", ds.Address.String())
-				}
-			}
-		}
-		d.Subsets.Datasets = append(d.Subsets.Datasets, ch)
-	}
-
-	return nil
 }
 
 // FetchBytes grabs the actual byte data that this dataset represents
@@ -252,12 +228,10 @@ func (ds *Dataset) WalkDatasets(depth int, fn WalkDatasetsFunc) (err error) {
 		return
 	}
 
-	if ds.Subsets.Datasets != nil {
-		depth++
-		for _, d := range ds.Subsets.Datasets {
-			if err = d.WalkDatasets(depth, fn); err != nil {
-				return
-			}
+	depth++
+	for _, d := range ds.Datasets {
+		if err = d.WalkDatasets(depth, fn); err != nil {
+			return
 		}
 	}
 
