@@ -15,27 +15,28 @@ func init() {
 }
 
 type RandomDatasetOpts struct {
-	Name        string
-	Address     dataset.Address
-	Title       string
-	NumDatasets int
-	Datasets    []*dataset.Dataset
-	Datatypes   []datatype.Type
-	Format      dataset.DataFormat
-	NumFields   int
-	Fields      []*dataset.Field
-	NumRecords  int
+	Name           string
+	Address        dataset.Address
+	Title          string
+	NumDatasets    int
+	Datasets       []*dataset.Dataset
+	Datatypes      []datatype.Type
+	Format         dataset.DataFormat
+	NumFields      int
+	Fields         []*dataset.Field
+	Data           []byte
+	NumRandRecords int
 }
 
 func RandomDataset(options ...func(*RandomDatasetOpts)) *dataset.Dataset {
 	name := randString(16)
 	opt := &RandomDatasetOpts{
-		Name:       name,
-		Address:    dataset.NewAddress(name),
-		NumFields:  rand.Intn(9) + 1,
-		Datatypes:  nil,
-		NumRecords: 0,
-		Format:     dataset.CsvDataFormat,
+		Name:           name,
+		Address:        dataset.NewAddress(name),
+		NumFields:      rand.Intn(9) + 1,
+		Datatypes:      nil,
+		NumRandRecords: 0,
+		Format:         dataset.CsvDataFormat,
 	}
 
 	for _, option := range options {
@@ -59,16 +60,17 @@ func RandomDataset(options ...func(*RandomDatasetOpts)) *dataset.Dataset {
 	}
 
 	ds := &dataset.Dataset{
-		Name:     opt.Name,
-		Address:  opt.Address,
-		Datasets: opt.Datasets,
-		Format:   opt.Format,
-		Fields:   opt.Fields,
+		Name:    opt.Name,
+		Address: opt.Address,
+		Subsets: &dataset.Subsets{Datasets: opt.Datasets},
+		Format:  opt.Format,
+		Fields:  opt.Fields,
+		Data:    opt.Data,
 	}
 
-	if opt.NumRecords > 0 && opt.Format == dataset.CsvDataFormat {
-		buf := bytes.NewBuffer(nil)
-		if err := csv.NewWriter(buf).WriteAll(RandomStringRows(ds.Fields, opt.NumRecords)); err != nil {
+	if opt.NumRandRecords > 0 && opt.Format == dataset.CsvDataFormat {
+		buf := bytes.NewBuffer(ds.Data)
+		if err := csv.NewWriter(buf).WriteAll(RandomStringRows(ds.Fields, opt.NumRandRecords)); err != nil {
 			panic(err)
 		}
 		ds.Data = buf.Bytes()

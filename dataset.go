@@ -66,13 +66,13 @@ func (d *Dataset) FieldNames() (names []string) {
 	return
 }
 
-func (d *Dataset) FieldForName(name string) (*Field, error) {
+func (d *Dataset) FieldForName(name string) *Field {
 	for _, f := range d.Fields {
 		if f.Name == name {
-			return f, nil
+			return f
 		}
 	}
-	return nil, ErrNotFound
+	return nil
 }
 
 func (d *Dataset) FieldTypeStrings() (types []string) {
@@ -81,6 +81,30 @@ func (d *Dataset) FieldTypeStrings() (types []string) {
 		types[i] = f.Type.String()
 	}
 	return
+}
+
+func (d *Dataset) Children() []*Dataset {
+	if d.Subsets == nil {
+		return nil
+	}
+	return d.Subsets.Datasets
+}
+
+func (d *Dataset) AddChild(ch *Dataset) error {
+	if d.Subsets == nil {
+		d.Subsets = &Subsets{Datasets: []*Dataset{ch}}
+	} else {
+		if !ch.Address.IsEmpty() {
+			for _, ds := range d.Subsets.Datasets {
+				if ds.Address.Equal(ch.Address) {
+					return fmt.Errorf("address already in use: %s", ds.Address.String())
+				}
+			}
+		}
+		d.Subsets.Datasets = append(d.Subsets.Datasets, ch)
+	}
+
+	return nil
 }
 
 // FetchBytes grabs the actual byte data that this dataset represents
