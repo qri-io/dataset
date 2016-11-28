@@ -60,12 +60,12 @@ func RandomDataset(options ...func(*RandomDatasetOpts)) *dataset.Dataset {
 	}
 
 	ds := &dataset.Dataset{
-		Name:    opt.Name,
-		Address: opt.Address,
-		Subsets: &dataset.Subsets{Datasets: opt.Datasets},
-		Format:  opt.Format,
-		Fields:  opt.Fields,
-		Data:    opt.Data,
+		Name:     opt.Name,
+		Address:  opt.Address,
+		Datasets: opt.Datasets,
+		Format:   opt.Format,
+		Fields:   opt.Fields,
+		Data:     opt.Data,
 	}
 
 	if opt.NumRandRecords > 0 && opt.Format == dataset.CsvDataFormat {

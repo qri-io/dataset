@@ -61,6 +61,34 @@ func (a Address) Equal(b Address) bool {
 	return true
 }
 
+func (a Address) IsParent(b Address) bool {
+	if len(a) >= len(b)+1 {
+		return false
+	}
+
+	for i, ds := range a {
+		if ds != b[i] {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (a Address) IsAncestor(b Address) bool {
+	if len(b) <= len(a) {
+		return false
+	}
+
+	for i, ds := range a {
+		if b[i] != ds {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (p Address) MarshalJSON() ([]byte, error) {
 	return []byte(fmt.Sprintf(`"%s"`, p.String())), nil
 }
