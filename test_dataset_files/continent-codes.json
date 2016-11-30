@@ -1,5 +1,6 @@
 {
   "name": "continent-codes",
+  "address": "continent-codes",
   "title": "List of continent codes",
   "description": "Data contains list of continents and it's two letter codes",
   "license": {
@@ -16,7 +17,7 @@
   "last_updated": "2016-03-25",
   "datasets": [
     {
-      "name": "continent-codes",
+      "address": "continent-codes.2",
       "path": "data/continent-codes.csv",
       "description": "continent codes",
       "fields": [

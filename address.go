@@ -43,7 +43,7 @@ func (p Address) String() string {
 	return strings.Join(p, ".")
 }
 
-func (a Address) Endpoint() string {
+func (a Address) PathString() string {
 	return "/" + strings.Join(a, "/")
 }
 
@@ -59,6 +59,14 @@ func (a Address) Equal(b Address) bool {
 	}
 
 	return true
+}
+
+func (a Address) Parent() Address {
+	if len(a) <= 1 {
+		return NewAddress("")
+	}
+
+	return a[:len(a)-1]
 }
 
 func (a Address) IsParent(b Address) bool {

@@ -101,7 +101,7 @@ func (r *Dataset) FetchBytes(path string) ([]byte, error) {
 		return ioutil.ReadAll(res.Body)
 	}
 
-	return nil, fmt.Errorf("dataset %s doesn't contain a url, file, or data field to read from", r.Name)
+	return nil, fmt.Errorf("dataset '%s' doesn't contain a url, file, or data field to read from", r.Name)
 }
 
 func (r *Dataset) Reader() (io.Reader, error) {
@@ -171,6 +171,11 @@ func (d *Dataset) UnmarshalJSON(data []byte) error {
 	*d = Dataset(ds)
 	if err := d.ValidDataSource(); err != nil {
 		return err
+	}
+
+	errs := AddressErrors(d, &[]Address{})
+	if len(errs) > 0 {
+		return errs[0]
 	}
 
 	return nil

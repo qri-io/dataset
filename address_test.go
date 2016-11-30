@@ -27,6 +27,22 @@ func TestNewAddress(t *testing.T) {
 	}
 }
 
+func TestAddressParent(t *testing.T) {
+	cases := []struct {
+		str, expect string
+	}{
+		{"ns", ""},
+		{"ns.stuff", "ns"},
+		{"ns.stuff.and", "ns.stuff"},
+	}
+
+	for i, c := range cases {
+		if got := NewAddress(c.str).Parent(); got.String() != c.expect {
+			t.Errorf("case %d failed. %s should equal %s", i, got.String(), c.expect)
+		}
+	}
+}
+
 func TestValidAddressString(t *testing.T) {
 	cases := []struct {
 		str    string
