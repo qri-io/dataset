@@ -13,7 +13,7 @@ import (
 	"path/filepath"
 )
 
-const DatasetFilename = "dataset.json"
+const Filename = "dataset.json"
 
 var ErrNotFound = errors.New("Not Found")
 
