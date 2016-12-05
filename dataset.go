@@ -9,8 +9,8 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"os"
-	"path/filepath"
+
+	"github.com/qri-io/fs"
 )
 
 const Filename = "dataset.json"
@@ -23,7 +23,7 @@ type Dataset struct {
 	// required for use with other datasets. a dataset's name is the base of this path
 	Address Address `json:"address,omitempty"`
 
-	// at most one of these can be set
+	// at most one of url/file/data can be set
 	Url  string `json:"url,omitempty"`
 	File string `json:"file,omitempty"`
 	Data []byte `json:"data,omitempty"`
@@ -86,11 +86,11 @@ func (d *Dataset) FieldTypeStrings() (types []string) {
 // FetchBytes grabs the actual byte data that this dataset represents
 // path is the path to the datapackage, and only needed if using the "path"
 // dataset param
-func (r *Dataset) FetchBytes(path string) ([]byte, error) {
+func (r *Dataset) FetchBytes(store fs.Store) ([]byte, error) {
 	if len(r.Data) > 0 {
 		return r.Data, nil
 	} else if r.File != "" {
-		return ioutil.ReadFile(filepath.Join(path, r.File))
+		return store.Read(r.File)
 	} else if r.Url != "" {
 		res, err := http.Get(r.Url)
 		if err != nil {
@@ -104,11 +104,11 @@ func (r *Dataset) FetchBytes(path string) ([]byte, error) {
 	return nil, fmt.Errorf("dataset '%s' doesn't contain a url, file, or data field to read from", r.Name)
 }
 
-func (r *Dataset) Reader() (io.Reader, error) {
+func (r *Dataset) Reader(store fs.Store) (io.ReadCloser, error) {
 	if len(r.Data) > 0 {
 		return ioutil.NopCloser(bytes.NewBuffer(r.Data)), nil
 	} else if r.File != "" {
-		return os.Open(r.File)
+		return store.Open(r.File)
 	} else if r.Url != "" {
 		res, err := http.Get(r.Url)
 		if err != nil {
@@ -136,16 +136,27 @@ func (w dataWriter) Close() error {
 	return err
 }
 
-func (r *Dataset) Writer() (io.WriteCloser, error) {
+func (r *Dataset) Writer(src fs.Store) (io.WriteCloser, error) {
 	if len(r.Data) > 0 {
 		return dataWriter{buffer: bytes.NewBuffer(r.Data), onClose: func(data []byte) { r.Data = data }}, nil
 	} else if r.File != "" {
-		return os.Open(r.File)
+		return src.Create(r.File)
 	} else if r.Url != "" {
 		return nil, fmt.Errorf("can't write to url-based dataset: %s", r.Url)
 	}
 
 	return nil, fmt.Errorf("dataset %s doesn't contain a path or data field to write to", r.Name)
+}
+
+func (r *Dataset) WriteData(src fs.Store, data []byte) error {
+	if r.File != "" {
+		return src.Write(r.File, data)
+	} else if r.Url != "" {
+		return fmt.Errorf("can't write to url-based dataset: %s", r.Url)
+	} else {
+		r.Data = data
+		return nil
+	}
 }
 
 // truthCount returns the number of arguments that are true
@@ -160,6 +171,10 @@ func truthCount(args ...bool) (count int) {
 
 // separate type for marshalling into
 type _dataset Dataset
+
+func (d Dataset) MarshalJSON() (data []byte, err error) {
+	return json.Marshal(_dataset(d))
+}
 
 // UnmarhalJSON can marshal in two forms: just an id string, or an object containing a full data model
 func (d *Dataset) UnmarshalJSON(data []byte) error {

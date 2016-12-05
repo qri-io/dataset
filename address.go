@@ -84,8 +84,12 @@ func (a Address) IsParent(b Address) bool {
 }
 
 func (a Address) IsAncestor(b Address) bool {
-	if len(b) <= len(a) {
+	if len(a) >= len(b) {
 		return false
+	}
+
+	if a.IsEmpty() {
+		return true
 	}
 
 	for i, ds := range a {
