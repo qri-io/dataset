@@ -172,11 +172,14 @@ func truthCount(args ...bool) (count int) {
 // separate type for marshalling into
 type _dataset Dataset
 
+// MarshalJSON makes dataset a json Marshaler, allowing datasets to be passed
+// around the json.Marshaler interface
 func (d Dataset) MarshalJSON() (data []byte, err error) {
 	return json.Marshal(_dataset(d))
 }
 
-// UnmarhalJSON can marshal in two forms: just an id string, or an object containing a full data model
+// UnmarshalJSON can marshal in two forms: just an id string,
+// or an object containing a full data model
 func (d *Dataset) UnmarshalJSON(data []byte) error {
 	ds := _dataset{}
 	if err := json.Unmarshal(data, &ds); err != nil {
@@ -201,7 +204,11 @@ func (ds *Dataset) ValidDataSource() error {
 		return errors.New("only one of url, file, or data can be set")
 	} else if count == 1 {
 		if ds.Format == UnknownDataFormat {
-			return errors.New("format is required for data source")
+			// if format is unspecified, we need to be able to derive the format from
+			// the extension of either the url or filepath
+			if ds.DataFormat() == "" {
+				return errors.New("format is required for data source")
+			}
 		}
 	}
 
@@ -307,4 +314,20 @@ func (ds *Dataset) EachRow(fn DataIteratorFunc) error {
 	}
 
 	return fmt.Errorf("cannot parse data format '%s'", ds.Format)
+}
+
+func (d *Dataset) DataFormat() string {
+	if d.Format != UnknownDataFormat {
+		return d.Format.String()
+	}
+
+	if d.File != "" {
+		return fs.PathExt(d.File)
+	}
+
+	if d.Url != "" {
+		return fs.PathExt(d.Url)
+	}
+
+	return ""
 }
