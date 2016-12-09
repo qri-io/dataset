@@ -316,6 +316,19 @@ func (ds *Dataset) EachRow(fn DataIteratorFunc) error {
 	return fmt.Errorf("cannot parse data format '%s'", ds.Format)
 }
 
+// Ugh, should this exist?
+func (d *Dataset) AllRows() (data [][][]byte, err error) {
+	err = d.EachRow(func(_ int, row [][]byte, e error) error {
+		if e != nil {
+			return e
+		}
+		data = append(data, row)
+		return nil
+	})
+
+	return
+}
+
 func (d *Dataset) DataFormat() string {
 	if d.Format != UnknownDataFormat {
 		return d.Format.String()
