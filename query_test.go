@@ -49,7 +49,7 @@ func TestQueryMarshalJSON(t *testing.T) {
 		out string
 		err error
 	}{
-		{&Query{Statement: `"select a from b"`}, `"select a from b"`, nil},
+		{&Query{Statement: "select a from b"}, `"select a from b"`, nil},
 		{&Query{Format: "ql", Statement: "select a from b"}, `{"format":"ql","statement":"select a from b"}`, nil},
 	}
 

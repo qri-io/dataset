@@ -267,7 +267,7 @@ func (ds *Dataset) WalkDatasets(depth int, fn WalkDatasetsFunc) (err error) {
 
 func (ds *Dataset) DatasetForAddress(a Address) (match *Dataset, err error) {
 	err = ds.WalkDatasets(0, func(depth int, d *Dataset) error {
-		if a.Equal(ds.Address) {
+		if a.Equal(d.Address) {
 			match = d
 			return errors.New("EOF")
 		}
@@ -284,7 +284,7 @@ func (ds *Dataset) DatasetForAddress(a Address) (match *Dataset, err error) {
 type DataIteratorFunc func(int, [][]byte, error) error
 
 func (ds *Dataset) EachRow(fn DataIteratorFunc) error {
-	switch ds.Format {
+	switch ds.dataFormat() {
 	case CsvDataFormat:
 		r := csv.NewReader(bytes.NewReader(ds.Data))
 		num := 1
@@ -313,7 +313,7 @@ func (ds *Dataset) EachRow(fn DataIteratorFunc) error {
 		// case dataset.JsonDataFormat:
 	}
 
-	return fmt.Errorf("cannot parse data format '%s'", ds.Format)
+	return fmt.Errorf("cannot parse data format '%s'", ds.dataFormat())
 }
 
 // Ugh, should this exist?
@@ -327,6 +327,26 @@ func (d *Dataset) AllRows() (data [][][]byte, err error) {
 	})
 
 	return
+}
+
+// TODO - need to resolve weather "DataFormat" enum needs to exist...
+// and then decide on one of these method signatures
+func (d *Dataset) dataFormat() DataFormat {
+	if d.Format != UnknownDataFormat {
+		return d.Format
+	}
+
+	if d.File != "" {
+		f, _ := ParseDataFormatString(fs.PathExt(d.File))
+		return f
+	}
+
+	if d.Url != "" {
+		f, _ := ParseDataFormatString(fs.PathExt(d.Url))
+		return f
+	}
+
+	return UnknownDataFormat
 }
 
 func (d *Dataset) DataFormat() string {

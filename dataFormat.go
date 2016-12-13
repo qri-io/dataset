@@ -37,11 +37,15 @@ func (f DataFormat) String() string {
 // ParseDataFormatString takes a string representation of a data format
 func ParseDataFormatString(s string) (df DataFormat, err error) {
 	df, ok := map[string]DataFormat{
-		"":     UnknownDataFormat,
-		"csv":  CsvDataFormat,
-		"json": JsonDataFormat,
-		"xml":  XmlDataFormat,
-		"xls":  XlsDataFormat,
+		"":      UnknownDataFormat,
+		".csv":  CsvDataFormat,
+		"csv":   CsvDataFormat,
+		".json": JsonDataFormat,
+		"json":  JsonDataFormat,
+		".xml":  XmlDataFormat,
+		"xml":   XmlDataFormat,
+		".xls":  XlsDataFormat,
+		"xls":   XlsDataFormat,
 	}[s]
 	if !ok {
 		err = fmt.Errorf("invalid DataFormat %q", s)

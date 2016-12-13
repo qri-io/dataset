@@ -31,7 +31,7 @@ func (q *Query) UnmarshalJSON(data []byte) error {
 
 func (q Query) MarshalJSON() ([]byte, error) {
 	if q.Statement != "" && q.Format == "" {
-		return []byte(fmt.Sprintf(`%s`, q.Statement)), nil
+		return []byte(fmt.Sprintf(`"%s"`, q.Statement)), nil
 	}
 	return json.Marshal(_query(q))
 }
