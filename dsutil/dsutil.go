@@ -4,7 +4,10 @@ package dsutil
 import (
 	"archive/zip"
 	"bytes"
+	"encoding/json"
 	"io"
+	"io/ioutil"
+	"path/filepath"
 
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/fs"
@@ -14,6 +17,18 @@ import (
 func PackageDataset(store fs.Store, ds *dataset.Dataset) (io.ReaderAt, int64, error) {
 	buf := &bytes.Buffer{}
 	zw := zip.NewWriter(buf)
+
+	w, err := zw.Create(dataset.Filename)
+	if err != nil {
+		return nil, 0, err
+	}
+	data, err := json.Marshal(ds)
+	if err != nil {
+		return nil, 0, err
+	}
+	if _, err := w.Write(data); err != nil {
+		return nil, 0, err
+	}
 
 	if err := writeDatasetFiles(zw, store, ds); err != nil {
 		return nil, 0, err
@@ -33,7 +48,7 @@ func PackageDataset(store fs.Store, ds *dataset.Dataset) (io.ReaderAt, int64, er
 func writeDatasetFiles(zw *zip.Writer, store fs.Store, ds *dataset.Dataset) error {
 	// Grab dataset file if one is listed
 	if ds.File != "" {
-		data, err := store.Read(ds.File)
+		data, err := store.Read(fs.JoinPath(ds.Address.PathString(), ds.File))
 		if err != nil {
 			return err
 		}
@@ -43,6 +58,31 @@ func writeDatasetFiles(zw *zip.Writer, store fs.Store, ds *dataset.Dataset) erro
 			return err
 		}
 		if _, err := w.Write(data); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func WritePackage(store fs.Store, adr dataset.Address, r io.ReaderAt, size int64) error {
+	zipr, err := zip.NewReader(r, size)
+	if err != nil {
+		return err
+	}
+
+	for _, f := range zipr.File {
+		r, err := f.Open()
+		if err != nil {
+			return err
+		}
+
+		data, err := ioutil.ReadAll(r)
+		if err != nil {
+			return err
+		}
+
+		if err := store.Write(filepath.Join(adr.PathString(), f.Name), data); err != nil {
 			return err
 		}
 	}

@@ -35,7 +35,7 @@ func NewAddress(strs ...string) (p Address) {
 
 // IsEmpty is a convenience method to see if the address is assigned
 func (a Address) IsEmpty() bool {
-	return a[0] == ""
+	return len(a) == 0 || a[0] == ""
 }
 
 // Conform to stringer interface
