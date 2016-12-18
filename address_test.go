@@ -48,11 +48,18 @@ func TestValidAddressString(t *testing.T) {
 		str    string
 		expect bool
 	}{
-		{"ns", true},
+		// TODO
+		// {"ns", true},
+		{"1ns", false},
 		{"handle.dataset_name", true},
+		{"qri.b.epasearch", true},
+		{"qri.b5.epasearch", true},
+		{"qri.b5.epa_search", true},
 		{"handle.dataset_name.", false},
 		{"blah.blah", true},
 		{"ns..", false},
+		// TODO
+		// {"ns..ster", false},
 		{"..", false},
 		{".fjadksld.", false},
 	}

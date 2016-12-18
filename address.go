@@ -8,7 +8,8 @@ import (
 )
 
 // this regex makes sure we have snake_case.addresses.with.dot_separators.1_and_only_alphanumeric_characters
-var addressRegex = regexp.MustCompile(`^[a-z0-9-_/]+(\.[a-z0-9-_/]+)?$`)
+// `^[a-z0-9-_/]+(\.[a-z0-9-_/]+)?$`
+var addressRegex = regexp.MustCompile(`^[a-z-_]+[\.[a-z0-9-_/]+]?[a-z0-9-_]$`)
 
 // check for a valid namespce address
 func ValidAddressString(s string) bool {
