@@ -5,6 +5,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"path/filepath"
@@ -88,4 +89,31 @@ func WritePackage(store fs.Store, adr dataset.Address, r io.ReaderAt, size int64
 	}
 
 	return nil
+}
+
+func PackageDatasetDefinition(r io.ReaderAt, size int64) (*dataset.Dataset, error) {
+	zipr, err := zip.NewReader(r, size)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, f := range zipr.File {
+		if f.Name == dataset.Filename {
+			r, err := f.Open()
+			if err != nil {
+				return nil, err
+			}
+
+			data, err := ioutil.ReadAll(r)
+			if err != nil {
+				return nil, err
+			}
+
+			ds := &dataset.Dataset{}
+			err = json.Unmarshal(data, ds)
+			return ds, err
+		}
+	}
+
+	return nil, fmt.Errorf("no %s file found", dataset.Filename)
 }

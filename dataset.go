@@ -45,7 +45,6 @@ type Dataset struct {
 
 	// optional stufffff
 	Author       *Person   `json:"author,omitempty"`
-	Title        string    `json:"title,omitempty"`
 	Image        string    `json:"image,omitempty"`
 	Description  string    `json:"description,omitempty"`
 	Homepage     string    `json:"homepage,omitempty"`
