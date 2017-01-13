@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"net/http"
 	"net/url"
+	"strconv"
 
 	"github.com/qri-io/datatype"
 	"github.com/qri-io/fs"
@@ -72,9 +73,10 @@ func (ds *Dataset) ValidateData(store fs.Store, options ...func(*ValidateDataOpt
 	validation = &Dataset{
 		Address: NewAddress(ds.Address.String(), "errors"),
 		Format:  CsvDataFormat,
+		Fields:  []*Field{&Field{Name: "entry_number", Type: datatype.Integer}},
 	}
 	for _, f := range ds.Fields {
-		validation.Fields = append(validation.Fields, &Field{Name: f.Name + "_err", Type: datatype.Integer})
+		validation.Fields = append(validation.Fields, &Field{Name: f.Name + "_error", Type: datatype.String})
 	}
 
 	dsData, e := ds.FetchBytes(store)
@@ -96,12 +98,15 @@ func (ds *Dataset) ValidateData(store fs.Store, options ...func(*ValidateDataOpt
 		// data = append(data, errData)
 		count += errNum
 
-		csvRow := make([]string, len(errData))
-		for i, d := range errData {
-			csvRow[i] = string(d)
-		}
-		if err := cw.Write(csvRow); err != nil {
-			fmt.Sprintln(err)
+		if errNum != 0 {
+			csvRow := make([]string, len(errData))
+			for i, d := range errData {
+				csvRow[i] = string(d)
+			}
+			if err := cw.Write(csvRow); err != nil {
+				// fmt.Sprintln(err)
+				return err
+			}
 		}
 
 		return nil
@@ -115,7 +120,8 @@ func (ds *Dataset) ValidateData(store fs.Store, options ...func(*ValidateDataOpt
 
 func validateRow(fields []*Field, num int, row [][]byte) ([][]byte, int, error) {
 	count := 0
-	errors := make([][]byte, len(fields))
+	errors := make([][]byte, len(fields)+1)
+	errors[0] = []byte(strconv.FormatInt(int64(num), 10))
 	if len(row) != len(fields) {
 		return errors, count, fmt.Errorf("column mismatch. expected: %d, got: %d", len(fields), len(row))
 	}
@@ -124,9 +130,9 @@ func validateRow(fields []*Field, num int, row [][]byte) ([][]byte, int, error) 
 		_, e := f.Type.Parse(row[i])
 		if e != nil {
 			count++
-			errors[i] = []byte("1")
+			errors[i+1] = []byte(e.Error())
 		} else {
-			errors[i] = []byte("0")
+			errors[i+1] = []byte("")
 		}
 	}
 
