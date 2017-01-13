@@ -28,7 +28,9 @@ type Dataset struct {
 	File string `json:"file,omitempty"`
 	Data []byte `json:"data,omitempty"`
 	// This guy is required if data is going to be set
-	Format DataFormat `json:"format,omitempty"`
+	Format        DataFormat    `json:"format,omitempty"`
+	FormatOptions FormatOptions `json:"formatOptions"`
+
 	// Fields & PrimaryKey define the 'schema' for a dataset's data
 	Fields     []*Field `json:"fields,omitempty"`
 	PrimaryKey FieldKey `json:"primaryKey,omitempty"`
@@ -42,10 +44,6 @@ type Dataset struct {
 
 	// A dataset can have child datasets
 	Datasets []*Dataset `json:"datasets,omitempty"`
-
-	// TODO - refactor this to some form of "format options", possibly
-	// turn format into an object
-	HeaderRow bool `json:"headerRow,omitempty"`
 
 	// optional stufffff
 	Author       *Person   `json:"author,omitempty"`
@@ -173,12 +171,71 @@ func truthCount(args ...bool) (count int) {
 }
 
 // separate type for marshalling into
-type _dataset Dataset
+type _dataset struct {
+	Name          string                 `json:"name,omitempty"`
+	Address       Address                `json:"address,omitempty"`
+	Url           string                 `json:"url,omitempty"`
+	File          string                 `json:"file,omitempty"`
+	Data          []byte                 `json:"data,omitempty"`
+	Format        DataFormat             `json:"format,omitempty"`
+	FormatOptions map[string]interface{} `json:"formatOptions"`
+	Fields        []*Field               `json:"fields,omitempty"`
+	PrimaryKey    FieldKey               `json:"primaryKey,omitempty"`
+	Query         *Query                 `json:"query,omitempty"`
+	Mediatype     string                 `json:"mediatype,omitempty"`
+	Encoding      string                 `json:"encoding,omitempty"`
+	Bytes         int                    `json:"bytes,omitempty"`
+	Hash          string                 `json:"hash,omitempty"`
+	Datasets      []*Dataset             `json:"datasets,omitempty"`
+	Author        *Person                `json:"author,omitempty"`
+	Image         string                 `json:"image,omitempty"`
+	Description   string                 `json:"description,omitempty"`
+	Homepage      string                 `json:"homepage,omitempty"`
+	IconImage     string                 `json:"iconImage,omitempty"`
+	PosterImage   string                 `json:"posterImage,omitempty"`
+	License       *License               `json:"license,omitempty"`
+	Version       Version                `json:"version,omitempty"`
+	Keywords      []string               `json:"keywords,omitempty"`
+	Contributors  []*Person              `json:"contributors,omitempty"`
+	Sources       []*Source              `json:"sources,omitempty"`
+}
 
 // MarshalJSON makes dataset a json Marshaler, allowing datasets to be passed
 // around the json.Marshaler interface
 func (d Dataset) MarshalJSON() (data []byte, err error) {
-	return json.Marshal(_dataset(d))
+	var opt map[string]interface{}
+	if d.FormatOptions != nil {
+		opt = d.FormatOptions.Map()
+	}
+
+	return json.Marshal(&_dataset{
+		Name:          d.Name,
+		Address:       d.Address,
+		Url:           d.Url,
+		File:          d.File,
+		Data:          d.Data,
+		Format:        d.Format,
+		FormatOptions: opt,
+		Fields:        d.Fields,
+		PrimaryKey:    d.PrimaryKey,
+		Query:         d.Query,
+		Mediatype:     d.Mediatype,
+		Encoding:      d.Encoding,
+		Bytes:         d.Bytes,
+		Hash:          d.Hash,
+		Datasets:      d.Datasets,
+		Author:        d.Author,
+		Image:         d.Image,
+		Description:   d.Description,
+		Homepage:      d.Homepage,
+		IconImage:     d.IconImage,
+		PosterImage:   d.PosterImage,
+		License:       d.License,
+		Version:       d.Version,
+		Keywords:      d.Keywords,
+		Contributors:  d.Contributors,
+		Sources:       d.Sources,
+	})
 }
 
 // UnmarshalJSON can marshal in two forms: just an id string,
@@ -189,7 +246,39 @@ func (d *Dataset) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	*d = Dataset(ds)
+	fmtOpts, err := ParseFormatOptionsMap(ds.Format, ds.FormatOptions)
+	if err != nil {
+		return err
+	}
+
+	*d = Dataset{
+		Name:          ds.Name,
+		Address:       ds.Address,
+		Url:           ds.Url,
+		File:          ds.File,
+		Data:          ds.Data,
+		Format:        ds.Format,
+		FormatOptions: fmtOpts,
+		Fields:        ds.Fields,
+		PrimaryKey:    ds.PrimaryKey,
+		Query:         ds.Query,
+		Mediatype:     ds.Mediatype,
+		Encoding:      ds.Encoding,
+		Bytes:         ds.Bytes,
+		Hash:          ds.Hash,
+		Datasets:      ds.Datasets,
+		Author:        ds.Author,
+		Image:         ds.Image,
+		Description:   ds.Description,
+		Homepage:      ds.Homepage,
+		IconImage:     ds.IconImage,
+		PosterImage:   ds.PosterImage,
+		License:       ds.License,
+		Version:       ds.Version,
+		Keywords:      ds.Keywords,
+		Contributors:  ds.Contributors,
+		Sources:       ds.Sources,
+	}
 	if err := d.ValidDataSource(); err != nil {
 		return err
 	}
@@ -290,7 +379,7 @@ func (ds *Dataset) EachRow(fn DataIteratorFunc) error {
 	switch ds.dataFormat() {
 	case CsvDataFormat:
 		r := csv.NewReader(bytes.NewReader(ds.Data))
-		if ds.HeaderRow {
+		if ds.HeaderRow() {
 			if _, err := r.Read(); err != nil {
 				if err.Error() == "EOF" {
 					return nil
@@ -375,4 +464,13 @@ func (d *Dataset) DataFormat() string {
 	}
 
 	return ""
+}
+
+func (ds *Dataset) HeaderRow() bool {
+	if ds.Format == CsvDataFormat && ds.FormatOptions != nil {
+		if csvOpt, ok := ds.FormatOptions.(*CsvOptions); ok {
+			return csvOpt.HeaderRow
+		}
+	}
+	return false
 }
