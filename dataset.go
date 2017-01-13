@@ -43,6 +43,10 @@ type Dataset struct {
 	// A dataset can have child datasets
 	Datasets []*Dataset `json:"datasets,omitempty"`
 
+	// TODO - refactor this to some form of "format options", possibly
+	// turn format into an object
+	HeaderRow bool `json:"headerRow,omitempty"`
+
 	// optional stufffff
 	Author       *Person   `json:"author,omitempty"`
 	Image        string    `json:"image,omitempty"`
@@ -286,6 +290,15 @@ func (ds *Dataset) EachRow(fn DataIteratorFunc) error {
 	switch ds.dataFormat() {
 	case CsvDataFormat:
 		r := csv.NewReader(bytes.NewReader(ds.Data))
+		if ds.HeaderRow {
+			if _, err := r.Read(); err != nil {
+				if err.Error() == "EOF" {
+					return nil
+				}
+				return err
+			}
+		}
+
 		num := 1
 		for {
 			csvRec, err := r.Read()
