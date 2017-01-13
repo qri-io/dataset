@@ -7,7 +7,7 @@ type Field struct {
 	Name         string            `json:"name"`
 	Title        string            `json:"title,omitempty"`
 	Type         datatype.Type     `json:"type,omitempty"`
-	MissingValue interface{}       `json:"missingValue,omitempty"`
+	MissingValue interface{}       `json:"missing_value,omitempty"`
 	Format       string            `json:"format,omitempty"`
 	Description  string            `json:"description,omitempty"`
 	Constraints  *FieldConstraints `json:"constraints,omitempty"`
@@ -30,8 +30,8 @@ type ForeignKey struct {
 
 type FieldConstraints struct {
 	Required  *bool         `json:"required,omitempty"`
-	MinLength *int64        `json:"minLength,omitempty"`
-	MaxLength *int64        `json:"maxLength,omitempty"`
+	MinLength *int64        `json:"min_length,omitempty"`
+	MaxLength *int64        `json:"max_length,omitempty"`
 	Unique    *bool         `json:"unique,omitempty"`
 	Pattern   string        `json:"pattern,omitempty"`
 	Minimum   interface{}   `json:"minimum,omitempty"`

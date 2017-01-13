@@ -29,11 +29,11 @@ type Dataset struct {
 	Data []byte `json:"data,omitempty"`
 	// This guy is required if data is going to be set
 	Format        DataFormat    `json:"format,omitempty"`
-	FormatOptions FormatOptions `json:"formatOptions"`
+	FormatOptions FormatOptions `json:"format_options"`
 
 	// Fields & PrimaryKey define the 'schema' for a dataset's data
 	Fields     []*Field `json:"fields,omitempty"`
-	PrimaryKey FieldKey `json:"primaryKey,omitempty"`
+	PrimaryKey FieldKey `json:"primary_key,omitempty"`
 	// An optional query that's used to calculate this dataset
 	Query *Query `json:"query,omitempty"`
 	// optional-but-sometimes-necessary info
@@ -50,8 +50,8 @@ type Dataset struct {
 	Image        string    `json:"image,omitempty"`
 	Description  string    `json:"description,omitempty"`
 	Homepage     string    `json:"homepage,omitempty"`
-	IconImage    string    `json:"iconImage,omitempty"`
-	PosterImage  string    `json:"posterImage,omitempty"`
+	IconImage    string    `json:"icon_image,omitempty"`
+	PosterImage  string    `json:"poster_image,omitempty"`
 	License      *License  `json:"license,omitempty"`
 	Version      Version   `json:"version,omitempty"`
 	Keywords     []string  `json:"keywords,omitempty"`
@@ -178,7 +178,7 @@ type _dataset struct {
 	File          string                 `json:"file,omitempty"`
 	Data          []byte                 `json:"data,omitempty"`
 	Format        DataFormat             `json:"format,omitempty"`
-	FormatOptions map[string]interface{} `json:"formatOptions"`
+	FormatOptions map[string]interface{} `json:"format_options"`
 	Fields        []*Field               `json:"fields,omitempty"`
 	PrimaryKey    FieldKey               `json:"primaryKey,omitempty"`
 	Query         *Query                 `json:"query,omitempty"`
@@ -191,8 +191,8 @@ type _dataset struct {
 	Image         string                 `json:"image,omitempty"`
 	Description   string                 `json:"description,omitempty"`
 	Homepage      string                 `json:"homepage,omitempty"`
-	IconImage     string                 `json:"iconImage,omitempty"`
-	PosterImage   string                 `json:"posterImage,omitempty"`
+	IconImage     string                 `json:"icon_image,omitempty"`
+	PosterImage   string                 `json:"poster_image,omitempty"`
 	License       *License               `json:"license,omitempty"`
 	Version       Version                `json:"version,omitempty"`
 	Keywords      []string               `json:"keywords,omitempty"`
