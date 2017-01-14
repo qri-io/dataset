@@ -14,7 +14,7 @@
   "file": "data/airport-codes.csv",
   "format": "csv",
   "format_options" : {
-    "headerRow" : true
+    "header_row" : true
   },
   "mediatype": "text/csv",
   "fields": [

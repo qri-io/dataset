@@ -25,10 +25,12 @@ func NewCsvOptions(opts map[string]interface{}) (FormatOptions, error) {
 	if opts == nil {
 		return o, nil
 	}
-	if headerRow, ok := opts["headerRow"].(bool); ok {
-		o.HeaderRow = headerRow
-	} else {
-		return nil, fmt.Errorf("invalid headerRow value: %s", opts["headerRow"])
+	if opts["header_row"] != nil {
+		if headerRow, ok := opts["header_row"].(bool); ok {
+			o.HeaderRow = headerRow
+		} else {
+			return nil, fmt.Errorf("invalid header_row value: %s", opts["header_row"])
+		}
 	}
 
 	return o, nil
@@ -36,7 +38,7 @@ func NewCsvOptions(opts map[string]interface{}) (FormatOptions, error) {
 
 type CsvOptions struct {
 	// Weather this csv file has a header row or not
-	HeaderRow bool `json:"headerRow"`
+	HeaderRow bool `json:"header_row"`
 }
 
 func (*CsvOptions) Format() DataFormat {
@@ -48,7 +50,7 @@ func (o *CsvOptions) Map() map[string]interface{} {
 		return nil
 	}
 	return map[string]interface{}{
-		"headerRow": o.HeaderRow,
+		"header_row": o.HeaderRow,
 	}
 }
 
@@ -62,7 +64,7 @@ func NewJsonOptions(opts map[string]interface{}) (FormatOptions, error) {
 }
 
 type JsonOptions struct {
-	ObjectEntries bool `json:"objectEntries"`
+	ObjectEntries bool `json:"object_entries"`
 }
 
 func (*JsonOptions) Format() DataFormat {
@@ -74,6 +76,6 @@ func (o *JsonOptions) Map() map[string]interface{} {
 		return nil
 	}
 	return map[string]interface{}{
-		"objectEntries": o.ObjectEntries,
+		"object_entries": o.ObjectEntries,
 	}
 }
