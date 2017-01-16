@@ -27,6 +27,24 @@ func TestNewAddress(t *testing.T) {
 	}
 }
 
+func TestPathString(t *testing.T) {
+	cases := []struct {
+		adr, in []string
+		out     string
+	}{
+		{[]string{"a", "b", "c"}, []string{""}, "/a/b/c/"},
+		{[]string{"a", "b", "c"}, []string{"d.csv"}, "/a/b/c/d.csv"},
+		{[]string{"a", "b", "c"}, []string{"d", "e.markup.markdown"}, "/a/b/c/d/e.markup.markdown"},
+	}
+
+	for i, c := range cases {
+		got := NewAddress(c.adr...).PathString(c.in...)
+		if got != c.out {
+			t.Errorf("case %d path mismatch. expected: %s, got: %s", i, c.out, got)
+		}
+	}
+}
+
 func TestAddressParent(t *testing.T) {
 	cases := []struct {
 		str, expect string

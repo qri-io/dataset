@@ -85,12 +85,13 @@ func (d *Dataset) FieldTypeStrings() (types []string) {
 }
 
 // FetchBytes grabs the actual byte data that this dataset represents
-// path is the path to the datapackage, and only needed if using the "path"
-// dataset param
+// it is expected that the passed-in store will be scoped to the dataset
+// itself
 func (r *Dataset) FetchBytes(store fs.Store) ([]byte, error) {
 	if len(r.Data) > 0 {
 		return r.Data, nil
 	} else if r.File != "" {
+		// return store.Read(r.Address.PathString(r.File))
 		return store.Read(r.File)
 	} else if r.Url != "" {
 		res, err := http.Get(r.Url)

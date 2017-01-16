@@ -44,8 +44,9 @@ func (p Address) String() string {
 	return strings.Join(p, ".")
 }
 
-func (a Address) PathString() string {
-	return "/" + strings.Join(a, "/")
+func (a Address) PathString(path ...string) string {
+	return fmt.Sprintf("/%s/%s", strings.Join(a, "/"), strings.Join(path, "/"))
+	// return "/" + strings.Join(a, "/")
 }
 
 func (a Address) Equal(b Address) bool {
