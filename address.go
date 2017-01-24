@@ -72,7 +72,7 @@ func (a Address) Parent() Address {
 }
 
 func (a Address) IsParent(b Address) bool {
-	if len(a) >= len(b)+1 {
+	if len(a)+1 != len(b) {
 		return false
 	}
 

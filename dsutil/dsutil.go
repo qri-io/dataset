@@ -49,18 +49,33 @@ func PackageDataset(store fs.Store, ds *dataset.Dataset) (io.ReaderAt, int64, er
 func writeDatasetFiles(zw *zip.Writer, store fs.Store, ds *dataset.Dataset) error {
 	// Grab dataset file if one is listed
 	if ds.File != "" {
-		data, err := store.Read(fs.JoinPath(ds.Address.PathString(), ds.File))
-		if err != nil {
+		if err := zipWriteFile(ds.File, zw, store, ds); err != nil {
 			return err
 		}
+	}
 
-		w, err := zw.Create(ds.File)
-		if err != nil {
+	if ds.Readme != "" {
+		if err := zipWriteFile(ds.Readme, zw, store, ds); err != nil {
 			return err
 		}
-		if _, err := w.Write(data); err != nil {
-			return err
-		}
+	}
+
+	return nil
+}
+
+func zipWriteFile(path string, zw *zip.Writer, store fs.Store, ds *dataset.Dataset) error {
+	data, err := store.Read(fs.JoinPath(ds.Address.PathString(), path))
+	// data, err := store.Read(path)
+	if err != nil {
+		return err
+	}
+
+	w, err := zw.Create(path)
+	if err != nil {
+		return err
+	}
+	if _, err := w.Write(data); err != nil {
+		return err
 	}
 
 	return nil

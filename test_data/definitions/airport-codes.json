@@ -17,6 +17,7 @@
     "header_row" : true
   },
   "mediatype": "text/csv",
+  "readme" : "readme.md",
   "fields": [
     {
       "name": "ident",

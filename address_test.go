@@ -61,6 +61,46 @@ func TestAddressParent(t *testing.T) {
 	}
 }
 
+func TestAddressIsParent(t *testing.T) {
+	cases := []struct {
+		a, b   string
+		expect bool
+	}{
+		{"", "", false},
+		{"ns", "", false},
+		{"ns", "ns.a", true},
+		{"ns", "bs.a", false},
+		{"ns", "ns.a.b", false},
+		{"ns.a", "ns.a", false},
+	}
+
+	for i, c := range cases {
+		if got := NewAddress(c.a).IsParent(NewAddress(c.b)); got != c.expect {
+			t.Errorf("case %d failted. '%s' isParent '%s' should equal %t", i, c.a, c.b, c.expect)
+		}
+	}
+}
+
+func TestAddressIsAncestor(t *testing.T) {
+	cases := []struct {
+		a, b   string
+		expect bool
+	}{
+		{"", "", false},
+		{"ns", "", false},
+		{"ns", "ns.a", true},
+		{"ns", "bs.a", false},
+		{"ns", "ns.a.b", true},
+		{"ns", "bs.a.b", false},
+		{"", "bs.a.b", true},
+	}
+	for i, c := range cases {
+		if got := NewAddress(c.a).IsAncestor(NewAddress(c.b)); got != c.expect {
+			t.Errorf("case %d failted. '%s' isAncestor '%s' should equal %t", i, c.a, c.b, c.expect)
+		}
+	}
+}
+
 func TestValidAddressString(t *testing.T) {
 	cases := []struct {
 		str    string

@@ -27,12 +27,14 @@ type Dataset struct {
 	Url  string `json:"url,omitempty"`
 	File string `json:"file,omitempty"`
 	Data []byte `json:"data,omitempty"`
+
 	// This guy is required if data is going to be set
 	Format        DataFormat    `json:"format,omitempty"`
 	FormatOptions FormatOptions `json:"format_options"`
 
 	// Fields & PrimaryKey define the 'schema' for a dataset's data
-	Fields     []*Field `json:"fields,omitempty"`
+	Fields []*Field `json:"fields,omitempty"`
+	// Key to use as identifier
 	PrimaryKey FieldKey `json:"primary_key,omitempty"`
 	// An optional query that's used to calculate this dataset
 	Query *Query `json:"query,omitempty"`
@@ -44,6 +46,9 @@ type Dataset struct {
 
 	// A dataset can have child datasets
 	Datasets []*Dataset `json:"datasets,omitempty"`
+
+	// all datasets should really add a readme link
+	Readme string `json:"readme,omitempty"`
 
 	// optional stufffff
 	Author       *Person   `json:"author,omitempty"`
@@ -188,6 +193,7 @@ type _dataset struct {
 	Bytes         int                    `json:"bytes,omitempty"`
 	Hash          string                 `json:"hash,omitempty"`
 	Datasets      []*Dataset             `json:"datasets,omitempty"`
+	Readme        string                 `json:"readme,omitempty"`
 	Author        *Person                `json:"author,omitempty"`
 	Image         string                 `json:"image,omitempty"`
 	Description   string                 `json:"description,omitempty"`
@@ -222,6 +228,7 @@ func (d Dataset) MarshalJSON() (data []byte, err error) {
 		Query:         d.Query,
 		Mediatype:     d.Mediatype,
 		Encoding:      d.Encoding,
+		Readme:        d.Readme,
 		Bytes:         d.Bytes,
 		Hash:          d.Hash,
 		Datasets:      d.Datasets,
@@ -271,6 +278,7 @@ func (d *Dataset) UnmarshalJSON(data []byte) error {
 		Author:        ds.Author,
 		Image:         ds.Image,
 		Description:   ds.Description,
+		Readme:        ds.Readme,
 		Homepage:      ds.Homepage,
 		IconImage:     ds.IconImage,
 		PosterImage:   ds.PosterImage,
