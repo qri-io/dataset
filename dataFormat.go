@@ -12,6 +12,7 @@ const (
 	UnknownDataFormat DataFormat = iota
 	CsvDataFormat
 	JsonDataFormat
+	JsonArrayDataFormat
 	XmlDataFormat
 	XlsDataFormat
 	// TODO - make this list more exhaustive
@@ -20,11 +21,12 @@ const (
 // String implements stringer interface for DataFormat
 func (f DataFormat) String() string {
 	s, ok := map[DataFormat]string{
-		UnknownDataFormat: "",
-		CsvDataFormat:     "csv",
-		JsonDataFormat:    "json",
-		XmlDataFormat:     "xml",
-		XlsDataFormat:     "xls",
+		UnknownDataFormat:   "",
+		CsvDataFormat:       "csv",
+		JsonDataFormat:      "json",
+		JsonArrayDataFormat: "jsona",
+		XmlDataFormat:       "xml",
+		XlsDataFormat:       "xls",
 	}[f]
 
 	if !ok {
@@ -37,15 +39,17 @@ func (f DataFormat) String() string {
 // ParseDataFormatString takes a string representation of a data format
 func ParseDataFormatString(s string) (df DataFormat, err error) {
 	df, ok := map[string]DataFormat{
-		"":      UnknownDataFormat,
-		".csv":  CsvDataFormat,
-		"csv":   CsvDataFormat,
-		".json": JsonDataFormat,
-		"json":  JsonDataFormat,
-		".xml":  XmlDataFormat,
-		"xml":   XmlDataFormat,
-		".xls":  XlsDataFormat,
-		"xls":   XlsDataFormat,
+		"":       UnknownDataFormat,
+		".csv":   CsvDataFormat,
+		"csv":    CsvDataFormat,
+		".json":  JsonDataFormat,
+		"json":   JsonDataFormat,
+		".jsona": JsonArrayDataFormat,
+		"jsona":  JsonArrayDataFormat,
+		".xml":   XmlDataFormat,
+		"xml":    XmlDataFormat,
+		".xls":   XlsDataFormat,
+		"xls":    XlsDataFormat,
 	}[s]
 	if !ok {
 		err = fmt.Errorf("invalid DataFormat %q", s)
