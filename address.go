@@ -27,7 +27,9 @@ type Address []string
 func NewAddress(strs ...string) (p Address) {
 	for _, str := range strs {
 		for _, s := range strings.Split(str, ".") {
-			p = append(p, s)
+			if s != "" {
+				p = append(p, s)
+			}
 		}
 	}
 

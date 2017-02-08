@@ -9,6 +9,7 @@ func TestNewAddress(t *testing.T) {
 	cases := []struct {
 		in, out []string
 	}{
+		{[]string{"", "handle.dataset", "dataset"}, []string{"handle", "dataset", "dataset"}},
 		{[]string{"handle.dataset", "dataset"}, []string{"handle", "dataset", "dataset"}},
 		{[]string{"handle", "dataset", "dataset"}, []string{"handle", "dataset", "dataset"}},
 		{[]string{"handle", "dataset", "dataset", "dataset", "dataset"}, []string{"handle", "dataset", "dataset", "dataset", "dataset"}},
