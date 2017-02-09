@@ -46,6 +46,24 @@ func TestPathString(t *testing.T) {
 	}
 }
 
+func TestIsEmpty(t *testing.T) {
+	cases := []struct {
+		adr   Address
+		empty bool
+	}{
+		{NewAddress(""), true},
+		{NewAddress("a"), false},
+		{NewAddress("", "", ""), true},
+		{NewAddress("", ".thre"), false},
+	}
+
+	for i, c := range cases {
+		if c.adr.IsEmpty() != c.empty {
+			t.Errorf("case %d failed. expected '%s'.isEmpty() to equal %t", i, c.adr.String(), c.empty)
+		}
+	}
+}
+
 func TestAddressParent(t *testing.T) {
 	cases := []struct {
 		str, expect string
