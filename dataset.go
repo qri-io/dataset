@@ -27,10 +27,12 @@ type Dataset struct {
 	Url  string `json:"url,omitempty"`
 	File string `json:"file,omitempty"`
 	Data []byte `json:"data,omitempty"`
+	// One day hash will represent an IPFS hash
+	Hash string `json:"hash,omitempty"`
 
 	// This guy is required if data is going to be set
 	Format        DataFormat    `json:"format,omitempty"`
-	FormatOptions FormatOptions `json:"format_options"`
+	FormatOptions FormatOptions `json:"format_options,omitempty"`
 
 	// Fields & PrimaryKey define the 'schema' for a dataset's data
 	Fields []*Field `json:"fields,omitempty"`
@@ -42,10 +44,12 @@ type Dataset struct {
 	Mediatype string `json:"mediatype,omitempty"`
 	Encoding  string `json:"encoding,omitempty"`
 	Bytes     int    `json:"bytes,omitempty"`
-	Hash      string `json:"hash,omitempty"`
 
 	// A dataset can have child datasets
 	Datasets []*Dataset `json:"datasets,omitempty"`
+
+	// a log of changes to this dataset over time
+	History []*Dataset `json:"history,omitempty"`
 
 	// all datasets should really add a readme link
 	Readme string `json:"readme,omitempty"`
@@ -193,6 +197,7 @@ type _dataset struct {
 	Bytes         int                    `json:"bytes,omitempty"`
 	Hash          string                 `json:"hash,omitempty"`
 	Datasets      []*Dataset             `json:"datasets,omitempty"`
+	History       []*Dataset             `json:"history,omitempty"`
 	Readme        string                 `json:"readme,omitempty"`
 	Author        *Person                `json:"author,omitempty"`
 	Image         string                 `json:"image,omitempty"`
@@ -232,6 +237,7 @@ func (d Dataset) MarshalJSON() (data []byte, err error) {
 		Bytes:         d.Bytes,
 		Hash:          d.Hash,
 		Datasets:      d.Datasets,
+		History:       d.History,
 		Author:        d.Author,
 		Image:         d.Image,
 		Description:   d.Description,
@@ -275,6 +281,7 @@ func (d *Dataset) UnmarshalJSON(data []byte) error {
 		Bytes:         ds.Bytes,
 		Hash:          ds.Hash,
 		Datasets:      ds.Datasets,
+		History:       ds.History,
 		Author:        ds.Author,
 		Image:         ds.Image,
 		Description:   ds.Description,
