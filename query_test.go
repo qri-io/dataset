@@ -8,8 +8,8 @@ import (
 )
 
 func QueryEqual(a, b *Query) error {
-	if a.Format != b.Format {
-		return fmt.Errorf("format mismatch: %s != %s", a.Format, b.Format)
+	if a.Syntax != b.Syntax {
+		return fmt.Errorf("syntax mismatch: %s != %s", a.Syntax, b.Syntax)
 	}
 	if a.Statement != b.Statement {
 		return fmt.Errorf("statement mismatch: %s != %s", a.Statement, b.Statement)
@@ -26,7 +26,7 @@ func TestQueryUnmarshalJSON(t *testing.T) {
 	}{
 		{`"select a from b"`, &Query{Statement: "select a from b"}, nil},
 		{`{ "statement" : "select a from b" }`, &Query{Statement: "select a from b"}, nil},
-		{`{ "format" : "ql", "statement" : "select a from b" }`, &Query{Format: "ql", Statement: "select a from b"}, nil},
+		{`{ "syntax" : "ql", "statement" : "select a from b" }`, &Query{Syntax: "ql", Statement: "select a from b"}, nil},
 	}
 
 	for i, c := range cases {
@@ -49,8 +49,7 @@ func TestQueryMarshalJSON(t *testing.T) {
 		out string
 		err error
 	}{
-		{&Query{Statement: "select a from b"}, `"select a from b"`, nil},
-		{&Query{Format: "ql", Statement: "select a from b"}, `{"format":"ql","statement":"select a from b"}`, nil},
+		{&Query{Syntax: "sql", Statement: "select a from b"}, `{"resources":null,"schema":null,"statement":"select a from b","syntax":"sql"}`, nil},
 	}
 
 	for i, c := range cases {

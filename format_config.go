@@ -4,12 +4,12 @@ import (
 	"fmt"
 )
 
-type FormatOptions interface {
+type FormatConfig interface {
 	Format() DataFormat
 	Map() map[string]interface{}
 }
 
-func ParseFormatOptionsMap(f DataFormat, opts map[string]interface{}) (FormatOptions, error) {
+func ParseFormatConfigMap(f DataFormat, opts map[string]interface{}) (FormatConfig, error) {
 	switch f {
 	case CsvDataFormat:
 		return NewCsvOptions(opts)
@@ -20,7 +20,7 @@ func ParseFormatOptionsMap(f DataFormat, opts map[string]interface{}) (FormatOpt
 	return nil, nil
 }
 
-func NewCsvOptions(opts map[string]interface{}) (FormatOptions, error) {
+func NewCsvOptions(opts map[string]interface{}) (FormatConfig, error) {
 	o := &CsvOptions{}
 	if opts == nil {
 		return o, nil
@@ -54,7 +54,7 @@ func (o *CsvOptions) Map() map[string]interface{} {
 	}
 }
 
-func NewJsonOptions(opts map[string]interface{}) (FormatOptions, error) {
+func NewJsonOptions(opts map[string]interface{}) (FormatConfig, error) {
 	o := &JsonOptions{}
 	if opts == nil {
 		return o, nil
