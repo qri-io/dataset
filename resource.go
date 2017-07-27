@@ -2,7 +2,6 @@ package dataset
 
 import (
 	"encoding/json"
-	"errors"
 	"github.com/ipfs/go-datastore"
 )
 
@@ -40,7 +39,7 @@ type Resource struct {
 
 // Hash gives the hash of this resource
 func (r *Resource) Hash() (string, error) {
-	return CalcHash(r)
+	return JSONHash(r)
 }
 
 // truthCount returns the number of arguments that are true

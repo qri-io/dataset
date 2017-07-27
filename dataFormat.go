@@ -6,6 +6,8 @@ import (
 	"fmt"
 )
 
+var ErrUnknownDataFormat = fmt.Errorf("Unknown Data Format")
+
 // DataFormat represents different types of data
 type DataFormat int
 
@@ -63,7 +65,7 @@ func ParseDataFormatString(s string) (df DataFormat, err error) {
 // MarshalJSON satisfies the json.Marshaler interface
 func (f DataFormat) MarshalJSON() ([]byte, error) {
 	if f == UnknownDataFormat {
-		return nil, nil
+		return nil, ErrUnknownDataFormat
 	}
 	return []byte(fmt.Sprintf(`"%s"`, f.String())), nil
 }

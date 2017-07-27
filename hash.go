@@ -7,16 +7,20 @@ import (
 	"github.com/multiformats/go-multihash"
 )
 
-// CalcHash calculates the hash of a json.Marshaler
-// TODO - this will have to place nice with IPFS block hashing strategies
-func CalcHash(m json.Marshaler) (hash string, err error) {
-	h := sha256.New()
-
+// JSONHash calculates the hash of a json.Marshaler
+func JSONHash(m json.Marshaler) (hash string, err error) {
 	// marshal to cannoncical JSON representation
 	data, err := m.MarshalJSON()
 	if err != nil {
 		return
 	}
+	return HashBytes(data)
+}
+
+// TODO - this will have to place nice with IPFS block hashing strategies
+func HashBytes(data []byte) (hash string, err error) {
+	h := sha256.New()
+
 	if _, err = h.Write(data); err != nil {
 		return
 	}
