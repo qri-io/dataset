@@ -1,6 +1,7 @@
 package dataset
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -14,7 +15,7 @@ func TestResouceHash(t *testing.T) {
 		hash string
 		err  error
 	}{
-		{&Resource{Format: CsvDataFormat}, "1220c2f881931bffda4b33de1fcc9c6085b4d4b9dcc5d18083d97c6415c1a3590b66", nil},
+		{&Resource{Format: CsvDataFormat}, "1220e0bc0f888d2771573d0c6ea4086ab40dc7d3d62f705aa04d2df228c9dcc4e126", nil},
 	}
 
 	for i, c := range cases {
@@ -49,7 +50,7 @@ func TestResourceUnmarshalJSON(t *testing.T) {
 
 		ds := &Resource{}
 		if err := json.Unmarshal(data, ds); err != c.err {
-			t.Errorf("case %d parse error mismatch. expected: '%s', got: '%s'", i, c.err, err)
+			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
 			continue
 		}
 
@@ -62,7 +63,27 @@ func TestResourceUnmarshalJSON(t *testing.T) {
 }
 
 func TestResourceMarshalJSON(t *testing.T) {
+	cases := []struct {
+		in  *Resource
+		out []byte
+		err error
+	}{
+		{&Resource{Format: CsvDataFormat}, []byte(`{"compression":"","encoding":"","format":"csv","formatOptions":null,"length":0,"path":{"string":""},"query":{"string":""},"QueryEngineConfig":null}`), nil},
+		{AirportCodes, []byte(`{"compression":"","encoding":"","format":"csv","formatOptions":{"header_row":true},"length":0,"path":{"string":""},"query":{"string":""},"QueryEngineConfig":null,"schema":{"fields":[{"name":"ident","type":"string"},{"name":"type","type":"string"},{"name":"name","type":"string"},{"name":"latitude_deg","type":"float"},{"name":"longitude_deg","type":"float"},{"name":"elevation_ft","type":"integer"},{"name":"continent","type":"string"},{"name":"iso_country","type":"string"},{"name":"iso_region","type":"string"},{"name":"municipality","type":"string"},{"name":"gps_code","type":"string"},{"name":"iata_code","type":"string"},{"name":"local_code","type":"string"}],"primaryKey":null}}`), nil},
+	}
 
+	for i, c := range cases {
+		got, err := c.in.MarshalJSON()
+		if err != c.err {
+			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
+			continue
+		}
+
+		if !bytes.Equal(c.out, got) {
+			t.Errorf("case %d error mismatch. %s != %s", i, string(c.out), string(got))
+			continue
+		}
+	}
 }
 
 func CompareResources(a, b *Resource) error {

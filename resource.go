@@ -3,6 +3,7 @@ package dataset
 import (
 	"encoding/json"
 	"github.com/ipfs/go-datastore"
+	"github.com/qri-io/dataset/compression"
 )
 
 // Resource designates a deterministic definition for working with a discrete dataset
@@ -16,22 +17,25 @@ type Resource struct {
 	Format DataFormat `json:"format"`
 	// FormatConfig removes as much ambiguity as possible about how
 	// to interpret the speficied format.
-	FormatConfig FormatConfig `json:"formatConfig"`
+	FormatConfig FormatConfig `json:"formatConfig,omitempty"`
 	// Encoding specifics character encoding
-	Encoding string `json:"encoding"`
+	// should assume utf-8 if not specified
+	Encoding string `json:"encoding,omitempty"`
 	// Length is the length of the source data in bytes
+	// must always match & be present
 	Length int `json:"length"`
 	// Compression specifies any compression on the source data,
-	Compression string `json:"compression"`
+	// if empty assume no compression
+	Compression compression.Type `json:"compression,omitempty"`
 	// Schema contains the schema definition for the underlying data
 	Schema *Schema `json:"schema"`
 	// Path is the path to the hash of raw data as it resolves on the network.
 	Path datastore.Key `json:"path"`
 	// Query is a path to a query that generated this resource
-	Query *Query `json:"query,omitempty"`
-	// queryPlatform is the hash of the operating system that performed the query
+	Query datastore.Key `json:"query,omitempty"`
+	// queryPlatform is an identifier for the operating system that performed the query
 	QueryPlatform string `json:"queryPlatform,omitempty"`
-	// QueryEngine is the hash of the source code that produced the result
+	// QueryEngine is an identifier for the application that produced the result
 	QueryEngine string `json:"queryEngine,omitempty"`
 	// QueryEngineConfig outlines any configuration that would affect the resulting hash
 	QueryEngineConfig map[string]interface{} `json:"queryEngineConfig,omitempty`
@@ -55,13 +59,13 @@ func truthCount(args ...bool) (count int) {
 // separate type for marshalling into & out of
 // most importantly, struct names must be sorted lexographically
 type _resource struct {
-	Compression       string                 `json:"compression"`
+	Compression       compression.Type       `json:"compression"`
 	Encoding          string                 `json:"encoding"`
 	Format            DataFormat             `json:"format"`
 	FormatConfig      map[string]interface{} `json:"formatOptions"`
 	Length            int                    `json:"length"`
 	Path              datastore.Key          `json:"path"`
-	Query             *Query                 `json:"query,omitempty"`
+	Query             datastore.Key          `json:"query,omitempty"`
 	QueryEngine       string                 `json:"queryEngine,omitempty"`
 	QueryEngineConfig map[string]interface{} `json:"queryEngineConfig,omitempty`
 	QueryPlatform     string                 `json:"queryPlatform,omitempty"`

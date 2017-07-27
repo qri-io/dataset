@@ -3,6 +3,7 @@ package dataset
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/ipfs/go-datastore"
 	"regexp"
 )
 
@@ -19,19 +20,20 @@ var alphaNumericRegex = regexp.MustCompile(`^[a-z0-9_-]{1-144}$`)
 // Design goals should include making this compatible with the DCAT spec,
 // with the one major exception that hashes are acceptable in place of urls.
 type Metadata struct {
-	Title        string   `json:"title,omitempty"`
-	Url          string   `json:"url,omitempty"`
-	Readme       string   `json:"readme,omitempty"`
-	Author       *User    `json:"author,omitempty"`
-	Image        string   `json:"image,omitempty"`
-	Description  string   `json:"description,omitempty"`
-	Homepage     string   `json:"homepage,omitempty"`
-	IconImage    string   `json:"icon_image,omitempty"`
-	PosterImage  string   `json:"poster_image,omitempty"`
-	License      *License `json:"license,omitempty"`
-	Version      Version  `json:"version,omitempty"`
-	Keywords     []string `json:"keywords,omitempty"`
-	Contributors []*User  `json:"contributors,omitempty"`
+	Title        string        `json:"title,omitempty"`
+	Url          string        `json:"url,omitempty"`
+	Readme       string        `json:"readme,omitempty"`
+	Author       *User         `json:"author,omitempty"`
+	Image        string        `json:"image,omitempty"`
+	Description  string        `json:"description,omitempty"`
+	Homepage     string        `json:"homepage,omitempty"`
+	IconImage    string        `json:"icon_image,omitempty"`
+	PosterImage  string        `json:"poster_image,omitempty"`
+	License      *License      `json:"license,omitempty"`
+	Version      Version       `json:"version,omitempty"`
+	Keywords     []string      `json:"keywords,omitempty"`
+	Contributors []*User       `json:"contributors,omitempty"`
+	Subject      datastore.Key `json:"subject,omitempty"`
 }
 
 // User is a placholder for talking about people, groups, organizations
@@ -95,3 +97,7 @@ func (name *VariableName) UnmarshalJSON(data []byte) error {
 	*name = VariableName(s)
 	return nil
 }
+
+// Version is a semantic major.minor.patch
+// TODO - make Version enforce this format
+type Version string
