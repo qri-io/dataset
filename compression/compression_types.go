@@ -25,7 +25,7 @@ var Codes = map[string]Type{
 func ParseTypeString(s string) (t Type, err error) {
 	t, ok := Codes[s]
 	if !ok {
-		err = fmt.Errorf("invalid CompressionType %q", s)
+		err = fmt.Errorf("invalid compression type %q", s)
 		t = None
 	}
 
