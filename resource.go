@@ -2,6 +2,7 @@ package dataset
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/dataset/compression"
 )
@@ -149,4 +150,21 @@ func (ds *Resource) Valid() error {
 	// }
 
 	return nil
+}
+
+// UnmarshalResource tries to extract a resource type from an empty
+// interface. Pairs nicely with datastore.Get() from github.com/ipfs/go-datastore
+func UnmarshalResource(v interface{}) (*Resource, error) {
+	switch r := v.(type) {
+	case *Resource:
+		return r, nil
+	case Resource:
+		return &r, nil
+	case []byte:
+		resource := &Resource{}
+		err := json.Unmarshal(r, resource)
+		return resource, err
+	default:
+		return nil, fmt.Errorf("couldn't parse resource")
+	}
 }
