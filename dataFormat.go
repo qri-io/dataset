@@ -1,9 +1,12 @@
+// TODO - consider placing this in a subpackage: dataformats
 package dataset
 
 import (
 	"encoding/json"
 	"fmt"
 )
+
+var ErrUnknownDataFormat = fmt.Errorf("Unknown Data Format")
 
 // DataFormat represents different types of data
 type DataFormat int
@@ -59,13 +62,15 @@ func ParseDataFormatString(s string) (df DataFormat, err error) {
 	return
 }
 
+// MarshalJSON satisfies the json.Marshaler interface
 func (f DataFormat) MarshalJSON() ([]byte, error) {
 	if f == UnknownDataFormat {
-		return nil, nil
+		return nil, ErrUnknownDataFormat
 	}
 	return []byte(fmt.Sprintf(`"%s"`, f.String())), nil
 }
 
+// UnmarshalJSON satisfies the json.Unmarshaler interface
 func (f *DataFormat) UnmarshalJSON(data []byte) error {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
