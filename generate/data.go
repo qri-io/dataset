@@ -8,6 +8,7 @@ import (
 
 // RandomDataOpts configures RandomData output
 type RandomDataOpts struct {
+	Data           []byte
 	NumRandRecords int
 	Format         dataset.DataFormat
 }
@@ -15,6 +16,7 @@ type RandomDataOpts struct {
 // RandomData generates data based on a given resource definition
 func RandomData(r *dataset.Resource, opts ...func(o *RandomDataOpts)) []byte {
 	opt := &RandomDataOpts{
+		Data:           nil,
 		NumRandRecords: 500,
 		Format:         dataset.CsvDataFormat,
 	}
@@ -25,7 +27,7 @@ func RandomData(r *dataset.Resource, opts ...func(o *RandomDataOpts)) []byte {
 		return nil
 	}
 
-	buf := bytes.NewBuffer(nil)
+	buf := bytes.NewBuffer(opt.Data)
 	if err := csv.NewWriter(buf).WriteAll(RandomStringRows(r.Schema.Fields, opt.NumRandRecords)); err != nil {
 		panic(err)
 	}
