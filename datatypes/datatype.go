@@ -111,12 +111,12 @@ func ParseDatatype(value []byte) Type {
 	if _, err = ParseDate(value); err == nil {
 		return Date
 	}
-	if _, err = ParseUrl(value); err == nil {
-		return Url
-	}
-	if _, err = ParseArray(value); err == nil {
-		return Array
-	}
+	// if _, err = ParseUrl(value); err == nil {
+	// 	return Url
+	// }
+	// if _, err = ParseArray(value); err == nil {
+	// 	return Array
+	// }
 	if _, err = ParseString(value); err == nil {
 		return String
 	}
