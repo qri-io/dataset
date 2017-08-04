@@ -1,6 +1,7 @@
 package dataset
 
 import (
+	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/dataset/datatypes"
 )
 
@@ -117,4 +118,17 @@ var ContinentCodes = &Resource{
 // 		},
 // 	},
 // },
+}
+
+var Hours = &Resource{
+	Format: CsvDataFormat,
+	Path:   datastore.NewKey("/ipfs/QmS1dVa1xemo7gQzJgjimj1WwnVBF3TwRTGsyKa1uEBWbJ"),
+	Schema: &Schema{
+		Fields: []*Field{
+			&Field{Name: "field_1", Type: datatypes.Date},
+			&Field{Name: "field_2", Type: datatypes.Float},
+			&Field{Name: "field_3", Type: datatypes.String},
+			&Field{Name: "field_4", Type: datatypes.String},
+		},
+	},
 }

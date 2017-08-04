@@ -8,7 +8,7 @@ import (
 
 type Schema struct {
 	Fields     []*Field `json:"fields,omitempty"`
-	PrimaryKey FieldKey `json:"primaryKey"`
+	PrimaryKey FieldKey `json:"primaryKey,omitempty"`
 }
 
 // FieldNames gives a slice of field names defined in schema

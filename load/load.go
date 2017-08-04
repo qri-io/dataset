@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/dataset"
+	// "gx/ipfs/QmVSase1JP7cq9QkPT46oNwdp9pT6kBkG3oqS14y3QcZjG/go-datastore"
 )
 
 // LoadResource loads a resource from a store

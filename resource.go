@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/dataset/compression"
+	// "gx/ipfs/QmVSase1JP7cq9QkPT46oNwdp9pT6kBkG3oqS14y3QcZjG/go-datastore"
 )
 
 // Resource designates a deterministic definition for working with a discrete dataset
@@ -57,22 +58,6 @@ func truthCount(args ...bool) (count int) {
 	return
 }
 
-// separate type for marshalling into & out of
-// most importantly, struct names must be sorted lexographically
-type _resource struct {
-	Compression       compression.Type       `json:"compression"`
-	Encoding          string                 `json:"encoding"`
-	Format            DataFormat             `json:"format"`
-	FormatConfig      map[string]interface{} `json:"formatOptions"`
-	Length            int                    `json:"length"`
-	Path              datastore.Key          `json:"path"`
-	Query             datastore.Key          `json:"query,omitempty"`
-	QueryEngine       string                 `json:"queryEngine,omitempty"`
-	QueryEngineConfig map[string]interface{} `json:"queryEngineConfig,omitempty`
-	QueryPlatform     string                 `json:"queryPlatform,omitempty"`
-	Schema            *Schema                `json:"schema,omitempty"`
-}
-
 // MarshalJSON satisfies the json.Marshaler interface
 func (r Resource) MarshalJSON() (data []byte, err error) {
 	var opt map[string]interface{}
@@ -93,6 +78,22 @@ func (r Resource) MarshalJSON() (data []byte, err error) {
 		QueryPlatform:     r.QueryPlatform,
 		Schema:            r.Schema,
 	})
+}
+
+// separate type for marshalling into & out of
+// most importantly, struct names must be sorted lexographically
+type _resource struct {
+	Compression       compression.Type       `json:"compression,omitempty"`
+	Encoding          string                 `json:"encoding,omitempty"`
+	Format            DataFormat             `json:"format"`
+	FormatConfig      map[string]interface{} `json:"formatConfig,omitempty"`
+	Length            int                    `json:"length,omitempty"`
+	Path              datastore.Key          `json:"path,omitempty"`
+	Query             datastore.Key          `json:"query,omitempty"`
+	QueryEngine       string                 `json:"queryEngine,omitempty"`
+	QueryEngineConfig map[string]interface{} `json:"queryEngineConfig,omitempty"`
+	QueryPlatform     string                 `json:"queryPlatform,omitempty"`
+	Schema            *Schema                `json:"schema,omitempty"`
 }
 
 // UnmarshalJSON satisfies the json.Unmarshaler interface
@@ -161,6 +162,7 @@ func UnmarshalResource(v interface{}) (*Resource, error) {
 	case Resource:
 		return &r, nil
 	case []byte:
+		fmt.Println(string(r))
 		resource := &Resource{}
 		err := json.Unmarshal(r, resource)
 		return resource, err

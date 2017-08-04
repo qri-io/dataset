@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"path/filepath"
 	"testing"
 )
 
@@ -15,7 +14,7 @@ func TestResouceHash(t *testing.T) {
 		hash string
 		err  error
 	}{
-		{&Resource{Format: CsvDataFormat}, "1220e0bc0f888d2771573d0c6ea4086ab40dc7d3d62f705aa04d2df228c9dcc4e126", nil},
+		{&Resource{Format: CsvDataFormat}, "12204ac9a6b596dd42656e7ea7ee3aadf755d92e769f94cc2c08af51aae80889e21b", nil},
 	}
 
 	for i, c := range cases {
@@ -38,12 +37,13 @@ func TestResourceUnmarshalJSON(t *testing.T) {
 		result   *Resource
 		err      error
 	}{
-		{"airport-codes.json", AirportCodes, nil},
-		{"continent-codes.json", ContinentCodes, nil},
+		{"testdata/definitions/airport-codes.json", AirportCodes, nil},
+		{"testdata/definitions/continent-codes.json", ContinentCodes, nil},
+		{"testdata/definitions/hours.json", Hours, nil},
 	}
 
 	for i, c := range cases {
-		data, err := ioutil.ReadFile(filepath.Join("testdata/definitions", c.FileName))
+		data, err := ioutil.ReadFile(c.FileName)
 		if err != nil {
 			t.Errorf("case %d couldn't read file: %s", i, err.Error())
 		}
@@ -68,8 +68,8 @@ func TestResourceMarshalJSON(t *testing.T) {
 		out []byte
 		err error
 	}{
-		{&Resource{Format: CsvDataFormat}, []byte(`{"compression":"","encoding":"","format":"csv","formatOptions":null,"length":0,"path":{"string":""},"query":{"string":""},"QueryEngineConfig":null}`), nil},
-		{AirportCodes, []byte(`{"compression":"","encoding":"","format":"csv","formatOptions":{"header_row":true},"length":0,"path":{"string":""},"query":{"string":""},"QueryEngineConfig":null,"schema":{"fields":[{"name":"ident","type":"string"},{"name":"type","type":"string"},{"name":"name","type":"string"},{"name":"latitude_deg","type":"float"},{"name":"longitude_deg","type":"float"},{"name":"elevation_ft","type":"integer"},{"name":"continent","type":"string"},{"name":"iso_country","type":"string"},{"name":"iso_region","type":"string"},{"name":"municipality","type":"string"},{"name":"gps_code","type":"string"},{"name":"iata_code","type":"string"},{"name":"local_code","type":"string"}],"primaryKey":null}}`), nil},
+		{&Resource{Format: CsvDataFormat}, []byte(`{"format":"csv","path":"","query":""}`), nil},
+		{AirportCodes, []byte(`{"format":"csv","formatConfig":{"header_row":true},"path":"","query":"","schema":{"fields":[{"name":"ident","type":"string"},{"name":"type","type":"string"},{"name":"name","type":"string"},{"name":"latitude_deg","type":"float"},{"name":"longitude_deg","type":"float"},{"name":"elevation_ft","type":"integer"},{"name":"continent","type":"string"},{"name":"iso_country","type":"string"},{"name":"iso_region","type":"string"},{"name":"municipality","type":"string"},{"name":"gps_code","type":"string"},{"name":"iata_code","type":"string"},{"name":"local_code","type":"string"}]}}`), nil},
 	}
 
 	for i, c := range cases {
