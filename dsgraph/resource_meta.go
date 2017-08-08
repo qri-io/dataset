@@ -9,12 +9,7 @@ import (
 type ResourceMeta map[datastore.Key]datastore.Key
 
 func (rm ResourceMeta) SetMeta(resource, meta datastore.Key) {
-	for _, r := range rm[query] {
-		if r.Equal(result) {
-			return
-		}
-	}
-	rm[query] = append(rm[query], result)
+	rm[resource] = meta
 }
 
 func (rm ResourceMeta) MarshalJSON() ([]byte, error) {

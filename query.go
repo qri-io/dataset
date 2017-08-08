@@ -2,6 +2,7 @@ package dataset
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/ipfs/go-datastore"
 	// "gx/ipfs/QmVSase1JP7cq9QkPT46oNwdp9pT6kBkG3oqS14y3QcZjG/go-datastore"
 )
@@ -84,3 +85,20 @@ func (q *Query) UnmarshalJSON(data []byte) error {
 
 // 	return
 // }
+
+// UnmarshalResource tries to extract a resource type from an empty
+// interface. Pairs nicely with datastore.Get() from github.com/ipfs/go-datastore
+func UnmarshalQuery(v interface{}) (*Query, error) {
+	switch q := v.(type) {
+	case *Query:
+		return q, nil
+	case Query:
+		return &q, nil
+	case []byte:
+		query := &Query{}
+		err := json.Unmarshal(q, query)
+		return query, err
+	default:
+		return nil, fmt.Errorf("couldn't parse query")
+	}
+}

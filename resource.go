@@ -162,7 +162,6 @@ func UnmarshalResource(v interface{}) (*Resource, error) {
 	case Resource:
 		return &r, nil
 	case []byte:
-		fmt.Println(string(r))
 		resource := &Resource{}
 		err := json.Unmarshal(r, resource)
 		return resource, err

@@ -10,12 +10,12 @@ import (
 type ResourceQueries map[datastore.Key][]datastore.Key
 
 func (qr ResourceQueries) AddQuery(resource, query datastore.Key) {
-	for _, r := range qr[query] {
-		if r.Equal(result) {
+	for _, r := range qr[resource] {
+		if r.Equal(query) {
 			return
 		}
 	}
-	qr[query] = append(qr[query], result)
+	qr[resource] = append(qr[resource], query)
 }
 
 func (qr ResourceQueries) MarshalJSON() ([]byte, error) {
