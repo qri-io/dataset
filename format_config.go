@@ -59,8 +59,14 @@ func NewJsonOptions(opts map[string]interface{}) (FormatConfig, error) {
 	if opts == nil {
 		return o, nil
 	}
-	// TODO
-	return o, fmt.Errorf("parsing json data format options isn't finished")
+	if opts["object_entries"] != nil {
+		if objEntries, ok := opts["object_entries"].(bool); ok {
+			o.ObjectEntries = objEntries
+		} else {
+			return nil, fmt.Errorf("invalid object_entries value: %s", opts["object_entries"])
+		}
+	}
+	return o, nil
 }
 
 type JsonOptions struct {
