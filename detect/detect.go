@@ -35,11 +35,20 @@ func FromFile(path string) (ds *dataset.Resource, err error) {
 		return nil, err
 	}
 
-	return Resource(format, f)
+	return DetectResource(format, f)
 }
 
-// Resource detects
-func Resource(format dataset.DataFormat, data io.Reader) (r *dataset.Resource, err error) {
+// FromReader is a shorthand for a path/filename and reader
+func FromReader(path string, data io.Reader) (ds *dataset.Resource, err error) {
+	format, err := ExtensionDataFormat(path)
+	if err != nil {
+		return nil, err
+	}
+	return DetectResource(format, data)
+}
+
+// Resource attemptes to extract a reader based on a given format and data reader
+func DetectResource(format dataset.DataFormat, data io.Reader) (r *dataset.Resource, err error) {
 
 	r = &dataset.Resource{
 		Format: format,
