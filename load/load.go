@@ -1,4 +1,4 @@
-// load-dataset (packaged as just "load") loads dataset from an ipfs-datastore
+// loads dataset data from an ipfs-datastore
 package load
 
 import (
@@ -7,11 +7,10 @@ import (
 	"fmt"
 	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/dataset"
-	// "gx/ipfs/QmVSase1JP7cq9QkPT46oNwdp9pT6kBkG3oqS14y3QcZjG/go-datastore"
 )
 
-// LoadResource loads a resource from a store
-func LoadResource(store datastore.Datastore, path datastore.Key) (*dataset.Resource, error) {
+// Resource loads a resource from a store
+func Resource(store datastore.Datastore, path datastore.Key) (*dataset.Resource, error) {
 	v, err := store.Get(path)
 	if err != nil {
 		return nil, err
@@ -20,10 +19,64 @@ func LoadResource(store datastore.Datastore, path datastore.Key) (*dataset.Resou
 	return dataset.UnmarshalResource(v)
 }
 
+// RawData loads all data for a given key
+func RawData(store datastore.Datastore, path datastore.Key) ([]byte, error) {
+	v, err := store.Get(path)
+	if err != nil {
+		return nil, err
+	}
+
+	if data, ok := v.([]byte); ok {
+		return data, nil
+	}
+
+	return nil, fmt.Errorf("wrong data type for path: %s", path)
+}
+
+// RowDataRows loads a slice of raw bytes inside a limit/offset row range
+func RawDataRows(store datastore.Datastore, r *dataset.Resource, limit, offset int) ([]byte, error) {
+	rawdata, err := RawData(store, r.Path)
+	if err != nil {
+		return nil, err
+	}
+
+	added := 0
+	if r.Format != dataset.CsvDataFormat {
+		return nil, fmt.Errorf("raw data rows only works with csv data format for now")
+	}
+
+	buf := &bytes.Buffer{}
+	w := csv.NewWriter(buf)
+
+	err = EachRow(r, rawdata, func(i int, data [][]byte, err error) error {
+		if err != nil {
+			return err
+		} else if i < offset {
+			return nil
+		} else if i-offset == added {
+			return fmt.Errorf("EOF")
+		}
+		row := make([]string, len(data))
+		for i, d := range data {
+			row[i] = string(d)
+		}
+
+		w.Write(row)
+		added++
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	w.Flush()
+	return buf.Bytes(), nil
+}
+
 // DataIteratorFunc is a function for each "row" of a resource's raw data
 type DataIteratorFunc func(int, [][]byte, error) error
 
-// EachRow
+// EachRow calls fn on each row of raw data, using the resource definition for parsing
 func EachRow(r *dataset.Resource, rawdata []byte, fn DataIteratorFunc) error {
 	switch r.Format {
 	case dataset.CsvDataFormat:
@@ -93,6 +146,21 @@ func HeaderRow(r *dataset.Resource) bool {
 	}
 	return false
 }
+
+// TODO - this won't work b/c underlying implementations are different
+// time to create an interface that conforms all different data types to readers & writers
+// that think in terms of rows, etc.
+// func NewWriter(r *dataset.Resource) (w io.WriteCloser, buf *bytes.Buffer, err error) {
+// 	buf = &bytes.Buffer{}
+// 	switch r.Format {
+// 	case dataset.CsvDataFormat:
+// 		return csv.NewWriter(buf), buf, nil
+// 	case dataset.JsonDataFormat:
+// 		return nil, nil, fmt.Errorf("json writer unfinished")
+// 	default:
+// 		return nil, nil, fmt.Errorf("unrecognized data format for creating writer: %s", r.Format.String())
+// 	}
+// }
 
 // FetchBytes grabs the actual byte data that this dataset represents
 // it is expected that the passed-in store will be scoped to the dataset
