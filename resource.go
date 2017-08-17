@@ -8,13 +8,23 @@ import (
 	// "gx/ipfs/QmVSase1JP7cq9QkPT46oNwdp9pT6kBkG3oqS14y3QcZjG/go-datastore"
 )
 
-// Resource designates a deterministic definition for working with a discrete dataset
-// Resource is concrete handle that provides precise details about how to interpret the underlying data.
-// A Resource must resolve to one and only one entity, specified by a `path` property in the resource definition.
-// These techniques provide mechanisms for joining & traversing multiple resources.
+type ResourceLink struct {
+	Structure datastore.Key
+	Data      datastore.Key
+}
+
+type Resource struct {
+	Structure
+	Data datastore.Key
+}
+
+// Structure designates a deterministic definition for working with a discrete dataset.
+// Structure is a concrete handle that provides precise details about how to interpret the underlying data.
+// A Structure must resolve to one and only one entity, specified by a `path` property in the structure definition.
+// These techniques provide mechanisms for joining & traversing multiple structures.
 // This example is shown in a human-readable form, for storage on the network the actual
 // output would be in a condensed, non-indented form, with keys sorted by lexographic order.
-type Resource struct {
+type Structure struct {
 	// Format specifies the format of the raw data MIME type
 	Format DataFormat `json:"format"`
 	// FormatConfig removes as much ambiguity as possible about how
@@ -31,20 +41,10 @@ type Resource struct {
 	Compression compression.Type `json:"compression,omitempty"`
 	// Schema contains the schema definition for the underlying data
 	Schema *Schema `json:"schema"`
-	// Path is the path to the hash of raw data as it resolves on the network.
-	Path datastore.Key `json:"path"`
-	// Query is a path to a query that generated this resource
-	Query datastore.Key `json:"query,omitempty"`
-	// queryPlatform is an identifier for the operating system that performed the query
-	QueryPlatform string `json:"queryPlatform,omitempty"`
-	// QueryEngine is an identifier for the application that produced the result
-	QueryEngine string `json:"queryEngine,omitempty"`
-	// QueryEngineConfig outlines any configuration that would affect the resulting hash
-	QueryEngineConfig map[string]interface{} `json:"queryEngineConfig,omitempty`
 }
 
-// Hash gives the hash of this resource
-func (r *Resource) Hash() (string, error) {
+// Hash gives the hash of this structure
+func (r *Structure) Hash() (string, error) {
 	return JSONHash(r)
 }
 
@@ -59,13 +59,13 @@ func truthCount(args ...bool) (count int) {
 }
 
 // MarshalJSON satisfies the json.Marshaler interface
-func (r Resource) MarshalJSON() (data []byte, err error) {
+func (r Structure) MarshalJSON() (data []byte, err error) {
 	var opt map[string]interface{}
 	if r.FormatConfig != nil {
 		opt = r.FormatConfig.Map()
 	}
 
-	return json.Marshal(&_resource{
+	return json.Marshal(&_structure{
 		Compression:       r.Compression,
 		Encoding:          r.Encoding,
 		Format:            r.Format,
@@ -82,7 +82,7 @@ func (r Resource) MarshalJSON() (data []byte, err error) {
 
 // separate type for marshalling into & out of
 // most importantly, struct names must be sorted lexographically
-type _resource struct {
+type _structure struct {
 	Compression       compression.Type       `json:"compression,omitempty"`
 	Encoding          string                 `json:"encoding,omitempty"`
 	Format            DataFormat             `json:"format"`
@@ -97,8 +97,8 @@ type _resource struct {
 }
 
 // UnmarshalJSON satisfies the json.Unmarshaler interface
-func (r *Resource) UnmarshalJSON(data []byte) error {
-	_r := &_resource{}
+func (r *Structure) UnmarshalJSON(data []byte) error {
+	_r := &_structure{}
 	if err := json.Unmarshal(data, _r); err != nil {
 		return err
 	}
@@ -108,7 +108,7 @@ func (r *Resource) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	*r = Resource{
+	*r = Structure{
 		Compression:       _r.Compression,
 		Encoding:          _r.Encoding,
 		Format:            _r.Format,
@@ -123,7 +123,7 @@ func (r *Resource) UnmarshalJSON(data []byte) error {
 	}
 
 	// TODO - question of weather we should not accept
-	// invalid resource defs at parse time. For now we'll take 'em.
+	// invalid structure defs at parse time. For now we'll take 'em.
 	// if err := d.Valid(); err != nil {
 	//   return err
 	// }
@@ -136,8 +136,8 @@ func (r *Resource) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// Valid validates weather or not this resource
-func (ds *Resource) Valid() error {
+// Valid validates weather or not this structure
+func (ds *Structure) Valid() error {
 	// if count := truthCount(ds.Url != "", ds.File != "", len(ds.Data) > 0); count > 1 {
 	// 	return errors.New("only one of url, file, or data can be set")
 	// } else if count == 1 {
@@ -153,19 +153,19 @@ func (ds *Resource) Valid() error {
 	return nil
 }
 
-// UnmarshalResource tries to extract a resource type from an empty
+// UnmarshalStructure tries to extract a structure type from an empty
 // interface. Pairs nicely with datastore.Get() from github.com/ipfs/go-datastore
-func UnmarshalResource(v interface{}) (*Resource, error) {
+func UnmarshalStructure(v interface{}) (*Structure, error) {
 	switch r := v.(type) {
-	case *Resource:
+	case *Structure:
 		return r, nil
-	case Resource:
+	case Structure:
 		return &r, nil
 	case []byte:
-		resource := &Resource{}
-		err := json.Unmarshal(r, resource)
-		return resource, err
+		structure := &Structure{}
+		err := json.Unmarshal(r, structure)
+		return structure, err
 	default:
-		return nil, fmt.Errorf("couldn't parse resource")
+		return nil, fmt.Errorf("couldn't parse structure")
 	}
 }
