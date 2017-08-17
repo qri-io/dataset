@@ -1,11 +1,10 @@
 package dataset
 
 import (
-	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/dataset/datatypes"
 )
 
-var AirportCodes = &Resource{
+var AirportCodes = &Structure{
 	// Name:     "airport-codes",
 	// Address:  NewAddress("airport-codes"),
 	// Homepage: "http://www.ourairports.com/",
@@ -84,7 +83,7 @@ var AirportCodes = &Resource{
 	},
 }
 
-var ContinentCodes = &Resource{
+var ContinentCodes = &Structure{
 // Name:        "continent-codes",
 // Address:     NewAddress("continent-codes"),
 // Description: "Data contains list of continents and it's two letter codes",
@@ -101,8 +100,8 @@ var ContinentCodes = &Resource{
 
 // "last_updated": "2016-03-25"
 // Version: "0.1.0",
-// Resources: []*Resource{
-// 	&Resource{
+// Structures: []*Structure{
+// 	&Structure{
 // 		Address: NewAddress("continent-codes.2"),
 // 		// "file": "data/continent-codes.csv",
 // 		Description: "continent codes",
@@ -120,9 +119,9 @@ var ContinentCodes = &Resource{
 // },
 }
 
-var Hours = &Resource{
+var Hours = &Structure{
 	Format: CsvDataFormat,
-	Path:   datastore.NewKey("/ipfs/QmS1dVa1xemo7gQzJgjimj1WwnVBF3TwRTGsyKa1uEBWbJ"),
+	// Path:   datastore.NewKey("/ipfs/QmS1dVa1xemo7gQzJgjimj1WwnVBF3TwRTGsyKa1uEBWbJ"),
 	Schema: &Schema{
 		Fields: []*Field{
 			&Field{Name: "field_1", Type: datatypes.Date},

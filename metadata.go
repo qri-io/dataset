@@ -3,38 +3,14 @@ package dataset
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/ipfs/go-datastore"
-	"regexp"
 )
 
-var alphaNumericRegex = regexp.MustCompile(`^[a-z0-9_-]{1-144}$`)
+// Current version of the specification
+const version = "0.0.1"
 
-// Metadata is stored separately from prescriptive metadata stored in Resource structs
-// to maximize overlap of the formal query & resource definitions.
-// This also creates space for subjective claims about datasets, and allows metadata
-// to take on a higher frequency of change in contrast to the underlying definition.
-// In addition, descriptive metadata can and should be author attributed
-// associating descriptive claims about a resource with a cyptographic keypair which
-// may represent a person, group of people, or software.
-// This metadata format is also subject to massive amounts of change.
-// Design goals should include making this compatible with the DCAT spec,
-// with the one major exception that hashes are acceptable in place of urls.
-type Metadata struct {
-	Title        string        `json:"title,omitempty"`
-	Url          string        `json:"url,omitempty"`
-	Readme       string        `json:"readme,omitempty"`
-	Author       *User         `json:"author,omitempty"`
-	Image        string        `json:"image,omitempty"`
-	Description  string        `json:"description,omitempty"`
-	Homepage     string        `json:"homepage,omitempty"`
-	IconImage    string        `json:"icon_image,omitempty"`
-	PosterImage  string        `json:"poster_image,omitempty"`
-	License      *License      `json:"license,omitempty"`
-	Version      Version       `json:"version,omitempty"`
-	Keywords     []string      `json:"keywords,omitempty"`
-	Contributors []*User       `json:"contributors,omitempty"`
-	Subject      datastore.Key `json:"subject,omitempty"`
-}
+// VersionNumber is a semantic major.minor.patch
+// TODO - make Version enforce this format
+type VersionNumber string
 
 // User is a placholder for talking about people, groups, organizations
 type User string
@@ -98,6 +74,9 @@ func (name *VariableName) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// Version is a semantic major.minor.patch
-// TODO - make Version enforce this format
-type Version string
+// Citation is a place that this datapackage drew it's information from
+type Citation struct {
+	Name  string `json:"name,omitempty"`
+	Url   string `json:"url,omitempty"`
+	Email string `json:"email,omitempty"`
+}

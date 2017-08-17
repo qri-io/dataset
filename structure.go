@@ -33,9 +33,6 @@ type Structure struct {
 	// Encoding specifics character encoding
 	// should assume utf-8 if not specified
 	Encoding string `json:"encoding,omitempty"`
-	// Length is the length of the source data in bytes
-	// must always match & be present
-	Length int `json:"length"`
 	// Compression specifies any compression on the source data,
 	// if empty assume no compression
 	Compression compression.Type `json:"compression,omitempty"`
@@ -48,14 +45,14 @@ func (r *Structure) Hash() (string, error) {
 	return JSONHash(r)
 }
 
-// truthCount returns the number of arguments that are true
-func truthCount(args ...bool) (count int) {
-	for _, arg := range args {
-		if arg {
-			count++
-		}
-	}
-	return
+// separate type for marshalling into & out of
+// most importantly, struct names must be sorted lexographically
+type _structure struct {
+	Compression  compression.Type       `json:"compression,omitempty"`
+	Encoding     string                 `json:"encoding,omitempty"`
+	Format       DataFormat             `json:"format"`
+	FormatConfig map[string]interface{} `json:"formatConfig,omitempty"`
+	Schema       *Schema                `json:"schema,omitempty"`
 }
 
 // MarshalJSON satisfies the json.Marshaler interface
@@ -66,34 +63,12 @@ func (r Structure) MarshalJSON() (data []byte, err error) {
 	}
 
 	return json.Marshal(&_structure{
-		Compression:       r.Compression,
-		Encoding:          r.Encoding,
-		Format:            r.Format,
-		FormatConfig:      opt,
-		Length:            r.Length,
-		Path:              r.Path,
-		Query:             r.Query,
-		QueryEngine:       r.QueryEngine,
-		QueryEngineConfig: r.QueryEngineConfig,
-		QueryPlatform:     r.QueryPlatform,
-		Schema:            r.Schema,
+		Compression:  r.Compression,
+		Encoding:     r.Encoding,
+		Format:       r.Format,
+		FormatConfig: opt,
+		Schema:       r.Schema,
 	})
-}
-
-// separate type for marshalling into & out of
-// most importantly, struct names must be sorted lexographically
-type _structure struct {
-	Compression       compression.Type       `json:"compression,omitempty"`
-	Encoding          string                 `json:"encoding,omitempty"`
-	Format            DataFormat             `json:"format"`
-	FormatConfig      map[string]interface{} `json:"formatConfig,omitempty"`
-	Length            int                    `json:"length,omitempty"`
-	Path              datastore.Key          `json:"path,omitempty"`
-	Query             datastore.Key          `json:"query,omitempty"`
-	QueryEngine       string                 `json:"queryEngine,omitempty"`
-	QueryEngineConfig map[string]interface{} `json:"queryEngineConfig,omitempty"`
-	QueryPlatform     string                 `json:"queryPlatform,omitempty"`
-	Schema            *Schema                `json:"schema,omitempty"`
 }
 
 // UnmarshalJSON satisfies the json.Unmarshaler interface
@@ -109,17 +84,11 @@ func (r *Structure) UnmarshalJSON(data []byte) error {
 	}
 
 	*r = Structure{
-		Compression:       _r.Compression,
-		Encoding:          _r.Encoding,
-		Format:            _r.Format,
-		FormatConfig:      fmtCfg,
-		Length:            _r.Length,
-		Path:              _r.Path,
-		Query:             _r.Query,
-		QueryEngine:       _r.QueryEngine,
-		QueryEngineConfig: _r.QueryEngineConfig,
-		QueryPlatform:     _r.QueryPlatform,
-		Schema:            _r.Schema,
+		Compression:  _r.Compression,
+		Encoding:     _r.Encoding,
+		Format:       _r.Format,
+		FormatConfig: fmtCfg,
+		Schema:       _r.Schema,
 	}
 
 	// TODO - question of weather we should not accept
