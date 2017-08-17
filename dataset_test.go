@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/qri-io/compare"
 	"io/ioutil"
 	"testing"
 )
@@ -65,6 +66,12 @@ func TestDatasetUnmarshalJSON(t *testing.T) {
 func CompareDatasets(a, b *Dataset) error {
 	if a.Title != b.Title {
 		return fmt.Errorf("Title mismatch: %s != %s", a.Title, b.Title)
+	}
+
+	if err := compare.MapStringInterface(a.Meta(), b.Meta()); err != nil {
+		fmt.Println(a.Meta())
+		fmt.Println(b.Meta())
+		return fmt.Errorf("meta mismatch: %s", err.Error())
 	}
 
 	if a.Url != b.Url {

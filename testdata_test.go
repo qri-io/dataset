@@ -177,7 +177,8 @@ var ContinentCodesStructure = &Structure{
 }
 
 var Hours = &Dataset{
-// Data:   datastore.NewKey("/ipfs/QmS1dVa1xemo7gQzJgjimj1WwnVBF3TwRTGsyKa1uEBWbJ"),
+	Title: "hours",
+	// Data:   datastore.NewKey("/ipfs/QmS1dVa1xemo7gQzJgjimj1WwnVBF3TwRTGsyKa1uEBWbJ"),
 }
 
 var HoursStructure = &Structure{

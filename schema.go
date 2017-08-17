@@ -99,14 +99,6 @@ func (f *Field) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// NewShortField is a shortcut for creating a field that only has a name and type
-func NewShortField(name, dataType string) *Field {
-	return &Field{
-		Name: name,
-		Type: datatypes.TypeFromString(dataType),
-	}
-}
-
 // FieldKey allows a field key to be either a string or object
 type FieldKey []string
 

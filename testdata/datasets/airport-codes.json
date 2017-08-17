@@ -1,9 +1,8 @@
 {
   "title": "Airport Codes",
-  "name": "airport-codes",
   "homepage": "http://www.ourairports.com/",
   "license": "PDDL-1.0",
-  "sources": [
+  "citations": [
     {
       "name": "Our Airports",
       "web": "http://ourairports.com/data/"
