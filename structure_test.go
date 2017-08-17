@@ -8,13 +8,13 @@ import (
 	"testing"
 )
 
-func TestResouceHash(t *testing.T) {
+func TestStrucureHash(t *testing.T) {
 	cases := []struct {
 		r    *Structure
 		hash string
 		err  error
 	}{
-		{&Structure{Format: CsvDataFormat}, "12204ac9a6b596dd42656e7ea7ee3aadf755d92e769f94cc2c08af51aae80889e21b", nil},
+		{&Structure{Format: CsvDataFormat}, "12201f1b72ac6f62cd6c078715c8d6539051b870d4fdfef1faeffafd55767ad4d83e", nil},
 	}
 
 	for i, c := range cases {
@@ -68,8 +68,8 @@ func TestStructureMarshalJSON(t *testing.T) {
 		out []byte
 		err error
 	}{
-		{&Structure{Format: CsvDataFormat}, []byte(`{"format":"csv","path":"","query":""}`), nil},
-		{AirportCodes, []byte(`{"format":"csv","formatConfig":{"header_row":true},"path":"","query":"","schema":{"fields":[{"name":"ident","type":"string"},{"name":"type","type":"string"},{"name":"name","type":"string"},{"name":"latitude_deg","type":"float"},{"name":"longitude_deg","type":"float"},{"name":"elevation_ft","type":"integer"},{"name":"continent","type":"string"},{"name":"iso_country","type":"string"},{"name":"iso_region","type":"string"},{"name":"municipality","type":"string"},{"name":"gps_code","type":"string"},{"name":"iata_code","type":"string"},{"name":"local_code","type":"string"}]}}`), nil},
+		{&Structure{Format: CsvDataFormat}, []byte(`{"format":"csv"}`), nil},
+		{AirportCodes, []byte(`{"format":"csv","formatConfig":{"header_row":true},"schema":{"fields":[{"name":"ident","type":"string"},{"name":"type","type":"string"},{"name":"name","type":"string"},{"name":"latitude_deg","type":"float"},{"name":"longitude_deg","type":"float"},{"name":"elevation_ft","type":"integer"},{"name":"continent","type":"string"},{"name":"iso_country","type":"string"},{"name":"iso_region","type":"string"},{"name":"municipality","type":"string"},{"name":"gps_code","type":"string"},{"name":"iata_code","type":"string"},{"name":"local_code","type":"string"}]}}`), nil},
 	}
 
 	for i, c := range cases {

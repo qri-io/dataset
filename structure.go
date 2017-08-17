@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/dataset/compression"
-	// "gx/ipfs/QmVSase1JP7cq9QkPT46oNwdp9pT6kBkG3oqS14y3QcZjG/go-datastore"
 )
 
 type ResourceLink struct {
@@ -97,11 +96,6 @@ func (r *Structure) UnmarshalJSON(data []byte) error {
 	//   return err
 	// }
 
-	// errs := AddressErrors(d, &[]Address{})
-	// if len(errs) > 0 {
-	//   return errs[0]
-	// }
-
 	return nil
 }
 
@@ -118,7 +112,6 @@ func (ds *Structure) Valid() error {
 	// 		}
 	// 	}
 	// }
-
 	return nil
 }
 
