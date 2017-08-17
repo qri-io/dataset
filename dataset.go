@@ -34,6 +34,7 @@ type Dataset struct {
 	// path to readme
 	Readme       datastore.Key `json:"readme,omitempty"`
 	Author       *User         `json:"author,omitempty"`
+	Citations    []*Citation   `json:"citations"`
 	Image        string        `json:"image,omitempty"`
 	Description  string        `json:"description,omitempty"`
 	Homepage     string        `json:"homepage,omitempty"`
@@ -51,9 +52,8 @@ type Dataset struct {
 	QueryEngine string `json:"queryEngine,omitempty"`
 	// QueryEngineConfig outlines any configuration that would affect the resulting hash
 	QueryEngineConfig map[string]interface{} `json:"queryEngineConfig,omitempty`
-	// Resources is a list
-	Resources map[string]datastore.Key `json:"resources,omitempty"`
-
+	// Resources is a reference
+	Resources map[string]StructuredData `json:"resources,omitempty"`
 	// Meta holds additional metadata not covered by the spec
 	meta map[string]interface{}
 }
@@ -117,6 +117,9 @@ func (d *Dataset) MarshalJSON() ([]byte, error) {
 	if d.Contributors != nil {
 		data["contributors"] = d.Contributors
 	}
+	if d.Citations != nil {
+		data["citations"] = d.Citations
+	}
 
 	if d.Query.String() != "" {
 		data["query"] = d.Query
@@ -149,7 +152,7 @@ func (d *Dataset) UnmarshalJSON(data []byte) error {
 	}
 
 	meta := map[string]interface{}{}
-	if err := json.Unmarshal(data, meta); err != nil {
+	if err := json.Unmarshal(data, &meta); err != nil {
 		return err
 	}
 
@@ -160,6 +163,7 @@ func (d *Dataset) UnmarshalJSON(data []byte) error {
 		"author",
 		"image",
 		"structure",
+		"citations",
 		"description",
 		"homepage",
 		"iconImage",

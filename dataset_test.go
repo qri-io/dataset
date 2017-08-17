@@ -35,12 +35,12 @@ func TestDatasetMarshalJSON(t *testing.T) {
 func TestDatasetUnmarshalJSON(t *testing.T) {
 	cases := []struct {
 		FileName string
-		result   *Structure
+		result   *Dataset
 		err      error
 	}{
-		{"testdata/definitions/airport-codes.json", AirportCodes, nil},
-		{"testdata/definitions/continent-codes.json", ContinentCodes, nil},
-		{"testdata/definitions/hours.json", Hours, nil},
+		{"testdata/datasets/airport-codes.json", AirportCodes, nil},
+		{"testdata/datasets/continent-codes.json", ContinentCodes, nil},
+		{"testdata/datasets/hours.json", Hours, nil},
 	}
 
 	for i, c := range cases {
@@ -49,20 +49,20 @@ func TestDatasetUnmarshalJSON(t *testing.T) {
 			t.Errorf("case %d couldn't read file: %s", i, err.Error())
 		}
 
-		ds := &Structure{}
+		ds := &Dataset{}
 		if err := json.Unmarshal(data, ds); err != c.err {
 			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
 			continue
 		}
 
-		if err = CompareStructures(ds, c.result); err != nil {
+		if err = CompareDatasets(ds, c.result); err != nil {
 			t.Errorf("case %d resource comparison error: %s", i, err)
 			continue
 		}
 	}
 }
 
-func CompareDataset(a, b *Dataset) error {
+func CompareDatasets(a, b *Dataset) error {
 	if a.Title != b.Title {
 		return fmt.Errorf("Title mismatch: %s != %s", a.Title, b.Title)
 	}

@@ -37,9 +37,9 @@ func TestStructureUnmarshalJSON(t *testing.T) {
 		result   *Structure
 		err      error
 	}{
-		{"testdata/definitions/airport-codes.json", AirportCodes, nil},
-		{"testdata/definitions/continent-codes.json", ContinentCodes, nil},
-		{"testdata/definitions/hours.json", Hours, nil},
+		{"testdata/structures/airport-codes.json", AirportCodesStructure, nil},
+		{"testdata/structures/continent-codes.json", ContinentCodesStructure, nil},
+		{"testdata/structures/hours.json", HoursStructure, nil},
 	}
 
 	for i, c := range cases {
@@ -62,6 +62,21 @@ func TestStructureUnmarshalJSON(t *testing.T) {
 	}
 }
 
+func TestStructureAlgebraic(t *testing.T) {
+	cases := []struct {
+		in, out *Structure
+	}{
+		{AirportCodesStructure, AirportCodesStructureAgebraic},
+	}
+
+	for i, c := range cases {
+		if err := CompareStructures(c.in.Algebraic(), c.out); err != nil {
+			t.Errorf("case %d error: %s", i, err.Error())
+			continue
+		}
+	}
+}
+
 func TestStructureMarshalJSON(t *testing.T) {
 	cases := []struct {
 		in  *Structure
@@ -69,7 +84,7 @@ func TestStructureMarshalJSON(t *testing.T) {
 		err error
 	}{
 		{&Structure{Format: CsvDataFormat}, []byte(`{"format":"csv"}`), nil},
-		{AirportCodes, []byte(`{"format":"csv","formatConfig":{"header_row":true},"schema":{"fields":[{"name":"ident","type":"string"},{"name":"type","type":"string"},{"name":"name","type":"string"},{"name":"latitude_deg","type":"float"},{"name":"longitude_deg","type":"float"},{"name":"elevation_ft","type":"integer"},{"name":"continent","type":"string"},{"name":"iso_country","type":"string"},{"name":"iso_region","type":"string"},{"name":"municipality","type":"string"},{"name":"gps_code","type":"string"},{"name":"iata_code","type":"string"},{"name":"local_code","type":"string"}]}}`), nil},
+		{AirportCodesStructure, []byte(`{"format":"csv","formatConfig":{"headerRow":true},"schema":{"fields":[{"name":"ident","type":"string"},{"name":"type","type":"string"},{"name":"name","type":"string"},{"name":"latitude_deg","type":"float"},{"name":"longitude_deg","type":"float"},{"name":"elevation_ft","type":"integer"},{"name":"continent","type":"string"},{"name":"iso_country","type":"string"},{"name":"iso_region","type":"string"},{"name":"municipality","type":"string"},{"name":"gps_code","type":"string"},{"name":"iata_code","type":"string"},{"name":"local_code","type":"string"}]}}`), nil},
 	}
 
 	for i, c := range cases {
@@ -91,6 +106,10 @@ func CompareStructures(a, b *Structure) error {
 		return nil
 	} else if a == nil && b != nil || a != nil && b == nil {
 		return fmt.Errorf("Structure mismatch: %s != %s", a, b)
+	}
+
+	if err := CompareSchemas(a.Schema, b.Schema); err != nil {
+		return fmt.Errorf("Schema mismatch: %s", err.Error())
 	}
 
 	return nil

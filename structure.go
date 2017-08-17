@@ -7,14 +7,10 @@ import (
 	"github.com/qri-io/dataset/compression"
 )
 
-type ResourceLink struct {
-	Structure datastore.Key
-	Data      datastore.Key
-}
-
-type Resource struct {
-	Structure
-	Data datastore.Key
+// StructuredData binds references to data & it's structure
+type StructuredData struct {
+	Structure datastore.Key `json:"structure"`
+	Data      datastore.Key `json:"data"`
 }
 
 // Structure designates a deterministic definition for working with a discrete dataset.
@@ -37,6 +33,33 @@ type Structure struct {
 	Compression compression.Type `json:"compression,omitempty"`
 	// Schema contains the schema definition for the underlying data
 	Schema *Schema `json:"schema"`
+}
+
+// Agebraic returns this structure instance in it's "Algebraic" form
+// stripping all nonessential values &
+// renaming all schema field names to standard variable names
+func (s *Structure) Algebraic() *Structure {
+	a := &Structure{
+		Format:       s.Format,
+		FormatConfig: s.FormatConfig,
+		Encoding:     s.Encoding,
+	}
+	if s.Schema != nil {
+		a.Schema = &Schema{
+			PrimaryKey: s.Schema.PrimaryKey,
+			Fields:     make([]*Field, len(s.Schema.Fields)),
+		}
+		for i, f := range s.Schema.Fields {
+			a.Schema.Fields[i] = &Field{
+				Name:         fmt.Sprintf("col_%d", i),
+				Type:         f.Type,
+				MissingValue: f.MissingValue,
+				Format:       f.Format,
+				Constraints:  f.Constraints,
+			}
+		}
+	}
+	return a
 }
 
 // Hash gives the hash of this structure

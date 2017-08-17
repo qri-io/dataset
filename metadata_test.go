@@ -2,7 +2,13 @@ package dataset
 
 import (
 	"fmt"
+	"testing"
 )
+
+func TestVariableName(t *testing.T) {
+	// cases := []struct{
+	// }
+}
 
 func CompareLicense(a, b *License) error {
 	if a == nil && b == nil {

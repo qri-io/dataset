@@ -2,7 +2,33 @@ package dataset
 
 import (
 	"fmt"
+	"testing"
 )
+
+func TestParseFormatConfigMap(t *testing.T) {
+	cases := []struct {
+		df   DataFormat
+		opts map[string]interface{}
+		cfg  FormatConfig
+		err  error
+	}{
+		{CsvDataFormat, map[string]interface{}{}, &CsvOptions{}, nil},
+		{JsonDataFormat, map[string]interface{}{}, &JsonOptions{}, nil},
+		{JsonDataFormat, map[string]interface{}{"objectEntries": true}, &JsonOptions{ObjectEntries: true}, nil},
+	}
+
+	for i, c := range cases {
+		cfg, err := ParseFormatConfigMap(c.df, c.opts)
+		if err != c.err {
+			t.Errorf("case %d error mismatch: %s != %s", i, c.err, err)
+			continue
+		}
+		if err := CompareFormatConfigs(c.cfg, cfg); err != nil {
+			t.Errorf("case %d config err: %s", i, err.Error())
+			continue
+		}
+	}
+}
 
 func CompareFormatConfigs(a, b FormatConfig) error {
 	if a == nil && b == nil {
