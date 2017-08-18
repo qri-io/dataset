@@ -2,12 +2,15 @@ package dataset
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/ipfs/go-datastore"
 	"time"
 )
 
 // Dataset is stored separately from prescriptive metadata stored in Resource structs
 // to maximize overlap of the formal query & resource definitions.
+// A Dataset must resolve to one and only one entity, specified by a `data` property.
+// It's structure must be specified by a structure definition.
 // This also creates space for subjective claims about datasets, and allows metadata
 // to take on a higher frequency of change in contrast to the underlying definition.
 // In addition, descriptive metadata can and should be author attributed
@@ -19,11 +22,11 @@ import (
 type Dataset struct {
 	// Time this dataset was created. Required. Datasets are immutable, so no "updated"
 	Timestamp time.Time `json:"timestamp"`
-	// Structure of this dataset
+	// Structure of this dataset, required
 	Structure datastore.Key `json:"structure"`
 	// Data is the path to the hash of raw data as it resolves on the network.
 	Data datastore.Key `json:"data"`
-	// Length is the length of the source data in bytes
+	// Length is the length of the data object in bytes.
 	// must always match & be present
 	Length int `json:"length"`
 	// Previous connects datasets to form a historical chain
@@ -32,18 +35,24 @@ type Dataset struct {
 	Title string `json:"title,omitempty"`
 	Url   string `json:"url,omitempty"`
 	// path to readme
-	Readme       datastore.Key `json:"readme,omitempty"`
-	Author       *User         `json:"author,omitempty"`
-	Citations    []*Citation   `json:"citations"`
-	Image        string        `json:"image,omitempty"`
-	Description  string        `json:"description,omitempty"`
-	Homepage     string        `json:"homepage,omitempty"`
-	IconImage    string        `json:"icon_image,omitempty"`
-	PosterImage  string        `json:"poster_image,omitempty"`
-	License      *License      `json:"license,omitempty"`
-	Version      VersionNumber `json:"version,omitempty"`
-	Keywords     []string      `json:"keywords,omitempty"`
-	Contributors []*User       `json:"contributors,omitempty"`
+	Readme datastore.Key `json:"readme,omitempty"`
+	// Author
+	Author      *User       `json:"author,omitempty"`
+	Citations   []*Citation `json:"citations"`
+	Image       string      `json:"image,omitempty"`
+	Description string      `json:"description,omitempty"`
+	Homepage    string      `json:"homepage,omitempty"`
+	IconImage   string      `json:"icon_image,omitempty"`
+	//
+	PosterImage string `json:"poster_image,omitempty"`
+	// License
+	License *License `json:"license,omitempty"`
+	// SemVersion this dataset?
+	Version VersionNumber `json:"version,omitempty"`
+	// String of Keywords
+	Keywords []string `json:"keywords,omitempty"`
+	// Contribute
+	Contributors []*User `json:"contributors,omitempty"`
 	// Query is a path to a query that generated this resource
 	Query datastore.Key `json:"query,omitempty"`
 	// queryPlatform is an identifier for the operating system that performed the query
@@ -54,7 +63,9 @@ type Dataset struct {
 	QueryEngineConfig map[string]interface{} `json:"queryEngineConfig,omitempty`
 	// Resources is a reference
 	Resources map[string]StructuredData `json:"resources,omitempty"`
-	// Meta holds additional metadata not covered by the spec
+	// meta holds additional arbitrarty metadata not covered by the spec
+	// when encoding & decoding json values here will be hoisted into the
+	// Dataset object
 	meta map[string]interface{}
 }
 
@@ -189,4 +200,31 @@ func (d *Dataset) UnmarshalJSON(data []byte) error {
 	ds.meta = meta
 	*d = Dataset(ds)
 	return nil
+}
+
+// LoadDataset loads a dataset from a given path in a store
+func LoadDataset(store datastore.Datastore, path datastore.Key) (*Dataset, error) {
+	v, err := store.Get(path)
+	if err != nil {
+		return nil, err
+	}
+
+	return UnmarshalDataset(v)
+}
+
+// UnmarshalDataset tries to extract a dataset type from an empty
+// interface. Pairs nicely with datastore.Get() from github.com/ipfs/go-datastore
+func UnmarshalDataset(v interface{}) (*Dataset, error) {
+	switch r := v.(type) {
+	case *Dataset:
+		return r, nil
+	case Dataset:
+		return &r, nil
+	case []byte:
+		dataset := &Dataset{}
+		err := json.Unmarshal(r, dataset)
+		return dataset, err
+	default:
+		return nil, fmt.Errorf("couldn't parse dataset")
+	}
 }

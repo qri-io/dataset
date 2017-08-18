@@ -10,7 +10,7 @@ import (
 )
 
 // Resource loads a resource from a store
-func Resource(store datastore.Datastore, path datastore.Key) (*dataset.Resource, error) {
+func Resource(store datastore.Datastore, path datastore.Key) (*dataset.Dataset, error) {
 	v, err := store.Get(path)
 	if err != nil {
 		return nil, err
@@ -34,7 +34,7 @@ func RawData(store datastore.Datastore, path datastore.Key) ([]byte, error) {
 }
 
 // RowDataRows loads a slice of raw bytes inside a limit/offset row range
-func RawDataRows(store datastore.Datastore, r *dataset.Resource, limit, offset int) ([]byte, error) {
+func RawDataRows(store datastore.Datastore, r *dataset.Dataset, limit, offset int) ([]byte, error) {
 	rawdata, err := RawData(store, r.Path)
 	if err != nil {
 		return nil, err
@@ -77,7 +77,7 @@ func RawDataRows(store datastore.Datastore, r *dataset.Resource, limit, offset i
 type DataIteratorFunc func(int, [][]byte, error) error
 
 // EachRow calls fn on each row of raw data, using the resource definition for parsing
-func EachRow(r *dataset.Resource, rawdata []byte, fn DataIteratorFunc) error {
+func EachRow(r *dataset.Dataset, rawdata []byte, fn DataIteratorFunc) error {
 	switch r.Format {
 	case dataset.CsvDataFormat:
 		rdr := csv.NewReader(bytes.NewReader(rawdata))
@@ -120,7 +120,7 @@ func EachRow(r *dataset.Resource, rawdata []byte, fn DataIteratorFunc) error {
 }
 
 // Ugh, this shouldn't exist. re-architect around some sort of row-reader interface
-func AllRows(store datastore.Datastore, r *dataset.Resource) (data [][][]byte, err error) {
+func AllRows(store datastore.Datastore, r *dataset.Dataset) (data [][][]byte, err error) {
 	d, err := store.Get(r.Path)
 	rawdata, ok := d.([]byte)
 	if !ok {
@@ -138,7 +138,7 @@ func AllRows(store datastore.Datastore, r *dataset.Resource) (data [][][]byte, e
 	return
 }
 
-func HeaderRow(r *dataset.Resource) bool {
+func HeaderRow(r *dataset.Dataset) bool {
 	if r.Format == dataset.CsvDataFormat && r.FormatConfig != nil {
 		if csvOpt, ok := r.FormatConfig.(*dataset.CsvOptions); ok {
 			return csvOpt.HeaderRow
@@ -150,7 +150,7 @@ func HeaderRow(r *dataset.Resource) bool {
 // TODO - this won't work b/c underlying implementations are different
 // time to create an interface that conforms all different data types to readers & writers
 // that think in terms of rows, etc.
-// func NewWriter(r *dataset.Resource) (w io.WriteCloser, buf *bytes.Buffer, err error) {
+// func NewWriter(r *dataset.Dataset) (w io.WriteCloser, buf *bytes.Buffer, err error) {
 // 	buf = &bytes.Buffer{}
 // 	switch r.Format {
 // 	case dataset.CsvDataFormat:

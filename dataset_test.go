@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/compare"
 	"io/ioutil"
 	"testing"
@@ -111,4 +112,19 @@ func CompareDatasets(a, b *Dataset) error {
 	//  return fmt.Errorf("Contributors mismatch: %s != %s", a.Contributors, b.Contributors)
 	// }
 	return nil
+}
+
+func TestLoadDataset(t *testing.T) {
+	store := datastore.NewMapDatastore()
+	a := datastore.NewKey("/straight/value")
+	if err := store.Put(a, AirportCodes); err != nil {
+		t.Errorf(err.Error())
+		return
+	}
+
+	_, err := LoadDataset(store, a)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	// TODO - other tests & stuff
 }

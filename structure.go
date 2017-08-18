@@ -14,8 +14,8 @@ type StructuredData struct {
 }
 
 // Structure designates a deterministic definition for working with a discrete dataset.
-// Structure is a concrete handle that provides precise details about how to interpret the underlying data.
-// A Structure must resolve to one and only one entity, specified by a `path` property in the structure definition.
+// Structure is a concrete handle that provides precise details about how to interpret a given
+// piece of data (the reference to the data itself is provided elsewhere, specifically in the dataset struct )
 // These techniques provide mechanisms for joining & traversing multiple structures.
 // This example is shown in a human-readable form, for storage on the network the actual
 // output would be in a condensed, non-indented form, with keys sorted by lexographic order.
@@ -136,6 +136,16 @@ func (ds *Structure) Valid() error {
 	// 	}
 	// }
 	return nil
+}
+
+// LoadStructure loads a structure from a given path in a store
+func LoadStructure(store datastore.Datastore, path datastore.Key) (*Structure, error) {
+	v, err := store.Get(path)
+	if err != nil {
+		return nil, err
+	}
+
+	return UnmarshalStructure(v)
 }
 
 // UnmarshalStructure tries to extract a structure type from an empty

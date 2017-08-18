@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/ipfs/go-datastore"
 	"io/ioutil"
 	"testing"
 )
@@ -29,6 +30,36 @@ func TestStrucureHash(t *testing.T) {
 			continue
 		}
 	}
+}
+
+func TestStructureAlgebraic(t *testing.T) {
+	cases := []struct {
+		in, out *Structure
+	}{
+		{AirportCodesStructure, AirportCodesStructureAgebraic},
+	}
+
+	for i, c := range cases {
+		if err := CompareStructures(c.in.Algebraic(), c.out); err != nil {
+			t.Errorf("case %d error: %s", i, err.Error())
+			continue
+		}
+	}
+}
+
+func TestLoadStructure(t *testing.T) {
+	store := datastore.NewMapDatastore()
+	a := datastore.NewKey("/straight/value")
+	if err := store.Put(a, AirportCodesStructure); err != nil {
+		t.Errorf(err.Error())
+		return
+	}
+
+	_, err := LoadStructure(store, a)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	// TODO - other tests & stuff
 }
 
 func TestStructureUnmarshalJSON(t *testing.T) {
@@ -59,21 +90,6 @@ func TestStructureUnmarshalJSON(t *testing.T) {
 			continue
 		}
 
-	}
-}
-
-func TestStructureAlgebraic(t *testing.T) {
-	cases := []struct {
-		in, out *Structure
-	}{
-		{AirportCodesStructure, AirportCodesStructureAgebraic},
-	}
-
-	for i, c := range cases {
-		if err := CompareStructures(c.in.Algebraic(), c.out); err != nil {
-			t.Errorf("case %d error: %s", i, err.Error())
-			continue
-		}
 	}
 }
 
