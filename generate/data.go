@@ -14,7 +14,7 @@ type RandomDataOpts struct {
 }
 
 // RandomData generates data based on a given resource definition
-func RandomData(r *dataset.Resource, opts ...func(o *RandomDataOpts)) []byte {
+func RandomData(st *dataset.Structure, opts ...func(o *RandomDataOpts)) []byte {
 	opt := &RandomDataOpts{
 		Data:           nil,
 		NumRandRecords: 500,
@@ -28,7 +28,7 @@ func RandomData(r *dataset.Resource, opts ...func(o *RandomDataOpts)) []byte {
 	}
 
 	buf := bytes.NewBuffer(opt.Data)
-	if err := csv.NewWriter(buf).WriteAll(RandomStringRows(r.Schema.Fields, opt.NumRandRecords)); err != nil {
+	if err := csv.NewWriter(buf).WriteAll(RandomStringRows(st.Schema.Fields, opt.NumRandRecords)); err != nil {
 		panic(err)
 	}
 

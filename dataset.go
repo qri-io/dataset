@@ -77,6 +77,23 @@ func (d *Dataset) Meta() map[string]interface{} {
 	return d.meta
 }
 
+func (d *Dataset) LoadStructure(store datastore.Datastore) (*Structure, error) {
+	return LoadStructure(store, d.Structure)
+}
+
+func (d *Dataset) LoadData(store datastore.Datastore) ([]byte, error) {
+	v, err := store.Get(d.Data)
+	if err != nil {
+		return nil, err
+	}
+
+	if data, ok := v.([]byte); ok {
+		return data, nil
+	}
+
+	return nil, fmt.Errorf("wrong data type for dataset data: %s", d.Data)
+}
+
 // MarshalJSON uses a map to combine meta & standard fields.
 // Marshalling a map[string]interface{} automatically alpha-sorts the keys.
 func (d *Dataset) MarshalJSON() ([]byte, error) {
