@@ -57,6 +57,8 @@ type Dataset struct {
 	Query string `json:"query,omitempty"`
 	// Abstract is a path to a query that generated this resource
 	Abstract datastore.Key `json:"abstract,omitempty"`
+	// Syntax this query was written in
+	QuerySyntax string `json:"querySyntax"`
 	// queryPlatform is an identifier for the operating system that performed the query
 	QueryPlatform string `json:"queryPlatform,omitempty"`
 	// QueryEngine is an identifier for the application that produced the result
@@ -157,6 +159,9 @@ func (d *Dataset) MarshalJSON() ([]byte, error) {
 	}
 	if d.Abstract.String() != "" {
 		data["abstract"] = d.Abstract
+	}
+	if d.QueryPlatform != "" {
+		data["querySyntax"] = d.QuerySyntax
 	}
 	if d.QueryPlatform != "" {
 		data["queryPlatform"] = d.QueryPlatform
