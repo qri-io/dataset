@@ -32,7 +32,7 @@ func TestStrucureHash(t *testing.T) {
 	}
 }
 
-func TestStructureAlgebraic(t *testing.T) {
+func TestStructureAbstract(t *testing.T) {
 	cases := []struct {
 		in, out *Structure
 	}{
@@ -40,7 +40,7 @@ func TestStructureAlgebraic(t *testing.T) {
 	}
 
 	for i, c := range cases {
-		if err := CompareStructures(c.in.Algebraic(), c.out); err != nil {
+		if err := CompareStructures(c.in.Abstract(), c.out); err != nil {
 			t.Errorf("case %d error: %s", i, err.Error())
 			continue
 		}

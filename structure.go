@@ -7,12 +7,6 @@ import (
 	"github.com/qri-io/dataset/compression"
 )
 
-// StructuredData binds references to data & it's structure
-type StructuredData struct {
-	Structure datastore.Key `json:"structure"`
-	Data      datastore.Key `json:"data"`
-}
-
 // Structure designates a deterministic definition for working with a discrete dataset.
 // Structure is a concrete handle that provides precise details about how to interpret a given
 // piece of data (the reference to the data itself is provided elsewhere, specifically in the dataset struct )
@@ -35,10 +29,10 @@ type Structure struct {
 	Schema *Schema `json:"schema"`
 }
 
-// Agebraic returns this structure instance in it's "Algebraic" form
+// Abstract returns this structure instance in it's "Abstract" form
 // stripping all nonessential values &
 // renaming all schema field names to standard variable names
-func (s *Structure) Algebraic() *Structure {
+func (s *Structure) Abstract() *Structure {
 	a := &Structure{
 		Format:       s.Format,
 		FormatConfig: s.FormatConfig,

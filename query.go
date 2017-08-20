@@ -80,14 +80,14 @@ func (q *Query) LoadStructures(store datastore.Datastore) (structs map[string]*S
 	return
 }
 
-func (q *Query) LoadAlgebraicStructures(store datastore.Datastore) (structs map[string]*Structure, err error) {
+func (q *Query) LoadAbstractStructures(store datastore.Datastore) (structs map[string]*Structure, err error) {
 	structs = map[string]*Structure{}
 	for key, path := range q.Structures {
 		s, err := LoadStructure(store, path)
 		if err != nil {
 			return nil, err
 		}
-		structs[key] = s.Algebraic()
+		structs[key] = s.Abstract()
 	}
 	return
 }

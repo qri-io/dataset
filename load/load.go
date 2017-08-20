@@ -112,6 +112,10 @@ func AllRows(store datastore.Datastore, ds *dataset.Dataset) (data [][][]byte, e
 		return nil, err
 	}
 
+	return FormatRows(st, rawdata)
+}
+
+func FormatRows(st *dataset.Structure, rawdata []byte) (data [][][]byte, err error) {
 	err = EachRow(st, rawdata, func(_ int, row [][]byte, e error) error {
 		if e != nil {
 			return e
@@ -119,7 +123,6 @@ func AllRows(store datastore.Datastore, ds *dataset.Dataset) (data [][][]byte, e
 		data = append(data, row)
 		return nil
 	})
-
 	return
 }
 

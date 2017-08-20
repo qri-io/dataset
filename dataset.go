@@ -29,9 +29,9 @@ type Dataset struct {
 	// Length is the length of the data object in bytes.
 	// must always match & be present
 	Length int `json:"length"`
-	// Previous connects datasets to form a historical chain
+	// Previous connects datasets to form a historical DAG
 	Previous datastore.Key `json:"previous,omitempty"`
-	// Title of this dataset, required
+	// Title of this dataset
 	Title string `json:"title,omitempty"`
 	Url   string `json:"url,omitempty"`
 	// path to readme
@@ -53,16 +53,19 @@ type Dataset struct {
 	Keywords []string `json:"keywords,omitempty"`
 	// Contribute
 	Contributors []*User `json:"contributors,omitempty"`
-	// Query is a path to a query that generated this resource
-	Query datastore.Key `json:"query,omitempty"`
+	// Query is the user-inputted string of this query
+	Query string `json:"query,omitempty"`
+	// Abstract is a path to a query that generated this resource
+	Abstract datastore.Key `json:"abstract,omitempty"`
 	// queryPlatform is an identifier for the operating system that performed the query
 	QueryPlatform string `json:"queryPlatform,omitempty"`
 	// QueryEngine is an identifier for the application that produced the result
 	QueryEngine string `json:"queryEngine,omitempty"`
 	// QueryEngineConfig outlines any configuration that would affect the resulting hash
 	QueryEngineConfig map[string]interface{} `json:"queryEngineConfig,omitempty`
-	// Resources is a reference
-	Resources map[string]StructuredData `json:"resources,omitempty"`
+	// Resources is a map of dataset names to dataset references this query is derived from
+	// all tables referred to in the query should be present here
+	Resources map[string]datastore.Key `json:"resources,omitempty"`
 	// meta holds additional arbitrarty metadata not covered by the spec
 	// when encoding & decoding json values here will be hoisted into the
 	// Dataset object
@@ -149,8 +152,11 @@ func (d *Dataset) MarshalJSON() ([]byte, error) {
 		data["citations"] = d.Citations
 	}
 
-	if d.Query.String() != "" {
+	if d.Query != "" {
 		data["query"] = d.Query
+	}
+	if d.Abstract.String() != "" {
+		data["abstract"] = d.Abstract
 	}
 	if d.QueryPlatform != "" {
 		data["queryPlatform"] = d.QueryPlatform
@@ -206,6 +212,7 @@ func (d *Dataset) UnmarshalJSON(data []byte) error {
 		"previous",
 		"data",
 		"query",
+		"abstract",
 		"queryPlatform",
 		"queryEngine",
 		"queryEngineConfig",

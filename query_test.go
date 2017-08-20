@@ -34,7 +34,7 @@ func TestLoadQuery(t *testing.T) {
 	// TODO - other tests & stuff
 }
 
-func TestQueryLoadAlgebraicStructures(t *testing.T) {
+func TestQueryLoadAbstractStructures(t *testing.T) {
 	// store := datastore.NewMapDatastore()
 	// TODO - finish dis test
 }
