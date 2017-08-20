@@ -3,11 +3,12 @@ package dataset
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/ipfs/go-datastore"
 
 	"testing"
 )
 
-func QueryEqual(a, b *Query) error {
+func CompareQuery(a, b *Query) error {
 	if a.Syntax != b.Syntax {
 		return fmt.Errorf("syntax mismatch: %s != %s", a.Syntax, b.Syntax)
 	}
@@ -16,6 +17,26 @@ func QueryEqual(a, b *Query) error {
 	}
 
 	return nil
+}
+
+func TestLoadQuery(t *testing.T) {
+	store := datastore.NewMapDatastore()
+	a := datastore.NewKey("/straight/value")
+	if err := store.Put(a, &Query{Statement: "select * from whatever booooooo go home"}); err != nil {
+		t.Errorf(err.Error())
+		return
+	}
+
+	_, err := LoadQuery(store, a)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	// TODO - other tests & stuff
+}
+
+func TestQueryLoadAbstractStructures(t *testing.T) {
+	// store := datastore.NewMapDatastore()
+	// TODO - finish dis test
 }
 
 func TestQueryUnmarshalJSON(t *testing.T) {
@@ -36,7 +57,7 @@ func TestQueryUnmarshalJSON(t *testing.T) {
 			continue
 		}
 
-		if err := QueryEqual(c.query, got); err != nil {
+		if err := CompareQuery(c.query, got); err != nil {
 			t.Errorf("case %d query mismatch: %s", i, err)
 			continue
 		}
@@ -49,7 +70,7 @@ func TestQueryMarshalJSON(t *testing.T) {
 		out string
 		err error
 	}{
-		{&Query{Syntax: "sql", Statement: "select a from b"}, `{"resources":null,"schema":null,"statement":"select a from b","syntax":"sql"}`, nil},
+		{&Query{Syntax: "sql", Statement: "select a from b"}, `{"outputStructure":"","statement":"select a from b","structures":null,"syntax":"sql"}`, nil},
 	}
 
 	for i, c := range cases {

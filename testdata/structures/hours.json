@@ -1,11 +1,6 @@
 {
-  "compression": "",
-  "encoding": "",
   "format": "csv",
   "formatOptions": null,
-  "length": 0,
-  "path": "/ipfs/QmS1dVa1xemo7gQzJgjimj1WwnVBF3TwRTGsyKa1uEBWbJ",
-  "queryEngineConfig": null,
   "schema": {
     "fields": [
       {
@@ -13,7 +8,7 @@
         "type": "date"
       },
       {
-        "name": "field_3",
+        "name": "field_2",
         "type": "float"
       },
       {

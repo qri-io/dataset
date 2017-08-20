@@ -25,7 +25,6 @@ func HashBytes(data []byte) (hash string, err error) {
 		return
 	}
 
-	// mhBuf, err := multihash.EncodeName(h.Sum(nil), "sha2-256")
 	mhBuf, err := multihash.Encode(h.Sum(nil), multihash.SHA2_256)
 	if err != nil {
 		return

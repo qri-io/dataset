@@ -9,46 +9,27 @@ import (
 	"github.com/qri-io/dataset"
 )
 
-// Resource loads a resource from a store
-func Resource(store datastore.Datastore, path datastore.Key) (*dataset.Resource, error) {
-	v, err := store.Get(path)
-	if err != nil {
-		return nil, err
-	}
-
-	return dataset.UnmarshalResource(v)
-}
-
-// RawData loads all data for a given key
-func RawData(store datastore.Datastore, path datastore.Key) ([]byte, error) {
-	v, err := store.Get(path)
-	if err != nil {
-		return nil, err
-	}
-
-	if data, ok := v.([]byte); ok {
-		return data, nil
-	}
-
-	return nil, fmt.Errorf("wrong data type for path: %s", path)
-}
-
 // RowDataRows loads a slice of raw bytes inside a limit/offset row range
-func RawDataRows(store datastore.Datastore, r *dataset.Resource, limit, offset int) ([]byte, error) {
-	rawdata, err := RawData(store, r.Path)
+func RawDataRows(store datastore.Datastore, ds *dataset.Dataset, limit, offset int) ([]byte, error) {
+	st, err := ds.LoadStructure(store)
+	if err != nil {
+		return nil, err
+	}
+
+	rawdata, err := ds.LoadData(store)
 	if err != nil {
 		return nil, err
 	}
 
 	added := 0
-	if r.Format != dataset.CsvDataFormat {
+	if st.Format != dataset.CsvDataFormat {
 		return nil, fmt.Errorf("raw data rows only works with csv data format for now")
 	}
 
 	buf := &bytes.Buffer{}
 	w := csv.NewWriter(buf)
 
-	err = EachRow(r, rawdata, func(i int, data [][]byte, err error) error {
+	err = EachRow(st, rawdata, func(i int, data [][]byte, err error) error {
 		if err != nil {
 			return err
 		} else if i < offset {
@@ -76,12 +57,12 @@ func RawDataRows(store datastore.Datastore, r *dataset.Resource, limit, offset i
 // DataIteratorFunc is a function for each "row" of a resource's raw data
 type DataIteratorFunc func(int, [][]byte, error) error
 
-// EachRow calls fn on each row of raw data, using the resource definition for parsing
-func EachRow(r *dataset.Resource, rawdata []byte, fn DataIteratorFunc) error {
-	switch r.Format {
+// EachRow calls fn on each row of raw data, using a structure for parsing
+func EachRow(st *dataset.Structure, rawdata []byte, fn DataIteratorFunc) error {
+	switch st.Format {
 	case dataset.CsvDataFormat:
 		rdr := csv.NewReader(bytes.NewReader(rawdata))
-		if HeaderRow(r) {
+		if HeaderRow(st) {
 			if _, err := rdr.Read(); err != nil {
 				if err.Error() == "EOF" {
 					return nil
@@ -116,31 +97,38 @@ func EachRow(r *dataset.Resource, rawdata []byte, fn DataIteratorFunc) error {
 		// case dataset.JsonDataFormat:
 	}
 
-	return fmt.Errorf("cannot parse data format '%s'", r.Format.String())
+	return fmt.Errorf("cannot parse data format '%s'", st.Format.String())
 }
 
 // Ugh, this shouldn't exist. re-architect around some sort of row-reader interface
-func AllRows(store datastore.Datastore, r *dataset.Resource) (data [][][]byte, err error) {
-	d, err := store.Get(r.Path)
-	rawdata, ok := d.([]byte)
-	if !ok {
-		return nil, fmt.Errorf("resource data should be a slice of bytes")
+func AllRows(store datastore.Datastore, ds *dataset.Dataset) (data [][][]byte, err error) {
+	st, err := ds.LoadStructure(store)
+	if err != nil {
+		return nil, err
 	}
 
-	err = EachRow(r, rawdata, func(_ int, row [][]byte, e error) error {
+	rawdata, err := ds.LoadData(store)
+	if err != nil {
+		return nil, err
+	}
+
+	return FormatRows(st, rawdata)
+}
+
+func FormatRows(st *dataset.Structure, rawdata []byte) (data [][][]byte, err error) {
+	err = EachRow(st, rawdata, func(_ int, row [][]byte, e error) error {
 		if e != nil {
 			return e
 		}
 		data = append(data, row)
 		return nil
 	})
-
 	return
 }
 
-func HeaderRow(r *dataset.Resource) bool {
-	if r.Format == dataset.CsvDataFormat && r.FormatConfig != nil {
-		if csvOpt, ok := r.FormatConfig.(*dataset.CsvOptions); ok {
+func HeaderRow(st *dataset.Structure) bool {
+	if st.Format == dataset.CsvDataFormat && st.FormatConfig != nil {
+		if csvOpt, ok := st.FormatConfig.(*dataset.CsvOptions); ok {
 			return csvOpt.HeaderRow
 		}
 	}
@@ -150,7 +138,7 @@ func HeaderRow(r *dataset.Resource) bool {
 // TODO - this won't work b/c underlying implementations are different
 // time to create an interface that conforms all different data types to readers & writers
 // that think in terms of rows, etc.
-// func NewWriter(r *dataset.Resource) (w io.WriteCloser, buf *bytes.Buffer, err error) {
+// func NewWriter(r *dataset.Dataset) (w io.WriteCloser, buf *bytes.Buffer, err error) {
 // 	buf = &bytes.Buffer{}
 // 	switch r.Format {
 // 	case dataset.CsvDataFormat:

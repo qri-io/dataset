@@ -6,6 +6,7 @@ import (
 	"github.com/qri-io/dataset/datatypes"
 )
 
+// Schema is analogous to a SQL schema definition
 type Schema struct {
 	Fields     []*Field `json:"fields,omitempty"`
 	PrimaryKey FieldKey `json:"primaryKey,omitempty"`
@@ -45,12 +46,12 @@ func (s *Schema) FieldTypeStrings() (types []string) {
 // Field is a field descriptor
 type Field struct {
 	Name         string            `json:"name"`
-	Title        string            `json:"title,omitempty"`
 	Type         datatypes.Type    `json:"type,omitempty"`
 	MissingValue interface{}       `json:"missingValue,omitempty"`
 	Format       string            `json:"format,omitempty"`
-	Description  string            `json:"description,omitempty"`
 	Constraints  *FieldConstraints `json:"constraints,omitempty"`
+	Title        string            `json:"title,omitempty"`
+	Description  string            `json:"description,omitempty"`
 }
 
 // field is a private struct for marshaling into and out of JSON
@@ -98,22 +99,12 @@ func (f *Field) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// NewShortField is a shortcut for creating a field that only has a name and type
-func NewShortField(name, dataType string) *Field {
-	return &Field{
-		Name: name,
-		Type: datatypes.TypeFromString(dataType),
-	}
-}
-
 // FieldKey allows a field key to be either a string or object
 type FieldKey []string
 
-type ForeignKey struct {
-	Fields FieldKey `json:"fields"`
-	// Reference
-}
-
+// FieldConstraints is supposed to constrain the field,
+// this is totally unfinished, unimplemented, and needs lots of work
+// TODO - uh, finish this?
 type FieldConstraints struct {
 	Required  *bool         `json:"required,omitempty"`
 	MinLength *int64        `json:"minLength,omitempty"`
@@ -123,4 +114,12 @@ type FieldConstraints struct {
 	Minimum   interface{}   `json:"minimum,omitempty"`
 	Maximum   interface{}   `json:"maximum,omitempty"`
 	Enum      []interface{} `json:"enum,omitempty"`
+}
+
+// ForeignKey is supposed to be for supporting foreign key
+// references. It's also totally unfinished.
+// TODO - finish this
+type ForeignKey struct {
+	Fields FieldKey `json:"fields"`
+	// Reference
 }

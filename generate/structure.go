@@ -8,7 +8,7 @@ import (
 	"github.com/qri-io/dataset/datatypes"
 )
 
-type RandomResourceOpts struct {
+type RandomStructureOpts struct {
 	Path      datastore.Key
 	Datatypes []datatypes.Type
 	Format    dataset.DataFormat
@@ -18,11 +18,9 @@ type RandomResourceOpts struct {
 	// NumRandRecords int
 }
 
-// RandomResource generates a randomized resource definition
-func RandomResource(options ...func(*RandomResourceOpts)) *dataset.Resource {
-	name := randString(16)
-	opt := &RandomResourceOpts{
-		Path:      datastore.NewKey(name),
+// RandomStructure generates a randomized resource definition
+func RandomStructure(options ...func(*RandomStructureOpts)) *dataset.Structure {
+	opt := &RandomStructureOpts{
 		NumFields: rand.Intn(9) + 1,
 		Datatypes: nil,
 		Format:    dataset.CsvDataFormat,
@@ -39,9 +37,7 @@ func RandomResource(options ...func(*RandomResourceOpts)) *dataset.Resource {
 		})
 	}
 
-	ds := &dataset.Resource{
-		Path: opt.Path,
-		// Datasets: opt.Datasets,
+	ds := &dataset.Structure{
 		Format: opt.Format,
 		Schema: &dataset.Schema{
 			Fields: opt.Fields,

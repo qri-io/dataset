@@ -1,11 +1,27 @@
 package dataset
 
+import (
+	"regexp"
+)
+
 // import (
 // 	"bytes"
 // 	"encoding/csv"
 // 	"net/http"
 // 	"net/url"
 // 	"strconv"
+
+var alphaNumericRegex = regexp.MustCompile(`^[a-z0-9_-]{1-144}$`)
+
+// truthCount returns the number of arguments that are true
+func truthCount(args ...bool) (count int) {
+	for _, arg := range args {
+		if arg {
+			count++
+		}
+	}
+	return
+}
 
 // 	"github.com/qri-io/datatype"
 // 	"github.com/qri-io/fs"
