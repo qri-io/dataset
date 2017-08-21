@@ -26,7 +26,7 @@ func TestFromFile(t *testing.T) {
 			return
 		}
 
-		expect := &dataset.Resource{}
+		expect := &dataset.Structure{}
 		if err := json.Unmarshal(data, expect); err != nil {
 			t.Error(err)
 			return

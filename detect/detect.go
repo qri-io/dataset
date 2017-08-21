@@ -20,7 +20,7 @@ var (
 
 // FromFile takes a filepath & tries to work out the corresponding dataset
 // for the sake of speed, it only works with files that have a recognized extension
-func FromFile(path string) (ds *dataset.Resource, err error) {
+func FromFile(path string) (ds *dataset.Structure, err error) {
 	// if filepath.Base(path) == dataset.Filename {
 	// 	return nil, fmt.Errorf("cannot determine schema of a %s file", dataset.Filename)
 	// }
@@ -35,22 +35,22 @@ func FromFile(path string) (ds *dataset.Resource, err error) {
 		return nil, err
 	}
 
-	return DetectResource(format, f)
+	return DetectStructure(format, f)
 }
 
 // FromReader is a shorthand for a path/filename and reader
-func FromReader(path string, data io.Reader) (ds *dataset.Resource, err error) {
+func FromReader(path string, data io.Reader) (ds *dataset.Structure, err error) {
 	format, err := ExtensionDataFormat(path)
 	if err != nil {
 		return nil, err
 	}
-	return DetectResource(format, data)
+	return DetectStructure(format, data)
 }
 
-// Resource attemptes to extract a reader based on a given format and data reader
-func DetectResource(format dataset.DataFormat, data io.Reader) (r *dataset.Resource, err error) {
+// Structure attemptes to extract a reader based on a given format and data reader
+func DetectStructure(format dataset.DataFormat, data io.Reader) (r *dataset.Structure, err error) {
 
-	r = &dataset.Resource{
+	r = &dataset.Structure{
 		Format: format,
 	}
 

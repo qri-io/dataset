@@ -16,7 +16,7 @@ var (
 	startsWithNumberRegex = regexp.MustCompile(`^[0-9]`)
 )
 
-func Fields(r *dataset.Resource, data io.Reader) (fields []*dataset.Field, err error) {
+func Fields(r *dataset.Structure, data io.Reader) (fields []*dataset.Field, err error) {
 	if r.Format == dataset.UnknownDataFormat {
 		return nil, errors.New("dataset format must be specified to determine fields")
 	}
@@ -33,7 +33,7 @@ func Fields(r *dataset.Resource, data io.Reader) (fields []*dataset.Field, err e
 	return nil, fmt.Errorf("'%s' is not supported for field detection", r.Format.String())
 }
 
-func CsvFields(resource *dataset.Resource, data io.Reader) (fields []*dataset.Field, err error) {
+func CsvFields(resource *dataset.Structure, data io.Reader) (fields []*dataset.Field, err error) {
 	r := csv.NewReader(data)
 	header, err := r.Read()
 	if err != nil {
@@ -98,12 +98,12 @@ func CsvFields(resource *dataset.Resource, data io.Reader) (fields []*dataset.Fi
 	return fields, nil
 }
 
-func JsonFields(ds *dataset.Resource, data io.Reader) (fields []*dataset.Field, err error) {
+func JsonFields(ds *dataset.Structure, data io.Reader) (fields []*dataset.Field, err error) {
 	// TODO
 	return nil, errors.New("json field detection not yet implemented")
 }
 
-func XmlFields(ds *dataset.Resource, data io.Reader) (fields []*dataset.Field, err error) {
+func XmlFields(ds *dataset.Structure, data io.Reader) (fields []*dataset.Field, err error) {
 	// TODO
 	return nil, errors.New("xml field detection not yet implemented")
 }
