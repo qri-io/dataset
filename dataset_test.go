@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ipfs/go-datastore"
+	"github.com/qri-io/castore"
 	"github.com/qri-io/compare"
 	"io/ioutil"
 	"testing"
@@ -16,7 +17,7 @@ func TestDatasetMarshalJSON(t *testing.T) {
 		out []byte
 		err error
 	}{
-		{&Dataset{}, []byte(`{"data":"","length":0,"structure":"","timestamp":"0001-01-01T00:00:00Z","title":""}`), nil},
+		{&Dataset{}, []byte(`{"data":"","length":0,"structure":null,"timestamp":"0001-01-01T00:00:00Z","title":""}`), nil},
 		// {AirportCodes, []byte(`{"format":"csv","formatConfig":{"header_row":true},"path":"","query":"","schema":{"fields":[{"name":"ident","type":"string"},{"name":"type","type":"string"},{"name":"name","type":"string"},{"name":"latitude_deg","type":"float"},{"name":"longitude_deg","type":"float"},{"name":"elevation_ft","type":"integer"},{"name":"continent","type":"string"},{"name":"iso_country","type":"string"},{"name":"iso_region","type":"string"},{"name":"municipality","type":"string"},{"name":"gps_code","type":"string"},{"name":"iata_code","type":"string"},{"name":"local_code","type":"string"}]}}`), nil},
 	}
 
@@ -31,6 +32,16 @@ func TestDatasetMarshalJSON(t *testing.T) {
 			t.Errorf("case %d error mismatch. %s != %s", i, string(c.out), string(got))
 			continue
 		}
+	}
+
+	strbytes, err := json.Marshal(&Dataset{path: datastore.NewKey("/path/to/dataset")})
+	if err != nil {
+		t.Errorf("unexpected string marshal error: %s", err.Error())
+		return
+	}
+
+	if !bytes.Equal(strbytes, []byte("\"/path/to/dataset\"")) {
+		t.Errorf("marshal strbyte interface byte mismatch: %s != %s", string(strbytes), "\"/path/to/dataset\"")
 	}
 }
 
@@ -61,6 +72,18 @@ func TestDatasetUnmarshalJSON(t *testing.T) {
 			t.Errorf("case %d resource comparison error: %s", i, err)
 			continue
 		}
+	}
+
+	strds := &Dataset{}
+	path := "/path/to/dataset"
+	if err := json.Unmarshal([]byte(`"`+path+`"`), strds); err != nil {
+		t.Errorf("unmarshal string path error: %s", err.Error())
+		return
+	}
+
+	if strds.path.String() != path {
+		t.Errorf("unmarshal didn't set proper path: %s != %s", path, strds.path)
+		return
 	}
 }
 
@@ -115,16 +138,47 @@ func CompareDatasets(a, b *Dataset) error {
 }
 
 func TestLoadDataset(t *testing.T) {
-	store := datastore.NewMapDatastore()
-	a := datastore.NewKey("/straight/value")
-	if err := store.Put(a, AirportCodes); err != nil {
+	store := castore.NewMapstore()
+	// a := datastore.NewKey("/straight/value")
+	apath, err := AirportCodes.Save(store)
+	if err != nil {
 		t.Errorf(err.Error())
 		return
 	}
 
-	_, err := LoadDataset(store, a)
+	_, err = LoadDataset(store, apath)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
 	// TODO - other tests & stuff
+}
+
+func TestDatasetSave(t *testing.T) {
+	store := castore.NewMapstore()
+
+	ds := &Dataset{
+		Title: "test store",
+		Query: &Query{
+			Syntax:    "dunno",
+			Statement: "test statement",
+		},
+	}
+
+	key, err := ds.Save(store)
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+
+	hash := "/map/Qmc1e6ytPKJQ7YWNnms8GY7DEei8FXkbymbeseqQMD8nZz"
+	if key.String() != hash {
+		t.Errorf("key mismatch: %s != %s", hash, key.String())
+		return
+	}
+
+	if len(store.(castore.MapStore)) != 2 {
+		t.Error("invalid number of entries added to store: %d != %d", 2, len(store.(castore.MapStore)))
+		return
+	}
+	// fmt.Println(string(store.(castore.MapStore)[datastore.NewKey("/mem/Qmdv5WeDGw1f6pw4DSYQdsugNDFUqHw9FuFU8Gu7T4PUqF")].([]byte)))
 }

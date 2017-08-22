@@ -5,16 +5,17 @@ import (
 	"bytes"
 	"encoding/csv"
 	"fmt"
-	"github.com/ipfs/go-datastore"
+	"github.com/qri-io/castore"
 	"github.com/qri-io/dataset"
 )
 
 // RowDataRows loads a slice of raw bytes inside a limit/offset row range
-func RawDataRows(store datastore.Datastore, ds *dataset.Dataset, limit, offset int) ([]byte, error) {
-	st, err := ds.LoadStructure(store)
-	if err != nil {
-		return nil, err
-	}
+func RawDataRows(store castore.Datastore, ds *dataset.Dataset, limit, offset int) ([]byte, error) {
+	st := ds.Structure
+	// st, err := ds.LoadStructure(store)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	rawdata, err := ds.LoadData(store)
 	if err != nil {
@@ -101,18 +102,18 @@ func EachRow(st *dataset.Structure, rawdata []byte, fn DataIteratorFunc) error {
 }
 
 // Ugh, this shouldn't exist. re-architect around some sort of row-reader interface
-func AllRows(store datastore.Datastore, ds *dataset.Dataset) (data [][][]byte, err error) {
-	st, err := ds.LoadStructure(store)
-	if err != nil {
-		return nil, err
-	}
+func AllRows(store castore.Datastore, ds *dataset.Dataset) (data [][][]byte, err error) {
+	// st, err := ds.LoadStructure(store)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	rawdata, err := ds.LoadData(store)
 	if err != nil {
 		return nil, err
 	}
 
-	return FormatRows(st, rawdata)
+	return FormatRows(ds.Structure, rawdata)
 }
 
 func FormatRows(st *dataset.Structure, rawdata []byte) (data [][][]byte, err error) {

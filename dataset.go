@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ipfs/go-datastore"
+	"github.com/qri-io/castore"
 	"time"
 )
 
@@ -20,10 +21,14 @@ import (
 // Design goals should include making this compatible with the DCAT spec,
 // with the one major exception that hashes are acceptable in place of urls.
 type Dataset struct {
+	// private storage for reference to this object
+	path datastore.Key
+
 	// Time this dataset was created. Required. Datasets are immutable, so no "updated"
 	Timestamp time.Time `json:"timestamp"`
 	// Structure of this dataset, required
-	Structure datastore.Key `json:"structure"`
+	Structure *Structure `json:"structure"`
+
 	// Data is the path to the hash of raw data as it resolves on the network.
 	Data datastore.Key `json:"data"`
 	// Length is the length of the data object in bytes.
@@ -31,6 +36,7 @@ type Dataset struct {
 	Length int `json:"length"`
 	// Previous connects datasets to form a historical DAG
 	Previous datastore.Key `json:"previous,omitempty"`
+
 	// Title of this dataset
 	Title string `json:"title,omitempty"`
 	Url   string `json:"url,omitempty"`
@@ -53,10 +59,10 @@ type Dataset struct {
 	Keywords []string `json:"keywords,omitempty"`
 	// Contribute
 	Contributors []*User `json:"contributors,omitempty"`
-	// Query is the user-inputted string of this query
-	Query string `json:"query,omitempty"`
-	// Abstract is a path to a query that generated this resource
-	Abstract datastore.Key `json:"abstract,omitempty"`
+	// QueryString is the user-inputted string of this query
+	QueryString string `json:"queryString,omitempty"`
+	// Query is a path to a query that generated this resource
+	Query *Query `json:"query,omitempty"`
 	// Syntax this query was written in
 	QuerySyntax string `json:"querySyntax"`
 	// queryPlatform is an identifier for the operating system that performed the query
@@ -67,7 +73,7 @@ type Dataset struct {
 	QueryEngineConfig map[string]interface{} `json:"queryEngineConfig,omitempty`
 	// Resources is a map of dataset names to dataset references this query is derived from
 	// all tables referred to in the query should be present here
-	Resources map[string]datastore.Key `json:"resources,omitempty"`
+	Resources map[string]*Dataset `json:"resources,omitempty"`
 	// meta holds additional arbitrarty metadata not covered by the spec
 	// when encoding & decoding json values here will be hoisted into the
 	// Dataset object
@@ -82,26 +88,26 @@ func (d *Dataset) Meta() map[string]interface{} {
 	return d.meta
 }
 
-func (d *Dataset) LoadStructure(store datastore.Datastore) (*Structure, error) {
-	return LoadStructure(store, d.Structure)
-}
+// func (d *Dataset) LoadStructure(store datastore.Datastore) (*Structure, error) {
+// 	if d.Structure != nil && d.Structure.path != "" {
+// 		return LoadStructure(store, d.Structure.path)
+// 	}
+// 	return
+// }
 
-func (d *Dataset) LoadData(store datastore.Datastore) ([]byte, error) {
-	v, err := store.Get(d.Data)
-	if err != nil {
-		return nil, err
-	}
-
-	if data, ok := v.([]byte); ok {
-		return data, nil
-	}
-
-	return nil, fmt.Errorf("wrong data type for dataset data: %s", d.Data)
+func (d *Dataset) LoadData(store castore.Datastore) ([]byte, error) {
+	return store.Get(d.Data)
 }
 
 // MarshalJSON uses a map to combine meta & standard fields.
 // Marshalling a map[string]interface{} automatically alpha-sorts the keys.
 func (d *Dataset) MarshalJSON() ([]byte, error) {
+	// if we're dealing with an empty object that has a path specified, marshal to a string instead
+	// TODO - check all fields
+	if d.path.String() != "" && d.IsEmpty() {
+		return d.path.MarshalJSON()
+	}
+
 	data := d.Meta()
 
 	// required fields first
@@ -154,11 +160,11 @@ func (d *Dataset) MarshalJSON() ([]byte, error) {
 		data["citations"] = d.Citations
 	}
 
-	if d.Query != "" {
-		data["query"] = d.Query
+	if d.QueryString != "" {
+		data["queryString"] = d.QueryString
 	}
-	if d.Abstract.String() != "" {
-		data["abstract"] = d.Abstract
+	if d.Query != nil {
+		data["query"] = d.Query
 	}
 	if d.QueryPlatform != "" {
 		data["querySyntax"] = d.QuerySyntax
@@ -184,7 +190,14 @@ type _dataset Dataset
 
 // UnmarshalJSON implements json.Unmarshaller
 func (d *Dataset) UnmarshalJSON(data []byte) error {
-	// TODO - I'm guessing this could be better
+	// first check to see if this is a valid path ref
+	var path string
+	if err := json.Unmarshal(data, &path); err == nil {
+		*d = Dataset{path: datastore.NewKey(path)}
+		return nil
+	}
+
+	// TODO - I'm guessing what follows could be better
 	ds := _dataset{}
 	if err := json.Unmarshal(data, &ds); err != nil {
 		return err
@@ -231,14 +244,15 @@ func (d *Dataset) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// LoadDataset loads a dataset from a given path in a store
-func LoadDataset(store datastore.Datastore, path datastore.Key) (*Dataset, error) {
-	v, err := store.Get(path)
-	if err != nil {
-		return nil, err
-	}
+func (ds *Dataset) IsEmpty() bool {
+	return ds.Title == "" && ds.Description == "" && ds.Structure == nil && ds.Timestamp.IsZero() && ds.Previous.String() == ""
+}
 
-	return UnmarshalDataset(v)
+// LoadDataset loads a dataset from a given path in a store
+func LoadDataset(store castore.Datastore, path datastore.Key) (*Dataset, error) {
+	ds := &Dataset{path: path}
+	err := ds.Load(store)
+	return ds, err
 }
 
 // UnmarshalDataset tries to extract a dataset type from an empty
@@ -256,4 +270,86 @@ func UnmarshalDataset(v interface{}) (*Dataset, error) {
 	default:
 		return nil, fmt.Errorf("couldn't parse dataset")
 	}
+}
+
+func (ds *Dataset) Load(store castore.Datastore) error {
+	if ds.path.String() == "" {
+		return ErrNoPath
+	}
+
+	v, err := store.Get(ds.path)
+	if err != nil {
+		return err
+	}
+
+	d, err := UnmarshalDataset(v)
+	if err != nil {
+		return err
+	}
+
+	*ds = *d
+
+	if ds.Structure != nil {
+		if err := ds.Structure.Load(store); err != nil {
+			return fmt.Errorf("error loading dataset structure: %s", err.Error())
+		}
+	}
+
+	if ds.Query != nil {
+		if err := ds.Query.Load(store); err != nil {
+			return fmt.Errorf("error loading dataset query: %s", err.Error())
+		}
+	}
+
+	for _, d := range ds.Resources {
+		if d.path.String() != "" && d.IsEmpty() {
+			continue
+		} else if d != nil {
+			if err := d.Load(store); err != nil {
+				return fmt.Errorf("error loading dataset resource: %s", err.Error())
+			}
+		}
+	}
+	return nil
+}
+
+func (ds *Dataset) Save(store castore.Datastore) (datastore.Key, error) {
+	if ds == nil {
+		return datastore.NewKey(""), nil
+	}
+
+	if ds.Structure != nil {
+		stpath, err := ds.Structure.Save(store)
+		if err != nil {
+			return datastore.NewKey(""), fmt.Errorf("error saving dataset structure: %s", err.Error())
+		}
+		ds.Structure = &Structure{path: stpath}
+	}
+
+	if ds.Query != nil {
+		qpath, err := ds.Query.Save(store)
+		if err != nil {
+			return datastore.NewKey(""), fmt.Errorf("error saving dataset query: %s", err.Error())
+		}
+		ds.Query = &Query{path: qpath}
+	}
+
+	for name, d := range ds.Resources {
+		if d.path.String() != "" && d.IsEmpty() {
+			continue
+		} else if d != nil {
+			dspath, err := d.Save(store)
+			if err != nil {
+				return datastore.NewKey(""), fmt.Errorf("error saving dataset resource: %s", err.Error())
+			}
+			ds.Resources[name] = &Dataset{path: dspath}
+		}
+	}
+
+	dsdata, err := json.Marshal(ds)
+	if err != nil {
+		return datastore.NewKey(""), err
+	}
+
+	return store.Put(dsdata)
 }

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ipfs/go-datastore"
+	"github.com/qri-io/castore"
 	"io/ioutil"
 	"testing"
 )
@@ -15,7 +16,7 @@ func TestStrucureHash(t *testing.T) {
 		hash string
 		err  error
 	}{
-		{&Structure{Format: CsvDataFormat}, "12201f1b72ac6f62cd6c078715c8d6539051b870d4fdfef1faeffafd55767ad4d83e", nil},
+		{&Structure{Format: CsvDataFormat}, "QmQS5d6vtwMCiCgtjS5883oHMK44EMcuCtvyMhDXsha4wo", nil},
 	}
 
 	for i, c := range cases {
@@ -48,15 +49,14 @@ func TestStructureAbstract(t *testing.T) {
 }
 
 func TestLoadStructure(t *testing.T) {
-	store := datastore.NewMapDatastore()
-	a := datastore.NewKey("/straight/value")
-	if err := store.Put(a, AirportCodesStructure); err != nil {
+	store := castore.NewMapstore()
+	a, err := AirportCodesStructure.Save(store)
+	if err != nil {
 		t.Errorf(err.Error())
 		return
 	}
 
-	_, err := LoadStructure(store, a)
-	if err != nil {
+	if _, err := LoadStructure(store, a); err != nil {
 		t.Errorf(err.Error())
 	}
 	// TODO - other tests & stuff
@@ -89,7 +89,18 @@ func TestStructureUnmarshalJSON(t *testing.T) {
 			t.Errorf("case %d resource comparison error: %s", i, err)
 			continue
 		}
+	}
 
+	strq := &Structure{}
+	path := "/path/to/structure"
+	if err := json.Unmarshal([]byte(`"`+path+`"`), strq); err != nil {
+		t.Errorf("unmarshal string path error: %s", err.Error())
+		return
+	}
+
+	if strq.path.String() != path {
+		t.Errorf("unmarshal didn't set proper path: %s != %s", path, strq.path)
+		return
 	}
 }
 
@@ -114,6 +125,16 @@ func TestStructureMarshalJSON(t *testing.T) {
 			t.Errorf("case %d error mismatch. %s != %s", i, string(c.out), string(got))
 			continue
 		}
+	}
+
+	strbytes, err := json.Marshal(&Structure{path: datastore.NewKey("/path/to/structure")})
+	if err != nil {
+		t.Errorf("unexpected string marshal error: %s", err.Error())
+		return
+	}
+
+	if !bytes.Equal(strbytes, []byte("\"/path/to/structure\"")) {
+		t.Errorf("marshal strbyte interface byte mismatch: %s != %s", string(strbytes), "\"/path/to/structure\"")
 	}
 }
 

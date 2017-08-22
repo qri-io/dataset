@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ipfs/go-datastore"
+	"github.com/qri-io/castore"
 	"github.com/qri-io/dataset/compression"
 )
 
@@ -14,6 +15,9 @@ import (
 // This example is shown in a human-readable form, for storage on the network the actual
 // output would be in a condensed, non-indented form, with keys sorted by lexographic order.
 type Structure struct {
+	// private storage for reference to this object
+	path datastore.Key
+
 	// Format specifies the format of the raw data MIME type
 	Format DataFormat `json:"format"`
 	// FormatConfig removes as much ambiguity as possible about how
@@ -72,39 +76,49 @@ type _structure struct {
 }
 
 // MarshalJSON satisfies the json.Marshaler interface
-func (r Structure) MarshalJSON() (data []byte, err error) {
+func (s Structure) MarshalJSON() (data []byte, err error) {
+	if s.path.String() != "" && s.Encoding == "" && s.Schema == nil {
+		return s.path.MarshalJSON()
+	}
+
 	var opt map[string]interface{}
-	if r.FormatConfig != nil {
-		opt = r.FormatConfig.Map()
+	if s.FormatConfig != nil {
+		opt = s.FormatConfig.Map()
 	}
 
 	return json.Marshal(&_structure{
-		Compression:  r.Compression,
-		Encoding:     r.Encoding,
-		Format:       r.Format,
+		Compression:  s.Compression,
+		Encoding:     s.Encoding,
+		Format:       s.Format,
 		FormatConfig: opt,
-		Schema:       r.Schema,
+		Schema:       s.Schema,
 	})
 }
 
 // UnmarshalJSON satisfies the json.Unmarshaler interface
-func (r *Structure) UnmarshalJSON(data []byte) error {
-	_r := &_structure{}
-	if err := json.Unmarshal(data, _r); err != nil {
+func (s *Structure) UnmarshalJSON(data []byte) error {
+	var str string
+	if err := json.Unmarshal(data, &str); err == nil {
+		*s = Structure{path: datastore.NewKey(str)}
+		return nil
+	}
+
+	_s := &_structure{}
+	if err := json.Unmarshal(data, _s); err != nil {
 		return err
 	}
 
-	fmtCfg, err := ParseFormatConfigMap(_r.Format, _r.FormatConfig)
+	fmtCfg, err := ParseFormatConfigMap(_s.Format, _s.FormatConfig)
 	if err != nil {
 		return err
 	}
 
-	*r = Structure{
-		Compression:  _r.Compression,
-		Encoding:     _r.Encoding,
-		Format:       _r.Format,
+	*s = Structure{
+		Compression:  _s.Compression,
+		Encoding:     _s.Encoding,
+		Format:       _s.Format,
 		FormatConfig: fmtCfg,
-		Schema:       _r.Schema,
+		Schema:       _s.Schema,
 	}
 
 	// TODO - question of weather we should not accept
@@ -132,14 +146,15 @@ func (ds *Structure) Valid() error {
 	return nil
 }
 
-// LoadStructure loads a structure from a given path in a store
-func LoadStructure(store datastore.Datastore, path datastore.Key) (*Structure, error) {
-	v, err := store.Get(path)
-	if err != nil {
-		return nil, err
-	}
+func (st *Structure) IsEmpty() bool {
+	return st.Format == UnknownDataFormat && st.FormatConfig == nil && st.Encoding == "" && st.Schema == nil
+}
 
-	return UnmarshalStructure(v)
+// LoadStructure loads a structure from a given path in a store
+func LoadStructure(store castore.Datastore, path datastore.Key) (st *Structure, err error) {
+	st = &Structure{path: path}
+	err = st.Load(store)
+	return
 }
 
 // UnmarshalStructure tries to extract a structure type from an empty
@@ -157,4 +172,36 @@ func UnmarshalStructure(v interface{}) (*Structure, error) {
 	default:
 		return nil, fmt.Errorf("couldn't parse structure")
 	}
+}
+
+func (st *Structure) Load(store castore.Datastore) error {
+	if st.path.String() == "" {
+		return ErrNoPath
+	}
+
+	v, err := store.Get(st.path)
+	if err != nil {
+		return err
+	}
+
+	s, err := UnmarshalStructure(v)
+	if err != nil {
+		return err
+	}
+
+	*st = *s
+	return nil
+}
+
+func (st *Structure) Save(store castore.Datastore) (datastore.Key, error) {
+	if st == nil {
+		return datastore.NewKey(""), nil
+	}
+
+	stdata, err := json.Marshal(st)
+	if err != nil {
+		return datastore.NewKey(""), err
+	}
+
+	return store.Put(stdata)
 }

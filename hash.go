@@ -2,7 +2,8 @@ package dataset
 
 import (
 	"crypto/sha256"
-	"encoding/hex"
+	"github.com/jbenet/go-base58"
+	// "encoding/hex"
 	"encoding/json"
 	"github.com/multiformats/go-multihash"
 )
@@ -30,6 +31,6 @@ func HashBytes(data []byte) (hash string, err error) {
 		return
 	}
 
-	hash = hex.EncodeToString(mhBuf)
+	hash = base58.Encode(mhBuf)
 	return
 }

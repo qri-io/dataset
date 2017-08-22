@@ -1,9 +1,11 @@
 package dataset
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/ipfs/go-datastore"
+	"github.com/qri-io/castore"
 
 	"testing"
 )
@@ -20,15 +22,15 @@ func CompareQuery(a, b *Query) error {
 }
 
 func TestLoadQuery(t *testing.T) {
-	store := datastore.NewMapDatastore()
-	a := datastore.NewKey("/straight/value")
-	if err := store.Put(a, &Query{Statement: "select * from whatever booooooo go home"}); err != nil {
+	store := castore.NewMapstore()
+	q := &Query{Statement: "select * from whatever booooooo go home"}
+	a, err := q.Save(store)
+	if err != nil {
 		t.Errorf(err.Error())
 		return
 	}
 
-	_, err := LoadQuery(store, a)
-	if err != nil {
+	if _, err = LoadQuery(store, a); err != nil {
 		t.Errorf(err.Error())
 	}
 	// TODO - other tests & stuff
@@ -45,7 +47,8 @@ func TestQueryUnmarshalJSON(t *testing.T) {
 		query *Query
 		err   error
 	}{
-		{`"select a from b"`, &Query{Statement: "select a from b"}, nil},
+		// This no long works, place taken by path unmarshaling
+		// {`"select a from b"`, &Query{Statement: "select a from b"}, nil},
 		{`{ "statement" : "select a from b" }`, &Query{Statement: "select a from b"}, nil},
 		{`{ "syntax" : "ql", "statement" : "select a from b" }`, &Query{Syntax: "ql", Statement: "select a from b"}, nil},
 	}
@@ -62,6 +65,18 @@ func TestQueryUnmarshalJSON(t *testing.T) {
 			continue
 		}
 	}
+
+	strq := &Query{}
+	path := "/path/to/query"
+	if err := json.Unmarshal([]byte(`"`+path+`"`), strq); err != nil {
+		t.Errorf("unmarshal string path error: %s", err.Error())
+		return
+	}
+
+	if strq.path.String() != path {
+		t.Errorf("unmarshal didn't set proper path: %s != %s", path, strq.path)
+		return
+	}
 }
 
 func TestQueryMarshalJSON(t *testing.T) {
@@ -70,7 +85,7 @@ func TestQueryMarshalJSON(t *testing.T) {
 		out string
 		err error
 	}{
-		{&Query{Syntax: "sql", Statement: "select a from b"}, `{"outputStructure":"","statement":"select a from b","structures":null,"syntax":"sql"}`, nil},
+		{&Query{Syntax: "sql", Statement: "select a from b"}, `{"outputStructure":null,"statement":"select a from b","structures":null,"syntax":"sql"}`, nil},
 	}
 
 	for i, c := range cases {
@@ -83,5 +98,15 @@ func TestQueryMarshalJSON(t *testing.T) {
 			t.Errorf("case %d result mismatch. expected: %s, got: %s", i, c.out, string(data))
 			continue
 		}
+	}
+
+	strbytes, err := json.Marshal(&Query{path: datastore.NewKey("/path/to/dataset")})
+	if err != nil {
+		t.Errorf("unexpected string marshal error: %s", err.Error())
+		return
+	}
+
+	if !bytes.Equal(strbytes, []byte("\"/path/to/dataset\"")) {
+		t.Errorf("marshal strbyte interface byte mismatch: %s != %s", string(strbytes), "\"/path/to/dataset\"")
 	}
 }
