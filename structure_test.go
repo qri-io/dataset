@@ -89,7 +89,18 @@ func TestStructureUnmarshalJSON(t *testing.T) {
 			t.Errorf("case %d resource comparison error: %s", i, err)
 			continue
 		}
+	}
 
+	strq := &Structure{}
+	path := "/path/to/structure"
+	if err := json.Unmarshal([]byte(`"`+path+`"`), strq); err != nil {
+		t.Errorf("unmarshal string path error: %s", err.Error())
+		return
+	}
+
+	if strq.path.String() != path {
+		t.Errorf("unmarshal didn't set proper path: %s != %s", path, strq.path)
+		return
 	}
 }
 
@@ -114,6 +125,16 @@ func TestStructureMarshalJSON(t *testing.T) {
 			t.Errorf("case %d error mismatch. %s != %s", i, string(c.out), string(got))
 			continue
 		}
+	}
+
+	strbytes, err := json.Marshal(&Structure{path: datastore.NewKey("/path/to/structure")})
+	if err != nil {
+		t.Errorf("unexpected string marshal error: %s", err.Error())
+		return
+	}
+
+	if !bytes.Equal(strbytes, []byte("\"/path/to/structure\"")) {
+		t.Errorf("marshal strbyte interface byte mismatch: %s != %s", string(strbytes), "\"/path/to/structure\"")
 	}
 }
 

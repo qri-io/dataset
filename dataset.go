@@ -280,37 +280,6 @@ func UnmarshalDataset(v interface{}) (*Dataset, error) {
 	}
 }
 
-// // ReferencedDataset is a dataset with all references as datastore.Key's
-// type ReferencedDataset struct {
-// 	Timestamp         time.Time                `json:"timestamp"`
-// 	Structure         datastore.Key            `json:"structure"`
-// 	Data              datastore.Key            `json:"data"`
-// 	Length            int                      `json:"length"`
-// 	Previous          datastore.Key            `json:"previous,omitempty"`
-// 	Title             string                   `json:"title,omitempty"`
-// 	Url               string                   `json:"url,omitempty"`
-// 	Readme            datastore.Key            `json:"readme,omitempty"`
-// 	Author            *User                    `json:"author,omitempty"`
-// 	Citations         []*Citation              `json:"citations"`
-// 	Image             string                   `json:"image,omitempty"`
-// 	Description       string                   `json:"description,omitempty"`
-// 	Homepage          string                   `json:"homepage,omitempty"`
-// 	IconImage         string                   `json:"icon_image,omitempty"`
-// 	PosterImage       string                   `json:"poster_image,omitempty"`
-// 	License           *License                 `json:"license,omitempty"`
-// 	Version           VersionNumber            `json:"version,omitempty"`
-// 	Keywords          []string                 `json:"keywords,omitempty"`
-// 	Contributors      []*User                  `json:"contributors,omitempty"`
-// 	QueryString       string                   `json:"queryString,omitempty"`
-// 	Query             datastore.Key            `json:"query,omitempty"`
-// 	QuerySyntax       string                   `json:"querySyntax"`
-// 	QueryPlatform     string                   `json:"queryPlatform,omitempty"`
-// 	QueryEngine       string                   `json:"queryEngine,omitempty"`
-// 	QueryEngineConfig map[string]interface{}   `json:"queryEngineConfig,omitempty`
-// 	Resources         map[string]datastore.Key `json:"resources,omitempty"`
-// 	meta              map[string]interface{}
-// }
-
 func (ds *Dataset) Load(store castore.Datastore, path datastore.Key) error {
 	v, err := store.Get(path)
 	if err != nil {
