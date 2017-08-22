@@ -32,6 +32,16 @@ func TestDatasetMarshalJSON(t *testing.T) {
 			continue
 		}
 	}
+
+	strbytes, err := json.Marshal(&Dataset{path: datastore.NewKey("/path/to/dataset")})
+	if err != nil {
+		t.Errorf("unexpected string marshal error: %s", err.Error())
+		return
+	}
+
+	if !bytes.Equal(strbytes, []byte("\"/path/to/dataset\"")) {
+		t.Errorf("marshal strbyte interface byte mismatch: %s != %s", string(strbytes), "\"/path/to/dataset\"")
+	}
 }
 
 func TestDatasetUnmarshalJSON(t *testing.T) {
@@ -61,6 +71,18 @@ func TestDatasetUnmarshalJSON(t *testing.T) {
 			t.Errorf("case %d resource comparison error: %s", i, err)
 			continue
 		}
+	}
+
+	strds := &Dataset{}
+	path := "/path/to/dataset"
+	if err := json.Unmarshal([]byte(`"`+path+`"`), strds); err != nil {
+		t.Errorf("unmarshal string path error: %s", err.Error())
+		return
+	}
+
+	if strds.path.String() != path {
+		t.Errorf("unmarshal didn't set proper path: %s != %s", path, strds.path)
+		return
 	}
 }
 

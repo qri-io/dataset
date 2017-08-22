@@ -21,10 +21,14 @@ import (
 // Design goals should include making this compatible with the DCAT spec,
 // with the one major exception that hashes are acceptable in place of urls.
 type Dataset struct {
+	// private storage for reference to this object
+	path datastore.Key
+
 	// Time this dataset was created. Required. Datasets are immutable, so no "updated"
 	Timestamp time.Time `json:"timestamp"`
 	// Structure of this dataset, required
 	Structure *Structure `json:"structure"`
+
 	// Data is the path to the hash of raw data as it resolves on the network.
 	Data datastore.Key `json:"data"`
 	// Length is the length of the data object in bytes.
@@ -32,6 +36,7 @@ type Dataset struct {
 	Length int `json:"length"`
 	// Previous connects datasets to form a historical DAG
 	Previous *Dataset `json:"previous,omitempty"`
+
 	// Title of this dataset
 	Title string `json:"title,omitempty"`
 	Url   string `json:"url,omitempty"`
@@ -56,7 +61,7 @@ type Dataset struct {
 	Contributors []*User `json:"contributors,omitempty"`
 	// QueryString is the user-inputted string of this query
 	QueryString string `json:"queryString,omitempty"`
-	// Abstract is a path to a query that generated this resource
+	// Query is a path to a query that generated this resource
 	Query *Query `json:"query,omitempty"`
 	// Syntax this query was written in
 	QuerySyntax string `json:"querySyntax"`
@@ -84,7 +89,10 @@ func (d *Dataset) Meta() map[string]interface{} {
 }
 
 // func (d *Dataset) LoadStructure(store datastore.Datastore) (*Structure, error) {
-// 	return LoadStructure(store, d.Structure)
+// 	if d.Structure != nil && d.Structure.path != "" {
+// 		return LoadStructure(store, d.Structure.path)
+// 	}
+// 	return
 // }
 
 func (d *Dataset) LoadData(store datastore.Datastore) ([]byte, error) {
@@ -103,6 +111,12 @@ func (d *Dataset) LoadData(store datastore.Datastore) ([]byte, error) {
 // MarshalJSON uses a map to combine meta & standard fields.
 // Marshalling a map[string]interface{} automatically alpha-sorts the keys.
 func (d *Dataset) MarshalJSON() ([]byte, error) {
+	// if we're dealing with an empty object that has a path specified, marshal to a string instead
+	// TODO - check all fields
+	if d.path.String() != "" && d.Title == "" && d.Description == "" && d.Structure == nil && d.Timestamp.IsZero() && d.Previous == nil {
+		return d.path.MarshalJSON()
+	}
+
 	data := d.Meta()
 
 	// required fields first
@@ -185,7 +199,14 @@ type _dataset Dataset
 
 // UnmarshalJSON implements json.Unmarshaller
 func (d *Dataset) UnmarshalJSON(data []byte) error {
-	// TODO - I'm guessing this could be better
+	// first check to see if this is a valid path ref
+	var path string
+	if err := json.Unmarshal(data, &path); err == nil {
+		*d = Dataset{path: datastore.NewKey(path)}
+		return nil
+	}
+
+	// TODO - I'm guessing what follows could be better
 	ds := _dataset{}
 	if err := json.Unmarshal(data, &ds); err != nil {
 		return err
