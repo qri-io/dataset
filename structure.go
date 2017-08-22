@@ -151,13 +151,10 @@ func (st *Structure) IsEmpty() bool {
 }
 
 // LoadStructure loads a structure from a given path in a store
-func LoadStructure(store datastore.Datastore, path datastore.Key) (*Structure, error) {
-	v, err := store.Get(path)
-	if err != nil {
-		return nil, err
-	}
-
-	return UnmarshalStructure(v)
+func LoadStructure(store castore.Datastore, path datastore.Key) (st *Structure, err error) {
+	st = &Structure{path: path}
+	err = st.Load(store)
+	return
 }
 
 // UnmarshalStructure tries to extract a structure type from an empty

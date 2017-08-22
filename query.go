@@ -105,13 +105,10 @@ func (q *Query) IsEmpty() bool {
 // }
 
 // LoadQuery loads a query from a given path in a store
-func LoadQuery(store datastore.Datastore, path datastore.Key) (*Query, error) {
-	v, err := store.Get(path)
-	if err != nil {
-		return nil, err
-	}
-
-	return UnmarshalQuery(v)
+func LoadQuery(store castore.Datastore, path datastore.Key) (q *Query, err error) {
+	q = &Query{path: path}
+	err = q.Load(store)
+	return
 }
 
 // UnmarshalResource tries to extract a resource type from an empty

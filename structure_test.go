@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ipfs/go-datastore"
+	"github.com/qri-io/castore"
 	"io/ioutil"
 	"testing"
 )
@@ -48,15 +49,14 @@ func TestStructureAbstract(t *testing.T) {
 }
 
 func TestLoadStructure(t *testing.T) {
-	store := datastore.NewMapDatastore()
-	a := datastore.NewKey("/straight/value")
-	if err := store.Put(a, AirportCodesStructure); err != nil {
+	store := castore.NewMapstore()
+	a, err := AirportCodesStructure.Save(store)
+	if err != nil {
 		t.Errorf(err.Error())
 		return
 	}
 
-	_, err := LoadStructure(store, a)
-	if err != nil {
+	if _, err := LoadStructure(store, a); err != nil {
 		t.Errorf(err.Error())
 	}
 	// TODO - other tests & stuff

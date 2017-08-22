@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ipfs/go-datastore"
+	"github.com/qri-io/castore"
 
 	"testing"
 )
@@ -21,15 +22,15 @@ func CompareQuery(a, b *Query) error {
 }
 
 func TestLoadQuery(t *testing.T) {
-	store := datastore.NewMapDatastore()
-	a := datastore.NewKey("/straight/value")
-	if err := store.Put(a, &Query{Statement: "select * from whatever booooooo go home"}); err != nil {
+	store := castore.NewMapstore()
+	q := &Query{Statement: "select * from whatever booooooo go home"}
+	a, err := q.Save(store)
+	if err != nil {
 		t.Errorf(err.Error())
 		return
 	}
 
-	_, err := LoadQuery(store, a)
-	if err != nil {
+	if _, err = LoadQuery(store, a); err != nil {
 		t.Errorf(err.Error())
 	}
 	// TODO - other tests & stuff
