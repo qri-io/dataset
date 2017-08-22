@@ -35,7 +35,7 @@ type Dataset struct {
 	// must always match & be present
 	Length int `json:"length"`
 	// Previous connects datasets to form a historical DAG
-	Previous *Dataset `json:"previous,omitempty"`
+	Previous datastore.Key `json:"previous,omitempty"`
 
 	// Title of this dataset
 	Title string `json:"title,omitempty"`
@@ -113,7 +113,7 @@ func (d *Dataset) LoadData(store datastore.Datastore) ([]byte, error) {
 func (d *Dataset) MarshalJSON() ([]byte, error) {
 	// if we're dealing with an empty object that has a path specified, marshal to a string instead
 	// TODO - check all fields
-	if d.path.String() != "" && d.Title == "" && d.Description == "" && d.Structure == nil && d.Timestamp.IsZero() && d.Previous == nil {
+	if d.path.String() != "" && d.IsEmpty() {
 		return d.path.MarshalJSON()
 	}
 
@@ -126,7 +126,7 @@ func (d *Dataset) MarshalJSON() ([]byte, error) {
 	data["length"] = d.Length
 	data["structure"] = d.Structure
 
-	if d.Previous != nil {
+	if d.Previous.String() != "" {
 		data["previous"] = d.Previous
 	}
 	if d.Url != "" {
@@ -253,6 +253,10 @@ func (d *Dataset) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (ds *Dataset) IsEmpty() bool {
+	return ds.Title == "" && ds.Description == "" && ds.Structure == nil && ds.Timestamp.IsZero() && ds.Previous.String() == ""
+}
+
 // LoadDataset loads a dataset from a given path in a store
 func LoadDataset(store datastore.Datastore, path datastore.Key) (*Dataset, error) {
 	v, err := store.Get(path)
@@ -296,11 +300,38 @@ func (ds *Dataset) Load(store castore.Datastore, path datastore.Key) error {
 }
 
 func (ds *Dataset) Save(store castore.Datastore) (datastore.Key, error) {
-	// if ds == nil {
-	// 	return datastore.NewKey(""), nil
-	// }
+	if ds == nil {
+		return datastore.NewKey(""), nil
+	}
 
-	// Ah fuck it, for now let's just write the whole thing to JSON
+	if ds.Structure != nil {
+		stpath, err := ds.Structure.Save(store)
+		if err != nil {
+			return datastore.NewKey(""), fmt.Errorf("error saving dataset structure: %s", err.Error())
+		}
+		ds.Structure = &Structure{path: stpath}
+	}
+
+	if ds.Query != nil {
+		qpath, err := ds.Query.Save(store)
+		if err != nil {
+			return datastore.NewKey(""), fmt.Errorf("error saving dataset query: %s", err.Error())
+		}
+		ds.Query = &Query{path: qpath}
+	}
+
+	for name, d := range ds.Resources {
+		if d.path.String() != "" && d.IsEmpty() {
+			continue
+		} else if d != nil {
+			dspath, err := d.Save(store)
+			if err != nil {
+				return datastore.NewKey(""), fmt.Errorf("error saving dataset resource: %s", err.Error())
+			}
+			ds.Resources[name] = &Dataset{path: dspath}
+		}
+	}
+
 	dsdata, err := json.Marshal(ds)
 	if err != nil {
 		return datastore.NewKey(""), err

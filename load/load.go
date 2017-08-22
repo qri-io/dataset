@@ -113,7 +113,7 @@ func AllRows(store datastore.Datastore, ds *dataset.Dataset) (data [][][]byte, e
 		return nil, err
 	}
 
-	return FormatRows(st, rawdata)
+	return FormatRows(ds.Structure, rawdata)
 }
 
 func FormatRows(st *dataset.Structure, rawdata []byte) (data [][][]byte, err error) {

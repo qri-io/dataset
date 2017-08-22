@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ipfs/go-datastore"
+	"github.com/qri-io/castore"
 	"github.com/qri-io/dataset/compression"
 )
 
@@ -145,6 +146,10 @@ func (ds *Structure) Valid() error {
 	return nil
 }
 
+func (st *Structure) IsEmpty() bool {
+	return st.Format == UnknownDataFormat && st.FormatConfig == nil && st.Encoding == "" && st.Schema == nil
+}
+
 // LoadStructure loads a structure from a given path in a store
 func LoadStructure(store datastore.Datastore, path datastore.Key) (*Structure, error) {
 	v, err := store.Get(path)
@@ -170,4 +175,32 @@ func UnmarshalStructure(v interface{}) (*Structure, error) {
 	default:
 		return nil, fmt.Errorf("couldn't parse structure")
 	}
+}
+
+func (st *Structure) Load(store castore.Datastore, path datastore.Key) error {
+	v, err := store.Get(path)
+	if err != nil {
+		return err
+	}
+
+	s, err := UnmarshalStructure(v)
+	if err != nil {
+		return err
+	}
+
+	*st = *s
+	return nil
+}
+
+func (st *Structure) Save(store castore.Datastore) (datastore.Key, error) {
+	if st == nil {
+		return datastore.NewKey(""), nil
+	}
+
+	stdata, err := json.Marshal(st)
+	if err != nil {
+		return datastore.NewKey(""), err
+	}
+
+	return store.Put(stdata)
 }

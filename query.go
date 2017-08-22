@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ipfs/go-datastore"
+	"github.com/qri-io/castore"
 	// "gx/ipfs/QmVSase1JP7cq9QkPT46oNwdp9pT6kBkG3oqS14y3QcZjG/go-datastore"
 )
 
@@ -75,6 +76,10 @@ func (q *Query) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (q *Query) IsEmpty() bool {
+	return q.Statement == "" && q.Syntax == "" && q.Structure == nil && q.Structures == nil
+}
+
 // func (q *Query) LoadStructures(store datastore.Datastore) (structs map[string]*Structure, err error) {
 // 	structs = map[string]*Structure{}
 // 	for key, path := range q.Structures {
@@ -124,4 +129,38 @@ func UnmarshalQuery(v interface{}) (*Query, error) {
 	default:
 		return nil, fmt.Errorf("couldn't parse query")
 	}
+}
+
+func (q *Query) Load(store castore.Datastore, path datastore.Key) error {
+	v, err := store.Get(path)
+	if err != nil {
+		return err
+	}
+
+	uq, err := UnmarshalQuery(v)
+	if err != nil {
+		return err
+	}
+
+	*q = *uq
+	return nil
+}
+
+func (q *Query) Save(store castore.Datastore) (datastore.Key, error) {
+	if q == nil {
+		return datastore.NewKey(""), nil
+	}
+
+	// *don't* need to break query out into different structs.
+	// stpath, err := q.Structure.Save(store)
+	// if err != nil {
+	// 	return datastore.NewKey(""), err
+	// }
+
+	qdata, err := json.Marshal(q)
+	if err != nil {
+		return datastore.NewKey(""), err
+	}
+
+	return store.Put(qdata)
 }

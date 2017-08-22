@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ipfs/go-datastore"
+	"github.com/qri-io/castore"
 	"github.com/qri-io/compare"
 	"io/ioutil"
 	"testing"
@@ -149,4 +150,33 @@ func TestLoadDataset(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 	// TODO - other tests & stuff
+}
+
+func TestDatasetSave(t *testing.T) {
+	store := castore.NewMemstore()
+
+	ds := &Dataset{
+		Title: "test store",
+		Query: &Query{
+			Syntax:    "dunno",
+			Statement: "test statement",
+		},
+	}
+
+	key, err := ds.Save(store)
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+
+	if key.String() != "/mem/Qmdv5WeDGw1f6pw4DSYQdsugNDFUqHw9FuFU8Gu7T4PUqF" {
+		t.Errorf("key mismatch: %s != %s", "/mem/Qmdv5WeDGw1f6pw4DSYQdsugNDFUqHw9FuFU8Gu7T4PUqF", key.String())
+		return
+	}
+
+	if len(store.(castore.Memstore)) != 2 {
+		t.Error("invalid number of entries added to store: %d != %d", 2, len(store.(castore.Memstore)))
+		return
+	}
+	// fmt.Println(string(store.(castore.Memstore)[datastore.NewKey("/mem/Qmdv5WeDGw1f6pw4DSYQdsugNDFUqHw9FuFU8Gu7T4PUqF")].([]byte)))
 }
