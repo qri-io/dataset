@@ -95,7 +95,7 @@ func (d *Dataset) Meta() map[string]interface{} {
 // 	return
 // }
 
-func (d *Dataset) LoadData(store datastore.Datastore) ([]byte, error) {
+func (d *Dataset) LoadData(store castore.Datastore) ([]byte, error) {
 	v, err := store.Get(d.Data)
 	if err != nil {
 		return nil, err
@@ -258,13 +258,10 @@ func (ds *Dataset) IsEmpty() bool {
 }
 
 // LoadDataset loads a dataset from a given path in a store
-func LoadDataset(store datastore.Datastore, path datastore.Key) (*Dataset, error) {
-	v, err := store.Get(path)
-	if err != nil {
-		return nil, err
-	}
-
-	return UnmarshalDataset(v)
+func LoadDataset(store castore.Datastore, path datastore.Key) (*Dataset, error) {
+	ds := &Dataset{path: path}
+	err := ds.Load(store)
+	return ds, err
 }
 
 // UnmarshalDataset tries to extract a dataset type from an empty
@@ -284,8 +281,12 @@ func UnmarshalDataset(v interface{}) (*Dataset, error) {
 	}
 }
 
-func (ds *Dataset) Load(store castore.Datastore, path datastore.Key) error {
-	v, err := store.Get(path)
+func (ds *Dataset) Load(store castore.Datastore) error {
+	if ds.path.String() == "" {
+		return ErrNoPath
+	}
+
+	v, err := store.Get(ds.path)
 	if err != nil {
 		return err
 	}
@@ -296,6 +297,28 @@ func (ds *Dataset) Load(store castore.Datastore, path datastore.Key) error {
 	}
 
 	*ds = *d
+
+	if ds.Structure != nil {
+		if err := ds.Structure.Load(store); err != nil {
+			return fmt.Errorf("error loading dataset structure: %s", err.Error())
+		}
+	}
+
+	if ds.Query != nil {
+		if err := ds.Query.Load(store); err != nil {
+			return fmt.Errorf("error loading dataset query: %s", err.Error())
+		}
+	}
+
+	for _, d := range ds.Resources {
+		if d.path.String() != "" && d.IsEmpty() {
+			continue
+		} else if d != nil {
+			if err := d.Load(store); err != nil {
+				return fmt.Errorf("error loading dataset resource: %s", err.Error())
+			}
+		}
+	}
 	return nil
 }
 

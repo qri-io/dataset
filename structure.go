@@ -177,8 +177,12 @@ func UnmarshalStructure(v interface{}) (*Structure, error) {
 	}
 }
 
-func (st *Structure) Load(store castore.Datastore, path datastore.Key) error {
-	v, err := store.Get(path)
+func (st *Structure) Load(store castore.Datastore) error {
+	if st.path.String() == "" {
+		return ErrNoPath
+	}
+
+	v, err := store.Get(st.path)
 	if err != nil {
 		return err
 	}

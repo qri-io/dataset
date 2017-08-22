@@ -138,14 +138,15 @@ func CompareDatasets(a, b *Dataset) error {
 }
 
 func TestLoadDataset(t *testing.T) {
-	store := datastore.NewMapDatastore()
-	a := datastore.NewKey("/straight/value")
-	if err := store.Put(a, AirportCodes); err != nil {
+	store := castore.NewMemstore()
+	// a := datastore.NewKey("/straight/value")
+	a, err := store.Put(AirportCodes)
+	if err != nil {
 		t.Errorf(err.Error())
 		return
 	}
 
-	_, err := LoadDataset(store, a)
+	_, err = LoadDataset(store, a)
 	if err != nil {
 		t.Errorf(err.Error())
 	}

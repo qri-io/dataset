@@ -131,8 +131,11 @@ func UnmarshalQuery(v interface{}) (*Query, error) {
 	}
 }
 
-func (q *Query) Load(store castore.Datastore, path datastore.Key) error {
-	v, err := store.Get(path)
+func (q *Query) Load(store castore.Datastore) error {
+	if q.path.String() == "" {
+		return ErrNoPath
+	}
+	v, err := store.Get(q.path)
 	if err != nil {
 		return err
 	}
