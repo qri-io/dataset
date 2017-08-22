@@ -15,7 +15,7 @@ func TestStrucureHash(t *testing.T) {
 		hash string
 		err  error
 	}{
-		{&Structure{Format: CsvDataFormat}, "12201f1b72ac6f62cd6c078715c8d6539051b870d4fdfef1faeffafd55767ad4d83e", nil},
+		{&Structure{Format: CsvDataFormat}, "QmQS5d6vtwMCiCgtjS5883oHMK44EMcuCtvyMhDXsha4wo", nil},
 	}
 
 	for i, c := range cases {

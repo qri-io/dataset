@@ -10,7 +10,7 @@ func TestHashBytes(t *testing.T) {
 		out string
 		err error
 	}{
-		{[]byte(""), "1220e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", nil},
+		{[]byte(""), "QmdfTbBqBPQ7VNxZEYEj14VmRuZBkqFbiwReogJgS1zR1n", nil},
 	}
 
 	for i, c := range cases {

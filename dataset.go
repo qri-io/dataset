@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ipfs/go-datastore"
+	"github.com/qri-io/castore"
 	"time"
 )
 
@@ -23,14 +24,14 @@ type Dataset struct {
 	// Time this dataset was created. Required. Datasets are immutable, so no "updated"
 	Timestamp time.Time `json:"timestamp"`
 	// Structure of this dataset, required
-	Structure datastore.Key `json:"structure"`
+	Structure *Structure `json:"structure"`
 	// Data is the path to the hash of raw data as it resolves on the network.
 	Data datastore.Key `json:"data"`
 	// Length is the length of the data object in bytes.
 	// must always match & be present
 	Length int `json:"length"`
 	// Previous connects datasets to form a historical DAG
-	Previous datastore.Key `json:"previous,omitempty"`
+	Previous *Dataset `json:"previous,omitempty"`
 	// Title of this dataset
 	Title string `json:"title,omitempty"`
 	Url   string `json:"url,omitempty"`
@@ -53,10 +54,10 @@ type Dataset struct {
 	Keywords []string `json:"keywords,omitempty"`
 	// Contribute
 	Contributors []*User `json:"contributors,omitempty"`
-	// Query is the user-inputted string of this query
-	Query string `json:"query,omitempty"`
+	// QueryString is the user-inputted string of this query
+	QueryString string `json:"queryString,omitempty"`
 	// Abstract is a path to a query that generated this resource
-	Abstract datastore.Key `json:"abstract,omitempty"`
+	Query *Query `json:"query,omitempty"`
 	// Syntax this query was written in
 	QuerySyntax string `json:"querySyntax"`
 	// queryPlatform is an identifier for the operating system that performed the query
@@ -67,7 +68,7 @@ type Dataset struct {
 	QueryEngineConfig map[string]interface{} `json:"queryEngineConfig,omitempty`
 	// Resources is a map of dataset names to dataset references this query is derived from
 	// all tables referred to in the query should be present here
-	Resources map[string]datastore.Key `json:"resources,omitempty"`
+	Resources map[string]*Dataset `json:"resources,omitempty"`
 	// meta holds additional arbitrarty metadata not covered by the spec
 	// when encoding & decoding json values here will be hoisted into the
 	// Dataset object
@@ -82,9 +83,9 @@ func (d *Dataset) Meta() map[string]interface{} {
 	return d.meta
 }
 
-func (d *Dataset) LoadStructure(store datastore.Datastore) (*Structure, error) {
-	return LoadStructure(store, d.Structure)
-}
+// func (d *Dataset) LoadStructure(store datastore.Datastore) (*Structure, error) {
+// 	return LoadStructure(store, d.Structure)
+// }
 
 func (d *Dataset) LoadData(store datastore.Datastore) ([]byte, error) {
 	v, err := store.Get(d.Data)
@@ -111,7 +112,7 @@ func (d *Dataset) MarshalJSON() ([]byte, error) {
 	data["length"] = d.Length
 	data["structure"] = d.Structure
 
-	if d.Previous.String() != "" {
+	if d.Previous != nil {
 		data["previous"] = d.Previous
 	}
 	if d.Url != "" {
@@ -154,11 +155,11 @@ func (d *Dataset) MarshalJSON() ([]byte, error) {
 		data["citations"] = d.Citations
 	}
 
-	if d.Query != "" {
-		data["query"] = d.Query
+	if d.QueryString != "" {
+		data["queryString"] = d.QueryString
 	}
-	if d.Abstract.String() != "" {
-		data["abstract"] = d.Abstract
+	if d.Query != nil {
+		data["query"] = d.Query
 	}
 	if d.QueryPlatform != "" {
 		data["querySyntax"] = d.QuerySyntax
@@ -256,4 +257,64 @@ func UnmarshalDataset(v interface{}) (*Dataset, error) {
 	default:
 		return nil, fmt.Errorf("couldn't parse dataset")
 	}
+}
+
+// // ReferencedDataset is a dataset with all references as datastore.Key's
+// type ReferencedDataset struct {
+// 	Timestamp         time.Time                `json:"timestamp"`
+// 	Structure         datastore.Key            `json:"structure"`
+// 	Data              datastore.Key            `json:"data"`
+// 	Length            int                      `json:"length"`
+// 	Previous          datastore.Key            `json:"previous,omitempty"`
+// 	Title             string                   `json:"title,omitempty"`
+// 	Url               string                   `json:"url,omitempty"`
+// 	Readme            datastore.Key            `json:"readme,omitempty"`
+// 	Author            *User                    `json:"author,omitempty"`
+// 	Citations         []*Citation              `json:"citations"`
+// 	Image             string                   `json:"image,omitempty"`
+// 	Description       string                   `json:"description,omitempty"`
+// 	Homepage          string                   `json:"homepage,omitempty"`
+// 	IconImage         string                   `json:"icon_image,omitempty"`
+// 	PosterImage       string                   `json:"poster_image,omitempty"`
+// 	License           *License                 `json:"license,omitempty"`
+// 	Version           VersionNumber            `json:"version,omitempty"`
+// 	Keywords          []string                 `json:"keywords,omitempty"`
+// 	Contributors      []*User                  `json:"contributors,omitempty"`
+// 	QueryString       string                   `json:"queryString,omitempty"`
+// 	Query             datastore.Key            `json:"query,omitempty"`
+// 	QuerySyntax       string                   `json:"querySyntax"`
+// 	QueryPlatform     string                   `json:"queryPlatform,omitempty"`
+// 	QueryEngine       string                   `json:"queryEngine,omitempty"`
+// 	QueryEngineConfig map[string]interface{}   `json:"queryEngineConfig,omitempty`
+// 	Resources         map[string]datastore.Key `json:"resources,omitempty"`
+// 	meta              map[string]interface{}
+// }
+
+func (ds *Dataset) Load(store castore.Datastore, path datastore.Key) error {
+	v, err := store.Get(path)
+	if err != nil {
+		return err
+	}
+
+	d, err := UnmarshalDataset(v)
+	if err != nil {
+		return err
+	}
+
+	*ds = *d
+	return nil
+}
+
+func (ds *Dataset) Save(store castore.Datastore) (datastore.Key, error) {
+	// if ds == nil {
+	// 	return datastore.NewKey(""), nil
+	// }
+
+	// Ah fuck it, for now let's just write the whole thing to JSON
+	dsdata, err := json.Marshal(ds)
+	if err != nil {
+		return datastore.NewKey(""), err
+	}
+
+	return store.Put(dsdata)
 }
