@@ -96,16 +96,7 @@ func (d *Dataset) Meta() map[string]interface{} {
 // }
 
 func (d *Dataset) LoadData(store castore.Datastore) ([]byte, error) {
-	v, err := store.Get(d.Data)
-	if err != nil {
-		return nil, err
-	}
-
-	if data, ok := v.([]byte); ok {
-		return data, nil
-	}
-
-	return nil, fmt.Errorf("wrong data type for dataset data: %s", d.Data)
+	return store.Get(d.Data)
 }
 
 // MarshalJSON uses a map to combine meta & standard fields.
