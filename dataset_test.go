@@ -98,8 +98,8 @@ func CompareDatasets(a, b *Dataset) error {
 		return fmt.Errorf("meta mismatch: %s", err.Error())
 	}
 
-	if a.Url != b.Url {
-		return fmt.Errorf("Url mismatch: %s != %s", a.Url, b.Url)
+	if a.AccessUrl != b.AccessUrl {
+		return fmt.Errorf("accessUrl mismatch: %s != %s", a.AccessUrl, b.AccessUrl)
 	}
 	if a.Readme != b.Readme {
 		return fmt.Errorf("Readme mismatch: %s != %s", a.Readme, b.Readme)
@@ -119,8 +119,8 @@ func CompareDatasets(a, b *Dataset) error {
 	if a.IconImage != b.IconImage {
 		return fmt.Errorf("IconImage mismatch: %s != %s", a.IconImage, b.IconImage)
 	}
-	if a.PosterImage != b.PosterImage {
-		return fmt.Errorf("PosterImage mismatch: %s != %s", a.PosterImage, b.PosterImage)
+	if a.DownloadUrl != b.DownloadUrl {
+		return fmt.Errorf("DownloadUrl mismatch: %s != %s", a.DownloadUrl, b.DownloadUrl)
 	}
 	if err := CompareLicense(a.License, b.License); err != nil {
 		return err

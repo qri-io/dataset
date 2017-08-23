@@ -13,12 +13,15 @@ const version = "0.0.1"
 type VersionNumber string
 
 // User is a placholder for talking about people, groups, organizations
-type User string
+type User struct {
+	Fullname string `fn,omitempty`
+	Email    string `email,omitempty`
+}
 
 // License represents a legal licensing agreement
 type License struct {
 	Type string `json:"type"`
-	Url  string `json:"url,omitempty"`
+	Url  string `json:"url"`
 }
 
 // private struct for marshaling
@@ -74,9 +77,19 @@ func (name *VariableName) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// Citation is a place that this datapackage drew it's information from
+// Citation is a place that this dataset drew it's information from
 type Citation struct {
 	Name  string `json:"name,omitempty"`
 	Url   string `json:"url,omitempty"`
 	Email string `json:"email,omitempty"`
+}
+
+// Theme is pulled from the Project Open Data Schema version 1.1
+type Theme struct {
+	Description     string `json:"description,omitempty"`
+	DisplayName     string `json:"display_name,omitempty"`
+	ImageDisplayUrl string `json:"image_display_url,omitempty"`
+	Id              string `json:"id,omitempty"`
+	Name            string `json:"name,omitempty"`
+	Title           string `json:"title,omitempty"`
 }

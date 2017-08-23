@@ -39,19 +39,25 @@ type Dataset struct {
 
 	// Title of this dataset
 	Title string `json:"title,omitempty"`
-	Url   string `json:"url,omitempty"`
+	// Url to access the dataset
+	AccessUrl string `json:"accessUrl,omitempty"`
+	// Url that should / must lead directly to the data itself
+	DownloadUrl string `json:"downloadUrl,omitempty"`
 	// path to readme
 	Readme datastore.Key `json:"readme,omitempty"`
 	// Author
-	Author      *User       `json:"author,omitempty"`
-	Citations   []*Citation `json:"citations"`
-	Image       string      `json:"image,omitempty"`
-	Description string      `json:"description,omitempty"`
-	Homepage    string      `json:"homepage,omitempty"`
-	IconImage   string      `json:"icon_image,omitempty"`
-	//
-	PosterImage string `json:"poster_image,omitempty"`
-	// License
+	Author    *User       `json:"author,omitempty"`
+	Citations []*Citation `json:"citations"`
+	Image     string      `json:"image,omitempty"`
+	// Description follows the DCAT sense of the word, it should be around a paragraph of human-readable
+	// text that outlines the
+	Description string `json:"description,omitempty"`
+	Homepage    string `json:"homepage,omitempty"`
+	IconImage   string `json:"iconImage,omitempty"`
+	// Identifier is for *other* data catalog specifications. Identifier should not be used
+	// or relied on to be unique, because this package does not enforce any of these rules.
+	Identifier string `json:"identifier,omitempty"`
+	// License will automatically parse to & from a string value if provided as a raw string
 	License *License `json:"license,omitempty"`
 	// SemVersion this dataset?
 	Version VersionNumber `json:"version,omitempty"`
@@ -59,12 +65,17 @@ type Dataset struct {
 	Keywords []string `json:"keywords,omitempty"`
 	// Contribute
 	Contributors []*User `json:"contributors,omitempty"`
+	// Languages this dataset is written in
+	Language []string `json:"language,omitempty"`
+	// Theme
+	Theme []*Theme `json:"theme,omitempty"`
+
 	// QueryString is the user-inputted string of this query
 	QueryString string `json:"queryString,omitempty"`
 	// Query is a path to a query that generated this resource
 	Query *Query `json:"query,omitempty"`
 	// Syntax this query was written in
-	QuerySyntax string `json:"querySyntax"`
+	QuerySyntax string `json:"querySyntax,omitempty"`
 	// queryPlatform is an identifier for the operating system that performed the query
 	QueryPlatform string `json:"queryPlatform,omitempty"`
 	// QueryEngine is an identifier for the application that produced the result
@@ -110,30 +121,24 @@ func (d *Dataset) MarshalJSON() ([]byte, error) {
 
 	data := d.Meta()
 
-	// required fields first
-	data["title"] = d.Title
-	data["timestamp"] = d.Timestamp
-	data["data"] = d.Data
-	data["length"] = d.Length
-	data["structure"] = d.Structure
-
-	if d.Previous.String() != "" {
-		data["previous"] = d.Previous
-	}
-	if d.Url != "" {
-		data["url"] = d.Url
-	}
-	if d.Readme.String() != "" {
-		data["readme"] = d.Readme
+	if d.AccessUrl != "" {
+		data["accessUrl"] = d.AccessUrl
 	}
 	if d.Author != nil {
 		data["author"] = d.Author
 	}
-	if d.Image != "" {
-		data["image"] = d.Image
+	if d.Citations != nil {
+		data["citations"] = d.Citations
 	}
+	if d.Contributors != nil {
+		data["contributors"] = d.Contributors
+	}
+	data["data"] = d.Data
 	if d.Description != "" {
 		data["description"] = d.Description
+	}
+	if d.DownloadUrl != "" {
+		data["downloadUrl"] = d.DownloadUrl
 	}
 	if d.Homepage != "" {
 		data["homepage"] = d.Homepage
@@ -141,36 +146,27 @@ func (d *Dataset) MarshalJSON() ([]byte, error) {
 	if d.IconImage != "" {
 		data["iconImage"] = d.IconImage
 	}
-	if d.PosterImage != "" {
-		data["posterImage"] = d.PosterImage
+	if d.Identifier != "" {
+		data["identifier"] = d.Identifier
 	}
-	if d.License != nil {
-		data["license"] = d.License
-	}
-	if d.Version != VersionNumber("") {
-		data["version"] = d.Version
+	if d.Image != "" {
+		data["image"] = d.Image
 	}
 	if d.Keywords != nil {
 		data["keywords"] = d.Keywords
 	}
-	if d.Contributors != nil {
-		data["contributors"] = d.Contributors
+	if d.Language != nil {
+		data["language"] = d.Language
 	}
-	if d.Citations != nil {
-		data["citations"] = d.Citations
+	data["length"] = d.Length
+	if d.License != nil {
+		data["license"] = d.License
 	}
-
-	if d.QueryString != "" {
-		data["queryString"] = d.QueryString
+	if d.Previous.String() != "" {
+		data["previous"] = d.Previous
 	}
 	if d.Query != nil {
 		data["query"] = d.Query
-	}
-	if d.QueryPlatform != "" {
-		data["querySyntax"] = d.QuerySyntax
-	}
-	if d.QueryPlatform != "" {
-		data["queryPlatform"] = d.QueryPlatform
 	}
 	if d.QueryEngine != "" {
 		data["queryEngine"] = d.QueryEngine
@@ -178,8 +174,29 @@ func (d *Dataset) MarshalJSON() ([]byte, error) {
 	if d.QueryEngineConfig != nil {
 		data["queryEngineConfig"] = d.QueryEngineConfig
 	}
+	if d.QueryPlatform != "" {
+		data["queryPlatform"] = d.QueryPlatform
+	}
+	if d.QueryString != "" {
+		data["queryString"] = d.QueryString
+	}
+	if d.QueryPlatform != "" {
+		data["querySyntax"] = d.QuerySyntax
+	}
+	if d.Readme.String() != "" {
+		data["readme"] = d.Readme
+	}
 	if d.Resources != nil {
 		data["resources"] = d.Resources
+	}
+	data["structure"] = d.Structure
+	if d.Theme != nil {
+		data["theme"] = d.Theme
+	}
+	data["timestamp"] = d.Timestamp
+	data["title"] = d.Title
+	if d.Version != VersionNumber("") {
+		data["version"] = d.Version
 	}
 
 	return json.Marshal(data)
@@ -209,32 +226,35 @@ func (d *Dataset) UnmarshalJSON(data []byte) error {
 	}
 
 	for _, f := range []string{
-		"title",
-		"url",
-		"readme",
+		"accessUrl",
 		"author",
-		"image",
-		"structure",
 		"citations",
+		"contributors",
+		"data",
 		"description",
+		"downloadUrl",
 		"homepage",
 		"iconImage",
-		"posterImage",
-		"license",
-		"version",
+		"identifier",
+		"image",
 		"keywords",
-		"contributors",
-		"meta",
-		"timestamp",
+		"language",
 		"length",
+		"license",
 		"previous",
-		"data",
 		"query",
-		"abstract",
-		"queryPlatform",
 		"queryEngine",
 		"queryEngineConfig",
+		"queryPlatform",
+		"queryString",
+		"querySyntax",
+		"readme",
 		"resources",
+		"structure",
+		"theme",
+		"timestamp",
+		"title",
+		"version",
 	} {
 		delete(meta, f)
 	}
