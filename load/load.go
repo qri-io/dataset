@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/qri-io/castore"
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/dataset/writers"
 )
 
 // RowDataRows loads a slice of raw bytes inside a limit/offset row range
@@ -23,14 +24,15 @@ func RawDataRows(store castore.Datastore, ds *dataset.Dataset, limit, offset int
 	}
 
 	added := 0
-	if st.Format != dataset.CsvDataFormat {
-		return nil, fmt.Errorf("raw data rows only works with csv data format for now")
-	}
+	// if st.Format != dataset.CsvDataFormat {
+	// 	return nil, fmt.Errorf("raw data rows only works with csv data format for now")
+	// }
 
-	buf := &bytes.Buffer{}
-	w := csv.NewWriter(buf)
+	// buf := &bytes.Buffer{}
+	// w := csv.NewWriter(buf)
+	w := writers.NewWriter(st)
 
-	err = EachRow(st, rawdata, func(i int, data [][]byte, err error) error {
+	err = EachRow(st, rawdata, func(i int, row [][]byte, err error) error {
 		if err != nil {
 			return err
 		} else if i < offset {
@@ -38,12 +40,8 @@ func RawDataRows(store castore.Datastore, ds *dataset.Dataset, limit, offset int
 		} else if i-offset == added {
 			return fmt.Errorf("EOF")
 		}
-		row := make([]string, len(data))
-		for i, d := range data {
-			row[i] = string(d)
-		}
 
-		w.Write(row)
+		w.WriteRow(row)
 		added++
 		return nil
 	})
@@ -51,8 +49,10 @@ func RawDataRows(store castore.Datastore, ds *dataset.Dataset, limit, offset int
 		return nil, err
 	}
 
-	w.Flush()
-	return buf.Bytes(), nil
+	if err := w.Close(); err != nil {
+		return nil, err
+	}
+	return w.Bytes(), nil
 }
 
 // DataIteratorFunc is a function for each "row" of a resource's raw data
