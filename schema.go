@@ -51,10 +51,11 @@ func (s *Schema) Assign(schemas ...*Schema) {
 			continue
 		}
 
-		if s == nil && sh != nil {
-			s = sh
-			continue
-		}
+		// @TODO - wouldn't this be nice...
+		// if s == nil && sh != nil {
+		// 	s = sh
+		// 	continue
+		// }
 
 		if sh.PrimaryKey != nil {
 			s.PrimaryKey = sh.PrimaryKey
@@ -70,6 +71,10 @@ func (s *Schema) Assign(schemas ...*Schema) {
 				s.Fields = append(s.Fields, f)
 				continue
 			}
+			if s.Fields[i] == nil && f != nil {
+				s.Fields[i] = f
+				continue
+			}
 			s.Fields[i].Assign(f)
 		}
 	}
@@ -80,10 +85,11 @@ func (f *Field) Assign(fields ...*Field) {
 		if fd == nil {
 			continue
 		}
-		if f == nil && fd != nil {
-			f = fd
-			continue
-		}
+		// TODO - wouldn't this be nice...
+		// if f == nil && fd != nil {
+		// 	f = fd
+		// 	continue
+		// }
 
 		if fd.Name != "" {
 			f.Name = fd.Name

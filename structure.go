@@ -157,10 +157,12 @@ func (s *Structure) Assign(structures ...*Structure) {
 		if st == nil {
 			continue
 		}
-		if s == nil && st != nil {
-			s = st
-			continue
-		}
+
+		// @TODO - wouldn't this be nice...
+		// if s == nil && st != nil {
+		// 	s = st
+		// 	continue
+		// }
 
 		if st.path.String() != "" {
 			s.path = st.path
@@ -176,6 +178,11 @@ func (s *Structure) Assign(structures ...*Structure) {
 		}
 		if st.Compression != compression.None {
 			s.Compression = st.Compression
+		}
+
+		if s.Schema == nil && st.Schema != nil {
+			s.Schema = st.Schema
+			continue
 		}
 		s.Schema.Assign(st.Schema)
 	}

@@ -49,7 +49,7 @@ func CompareSchemas(a, b *Schema) error {
 		return nil
 	}
 	if a != nil && b == nil || a == nil && b != nil {
-		return fmt.Errorf("nil mismatch: %s != %s", a, b)
+		return fmt.Errorf("nil mismatch: %v != %v", a, b)
 	}
 	if a.Fields == nil && b.Fields != nil || a.Fields != nil && b.Fields == nil {
 		return fmt.Errorf("fields slice mismatch: %s != %s", a.Fields, b.Fields)

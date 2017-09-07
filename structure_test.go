@@ -83,6 +83,17 @@ func TestStructureAssign(t *testing.T) {
 	if err := CompareStructures(expect, got); err != nil {
 		t.Error(err)
 	}
+
+	got.Assign(nil, nil)
+	if err := CompareStructures(expect, got); err != nil {
+		t.Error(err)
+	}
+
+	emptySt := &Structure{}
+	emptySt.Assign(expect)
+	if err := CompareStructures(expect, emptySt); err != nil {
+		t.Error(err)
+	}
 }
 
 func TestLoadStructure(t *testing.T) {
