@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/castore"
+	"github.com/qri-io/dataset/datatypes"
 	"io/ioutil"
 	"testing"
 )
@@ -45,6 +46,42 @@ func TestStructureAbstract(t *testing.T) {
 			t.Errorf("case %d error: %s", i, err.Error())
 			continue
 		}
+	}
+}
+
+func TestStructureAssign(t *testing.T) {
+	expect := &Structure{
+		Format: CsvDataFormat,
+		Schema: &Schema{
+			Fields: []*Field{
+				&Field{Type: datatypes.String, Name: "foo"},
+				&Field{Type: datatypes.Integer, Name: "bar"},
+				&Field{Description: "bat"},
+			},
+		},
+	}
+	got := &Structure{
+		Format: CsvDataFormat,
+		Schema: &Schema{
+			Fields: []*Field{
+				&Field{Type: datatypes.String},
+				&Field{Type: datatypes.Integer},
+			},
+		},
+	}
+
+	got.Assign(&Structure{
+		Schema: &Schema{
+			Fields: []*Field{
+				&Field{Name: "foo"},
+				&Field{Name: "bar"},
+				&Field{Description: "bat"},
+			},
+		},
+	})
+
+	if err := CompareStructures(expect, got); err != nil {
+		t.Error(err)
 	}
 }
 

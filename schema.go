@@ -43,6 +43,72 @@ func (s *Schema) FieldTypeStrings() (types []string) {
 	return
 }
 
+// AssignSchema collapses all properties of a group of schemas on to one
+// this is directly inspired by Javascript's Object.assign
+func (s *Schema) Assign(schemas ...*Schema) {
+	for _, sh := range schemas {
+		if sh == nil {
+			continue
+		}
+
+		if s == nil && sh != nil {
+			s = sh
+			continue
+		}
+
+		if sh.PrimaryKey != nil {
+			s.PrimaryKey = sh.PrimaryKey
+		}
+
+		if s.Fields == nil && sh.Fields != nil {
+			s.Fields = sh.Fields
+			continue
+		}
+
+		for i, f := range sh.Fields {
+			if i > len(s.Fields)-1 {
+				s.Fields = append(s.Fields, f)
+				continue
+			}
+			s.Fields[i].Assign(f)
+		}
+	}
+}
+
+func (f *Field) Assign(fields ...*Field) {
+	for _, fd := range fields {
+		if fd == nil {
+			continue
+		}
+		if f == nil && fd != nil {
+			f = fd
+			continue
+		}
+
+		if fd.Name != "" {
+			f.Name = fd.Name
+		}
+		if fd.Type != datatypes.Unknown {
+			f.Type = fd.Type
+		}
+		if fd.MissingValue != nil {
+			f.MissingValue = fd.MissingValue
+		}
+		if fd.Format != "" {
+			f.Format = fd.Format
+		}
+		if fd.Constraints != nil {
+			f.Constraints = fd.Constraints
+		}
+		if fd.Title != "" {
+			f.Title = fd.Title
+		}
+		if fd.Description != "" {
+			f.Description = fd.Description
+		}
+	}
+}
+
 // Field is a field descriptor
 type Field struct {
 	Name         string            `json:"name"`

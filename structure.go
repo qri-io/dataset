@@ -150,27 +150,34 @@ func (st *Structure) IsEmpty() bool {
 	return st.Format == UnknownDataFormat && st.FormatConfig == nil && st.Encoding == "" && st.Schema == nil
 }
 
-// LoadStructure loads a structure from a given path in a store
-func LoadStructure(store castore.Datastore, path datastore.Key) (st *Structure, err error) {
-	st = &Structure{path: path}
-	err = st.Load(store)
-	return
-}
+// Assign collapses all properties of a group of structures on to one
+// this is directly inspired by Javascript's Object.assign
+func (s *Structure) Assign(structures ...*Structure) {
+	for _, st := range structures {
+		if st == nil {
+			continue
+		}
+		if s == nil && st != nil {
+			s = st
+			continue
+		}
 
-// UnmarshalStructure tries to extract a structure type from an empty
-// interface. Pairs nicely with datastore.Get() from github.com/ipfs/go-datastore
-func UnmarshalStructure(v interface{}) (*Structure, error) {
-	switch r := v.(type) {
-	case *Structure:
-		return r, nil
-	case Structure:
-		return &r, nil
-	case []byte:
-		structure := &Structure{}
-		err := json.Unmarshal(r, structure)
-		return structure, err
-	default:
-		return nil, fmt.Errorf("couldn't parse structure")
+		if st.path.String() != "" {
+			s.path = st.path
+		}
+		if st.Format != UnknownDataFormat {
+			s.Format = st.Format
+		}
+		if st.FormatConfig != nil {
+			s.FormatConfig = st.FormatConfig
+		}
+		if st.Encoding != "" {
+			s.Encoding = st.Encoding
+		}
+		if st.Compression != compression.None {
+			s.Compression = st.Compression
+		}
+		s.Schema.Assign(st.Schema)
 	}
 }
 
@@ -204,4 +211,28 @@ func (st *Structure) Save(store castore.Datastore) (datastore.Key, error) {
 	}
 
 	return store.Put(stdata)
+}
+
+// LoadStructure loads a structure from a given path in a store
+func LoadStructure(store castore.Datastore, path datastore.Key) (st *Structure, err error) {
+	st = &Structure{path: path}
+	err = st.Load(store)
+	return
+}
+
+// UnmarshalStructure tries to extract a structure type from an empty
+// interface. Pairs nicely with datastore.Get() from github.com/ipfs/go-datastore
+func UnmarshalStructure(v interface{}) (*Structure, error) {
+	switch r := v.(type) {
+	case *Structure:
+		return r, nil
+	case Structure:
+		return &r, nil
+	case []byte:
+		structure := &Structure{}
+		err := json.Unmarshal(r, structure)
+		return structure, err
+	default:
+		return nil, fmt.Errorf("couldn't parse structure")
+	}
 }
