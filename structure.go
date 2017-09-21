@@ -207,7 +207,7 @@ func (st *Structure) Load(store castore.Datastore) error {
 	return nil
 }
 
-func (st *Structure) Save(store castore.Datastore) (datastore.Key, error) {
+func (st *Structure) Save(store castore.Datastore, pin bool) (datastore.Key, error) {
 	if st == nil {
 		return datastore.NewKey(""), nil
 	}
@@ -217,7 +217,7 @@ func (st *Structure) Save(store castore.Datastore) (datastore.Key, error) {
 		return datastore.NewKey(""), err
 	}
 
-	return store.Put(stdata)
+	return store.Put(stdata, pin)
 }
 
 // LoadStructure loads a structure from a given path in a store

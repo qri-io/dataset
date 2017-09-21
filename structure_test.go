@@ -98,7 +98,7 @@ func TestStructureAssign(t *testing.T) {
 
 func TestLoadStructure(t *testing.T) {
 	store := castore.NewMapstore()
-	a, err := AirportCodesStructure.Save(store)
+	a, err := AirportCodesStructure.Save(store, true)
 	if err != nil {
 		t.Errorf(err.Error())
 		return

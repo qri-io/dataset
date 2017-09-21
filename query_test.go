@@ -24,7 +24,7 @@ func CompareQuery(a, b *Query) error {
 func TestLoadQuery(t *testing.T) {
 	store := castore.NewMapstore()
 	q := &Query{Statement: "select * from whatever booooooo go home"}
-	a, err := q.Save(store)
+	a, err := q.Save(store, true)
 	if err != nil {
 		t.Errorf(err.Error())
 		return

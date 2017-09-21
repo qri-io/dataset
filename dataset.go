@@ -333,13 +333,13 @@ func (ds *Dataset) Load(store castore.Datastore) error {
 	return nil
 }
 
-func (ds *Dataset) Save(store castore.Datastore) (datastore.Key, error) {
+func (ds *Dataset) Save(store castore.Datastore, pin bool) (datastore.Key, error) {
 	if ds == nil {
 		return datastore.NewKey(""), nil
 	}
 
 	if ds.Structure != nil {
-		stpath, err := ds.Structure.Save(store)
+		stpath, err := ds.Structure.Save(store, pin)
 		if err != nil {
 			return datastore.NewKey(""), fmt.Errorf("error saving dataset structure: %s", err.Error())
 		}
@@ -347,7 +347,7 @@ func (ds *Dataset) Save(store castore.Datastore) (datastore.Key, error) {
 	}
 
 	if ds.Query != nil {
-		qpath, err := ds.Query.Save(store)
+		qpath, err := ds.Query.Save(store, pin)
 		if err != nil {
 			return datastore.NewKey(""), fmt.Errorf("error saving dataset query: %s", err.Error())
 		}
@@ -358,7 +358,7 @@ func (ds *Dataset) Save(store castore.Datastore) (datastore.Key, error) {
 		if d.path.String() != "" && d.IsEmpty() {
 			continue
 		} else if d != nil {
-			dspath, err := d.Save(store)
+			dspath, err := d.Save(store, pin)
 			if err != nil {
 				return datastore.NewKey(""), fmt.Errorf("error saving dataset resource: %s", err.Error())
 			}
@@ -371,5 +371,5 @@ func (ds *Dataset) Save(store castore.Datastore) (datastore.Key, error) {
 		return datastore.NewKey(""), err
 	}
 
-	return store.Put(dsdata)
+	return store.Put(dsdata, pin)
 }

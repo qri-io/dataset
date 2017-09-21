@@ -140,7 +140,7 @@ func CompareDatasets(a, b *Dataset) error {
 func TestLoadDataset(t *testing.T) {
 	store := castore.NewMapstore()
 	// a := datastore.NewKey("/straight/value")
-	apath, err := AirportCodes.Save(store)
+	apath, err := AirportCodes.Save(store, true)
 	if err != nil {
 		t.Errorf(err.Error())
 		return
@@ -164,7 +164,7 @@ func TestDatasetSave(t *testing.T) {
 		},
 	}
 
-	key, err := ds.Save(store)
+	key, err := ds.Save(store, true)
 	if err != nil {
 		t.Error(err.Error())
 		return

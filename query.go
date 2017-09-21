@@ -146,7 +146,7 @@ func (q *Query) Load(store castore.Datastore) error {
 	return nil
 }
 
-func (q *Query) Save(store castore.Datastore) (datastore.Key, error) {
+func (q *Query) Save(store castore.Datastore, pin bool) (datastore.Key, error) {
 	if q == nil {
 		return datastore.NewKey(""), nil
 	}
@@ -162,5 +162,5 @@ func (q *Query) Save(store castore.Datastore) (datastore.Key, error) {
 		return datastore.NewKey(""), err
 	}
 
-	return store.Put(qdata)
+	return store.Put(qdata, pin)
 }
