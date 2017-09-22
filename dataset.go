@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/castore"
+	// "github.com/qri-io/castore/ipfs"
+	"github.com/qri-io/memfile"
 	"time"
 )
 
@@ -338,38 +340,87 @@ func (ds *Dataset) Save(store castore.Datastore, pin bool) (datastore.Key, error
 		return datastore.NewKey(""), nil
 	}
 
-	if ds.Structure != nil {
-		stpath, err := ds.Structure.Save(store, pin)
-		if err != nil {
-			return datastore.NewKey(""), fmt.Errorf("error saving dataset structure: %s", err.Error())
-		}
-		ds.Structure = &Structure{path: stpath}
-	}
-
-	if ds.Query != nil {
-		qpath, err := ds.Query.Save(store, pin)
-		if err != nil {
-			return datastore.NewKey(""), fmt.Errorf("error saving dataset query: %s", err.Error())
-		}
-		ds.Query = &Query{path: qpath}
-	}
-
-	for name, d := range ds.Resources {
-		if d.path.String() != "" && d.IsEmpty() {
-			continue
-		} else if d != nil {
-			dspath, err := d.Save(store, pin)
-			if err != nil {
-				return datastore.NewKey(""), fmt.Errorf("error saving dataset resource: %s", err.Error())
-			}
-			ds.Resources[name] = &Dataset{path: dspath}
-		}
-	}
-
-	dsdata, err := json.Marshal(ds)
+	fileTasks := 0
+	adder, err := store.NewAdder(pin, true)
 	if err != nil {
 		return datastore.NewKey(""), err
 	}
 
-	return store.Put(dsdata, pin)
+	if ds.Query != nil {
+		fileTasks++
+		qdata, err := json.Marshal(ds.Query)
+		if err != nil {
+			return datastore.NewKey(""), err
+		}
+		adder.AddFile(memfile.NewMemfileBytes("query.json", qdata))
+	}
+
+	if ds.Structure != nil {
+		fileTasks++
+		stdata, err := json.Marshal(ds.Structure)
+		if err != nil {
+			return datastore.NewKey(""), err
+		}
+		adder.AddFile(memfile.NewMemfileBytes("structure.json", stdata))
+
+		fileTasks++
+		data, err := store.Get(ds.Data)
+		if err != nil {
+			return datastore.NewKey(""), err
+		}
+		adder.AddFile(memfile.NewMemfileBytes("data."+ds.Structure.Format.String(), data))
+	}
+
+	// if ds.Previous != nil {
+	// }
+
+	// for name, d := range ds.Resources {
+	// 	if d.path.String() != "" && d.IsEmpty() {
+	// 		continue
+	// 	} else if d != nil {
+	// 		// dspath, err := d.Save(store, pin)
+	// 		// if err != nil {
+	// 		// 	return datastore.NewKey(""), fmt.Errorf("error saving dataset resource: %s", err.Error())
+	// 		// }
+	// 		// ds.Resources[name] = &Dataset{path: dspath}
+	// 	}
+	// }
+
+	var hash datastore.Key
+	done := make(chan error, 0)
+	go func() {
+		for ao := range adder.Added() {
+			// fmt.Println(fileTasks, ao)
+			hash = datastore.NewKey("/ipfs/" + ao.Hash)
+			switch ao.Name {
+			case "structure.json":
+				ds.Structure = &Structure{path: datastore.NewKey("/ipfs/" + ao.Hash)}
+			case "query.json":
+				ds.Query = &Query{path: datastore.NewKey("/ipfs/" + ao.Hash)}
+			case "resources":
+
+			}
+
+			fileTasks--
+			if fileTasks == 0 {
+				dsdata, err := json.Marshal(ds)
+				if err != nil {
+					done <- err
+					return
+				}
+
+				adder.AddFile(memfile.NewMemfileBytes("dataset.json", dsdata))
+				//
+				if err := adder.Close(); err != nil {
+					done <- err
+					return
+				}
+			}
+		}
+		done <- nil
+	}()
+
+	err = <-done
+	return hash, err
+	// return datastore.NewKey(""), fmt.Errorf("something has gone horribly wrong")
 }
