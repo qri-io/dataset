@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ipfs/go-datastore"
-	"github.com/qri-io/castore"
+	"github.com/qri-io/cafs"
+	"github.com/qri-io/cafs/memfile"
 	"github.com/qri-io/dataset/compression"
 )
 
@@ -17,7 +18,6 @@ import (
 type Structure struct {
 	// private storage for reference to this object
 	path datastore.Key
-
 	// Format specifies the format of the raw data MIME type
 	Format DataFormat `json:"format"`
 	// FormatConfig removes as much ambiguity as possible about how
@@ -188,7 +188,7 @@ func (s *Structure) Assign(structures ...*Structure) {
 	}
 }
 
-func (st *Structure) Load(store castore.Datastore) error {
+func (st *Structure) Load(store cafs.Filestore) error {
 	if st.path.String() == "" {
 		return ErrNoPath
 	}
@@ -207,7 +207,7 @@ func (st *Structure) Load(store castore.Datastore) error {
 	return nil
 }
 
-func (st *Structure) Save(store castore.Datastore, pin bool) (datastore.Key, error) {
+func (st *Structure) Save(store cafs.Filestore, pin bool) (datastore.Key, error) {
 	if st == nil {
 		return datastore.NewKey(""), nil
 	}
@@ -217,11 +217,11 @@ func (st *Structure) Save(store castore.Datastore, pin bool) (datastore.Key, err
 		return datastore.NewKey(""), err
 	}
 
-	return store.Put(stdata, pin)
+	return store.Put(memfile.NewMemfileBytes("structure.json", stdata), pin)
 }
 
 // LoadStructure loads a structure from a given path in a store
-func LoadStructure(store castore.Datastore, path datastore.Key) (st *Structure, err error) {
+func LoadStructure(store cafs.Filestore, path datastore.Key) (st *Structure, err error) {
 	st = &Structure{path: path}
 	err = st.Load(store)
 	return

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ipfs/go-datastore"
-	"github.com/qri-io/castore"
+	"github.com/qri-io/cafs"
 
 	"testing"
 )
@@ -22,7 +22,7 @@ func CompareQuery(a, b *Query) error {
 }
 
 func TestLoadQuery(t *testing.T) {
-	store := castore.NewMapstore()
+	store := cafs.NewMapstore()
 	q := &Query{Statement: "select * from whatever booooooo go home"}
 	a, err := q.Save(store, true)
 	if err != nil {

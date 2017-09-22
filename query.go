@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ipfs/go-datastore"
-	"github.com/qri-io/castore"
-	// "gx/ipfs/QmVSase1JP7cq9QkPT46oNwdp9pT6kBkG3oqS14y3QcZjG/go-datastore"
+	"github.com/qri-io/cafs"
+	"github.com/qri-io/cafs/memfile"
 )
 
 // Query defines an action to be taken on one or more structures
@@ -105,7 +105,7 @@ func (q *Query) IsEmpty() bool {
 // }
 
 // LoadQuery loads a query from a given path in a store
-func LoadQuery(store castore.Datastore, path datastore.Key) (q *Query, err error) {
+func LoadQuery(store cafs.Filestore, path datastore.Key) (q *Query, err error) {
 	q = &Query{path: path}
 	err = q.Load(store)
 	return
@@ -128,7 +128,7 @@ func UnmarshalQuery(v interface{}) (*Query, error) {
 	}
 }
 
-func (q *Query) Load(store castore.Datastore) error {
+func (q *Query) Load(store cafs.Filestore) error {
 	if q.path.String() == "" {
 		return ErrNoPath
 	}
@@ -146,7 +146,7 @@ func (q *Query) Load(store castore.Datastore) error {
 	return nil
 }
 
-func (q *Query) Save(store castore.Datastore, pin bool) (datastore.Key, error) {
+func (q *Query) Save(store cafs.Filestore, pin bool) (datastore.Key, error) {
 	if q == nil {
 		return datastore.NewKey(""), nil
 	}
@@ -162,5 +162,5 @@ func (q *Query) Save(store castore.Datastore, pin bool) (datastore.Key, error) {
 		return datastore.NewKey(""), err
 	}
 
-	return store.Put(qdata, pin)
+	return store.Put(memfile.NewMemfileBytes("query.json", qdata), pin)
 }

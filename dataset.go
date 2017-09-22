@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ipfs/go-datastore"
-	"github.com/qri-io/castore"
-	// "github.com/qri-io/castore/ipfs"
-	"github.com/qri-io/memfile"
+	"github.com/ipfs/go-ipfs/commands/files"
+	"github.com/qri-io/cafs"
+	"github.com/qri-io/cafs/memfile"
 	"time"
 )
 
@@ -101,14 +101,14 @@ func (d *Dataset) Meta() map[string]interface{} {
 	return d.meta
 }
 
-// func (d *Dataset) LoadStructure(store datastore.Datastore) (*Structure, error) {
-// 	if d.Structure != nil && d.Structure.path != "" {
-// 		return LoadStructure(store, d.Structure.path)
-// 	}
-// 	return
-// }
+func (d *Dataset) LoadStructure(store cafs.Filestore) (*Structure, error) {
+	if d.Structure != nil && d.Structure.path != datastore.NewKey("") {
+		return LoadStructure(store, d.Structure.path)
+	}
+	return nil, fmt.Errorf("no path to structure")
+}
 
-func (d *Dataset) LoadData(store castore.Datastore) ([]byte, error) {
+func (d *Dataset) LoadData(store cafs.Filestore) (files.File, error) {
 	return store.Get(d.Data)
 }
 
@@ -271,7 +271,7 @@ func (ds *Dataset) IsEmpty() bool {
 }
 
 // LoadDataset loads a dataset from a given path in a store
-func LoadDataset(store castore.Datastore, path datastore.Key) (*Dataset, error) {
+func LoadDataset(store cafs.Filestore, path datastore.Key) (*Dataset, error) {
 	ds := &Dataset{path: path}
 	err := ds.Load(store)
 	return ds, err
@@ -294,15 +294,17 @@ func UnmarshalDataset(v interface{}) (*Dataset, error) {
 	}
 }
 
-func (ds *Dataset) Load(store castore.Datastore) error {
+func (ds *Dataset) Load(store cafs.Filestore) error {
 	if ds.path.String() == "" {
 		return ErrNoPath
 	}
 
+	fmt.Println(ds.path)
 	v, err := store.Get(ds.path)
 	if err != nil {
 		return err
 	}
+	fmt.Println(v)
 
 	d, err := UnmarshalDataset(v)
 	if err != nil {
@@ -335,7 +337,7 @@ func (ds *Dataset) Load(store castore.Datastore) error {
 	return nil
 }
 
-func (ds *Dataset) Save(store castore.Datastore, pin bool) (datastore.Key, error) {
+func (ds *Dataset) Save(store cafs.Filestore, pin bool) (datastore.Key, error) {
 	if ds == nil {
 		return datastore.NewKey(""), nil
 	}
@@ -368,7 +370,7 @@ func (ds *Dataset) Save(store castore.Datastore, pin bool) (datastore.Key, error
 		if err != nil {
 			return datastore.NewKey(""), err
 		}
-		adder.AddFile(memfile.NewMemfileBytes("data."+ds.Structure.Format.String(), data))
+		adder.AddFile(memfile.NewMemfileReader("data."+ds.Structure.Format.String(), data))
 	}
 
 	// if ds.Previous != nil {
@@ -386,19 +388,18 @@ func (ds *Dataset) Save(store castore.Datastore, pin bool) (datastore.Key, error
 	// 	}
 	// }
 
-	var hash datastore.Key
+	var path datastore.Key
 	done := make(chan error, 0)
 	go func() {
 		for ao := range adder.Added() {
 			// fmt.Println(fileTasks, ao)
-			hash = datastore.NewKey("/ipfs/" + ao.Hash)
+			path = ao.Path
 			switch ao.Name {
 			case "structure.json":
-				ds.Structure = &Structure{path: datastore.NewKey("/ipfs/" + ao.Hash)}
+				ds.Structure = &Structure{path: ao.Path}
 			case "query.json":
-				ds.Query = &Query{path: datastore.NewKey("/ipfs/" + ao.Hash)}
+				ds.Query = &Query{path: ao.Path}
 			case "resources":
-
 			}
 
 			fileTasks--
@@ -421,6 +422,5 @@ func (ds *Dataset) Save(store castore.Datastore, pin bool) (datastore.Key, error
 	}()
 
 	err = <-done
-	return hash, err
-	// return datastore.NewKey(""), fmt.Errorf("something has gone horribly wrong")
+	return path, err
 }
