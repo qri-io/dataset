@@ -7,6 +7,7 @@ import (
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/cafs/memfile"
 	"github.com/qri-io/dataset/compression"
+	"io/ioutil"
 )
 
 // Structure designates a deterministic definition for working with a discrete dataset.
@@ -193,12 +194,17 @@ func (st *Structure) Load(store cafs.Filestore) error {
 		return ErrNoPath
 	}
 
-	v, err := store.Get(st.path)
+	file, err := store.Get(st.path)
 	if err != nil {
 		return err
 	}
 
-	s, err := UnmarshalStructure(v)
+	data, err := ioutil.ReadAll(file)
+	if err != nil {
+		return err
+	}
+
+	s, err := UnmarshalStructure(data)
 	if err != nil {
 		return err
 	}

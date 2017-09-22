@@ -7,6 +7,7 @@ import (
 	"github.com/ipfs/go-ipfs/commands/files"
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/cafs/memfile"
+	"io/ioutil"
 	"time"
 )
 
@@ -101,11 +102,19 @@ func (d *Dataset) Meta() map[string]interface{} {
 	return d.meta
 }
 
-func (d *Dataset) LoadStructure(store cafs.Filestore) (*Structure, error) {
-	if d.Structure != nil && d.Structure.path != datastore.NewKey("") {
-		return LoadStructure(store, d.Structure.path)
+func (d *Dataset) LoadStructure(store cafs.Filestore) error {
+	if d.Structure != nil && d.Structure.IsEmpty() && d.Structure.path != datastore.NewKey("") {
+		s, err := LoadStructure(store, d.Structure.path)
+		if err != nil {
+			return err
+		}
+		d.Structure = s
+		fmt.Println(s)
+		return nil
+	} else if !d.Structure.IsEmpty() {
+		return nil
 	}
-	return nil, fmt.Errorf("no path to structure")
+	return fmt.Errorf("no path to structure")
 }
 
 func (d *Dataset) LoadData(store cafs.Filestore) (files.File, error) {
@@ -274,6 +283,10 @@ func (ds *Dataset) IsEmpty() bool {
 func LoadDataset(store cafs.Filestore, path datastore.Key) (*Dataset, error) {
 	ds := &Dataset{path: path}
 	err := ds.Load(store)
+	if err != nil {
+		return ds, err
+	}
+	err = ds.LoadStructure(store)
 	return ds, err
 }
 
@@ -290,7 +303,7 @@ func UnmarshalDataset(v interface{}) (*Dataset, error) {
 		err := json.Unmarshal(r, dataset)
 		return dataset, err
 	default:
-		return nil, fmt.Errorf("couldn't parse dataset")
+		return nil, fmt.Errorf("couldn't parse dataset, value is invalid type")
 	}
 }
 
@@ -299,14 +312,18 @@ func (ds *Dataset) Load(store cafs.Filestore) error {
 		return ErrNoPath
 	}
 
-	fmt.Println(ds.path)
-	v, err := store.Get(ds.path)
+	// fmt.Println(ds.path)
+	file, err := store.Get(ds.path)
 	if err != nil {
 		return err
 	}
-	fmt.Println(v)
+	// fmt.Println(v)
+	data, err := ioutil.ReadAll(file)
+	if err != nil {
+		return err
+	}
 
-	d, err := UnmarshalDataset(v)
+	d, err := UnmarshalDataset(data)
 	if err != nil {
 		return err
 	}
