@@ -8,7 +8,6 @@ import (
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/cafs/memfile"
 	"github.com/qri-io/dataset"
-	"path/filepath"
 )
 
 // LoadDatasetData loads the data this dataset points to from the store
@@ -21,10 +20,10 @@ func LoadDatasetData(store cafs.Filestore, ds *dataset.Dataset) (files.File, err
 // before trying the raw path.
 func LoadDataset(store cafs.Filestore, path datastore.Key) (*dataset.Dataset, error) {
 	ds := &dataset.Dataset{}
-	datasetFilePath := datastore.NewKey(filepath.Join(path.String(), PackageFileDataset.Filename()))
+	// datasetFilePath := datastore.NewKey(filepath.Join(path.String(), PackageFileDataset.Filename()))
 
 	// fmt.Println(ds.path)
-	data, err := fileBytes(store.Get(datasetFilePath))
+	data, err := fileBytes(store.Get(path))
 	if err != nil {
 		return nil, err
 	}
@@ -66,9 +65,23 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 	}
 
 	fileTasks := 0
+	addedDataset := false
 	adder, err := store.NewAdder(pin, true)
 	if err != nil {
 		return datastore.NewKey(""), err
+	}
+
+	// if dataset contains no references, place directly in.
+	// TODO - this might not constitute a valid dataset. should we be
+	// validating datasets in here?
+	if ds.Query == nil && ds.Structure == nil && ds.Resources == nil {
+		fileTasks++
+		dsdata, err := json.Marshal(ds)
+		if err != nil {
+			return datastore.NewKey(""), err
+		}
+		adder.AddFile(memfile.NewMemfileBytes(PackageFileDataset.String(), dsdata))
+		addedDataset = true
 	}
 
 	if ds.Query != nil {
@@ -115,7 +128,6 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 	done := make(chan error, 0)
 	go func() {
 		for ao := range adder.Added() {
-			// fmt.Println(fileTasks, ao)
 			path = ao.Path
 			switch ao.Name {
 			case PackageFileStructure.String():
@@ -127,13 +139,15 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 
 			fileTasks--
 			if fileTasks == 0 {
-				dsdata, err := json.Marshal(ds)
-				if err != nil {
-					done <- err
-					return
-				}
+				if !addedDataset {
+					dsdata, err := json.Marshal(ds)
+					if err != nil {
+						done <- err
+						return
+					}
 
-				adder.AddFile(memfile.NewMemfileBytes("dataset.json", dsdata))
+					adder.AddFile(memfile.NewMemfileBytes(PackageFileDataset.String(), dsdata))
+				}
 				//
 				if err := adder.Close(); err != nil {
 					done <- err
