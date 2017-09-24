@@ -34,6 +34,16 @@ type Structure struct {
 	Schema *Schema `json:"schema"`
 }
 
+func (s *Structure) Path() datastore.Key {
+	return s.path
+}
+
+// NewStructureRef creates an empty struct with it's
+// internal path set
+func NewStructureRef(path datastore.Key) *Structure {
+	return &Structure{path: path}
+}
+
 // Abstract returns this structure instance in it's "Abstract" form
 // stripping all nonessential values &
 // renaming all schema field names to standard variable names
@@ -224,13 +234,6 @@ func (st *Structure) Save(store cafs.Filestore, pin bool) (datastore.Key, error)
 	}
 
 	return store.Put(memfile.NewMemfileBytes("structure.json", stdata), pin)
-}
-
-// LoadStructure loads a structure from a given path in a store
-func LoadStructure(store cafs.Filestore, path datastore.Key) (st *Structure, err error) {
-	st = &Structure{path: path}
-	err = st.Load(store)
-	return
 }
 
 // UnmarshalStructure tries to extract a structure type from an empty

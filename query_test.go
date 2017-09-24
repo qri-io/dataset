@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ipfs/go-datastore"
-	"github.com/qri-io/cafs"
 
 	"testing"
 )
@@ -19,26 +18,6 @@ func CompareQuery(a, b *Query) error {
 	}
 
 	return nil
-}
-
-func TestLoadQuery(t *testing.T) {
-	store := cafs.NewMapstore()
-	q := &Query{Statement: "select * from whatever booooooo go home"}
-	a, err := q.Save(store, true)
-	if err != nil {
-		t.Errorf(err.Error())
-		return
-	}
-
-	if _, err = LoadQuery(store, a); err != nil {
-		t.Errorf(err.Error())
-	}
-	// TODO - other tests & stuff
-}
-
-func TestQueryLoadAbstractStructures(t *testing.T) {
-	// store := datastore.NewMapDatastore()
-	// TODO - finish dis test
 }
 
 func TestQueryUnmarshalJSON(t *testing.T) {

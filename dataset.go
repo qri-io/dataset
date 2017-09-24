@@ -4,10 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ipfs/go-datastore"
-	"github.com/ipfs/go-ipfs/commands/files"
-	"github.com/qri-io/cafs"
-	"github.com/qri-io/cafs/memfile"
-	"io/ioutil"
 	"time"
 )
 
@@ -100,25 +96,6 @@ func (d *Dataset) Meta() map[string]interface{} {
 		d.meta = map[string]interface{}{}
 	}
 	return d.meta
-}
-
-func (d *Dataset) LoadStructure(store cafs.Filestore) error {
-	if d.Structure != nil && d.Structure.IsEmpty() && d.Structure.path != datastore.NewKey("") {
-		s, err := LoadStructure(store, d.Structure.path)
-		if err != nil {
-			return err
-		}
-		d.Structure = s
-		fmt.Println(s)
-		return nil
-	} else if !d.Structure.IsEmpty() {
-		return nil
-	}
-	return fmt.Errorf("no path to structure")
-}
-
-func (d *Dataset) LoadData(store cafs.Filestore) (files.File, error) {
-	return store.Get(d.Data)
 }
 
 // MarshalJSON uses a map to combine meta & standard fields.
@@ -279,15 +256,8 @@ func (ds *Dataset) IsEmpty() bool {
 	return ds.Title == "" && ds.Description == "" && ds.Structure == nil && ds.Timestamp.IsZero() && ds.Previous.String() == ""
 }
 
-// LoadDataset loads a dataset from a given path in a store
-func LoadDataset(store cafs.Filestore, path datastore.Key) (*Dataset, error) {
-	ds := &Dataset{path: path}
-	err := ds.Load(store)
-	if err != nil {
-		return ds, err
-	}
-	err = ds.LoadStructure(store)
-	return ds, err
+func (ds *Dataset) Path() datastore.Key {
+	return ds.path
 }
 
 // UnmarshalDataset tries to extract a dataset type from an empty
@@ -305,139 +275,4 @@ func UnmarshalDataset(v interface{}) (*Dataset, error) {
 	default:
 		return nil, fmt.Errorf("couldn't parse dataset, value is invalid type")
 	}
-}
-
-func (ds *Dataset) Load(store cafs.Filestore) error {
-	if ds.path.String() == "" {
-		return ErrNoPath
-	}
-
-	// fmt.Println(ds.path)
-	file, err := store.Get(ds.path)
-	if err != nil {
-		return err
-	}
-	// fmt.Println(v)
-	data, err := ioutil.ReadAll(file)
-	if err != nil {
-		return err
-	}
-
-	d, err := UnmarshalDataset(data)
-	if err != nil {
-		return err
-	}
-
-	*ds = *d
-
-	if ds.Structure != nil {
-		if err := ds.Structure.Load(store); err != nil {
-			return fmt.Errorf("error loading dataset structure: %s", err.Error())
-		}
-	}
-
-	if ds.Query != nil {
-		if err := ds.Query.Load(store); err != nil {
-			return fmt.Errorf("error loading dataset query: %s", err.Error())
-		}
-	}
-
-	for _, d := range ds.Resources {
-		if d.path.String() != "" && d.IsEmpty() {
-			continue
-		} else if d != nil {
-			if err := d.Load(store); err != nil {
-				return fmt.Errorf("error loading dataset resource: %s", err.Error())
-			}
-		}
-	}
-	return nil
-}
-
-func (ds *Dataset) Save(store cafs.Filestore, pin bool) (datastore.Key, error) {
-	if ds == nil {
-		return datastore.NewKey(""), nil
-	}
-
-	fileTasks := 0
-	adder, err := store.NewAdder(pin, true)
-	if err != nil {
-		return datastore.NewKey(""), err
-	}
-
-	if ds.Query != nil {
-		fileTasks++
-		qdata, err := json.Marshal(ds.Query)
-		if err != nil {
-			return datastore.NewKey(""), err
-		}
-		adder.AddFile(memfile.NewMemfileBytes("query.json", qdata))
-	}
-
-	if ds.Structure != nil {
-		fileTasks++
-		stdata, err := json.Marshal(ds.Structure)
-		if err != nil {
-			return datastore.NewKey(""), err
-		}
-		adder.AddFile(memfile.NewMemfileBytes("structure.json", stdata))
-
-		fileTasks++
-		data, err := store.Get(ds.Data)
-		if err != nil {
-			return datastore.NewKey(""), err
-		}
-		adder.AddFile(memfile.NewMemfileReader("data."+ds.Structure.Format.String(), data))
-	}
-
-	// if ds.Previous != nil {
-	// }
-
-	// for name, d := range ds.Resources {
-	// 	if d.path.String() != "" && d.IsEmpty() {
-	// 		continue
-	// 	} else if d != nil {
-	// 		// dspath, err := d.Save(store, pin)
-	// 		// if err != nil {
-	// 		// 	return datastore.NewKey(""), fmt.Errorf("error saving dataset resource: %s", err.Error())
-	// 		// }
-	// 		// ds.Resources[name] = &Dataset{path: dspath}
-	// 	}
-	// }
-
-	var path datastore.Key
-	done := make(chan error, 0)
-	go func() {
-		for ao := range adder.Added() {
-			// fmt.Println(fileTasks, ao)
-			path = ao.Path
-			switch ao.Name {
-			case "structure.json":
-				ds.Structure = &Structure{path: ao.Path}
-			case "query.json":
-				ds.Query = &Query{path: ao.Path}
-			case "resources":
-			}
-
-			fileTasks--
-			if fileTasks == 0 {
-				dsdata, err := json.Marshal(ds)
-				if err != nil {
-					done <- err
-					return
-				}
-
-				adder.AddFile(memfile.NewMemfileBytes("dataset.json", dsdata))
-				//
-				if err := adder.Close(); err != nil {
-					done <- err
-					return
-				}
-			}
-		}
-		done <- nil
-	}()
-
-	err = <-done
-	return path, err
 }
