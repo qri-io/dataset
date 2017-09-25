@@ -110,7 +110,9 @@ func (d *Dataset) MarshalJSON() ([]byte, error) {
 	}
 
 	data := d.Meta()
-
+	if d.AbstractStructure != nil {
+		data["abstractStructure"] = d.AbstractStructure
+	}
 	if d.AccessUrl != "" {
 		data["accessUrl"] = d.AccessUrl
 	}
@@ -216,6 +218,7 @@ func (d *Dataset) UnmarshalJSON(data []byte) error {
 	}
 
 	for _, f := range []string{
+		"abstractStructure",
 		"accessUrl",
 		"author",
 		"citations",
