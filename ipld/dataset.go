@@ -2,6 +2,7 @@ package ipld
 
 import (
 	ipld "github.com/ipfs/go-ipld"
+	"time"
 )
 
 type Dataset struct {

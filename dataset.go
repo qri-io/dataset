@@ -27,6 +27,8 @@ type Dataset struct {
 	Timestamp time.Time `json:"timestamp"`
 	// Structure of this dataset, required
 	Structure *Structure `json:"structure"`
+	// AbstractStructure is the abstract form of the structure field
+	AbstractStructure *Structure `json:"abstractStructure,omitempty"`
 
 	// Data is the path to the hash of raw data as it resolves on the network.
 	Data datastore.Key `json:"data"`

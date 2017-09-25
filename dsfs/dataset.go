@@ -6,6 +6,7 @@ import (
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-ipfs/commands/files"
 	"github.com/qri-io/cafs"
+	"github.com/qri-io/cafs/ipfs"
 	"github.com/qri-io/cafs/memfile"
 	"github.com/qri-io/dataset"
 )
@@ -15,14 +16,12 @@ func LoadDatasetData(store cafs.Filestore, ds *dataset.Dataset) (files.File, err
 	return store.Get(ds.Data)
 }
 
-// Load a dataset from a cafs. It's assumed that the dataset path will be
-// to the package. this func will first try ds.path + "/dataset.json"
-// before trying the raw path.
+// Load a dataset from a cafs
 func LoadDataset(store cafs.Filestore, path datastore.Key) (*dataset.Dataset, error) {
 	ds := &dataset.Dataset{}
 	// datasetFilePath := datastore.NewKey(filepath.Join(path.String(), PackageFileDataset.Filename()))
+	// fmt.Println(path)
 
-	// fmt.Println(ds.path)
 	data, err := fileBytes(store.Get(path))
 	if err != nil {
 		return nil, err
@@ -33,7 +32,7 @@ func LoadDataset(store cafs.Filestore, path datastore.Key) (*dataset.Dataset, er
 		return nil, err
 	}
 
-	if ds.Structure != nil && ds.Structure.Path().String() != "" {
+	if ds.Structure != nil && ds.Structure.IsEmpty() && ds.Structure.Path().String() != "" {
 		ds.Structure, err = LoadStructure(store, path)
 		if err := ds.Structure.Load(store); err != nil {
 			return nil, fmt.Errorf("error loading dataset structure: %s", err.Error())
@@ -90,16 +89,24 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 		if err != nil {
 			return datastore.NewKey(""), err
 		}
-		adder.AddFile(memfile.NewMemfileBytes("query.json", qdata))
+		adder.AddFile(memfile.NewMemfileBytes(PackageFileQuery.String(), qdata))
 	}
 
 	if ds.Structure != nil {
+		// let's not write structure into a separate file.
+		// we're going to need it for pretty much everything.
+		// fileTasks++
+		// stdata, err := json.Marshal(ds.Structure)
+		// if err != nil {
+		// 	return datastore.NewKey(""), err
+		// }
+		// adder.AddFile(memfile.NewMemfileBytes(PackageFileStructure.String(), stdata))
 		fileTasks++
-		stdata, err := json.Marshal(ds.Structure)
+		asdata, err := json.Marshal(ds.Structure.Abstract())
 		if err != nil {
 			return datastore.NewKey(""), err
 		}
-		adder.AddFile(memfile.NewMemfileBytes("structure.json", stdata))
+		adder.AddFile(memfile.NewMemfileBytes(PackageFileAbstractStructure.String(), asdata))
 
 		fileTasks++
 		data, err := store.Get(ds.Data)
@@ -132,6 +139,8 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 			switch ao.Name {
 			case PackageFileStructure.String():
 				ds.Structure = dataset.NewStructureRef(ao.Path)
+			case PackageFileAbstractStructure.String():
+				ds.AbstractStructure = dataset.NewStructureRef(ao.Path)
 			case PackageFileQuery.String():
 				ds.Query = dataset.NewQueryRef(ao.Path)
 			case "resources":
@@ -159,5 +168,18 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 	}()
 
 	err = <-done
+
+	// ok, this is a horrible hack to deal with the fact that the location of
+	// the actual dataset.json on ipfs will be /[hash]/dataset.json, a property
+	// that may or may not apply to other cafs implementations.
+	// We want to store the reference to the directory hash, so the
+	// /[hash]/dataset.json form is desirable, becuase we can do stuff like
+	// /[hash]/abstract_structure.json, and so on, but it's hard to extract
+	// in a clean way. maybe a function that re-extracts this info on either
+	// the cafs interface, or the concrete cafs/ipfs implementation?
+	// TODO - remove this in favour of some sort of tree-walking
+	if _, ok := store.(*ipfs_datastore.Filestore); ok {
+		path = datastore.NewKey(path.String() + "/" + PackageFileDataset.String())
+	}
 	return path, err
 }

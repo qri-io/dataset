@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/dataset/dsfs"
 	"github.com/qri-io/dataset/writers"
 	"io"
 )
@@ -18,7 +19,7 @@ func RawDataRows(store cafs.Filestore, ds *dataset.Dataset, limit, offset int) (
 	// 	return nil, err
 	// }
 
-	datafile, err := ds.LoadData(store)
+	datafile, err := dsfs.LoadDatasetData(store, ds)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +109,7 @@ func AllRows(store cafs.Filestore, ds *dataset.Dataset) (data [][][]byte, err er
 	// 	return nil, err
 	// }
 
-	datafile, err := ds.LoadData(store)
+	datafile, err := dsfs.LoadDatasetData(store, ds)
 	if err != nil {
 		return nil, err
 	}
