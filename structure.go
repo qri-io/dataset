@@ -4,10 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ipfs/go-datastore"
-	"github.com/qri-io/cafs"
-	"github.com/qri-io/cafs/memfile"
 	"github.com/qri-io/dataset/compression"
-	"io/ioutil"
 )
 
 // Structure designates a deterministic definition for working with a discrete dataset.
@@ -197,43 +194,6 @@ func (s *Structure) Assign(structures ...*Structure) {
 		}
 		s.Schema.Assign(st.Schema)
 	}
-}
-
-func (st *Structure) Load(store cafs.Filestore) error {
-	if st.path.String() == "" {
-		return ErrNoPath
-	}
-
-	file, err := store.Get(st.path)
-	if err != nil {
-		return err
-	}
-
-	data, err := ioutil.ReadAll(file)
-	if err != nil {
-		return err
-	}
-
-	s, err := UnmarshalStructure(data)
-	if err != nil {
-		return err
-	}
-
-	*st = *s
-	return nil
-}
-
-func (st *Structure) Save(store cafs.Filestore, pin bool) (datastore.Key, error) {
-	if st == nil {
-		return datastore.NewKey(""), nil
-	}
-
-	stdata, err := json.Marshal(st)
-	if err != nil {
-		return datastore.NewKey(""), err
-	}
-
-	return store.Put(memfile.NewMemfileBytes("structure.json", stdata), pin)
 }
 
 // UnmarshalStructure tries to extract a structure type from an empty

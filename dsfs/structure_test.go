@@ -7,7 +7,7 @@ import (
 
 func TestLoadStructure(t *testing.T) {
 	store := cafs.NewMapstore()
-	a, err := AirportCodesStructure.Save(store, true)
+	a, err := SaveStructure(store, AirportCodesStructure, true)
 	if err != nil {
 		t.Errorf(err.Error())
 		return

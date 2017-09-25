@@ -33,14 +33,15 @@ func LoadDataset(store cafs.Filestore, path datastore.Key) (*dataset.Dataset, er
 	}
 
 	if ds.Structure != nil && ds.Structure.IsEmpty() && ds.Structure.Path().String() != "" {
-		ds.Structure, err = LoadStructure(store, path)
-		if err := ds.Structure.Load(store); err != nil {
+		ds.Structure, err = LoadStructure(store, ds.Structure.Path())
+		if err != nil {
 			return nil, fmt.Errorf("error loading dataset structure: %s", err.Error())
 		}
 	}
 
-	if ds.Query != nil && ds.Query.Path().String() != "" {
-		if err := ds.Query.Load(store); err != nil {
+	if ds.Query != nil && ds.Query.IsEmpty() && ds.Query.Path().String() != "" {
+		ds.Query, err = LoadQuery(store, ds.Query.Path())
+		if err != nil {
 			return nil, fmt.Errorf("error loading dataset query: %s", err.Error())
 		}
 	}

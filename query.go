@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ipfs/go-datastore"
-	"github.com/qri-io/cafs"
 )
 
 // Query defines an action to be taken on one or more structures
@@ -104,22 +103,4 @@ func UnmarshalQuery(v interface{}) (*Query, error) {
 	default:
 		return nil, fmt.Errorf("couldn't parse query")
 	}
-}
-
-func (q *Query) Load(store cafs.Filestore) error {
-	if q.path.String() == "" {
-		return ErrNoPath
-	}
-	v, err := store.Get(q.path)
-	if err != nil {
-		return err
-	}
-
-	uq, err := UnmarshalQuery(v)
-	if err != nil {
-		return err
-	}
-
-	*q = *uq
-	return nil
 }
