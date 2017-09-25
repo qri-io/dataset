@@ -94,14 +94,13 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 	}
 
 	if ds.Structure != nil {
-		// let's not write structure into a separate file.
-		// we're going to need it for pretty much everything.
-		// fileTasks++
-		// stdata, err := json.Marshal(ds.Structure)
-		// if err != nil {
-		// 	return datastore.NewKey(""), err
-		// }
-		// adder.AddFile(memfile.NewMemfileBytes(PackageFileStructure.String(), stdata))
+		fileTasks++
+		stdata, err := json.Marshal(ds.Structure)
+		if err != nil {
+			return datastore.NewKey(""), err
+		}
+		adder.AddFile(memfile.NewMemfileBytes(PackageFileStructure.String(), stdata))
+
 		fileTasks++
 		asdata, err := json.Marshal(ds.Structure.Abstract())
 		if err != nil {
