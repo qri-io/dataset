@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ipfs/go-datastore"
-	"github.com/qri-io/castore"
 	"github.com/qri-io/dataset/compression"
 )
 
@@ -17,7 +16,6 @@ import (
 type Structure struct {
 	// private storage for reference to this object
 	path datastore.Key
-
 	// Format specifies the format of the raw data MIME type
 	Format DataFormat `json:"format"`
 	// FormatConfig removes as much ambiguity as possible about how
@@ -31,6 +29,16 @@ type Structure struct {
 	Compression compression.Type `json:"compression,omitempty"`
 	// Schema contains the schema definition for the underlying data
 	Schema *Schema `json:"schema"`
+}
+
+func (s *Structure) Path() datastore.Key {
+	return s.path
+}
+
+// NewStructureRef creates an empty struct with it's
+// internal path set
+func NewStructureRef(path datastore.Key) *Structure {
+	return &Structure{path: path}
 }
 
 // Abstract returns this structure instance in it's "Abstract" form
@@ -186,45 +194,6 @@ func (s *Structure) Assign(structures ...*Structure) {
 		}
 		s.Schema.Assign(st.Schema)
 	}
-}
-
-func (st *Structure) Load(store castore.Datastore) error {
-	if st.path.String() == "" {
-		return ErrNoPath
-	}
-
-	v, err := store.Get(st.path)
-	if err != nil {
-		return err
-	}
-
-	s, err := UnmarshalStructure(v)
-	if err != nil {
-		return err
-	}
-
-	*st = *s
-	return nil
-}
-
-func (st *Structure) Save(store castore.Datastore) (datastore.Key, error) {
-	if st == nil {
-		return datastore.NewKey(""), nil
-	}
-
-	stdata, err := json.Marshal(st)
-	if err != nil {
-		return datastore.NewKey(""), err
-	}
-
-	return store.Put(stdata)
-}
-
-// LoadStructure loads a structure from a given path in a store
-func LoadStructure(store castore.Datastore, path datastore.Key) (st *Structure, err error) {
-	st = &Structure{path: path}
-	err = st.Load(store)
-	return
 }
 
 // UnmarshalStructure tries to extract a structure type from an empty

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ipfs/go-datastore"
-	"github.com/qri-io/castore"
 	"time"
 )
 
@@ -28,6 +27,8 @@ type Dataset struct {
 	Timestamp time.Time `json:"timestamp"`
 	// Structure of this dataset, required
 	Structure *Structure `json:"structure"`
+	// AbstractStructure is the abstract form of the structure field
+	AbstractStructure *Structure `json:"abstractStructure,omitempty"`
 
 	// Data is the path to the hash of raw data as it resolves on the network.
 	Data datastore.Key `json:"data"`
@@ -99,17 +100,6 @@ func (d *Dataset) Meta() map[string]interface{} {
 	return d.meta
 }
 
-// func (d *Dataset) LoadStructure(store datastore.Datastore) (*Structure, error) {
-// 	if d.Structure != nil && d.Structure.path != "" {
-// 		return LoadStructure(store, d.Structure.path)
-// 	}
-// 	return
-// }
-
-func (d *Dataset) LoadData(store castore.Datastore) ([]byte, error) {
-	return store.Get(d.Data)
-}
-
 // MarshalJSON uses a map to combine meta & standard fields.
 // Marshalling a map[string]interface{} automatically alpha-sorts the keys.
 func (d *Dataset) MarshalJSON() ([]byte, error) {
@@ -120,7 +110,9 @@ func (d *Dataset) MarshalJSON() ([]byte, error) {
 	}
 
 	data := d.Meta()
-
+	if d.AbstractStructure != nil {
+		data["abstractStructure"] = d.AbstractStructure
+	}
 	if d.AccessUrl != "" {
 		data["accessUrl"] = d.AccessUrl
 	}
@@ -226,6 +218,7 @@ func (d *Dataset) UnmarshalJSON(data []byte) error {
 	}
 
 	for _, f := range []string{
+		"abstractStructure",
 		"accessUrl",
 		"author",
 		"citations",
@@ -268,11 +261,8 @@ func (ds *Dataset) IsEmpty() bool {
 	return ds.Title == "" && ds.Description == "" && ds.Structure == nil && ds.Timestamp.IsZero() && ds.Previous.String() == ""
 }
 
-// LoadDataset loads a dataset from a given path in a store
-func LoadDataset(store castore.Datastore, path datastore.Key) (*Dataset, error) {
-	ds := &Dataset{path: path}
-	err := ds.Load(store)
-	return ds, err
+func (ds *Dataset) Path() datastore.Key {
+	return ds.path
 }
 
 // UnmarshalDataset tries to extract a dataset type from an empty
@@ -288,88 +278,6 @@ func UnmarshalDataset(v interface{}) (*Dataset, error) {
 		err := json.Unmarshal(r, dataset)
 		return dataset, err
 	default:
-		return nil, fmt.Errorf("couldn't parse dataset")
+		return nil, fmt.Errorf("couldn't parse dataset, value is invalid type")
 	}
-}
-
-func (ds *Dataset) Load(store castore.Datastore) error {
-	if ds.path.String() == "" {
-		return ErrNoPath
-	}
-
-	v, err := store.Get(ds.path)
-	if err != nil {
-		return err
-	}
-
-	d, err := UnmarshalDataset(v)
-	if err != nil {
-		return err
-	}
-
-	*ds = *d
-
-	if ds.Structure != nil {
-		if err := ds.Structure.Load(store); err != nil {
-			return fmt.Errorf("error loading dataset structure: %s", err.Error())
-		}
-	}
-
-	if ds.Query != nil {
-		if err := ds.Query.Load(store); err != nil {
-			return fmt.Errorf("error loading dataset query: %s", err.Error())
-		}
-	}
-
-	for _, d := range ds.Resources {
-		if d.path.String() != "" && d.IsEmpty() {
-			continue
-		} else if d != nil {
-			if err := d.Load(store); err != nil {
-				return fmt.Errorf("error loading dataset resource: %s", err.Error())
-			}
-		}
-	}
-	return nil
-}
-
-func (ds *Dataset) Save(store castore.Datastore) (datastore.Key, error) {
-	if ds == nil {
-		return datastore.NewKey(""), nil
-	}
-
-	if ds.Structure != nil {
-		stpath, err := ds.Structure.Save(store)
-		if err != nil {
-			return datastore.NewKey(""), fmt.Errorf("error saving dataset structure: %s", err.Error())
-		}
-		ds.Structure = &Structure{path: stpath}
-	}
-
-	if ds.Query != nil {
-		qpath, err := ds.Query.Save(store)
-		if err != nil {
-			return datastore.NewKey(""), fmt.Errorf("error saving dataset query: %s", err.Error())
-		}
-		ds.Query = &Query{path: qpath}
-	}
-
-	for name, d := range ds.Resources {
-		if d.path.String() != "" && d.IsEmpty() {
-			continue
-		} else if d != nil {
-			dspath, err := d.Save(store)
-			if err != nil {
-				return datastore.NewKey(""), fmt.Errorf("error saving dataset resource: %s", err.Error())
-			}
-			ds.Resources[name] = &Dataset{path: dspath}
-		}
-	}
-
-	dsdata, err := json.Marshal(ds)
-	if err != nil {
-		return datastore.NewKey(""), err
-	}
-
-	return store.Put(dsdata)
 }
