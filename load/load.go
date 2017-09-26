@@ -102,21 +102,6 @@ func EachRow(st *dataset.Structure, r io.Reader, fn DataIteratorFunc) error {
 	return fmt.Errorf("cannot parse data format '%s'", st.Format.String())
 }
 
-// Ugh, this shouldn't exist. re-architect around some sort of row-reader interface
-func AllRows(store cafs.Filestore, ds *dataset.Dataset) (data [][][]byte, err error) {
-	// st, err := ds.LoadStructure(store)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	datafile, err := dsfs.LoadDatasetData(store, ds)
-	if err != nil {
-		return nil, err
-	}
-
-	return FormatRows(ds.Structure, datafile)
-}
-
 func FormatRows(st *dataset.Structure, file io.Reader) (data [][][]byte, err error) {
 	err = EachRow(st, file, func(_ int, row [][]byte, e error) error {
 		if e != nil {
@@ -136,55 +121,3 @@ func HeaderRow(st *dataset.Structure) bool {
 	}
 	return false
 }
-
-// TODO - this won't work b/c underlying implementations are different
-// time to create an interface that conforms all different data types to readers & writers
-// that think in terms of rows, etc.
-// func NewWriter(r *dataset.Dataset) (w io.WriteCloser, buf *bytes.Buffer, err error) {
-// 	buf = &bytes.Buffer{}
-// 	switch r.Format {
-// 	case dataset.CsvDataFormat:
-// 		return csv.NewWriter(buf), buf, nil
-// 	case dataset.JsonDataFormat:
-// 		return nil, nil, fmt.Errorf("json writer unfinished")
-// 	default:
-// 		return nil, nil, fmt.Errorf("unrecognized data format for creating writer: %s", r.Format.String())
-// 	}
-// }
-
-// FetchBytes grabs the actual byte data that this dataset represents
-// it is expected that the passed-in store will be scoped to the dataset
-// itself
-// func (r *Dataset) FetchBytes(store fs.Store) ([]byte, error) {
-// 	if len(r.Data) > 0 {
-// 		return r.Data, nil
-// 	} else if r.File != "" {
-// 		// return store.Read(r.Address.PathString(r.File))
-// 		return store.Read(r.File)
-// 	} else if r.Url != "" {
-// 		res, err := http.Get(r.Url)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-
-// 		defer res.Body.Close()
-// 		return ioutil.ReadAll(res.Body)
-// 	}
-
-// 	return nil, fmt.Errorf("dataset '%s' doesn't contain a url, file, or data field to read from", r.Name)
-// }
-
-// func (r *Dataset) Reader(store fs.Store) (io.ReadCloser, error) {
-// 	if len(r.Data) > 0 {
-// 		return ioutil.NopCloser(bytes.NewBuffer(r.Data)), nil
-// 	} else if r.File != "" {
-// 		return store.Open(r.File)
-// 	} else if r.Url != "" {
-// 		res, err := http.Get(r.Url)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		return res.Body, nil
-// 	}
-// 	return nil, fmt.Errorf("dataset %s doesn't contain a url, file, or data field to read from", r.Name)
-// }
