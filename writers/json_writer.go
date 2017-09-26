@@ -41,13 +41,18 @@ func (w *JsonWriter) writeObjectRow(row [][]byte) error {
 		if i == 0 {
 			ent = ent[1:]
 		}
-		if c == nil {
+		if c == nil || len(c) == 0 {
 			ent = append(ent, []byte("null")...)
 		} else {
 			switch f.Type {
 			case datatypes.String:
 				ent = append(ent, []byte(strconv.Quote(string(c)))...)
 			case datatypes.Float, datatypes.Integer:
+				// if len(c) == 0 {
+				// 	ent = append(ent, []byte("null")...)
+				// } else {
+				// 	ent = append(ent, c...)
+				// }
 				ent = append(ent, c...)
 			case datatypes.Boolean:
 				// TODO - coerce to true & false specifically
@@ -80,23 +85,24 @@ func (w *JsonWriter) writeArrayRow(row [][]byte) error {
 		if i == 0 {
 			ent = ent[1:]
 		}
-		if c == nil {
+		if c == nil || len(c) == 0 {
 			ent = append(ent, []byte("null")...)
 		} else {
 			switch f.Type {
 			case datatypes.String:
 				ent = append(ent, []byte(strconv.Quote(string(c)))...)
 			case datatypes.Float, datatypes.Integer:
-				if len(c) == 0 {
-					ent = append(ent, []byte("0")...)
-				} else {
-					ent = append(ent, c...)
-				}
+				// TODO - decide on weather or not to supply default values
+				// if len(c) == 0 {
+				// ent = append(ent, []byte("0")...)
+				// } else {
+				ent = append(ent, c...)
+				// }
 			case datatypes.Boolean:
 				// TODO - coerce to true & false specifically
-				if len(c) == 0 {
-					ent = append(ent, []byte("false")...)
-				}
+				// if len(c) == 0 {
+				// ent = append(ent, []byte("false")...)
+				// }
 				ent = append(ent, c...)
 			default:
 				ent = append(ent, []byte(strconv.Quote(string(c)))...)
