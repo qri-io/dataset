@@ -32,18 +32,12 @@ func LoadDataset(store cafs.Filestore, path datastore.Key) (*dataset.Dataset, er
 		return nil, err
 	}
 
-	if ds.Structure != nil && ds.Structure.IsEmpty() && ds.Structure.Path().String() != "" {
-		ds.Structure, err = LoadStructure(store, ds.Structure.Path())
-		if err != nil {
-			return nil, fmt.Errorf("error loading dataset structure: %s", err.Error())
-		}
+	if err := DerefDatasetStructure(store, ds); err != nil {
+		return nil, err
 	}
 
-	if ds.Query != nil && ds.Query.IsEmpty() && ds.Query.Path().String() != "" {
-		ds.Query, err = LoadQuery(store, ds.Query.Path())
-		if err != nil {
-			return nil, fmt.Errorf("error loading dataset query: %s", err.Error())
-		}
+	if err := DerefDatasetQuery(store, ds); err != nil {
+		return nil, err
 	}
 
 	// TODO - decide if we should load resource datasets by default, probably shouldn't
@@ -57,6 +51,32 @@ func LoadDataset(store cafs.Filestore, path datastore.Key) (*dataset.Dataset, er
 	// 	}
 	// }
 	return ds, nil
+}
+
+// DerefDatasetStructure derferences a dataset's structure element if required
+// should be a no-op if ds.Structure is nil or isn't a reference
+func DerefDatasetStructure(store cafs.Filestore, ds *dataset.Dataset) error {
+	if ds.Structure != nil && ds.Structure.IsEmpty() && ds.Structure.Path().String() != "" {
+		st, err := LoadStructure(store, ds.Structure.Path())
+		if err != nil {
+			return fmt.Errorf("error loading dataset structure: %s", err.Error())
+		}
+		ds.Structure = st
+	}
+	return nil
+}
+
+// DerefDatasetQuery derferences a dataset's query element if required
+// should be a no-op if ds.Structure is nil or isn't a reference
+func DerefDatasetQuery(store cafs.Filestore, ds *dataset.Dataset) error {
+	if ds.Query != nil && ds.Query.IsEmpty() && ds.Query.Path().String() != "" {
+		q, err := LoadQuery(store, ds.Query.Path())
+		if err != nil {
+			return fmt.Errorf("error loading dataset query: %s", err.Error())
+		}
+		ds.Query = q
+	}
+	return nil
 }
 
 func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore.Key, error) {
