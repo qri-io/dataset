@@ -100,6 +100,120 @@ func (d *Dataset) Meta() map[string]interface{} {
 	return d.meta
 }
 
+// Assign collapses all properties of a group of datasets onto one.
+// this is directly inspired by Javascript's Object.assign
+func (d *Dataset) Assign(datasets ...*Dataset) {
+	for _, ds := range datasets {
+		if ds == nil {
+			continue
+		}
+
+		if ds.path.String() != "" {
+			d.path = ds.path
+		}
+		if !ds.Timestamp.IsZero() {
+			d.Timestamp = ds.Timestamp
+		}
+
+		if d.Structure == nil && ds.Structure != nil {
+			d.Structure = ds.Structure
+		} else if ds.Structure != nil {
+			d.Structure.Assign(ds.Structure)
+		}
+
+		if d.AbstractStructure == nil && ds.AbstractStructure != nil {
+			d.AbstractStructure = ds.AbstractStructure
+		} else if ds.AbstractStructure != nil {
+			d.AbstractStructure.Assign(ds.AbstractStructure)
+		}
+
+		if !d.Data.Equal(ds.Data) {
+			d.Data = ds.Data
+		}
+		if ds.Length != 0 {
+			d.Length = ds.Length
+		}
+		if ds.Previous.String() != "" {
+			d.Previous = ds.Previous
+		}
+		if ds.Title != "" {
+			d.Title = ds.Title
+		}
+		if ds.AccessUrl != "" {
+			d.AccessUrl = ds.AccessUrl
+		}
+		if ds.DownloadUrl != "" {
+			d.DownloadUrl = ds.DownloadUrl
+		}
+		if ds.Readme.String() != "" {
+			d.Readme = ds.Readme
+		}
+		if ds.Author != nil {
+			d.Author = ds.Author
+		}
+		if ds.Citations != nil {
+			d.Citations = ds.Citations
+		}
+		if ds.Image != "" {
+			d.Image = ds.Image
+		}
+		if ds.Description != "" {
+			d.Description = ds.Description
+		}
+		if ds.Homepage != "" {
+			d.Homepage = ds.Homepage
+		}
+		if ds.IconImage != "" {
+			d.IconImage = ds.IconImage
+		}
+		if ds.Identifier != "" {
+			d.Identifier = ds.Identifier
+		}
+		if ds.License != nil {
+			d.License = ds.License
+		}
+		if ds.Version != "" {
+			d.Version = ds.Version
+		}
+		if ds.Keywords != nil {
+			d.Keywords = ds.Keywords
+		}
+		if ds.Contributors != nil {
+			d.Contributors = ds.Contributors
+		}
+		if ds.Language != nil {
+			d.Language = ds.Language
+		}
+		if ds.Theme != nil {
+			d.Theme = ds.Theme
+		}
+		if ds.QueryString != "" {
+			d.QueryString = ds.QueryString
+		}
+		if ds.Query != nil {
+			d.Query = ds.Query
+		}
+		if ds.QuerySyntax != "" {
+			d.QuerySyntax = ds.QuerySyntax
+		}
+		if ds.QueryPlatform != "" {
+			d.QueryPlatform = ds.QueryPlatform
+		}
+		if ds.QueryEngine != "" {
+			d.QueryEngine = ds.QueryEngine
+		}
+		if ds.QueryEngineConfig != nil {
+			d.QueryEngineConfig = ds.QueryEngineConfig
+		}
+		if ds.Resources != nil {
+			d.Resources = ds.Resources
+		}
+		if ds.meta != nil {
+			d.meta = ds.meta
+		}
+	}
+}
+
 // MarshalJSON uses a map to combine meta & standard fields.
 // Marshalling a map[string]interface{} automatically alpha-sorts the keys.
 func (d *Dataset) MarshalJSON() ([]byte, error) {

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/compare"
+	"github.com/qri-io/dataset/datatypes"
 	"io/ioutil"
 	"testing"
 )
@@ -41,6 +42,65 @@ func TestDatasetMarshalJSON(t *testing.T) {
 
 	if !bytes.Equal(strbytes, []byte("\"/path/to/dataset\"")) {
 		t.Errorf("marshal strbyte interface byte mismatch: %s != %s", string(strbytes), "\"/path/to/dataset\"")
+	}
+}
+
+func TestDatasetAssign(t *testing.T) {
+	expect := &Dataset{
+		Title:       "Final Title",
+		Description: "Final Description",
+		AccessUrl:   "AccessUrl",
+		Structure: &Structure{
+			Schema: &Schema{
+				Fields: []*Field{
+					&Field{Type: datatypes.String, Name: "foo"},
+					&Field{Type: datatypes.Integer, Name: "bar"},
+					&Field{Description: "bat"},
+				},
+			},
+		},
+	}
+	got := &Dataset{
+		Title:       "Overwrite Me",
+		Description: "Nope",
+		Structure: &Structure{
+			Schema: &Schema{
+				Fields: []*Field{
+					&Field{Type: datatypes.String},
+					&Field{Type: datatypes.Integer},
+				},
+			},
+		},
+	}
+
+	got.Assign(&Dataset{
+		Title:       "Final Title",
+		Description: "Final Description",
+		AccessUrl:   "AccessUrl",
+		Structure: &Structure{
+			Schema: &Schema{
+				Fields: []*Field{
+					&Field{Name: "foo"},
+					&Field{Name: "bar"},
+					&Field{Description: "bat"},
+				},
+			},
+		},
+	})
+
+	if err := CompareDatasets(expect, got); err != nil {
+		t.Error(err)
+	}
+
+	got.Assign(nil, nil)
+	if err := CompareDatasets(expect, got); err != nil {
+		t.Error(err)
+	}
+
+	emptyDs := &Dataset{}
+	emptyDs.Assign(expect)
+	if err := CompareDatasets(expect, emptyDs); err != nil {
+		t.Error(err)
 	}
 }
 
