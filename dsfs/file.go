@@ -3,7 +3,7 @@ package dsfs
 import (
 	"encoding/json"
 	"github.com/ipfs/go-ipfs/commands/files"
-	"github.com/qri-io/cafs/memfile"
+	"github.com/qri-io/cafs/memfs"
 	"io/ioutil"
 )
 
@@ -19,5 +19,5 @@ func jsonFile(name string, m json.Marshaler) (files.File, error) {
 	if err != nil {
 		return nil, err
 	}
-	return memfile.NewMemfileBytes(name, data), nil
+	return memfs.NewMemfileBytes(name, data), nil
 }

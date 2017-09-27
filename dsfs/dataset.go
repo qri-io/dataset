@@ -7,7 +7,7 @@ import (
 	"github.com/ipfs/go-ipfs/commands/files"
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/cafs/ipfs"
-	"github.com/qri-io/cafs/memfile"
+	"github.com/qri-io/cafs/memfs"
 	"github.com/qri-io/dataset"
 )
 
@@ -100,7 +100,7 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 		if err != nil {
 			return datastore.NewKey(""), err
 		}
-		adder.AddFile(memfile.NewMemfileBytes(PackageFileDataset.String(), dsdata))
+		adder.AddFile(memfs.NewMemfileBytes(PackageFileDataset.String(), dsdata))
 		addedDataset = true
 	}
 
@@ -110,7 +110,7 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 		if err != nil {
 			return datastore.NewKey(""), err
 		}
-		adder.AddFile(memfile.NewMemfileBytes(PackageFileQuery.String(), qdata))
+		adder.AddFile(memfs.NewMemfileBytes(PackageFileQuery.String(), qdata))
 	}
 
 	if ds.Structure != nil {
@@ -119,21 +119,21 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 		if err != nil {
 			return datastore.NewKey(""), err
 		}
-		adder.AddFile(memfile.NewMemfileBytes(PackageFileStructure.String(), stdata))
+		adder.AddFile(memfs.NewMemfileBytes(PackageFileStructure.String(), stdata))
 
 		fileTasks++
 		asdata, err := json.Marshal(ds.Structure.Abstract())
 		if err != nil {
 			return datastore.NewKey(""), err
 		}
-		adder.AddFile(memfile.NewMemfileBytes(PackageFileAbstractStructure.String(), asdata))
+		adder.AddFile(memfs.NewMemfileBytes(PackageFileAbstractStructure.String(), asdata))
 
 		fileTasks++
 		data, err := store.Get(ds.Data)
 		if err != nil {
 			return datastore.NewKey(""), err
 		}
-		adder.AddFile(memfile.NewMemfileReader("data."+ds.Structure.Format.String(), data))
+		adder.AddFile(memfs.NewMemfileReader("data."+ds.Structure.Format.String(), data))
 	}
 
 	// if ds.Previous != nil {
@@ -175,7 +175,7 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 						return
 					}
 
-					adder.AddFile(memfile.NewMemfileBytes(PackageFileDataset.String(), dsdata))
+					adder.AddFile(memfs.NewMemfileBytes(PackageFileDataset.String(), dsdata))
 				}
 				//
 				if err := adder.Close(); err != nil {

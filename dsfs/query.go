@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/cafs"
-	"github.com/qri-io/cafs/memfile"
+	"github.com/qri-io/cafs/memfs"
 	"github.com/qri-io/dataset"
 )
 
@@ -58,5 +58,5 @@ func SaveQuery(store cafs.Filestore, q *dataset.Query, pin bool) (datastore.Key,
 		return datastore.NewKey(""), err
 	}
 
-	return store.Put(memfile.NewMemfileBytes("query.json", qdata), pin)
+	return store.Put(memfs.NewMemfileBytes("query.json", qdata), pin)
 }

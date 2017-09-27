@@ -1,13 +1,13 @@
 package dsfs
 
 import (
-	"github.com/qri-io/cafs"
+	"github.com/qri-io/cafs/memfs"
 	"github.com/qri-io/dataset"
 	"testing"
 )
 
 func TestDatasetSave(t *testing.T) {
-	store := cafs.NewMapstore()
+	store := memfs.NewMapstore()
 
 	ds := &dataset.Dataset{
 		Title: "test store",
@@ -29,15 +29,15 @@ func TestDatasetSave(t *testing.T) {
 		return
 	}
 
-	if len(store.(cafs.MapStore)) != 2 {
-		t.Error("invalid number of entries added to store: %d != %d", 2, len(store.(cafs.MapStore)))
+	if len(store.(memfs.MapStore)) != 2 {
+		t.Error("invalid number of entries added to store: %d != %d", 2, len(store.(memfs.MapStore)))
 		return
 	}
-	// fmt.Println(string(store.(cafs.MapStore)[datastore.NewKey("/mem/Qmdv5WeDGw1f6pw4DSYQdsugNDFUqHw9FuFU8Gu7T4PUqF")].([]byte)))
+	// fmt.Println(string(store.(memfs.MapStore)[datastore.NewKey("/mem/Qmdv5WeDGw1f6pw4DSYQdsugNDFUqHw9FuFU8Gu7T4PUqF")].([]byte)))
 }
 
 func TestLoadDataset(t *testing.T) {
-	store := cafs.NewMapstore()
+	store := memfs.NewMapstore()
 	apath, err := SaveDataset(store, AirportCodes, true)
 	if err != nil {
 		t.Errorf(err.Error())
