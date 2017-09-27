@@ -46,6 +46,7 @@ func TestDatasetMarshalJSON(t *testing.T) {
 }
 
 func TestDatasetAssign(t *testing.T) {
+	// TODO - expand test to check all fields
 	expect := &Dataset{
 		Title:       "Final Title",
 		Description: "Final Description",

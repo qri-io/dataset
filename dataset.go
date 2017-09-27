@@ -127,7 +127,7 @@ func (d *Dataset) Assign(datasets ...*Dataset) {
 			d.AbstractStructure.Assign(ds.AbstractStructure)
 		}
 
-		if !d.Data.Equal(ds.Data) {
+		if ds.Data.String() != "" {
 			d.Data = ds.Data
 		}
 		if ds.Length != 0 {
