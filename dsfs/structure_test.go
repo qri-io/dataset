@@ -1,8 +1,9 @@
 package dsfs
 
 import (
-	"github.com/qri-io/cafs/memfs"
 	"testing"
+
+	"github.com/qri-io/cafs/memfs"
 )
 
 func TestLoadStructure(t *testing.T) {

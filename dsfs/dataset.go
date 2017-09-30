@@ -3,12 +3,14 @@ package dsfs
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/ipfs/go-datastore"
-	"github.com/ipfs/go-ipfs/commands/files"
+
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/cafs/ipfs"
 	"github.com/qri-io/cafs/memfs"
 	"github.com/qri-io/dataset"
+
+	"github.com/ipfs/go-datastore"
+	"github.com/ipfs/go-ipfs/commands/files"
 )
 
 // LoadDatasetData loads the data this dataset points to from the store
@@ -198,7 +200,7 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 	// in a clean way. maybe a function that re-extracts this info on either
 	// the cafs interface, or the concrete cafs/ipfs implementation?
 	// TODO - remove this in favour of some sort of tree-walking
-	if _, ok := store.(*ipfs_datastore.Filestore); ok {
+	if _, ok := store.(*ipfs_filestore.Filestore); ok {
 		path = datastore.NewKey(path.String() + "/" + PackageFileDataset.String())
 	}
 	return path, err

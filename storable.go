@@ -2,6 +2,7 @@ package dataset
 
 import (
 	"fmt"
+
 	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/cafs"
 )

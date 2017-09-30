@@ -3,8 +3,9 @@ package dataset
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/ipfs/go-datastore"
 	"time"
+
+	"github.com/ipfs/go-datastore"
 )
 
 // Dataset is stored separately from prescriptive metadata stored in Resource structs

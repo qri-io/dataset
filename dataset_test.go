@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/ipfs/go-datastore"
-	"github.com/qri-io/compare"
-	"github.com/qri-io/dataset/datatypes"
 	"io/ioutil"
 	"testing"
+
+	"github.com/qri-io/compare"
+	"github.com/qri-io/dataset/datatypes"
+
+	"gx/ipfs/QmVSase1JP7cq9QkPT46oNwdp9pT6kBkG3oqS14y3QcZjG/go-datastore"
 )
 
 func TestDatasetMarshalJSON(t *testing.T) {

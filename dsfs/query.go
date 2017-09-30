@@ -2,6 +2,7 @@ package dsfs
 
 import (
 	"encoding/json"
+
 	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/cafs/memfs"

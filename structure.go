@@ -3,6 +3,7 @@ package dataset
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/dataset/compression"
 )

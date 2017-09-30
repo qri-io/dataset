@@ -2,9 +2,10 @@ package dsfs
 
 import (
 	"encoding/json"
+	"io/ioutil"
+
 	"github.com/ipfs/go-ipfs/commands/files"
 	"github.com/qri-io/cafs/memfs"
-	"io/ioutil"
 )
 
 func fileBytes(file files.File, err error) ([]byte, error) {

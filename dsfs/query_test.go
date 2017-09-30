@@ -1,9 +1,10 @@
 package dsfs
 
 import (
+	"testing"
+
 	"github.com/qri-io/cafs/memfs"
 	"github.com/qri-io/dataset"
-	"testing"
 )
 
 func TestLoadQuery(t *testing.T) {

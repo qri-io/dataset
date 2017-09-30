@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/ipfs/go-datastore"
-	"github.com/qri-io/dataset/datatypes"
 	"io/ioutil"
 	"testing"
+
+	"github.com/ipfs/go-datastore"
+	"github.com/qri-io/dataset/datatypes"
 )
 
 func TestStrucureHash(t *testing.T) {
