@@ -25,16 +25,7 @@ func RawDataRows(store cafs.Filestore, ds *dataset.Dataset, limit, offset int) (
 	}
 
 	added := 0
-	// if st.Format != dataset.CsvDataFormat {
-	// 	return nil, fmt.Errorf("raw data rows only works with csv data format for now")
-	// }
-
-	// buf := &bytes.Buffer{}
-	// w := csv.NewWriter(buf)
-	w, err := dsio.NewWriter(st)
-	if err != nil {
-		return nil, err
-	}
+	buf := dsio.NewBuffer(st)
 
 	err = EachRow(st, datafile, func(i int, row [][]byte, err error) error {
 		if err != nil {
@@ -45,7 +36,7 @@ func RawDataRows(store cafs.Filestore, ds *dataset.Dataset, limit, offset int) (
 			return fmt.Errorf("EOF")
 		}
 
-		w.WriteRow(row)
+		buf.WriteRow(row)
 		added++
 		return nil
 	})
@@ -53,13 +44,8 @@ func RawDataRows(store cafs.Filestore, ds *dataset.Dataset, limit, offset int) (
 		return nil, err
 	}
 
-	if closer, ok := w.(io.Closer); ok {
-		if err := closer.Close(); err != nil {
-			return nil, err
-		}
-	}
-
-	return w.Bytes(), nil
+	err = buf.Close()
+	return buf.Bytes(), err
 }
 
 // DataIteratorFunc is a function for each "row" of a resource's raw data

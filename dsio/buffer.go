@@ -30,6 +30,10 @@ func (b *Buffer) WriteRow(row [][]byte) error {
 	return b.w.WriteRow(row)
 }
 
+func (b *Buffer) Close() error {
+	return b.w.Close()
+}
+
 func (b *Buffer) Bytes() []byte {
 	return b.buf.Bytes()
 }
