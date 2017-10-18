@@ -7,7 +7,7 @@ import (
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsfs"
-	"github.com/qri-io/dataset/writers"
+	"github.com/qri-io/dataset/dsio"
 	"io"
 )
 
@@ -31,7 +31,10 @@ func RawDataRows(store cafs.Filestore, ds *dataset.Dataset, limit, offset int) (
 
 	// buf := &bytes.Buffer{}
 	// w := csv.NewWriter(buf)
-	w := writers.NewWriter(st)
+	w, err := dsio.NewWriter(st)
+	if err != nil {
+		return nil, err
+	}
 
 	err = EachRow(st, datafile, func(i int, row [][]byte, err error) error {
 		if err != nil {
@@ -50,9 +53,12 @@ func RawDataRows(store cafs.Filestore, ds *dataset.Dataset, limit, offset int) (
 		return nil, err
 	}
 
-	if err := w.Close(); err != nil {
-		return nil, err
+	if closer, ok := w.(io.Closer); ok {
+		if err := closer.Close(); err != nil {
+			return nil, err
+		}
 	}
+
 	return w.Bytes(), nil
 }
 

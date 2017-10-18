@@ -1,4 +1,4 @@
-package writers
+package dsio
 
 import (
 	"github.com/qri-io/dataset/datatypes"
