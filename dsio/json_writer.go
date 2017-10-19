@@ -1,7 +1,7 @@
-package writers
+package dsio
 
 import (
-	"bytes"
+	"io"
 	"strconv"
 
 	"github.com/qri-io/dataset"
@@ -12,18 +12,24 @@ type JsonWriter struct {
 	writeObjects bool
 	rowsWritten  int
 	ds           *dataset.Structure
-	buf          *bytes.Buffer
+	wr           io.Writer
 }
 
-func NewJsonWriter(ds *dataset.Structure, writeObjects bool) *JsonWriter {
+func NewJsonWriter(ds *dataset.Structure, w io.Writer, writeObjects bool) *JsonWriter {
 	return &JsonWriter{
 		writeObjects: writeObjects,
 		ds:           ds,
-		buf:          bytes.NewBuffer([]byte{'['}),
+		wr:           w,
 	}
 }
 
 func (w *JsonWriter) WriteRow(row [][]byte) error {
+	if w.rowsWritten == 0 {
+		if _, err := w.wr.Write([]byte{'['}); err != nil {
+			return err
+		}
+	}
+
 	if w.writeObjects {
 		return w.writeObjectRow(row)
 	}
@@ -66,7 +72,7 @@ func (w *JsonWriter) writeObjectRow(row [][]byte) error {
 	}
 
 	enc = append(enc, '}')
-	if _, err := w.buf.Write(enc); err != nil {
+	if _, err := w.wr.Write(enc); err != nil {
 		return err
 	}
 
@@ -113,7 +119,7 @@ func (w *JsonWriter) writeArrayRow(row [][]byte) error {
 	}
 
 	enc = append(enc, ']')
-	if _, err := w.buf.Write(enc); err != nil {
+	if _, err := w.wr.Write(enc); err != nil {
 		return err
 	}
 
@@ -122,10 +128,9 @@ func (w *JsonWriter) writeArrayRow(row [][]byte) error {
 }
 
 func (w *JsonWriter) Close() error {
-	_, err := w.buf.Write([]byte{'\n', ']'})
+	_, err := w.wr.Write([]byte{'\n', ']'})
 	return err
 }
 
-func (w *JsonWriter) Bytes() []byte {
-	return w.buf.Bytes()
+type JsonReader struct {
 }

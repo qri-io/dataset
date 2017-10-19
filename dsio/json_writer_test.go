@@ -1,10 +1,11 @@
-package writers
+package dsio
 
 import (
-	"github.com/qri-io/dataset/datatypes"
+	"bytes"
 	"testing"
 
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/dataset/datatypes"
 )
 
 func TestJsonWriter(t *testing.T) {
@@ -83,7 +84,8 @@ func TestJsonWriter(t *testing.T) {
 	}
 
 	for i, c := range cases {
-		w := NewJsonWriter(c.structure, c.writeObjects)
+		buf := &bytes.Buffer{}
+		w := NewJsonWriter(c.structure, buf, c.writeObjects)
 		for _, ent := range c.entries {
 			if err := w.WriteRow(ent); err != nil {
 				t.Errorf("case %d WriteRow error: %s", i, err.Error())
@@ -94,8 +96,8 @@ func TestJsonWriter(t *testing.T) {
 			t.Errorf("case %d Close error: %s", i, err.Error())
 		}
 
-		if string(w.Bytes()) != c.out {
-			t.Errorf("case %d result mismatch. expected:\n%s\ngot:\n%s", i, c.out, string(w.Bytes()))
+		if string(buf.Bytes()) != c.out {
+			t.Errorf("case %d result mismatch. expected:\n%s\ngot:\n%s", i, c.out, string(buf.Bytes()))
 		}
 	}
 }
