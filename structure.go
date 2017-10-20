@@ -197,6 +197,20 @@ func (s *Structure) Assign(structures ...*Structure) {
 	}
 }
 
+// StringFieldIndex gives the index of a field who's name matches s
+// it returns -1 if no match is found
+func (st *Structure) StringFieldIndex(s string) int {
+	if st.Schema == nil {
+		return -1
+	}
+	for i, f := range st.Schema.Fields {
+		if f.Name == s {
+			return i
+		}
+	}
+	return -1
+}
+
 // UnmarshalStructure tries to extract a structure type from an empty
 // interface. Pairs nicely with datastore.Get() from github.com/ipfs/go-datastore
 func UnmarshalStructure(v interface{}) (*Structure, error) {

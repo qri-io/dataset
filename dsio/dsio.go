@@ -16,6 +16,12 @@ type Reader interface {
 	ReadRow() ([][]byte, error)
 }
 
+type ReadWriter interface {
+	Reader
+	Writer
+	Bytes() []byte
+}
+
 func NewWriter(st *dataset.Structure, w io.Writer) Writer {
 	switch st.Format {
 	case dataset.CsvDataFormat:
