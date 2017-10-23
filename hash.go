@@ -2,9 +2,10 @@ package dataset
 
 import (
 	"crypto/sha256"
-	"github.com/jbenet/go-base58"
-	// "encoding/hex"
 	"encoding/json"
+	"fmt"
+
+	"github.com/jbenet/go-base58"
 	"github.com/multiformats/go-multihash"
 )
 
@@ -34,6 +35,7 @@ func HashBytes(data []byte) (hash string, err error) {
 
 	mhBuf, err := multihash.Encode(h.Sum(nil), multihash.SHA2_256)
 	if err != nil {
+		err = fmt.Errorf("error allocating multihash buffer: %s", err.Error())
 		return
 	}
 

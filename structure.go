@@ -114,12 +114,12 @@ func (s *Structure) UnmarshalJSON(data []byte) error {
 
 	_s := &_structure{}
 	if err := json.Unmarshal(data, _s); err != nil {
-		return err
+		return fmt.Errorf("error unmarshaling dataset structure from json: %s", err.Error())
 	}
 
 	fmtCfg, err := ParseFormatConfigMap(_s.Format, _s.FormatConfig)
 	if err != nil {
-		return err
+		return fmt.Errorf("error parsing structure formatConfig: %s", err.Error())
 	}
 
 	*s = Structure{

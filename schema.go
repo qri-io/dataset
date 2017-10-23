@@ -2,6 +2,7 @@ package dataset
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/qri-io/dataset/datatypes"
 )
@@ -156,7 +157,7 @@ func (f Field) MarshalJSON() ([]byte, error) {
 func (f *Field) UnmarshalJSON(data []byte) error {
 	_f := &_field{}
 	if err := json.Unmarshal(data, _f); err != nil {
-		return err
+		return fmt.Errorf("error unmarshaling dataset field from json: %s", err.Error())
 	}
 
 	*f = Field{
