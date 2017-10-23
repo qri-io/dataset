@@ -15,10 +15,6 @@ import (
 // RowDataRows loads a slice of raw bytes inside a limit/offset row range
 func RawDataRows(store cafs.Filestore, ds *dataset.Dataset, limit, offset int) ([]byte, error) {
 	st := ds.Structure
-	// st, err := ds.LoadStructure(store)
-	// if err != nil {
-	// 	return nil, err
-	// }
 
 	datafile, err := dsfs.LoadDatasetData(store, ds)
 	if err != nil {
@@ -31,9 +27,11 @@ func RawDataRows(store cafs.Filestore, ds *dataset.Dataset, limit, offset int) (
 	err = EachRow(st, datafile, func(i int, row [][]byte, err error) error {
 		if err != nil {
 			return err
-		} else if i < offset {
+		}
+
+		if i < offset {
 			return nil
-		} else if i-offset == added {
+		} else if added == limit {
 			return fmt.Errorf("EOF")
 		}
 
@@ -57,7 +55,7 @@ func EachRow(st *dataset.Structure, r io.Reader, fn DataIteratorFunc) error {
 	switch st.Format {
 	case dataset.CsvDataFormat:
 		rdr := csv.NewReader(r)
-		if HeaderRow(st) {
+		if HasHeaderRow(st) {
 			if _, err := rdr.Read(); err != nil {
 				if err.Error() == "EOF" {
 					return nil
@@ -66,7 +64,7 @@ func EachRow(st *dataset.Structure, r io.Reader, fn DataIteratorFunc) error {
 			}
 		}
 
-		num := 1
+		num := 0
 		for {
 			csvRec, err := rdr.Read()
 			if err != nil {
@@ -106,7 +104,7 @@ func FormatRows(st *dataset.Structure, file io.Reader) (data [][][]byte, err err
 	return
 }
 
-func HeaderRow(st *dataset.Structure) bool {
+func HasHeaderRow(st *dataset.Structure) bool {
 	if st.Format == dataset.CsvDataFormat && st.FormatConfig != nil {
 		if csvOpt, ok := st.FormatConfig.(*dataset.CsvOptions); ok {
 			return csvOpt.HeaderRow
