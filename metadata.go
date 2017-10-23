@@ -46,7 +46,7 @@ func (l *License) UnmarshalJSON(data []byte) error {
 
 	_l := &_license{}
 	if err := json.Unmarshal(data, _l); err != nil {
-		return err
+		return fmt.Errorf("error parsing license from json: %s", err.Error())
 	}
 	*l = License(*_l)
 
@@ -55,6 +55,7 @@ func (l *License) UnmarshalJSON(data []byte) error {
 
 // VariableName is a string that conforms to standard variable naming conventions
 // must start with a letter, no spaces
+// TODO - we're not really using this much, consider depricating, or using properly
 type VariableName string
 
 // MarshalJSON satisfies the json.Marshaller interface

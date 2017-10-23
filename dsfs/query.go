@@ -2,6 +2,7 @@ package dsfs
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/cafs"
@@ -9,35 +10,11 @@ import (
 	"github.com/qri-io/dataset"
 )
 
-// func (q *Query) LoadStructures(store datastore.Datastore) (structs map[string]*Structure, err error) {
-//  structs = map[string]*Structure{}
-//  for key, path := range q.Structures {
-//    s, err := LoadStructure(store, path)
-//    if err != nil {
-//      return nil, err
-//    }
-//    structs[key] = s
-//  }
-//  return
-// }
-
-// func (q *Query) LoadAbstractStructures(store datastore.Datastore) (structs map[string]*Structure, err error) {
-//  structs = map[string]*Structure{}
-//  for key, path := range q.Structures {
-//    s, err := LoadStructure(store, path)
-//    if err != nil {
-//      return nil, err
-//    }
-//    structs[key] = s.Abstract()
-//  }
-//  return
-// }
-
 // LoadQuery loads a query from a given path in a store
 func LoadQuery(store cafs.Filestore, path datastore.Key) (q *dataset.Query, err error) {
 	data, err := fileBytes(store.Get(path))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error loading query raw data: %s", err.Error())
 	}
 
 	return dataset.UnmarshalQuery(data)
@@ -56,7 +33,7 @@ func SaveQuery(store cafs.Filestore, q *dataset.Query, pin bool) (datastore.Key,
 
 	qdata, err := json.Marshal(q)
 	if err != nil {
-		return datastore.NewKey(""), err
+		return datastore.NewKey(""), fmt.Errorf("error marshaling query data to json: %s", err.Error())
 	}
 
 	return store.Put(memfs.NewMemfileBytes("query.json", qdata), pin)

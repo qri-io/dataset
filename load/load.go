@@ -4,11 +4,12 @@ package load
 import (
 	"encoding/csv"
 	"fmt"
+	"io"
+
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsfs"
 	"github.com/qri-io/dataset/dsio"
-	"io"
 )
 
 // RowDataRows loads a slice of raw bytes inside a limit/offset row range
@@ -21,7 +22,7 @@ func RawDataRows(store cafs.Filestore, ds *dataset.Dataset, limit, offset int) (
 
 	datafile, err := dsfs.LoadDatasetData(store, ds)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error loading dataset data: %s", err.Error())
 	}
 
 	added := 0
@@ -41,7 +42,7 @@ func RawDataRows(store cafs.Filestore, ds *dataset.Dataset, limit, offset int) (
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error iterating through dataset data: %s", err.Error())
 	}
 
 	err = buf.Close()
@@ -72,7 +73,7 @@ func EachRow(st *dataset.Structure, r io.Reader, fn DataIteratorFunc) error {
 				if err.Error() == "EOF" {
 					return nil
 				}
-				return err
+				return fmt.Errorf("error reading csv record: %s", err.Error())
 			}
 
 			rec := make([][]byte, len(csvRec))

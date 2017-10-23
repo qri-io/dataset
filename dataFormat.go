@@ -55,7 +55,7 @@ func ParseDataFormatString(s string) (df DataFormat, err error) {
 		"xls":    XlsDataFormat,
 	}[s]
 	if !ok {
-		err = fmt.Errorf("invalid DataFormat %q", s)
+		err = fmt.Errorf("invalid data format: `%s`", s)
 		df = UnknownDataFormat
 	}
 
@@ -74,7 +74,7 @@ func (f DataFormat) MarshalJSON() ([]byte, error) {
 func (f *DataFormat) UnmarshalJSON(data []byte) error {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
-		return fmt.Errorf("Filed type should be a string, got %s", data)
+		return fmt.Errorf("Data Format type should be a string, got %s", data)
 	}
 
 	if df, err := ParseDataFormatString(s); err != nil {

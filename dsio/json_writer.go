@@ -1,6 +1,7 @@
 package dsio
 
 import (
+	"fmt"
 	"io"
 	"strconv"
 
@@ -26,7 +27,7 @@ func NewJsonWriter(ds *dataset.Structure, w io.Writer, writeObjects bool) *JsonW
 func (w *JsonWriter) WriteRow(row [][]byte) error {
 	if w.rowsWritten == 0 {
 		if _, err := w.wr.Write([]byte{'['}); err != nil {
-			return err
+			return fmt.Errorf("error writing initial `[`: %s", err.Error())
 		}
 	}
 
@@ -73,7 +74,7 @@ func (w *JsonWriter) writeObjectRow(row [][]byte) error {
 
 	enc = append(enc, '}')
 	if _, err := w.wr.Write(enc); err != nil {
-		return err
+		return fmt.Errorf("error writing json object row to writer: %s", err.Error())
 	}
 
 	w.rowsWritten++
@@ -120,7 +121,7 @@ func (w *JsonWriter) writeArrayRow(row [][]byte) error {
 
 	enc = append(enc, ']')
 	if _, err := w.wr.Write(enc); err != nil {
-		return err
+		return fmt.Errorf("error writing closing `]`: %s", err.Error())
 	}
 
 	w.rowsWritten++
@@ -129,7 +130,10 @@ func (w *JsonWriter) writeArrayRow(row [][]byte) error {
 
 func (w *JsonWriter) Close() error {
 	_, err := w.wr.Write([]byte{'\n', ']'})
-	return err
+	if err != nil {
+		return fmt.Errorf("error closing writer: %s", err.Error())
+	}
+	return nil
 }
 
 type JsonReader struct {

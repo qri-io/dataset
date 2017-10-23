@@ -324,12 +324,12 @@ func (d *Dataset) UnmarshalJSON(data []byte) error {
 	// TODO - I'm guessing what follows could be better
 	ds := _dataset{}
 	if err := json.Unmarshal(data, &ds); err != nil {
-		return err
+		return fmt.Errorf("error unmarshling dataset: %s", err.Error())
 	}
 
 	meta := map[string]interface{}{}
 	if err := json.Unmarshal(data, &meta); err != nil {
-		return err
+		return fmt.Errorf("error unmarshaling dataset metadata: %s", err, err)
 	}
 
 	for _, f := range []string{
