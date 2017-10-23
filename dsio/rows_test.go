@@ -5,22 +5,17 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ipfs/go-datastore"
-	"github.com/qri-io/cafs"
-	"github.com/qri-io/cafs/memfs"
-	"github.com/qri-io/dataset"
-	"github.com/qri-io/dataset/datatypes"
 	"github.com/qri-io/dataset/dsfs"
 )
 
 func TestRawDataRows(t *testing.T) {
-	dskey, store, err := makeFilestore()
+	datasets, store, err := makeFilestore()
 	if err != nil {
 		t.Errorf("error creating test filestore: %s", err.Error())
 		return
 	}
 
-	ds, err := dsfs.LoadDataset(store, dskey)
+	ds, err := dsfs.LoadDataset(store, datasets["cities"])
 	if err != nil {
 		t.Errorf("error loading dataset: %s", err.Error())
 		return
@@ -43,13 +38,13 @@ chatham,35000,65.25,true
 }
 
 func TestEachRow(t *testing.T) {
-	dskey, store, err := makeFilestore()
+	datasets, store, err := makeFilestore()
 	if err != nil {
 		t.Errorf("error creating test filestore: %s", err.Error())
 		return
 	}
 
-	ds, err := dsfs.LoadDataset(store, dskey)
+	ds, err := dsfs.LoadDataset(store, datasets["cities"])
 	if err != nil {
 		t.Errorf("error loading dataset: %s", err.Error())
 		return
@@ -91,47 +86,4 @@ func TestEachRow(t *testing.T) {
 		t.Errorf("eachrow error: %s", err.Error())
 		return
 	}
-}
-
-func makeFilestore() (datastore.Key, cafs.Filestore, error) {
-	const testCsvData = `city,pop,avg_age,in_usa
-toronto,40000000,55.5,false
-new york,8500000,44.4,true
-chicago,300000,44.4,true
-chatham,35000,65.25,true
-raleigh,250000,50.65,true
-`
-
-	var dskey datastore.Key
-	fs := memfs.NewMapstore()
-	datakey, err := fs.Put(memfs.NewMemfileBytes("data.csv", []byte(testCsvData)), true)
-	if err != nil {
-		return dskey, nil, err
-	}
-
-	ds := &dataset.Dataset{
-		Title: "example city data",
-		Structure: &dataset.Structure{
-			Format: dataset.CsvDataFormat,
-			FormatConfig: &dataset.CsvOptions{
-				HeaderRow: true,
-			},
-			Schema: &dataset.Schema{
-				Fields: []*dataset.Field{
-					&dataset.Field{Name: "city", Type: datatypes.String},
-					&dataset.Field{Name: "pop", Type: datatypes.Integer},
-					&dataset.Field{Name: "avg_age", Type: datatypes.Float},
-					&dataset.Field{Name: "in_usa", Type: datatypes.Boolean},
-				},
-			},
-		},
-		Data: datakey,
-	}
-
-	dskey, err = dsfs.SaveDataset(fs, ds, true)
-	if err != nil {
-		return dskey, nil, err
-	}
-
-	return dskey, fs, nil
 }

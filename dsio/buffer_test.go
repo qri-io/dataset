@@ -9,13 +9,13 @@ import (
 )
 
 func TestBuffer(t *testing.T) {
-	dskey, fs, err := makeFilestore()
+	datasets, fs, err := makeFilestore()
 	if err != nil {
 		t.Errorf("error creating filestore", err.Error())
 		return
 	}
 
-	ds, err := dsfs.LoadDataset(fs, dskey)
+	ds, err := dsfs.LoadDataset(fs, datasets["movies"])
 	if err != nil {
 		t.Errorf("error creating dataset: %s", err.Error())
 		return
@@ -59,4 +59,11 @@ func TestBuffer(t *testing.T) {
 		t.Errorf("error unmarshaling encoded bytes: %s", err.Error())
 		return
 	}
+
+	if _, err = json.Marshal(out); err != nil {
+		t.Errorf("error marshaling json data: %s", err.Error())
+		return
+	}
+
+	// ioutil.WriteFile("testdata/movies_out.json", jsondata, 0777)
 }
