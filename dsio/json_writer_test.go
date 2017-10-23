@@ -2,6 +2,7 @@ package dsio
 
 import (
 	"bytes"
+	"encoding/json"
 	"testing"
 
 	"github.com/qri-io/dataset"
@@ -98,6 +99,17 @@ func TestJsonWriter(t *testing.T) {
 
 		if string(buf.Bytes()) != c.out {
 			t.Errorf("case %d result mismatch. expected:\n%s\ngot:\n%s", i, c.out, string(buf.Bytes()))
+		}
+
+		var v interface{}
+		if c.writeObjects {
+			v = map[string]interface{}{}
+		} else {
+			v = []interface{}{}
+		}
+
+		if err := json.Unmarshal(buf.Bytes(), &v); err != nil {
+			t.Errorf("unmarshal error: %s", err.Error())
 		}
 	}
 }

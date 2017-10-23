@@ -35,17 +35,31 @@ func (w *CsvWriter) Close() error {
 }
 
 type CsvReader struct {
-	st *dataset.Structure
-	r  *csv.Reader
+	st         *dataset.Structure
+	readHeader bool
+	r          *csv.Reader
 }
 
 func NewCsvReader(st *dataset.Structure, r io.Reader) *CsvReader {
 	return &CsvReader{
-		r: csv.NewReader(r),
+		st: st,
+		r:  csv.NewReader(r),
 	}
 }
 
 func (r *CsvReader) ReadRow() ([][]byte, error) {
+	if !r.readHeader {
+		if HasHeaderRow(r.st) {
+			if _, err := r.r.Read(); err != nil {
+				if err.Error() == "EOF" {
+					return nil, nil
+				}
+				return nil, err
+			}
+		}
+		r.readHeader = true
+	}
+
 	data, err := r.r.Read()
 	if err != nil {
 		return nil, err
@@ -55,4 +69,13 @@ func (r *CsvReader) ReadRow() ([][]byte, error) {
 		row[i] = []byte(d)
 	}
 	return row, nil
+}
+
+func HasHeaderRow(st *dataset.Structure) bool {
+	if st.Format == dataset.CsvDataFormat && st.FormatConfig != nil {
+		if csvOpt, ok := st.FormatConfig.(*dataset.CsvOptions); ok {
+			return csvOpt.HeaderRow
+		}
+	}
+	return false
 }

@@ -1,4 +1,4 @@
-package load
+package dsio
 
 import (
 	"bytes"
@@ -26,7 +26,7 @@ func TestRawDataRows(t *testing.T) {
 		return
 	}
 
-	data, err := RawDataRows(store, ds, 2, 2)
+	data, err := ReadRows(store, ds, 2, 2)
 	if err != nil {
 		t.Errorf("raw data row error: %s", err.Error())
 		return
