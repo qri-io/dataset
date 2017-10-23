@@ -4,13 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/ipfs/go-datastore"
+	"github.com/ipfs/go-ipfs/commands/files"
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/cafs/ipfs"
 	"github.com/qri-io/cafs/memfs"
 	"github.com/qri-io/dataset"
-
-	"github.com/ipfs/go-datastore"
-	"github.com/ipfs/go-ipfs/commands/files"
 )
 
 // LoadDatasetData loads the data this dataset points to from the store
@@ -21,37 +20,25 @@ func LoadDatasetData(store cafs.Filestore, ds *dataset.Dataset) (files.File, err
 // Load a dataset from a cafs
 func LoadDataset(store cafs.Filestore, path datastore.Key) (*dataset.Dataset, error) {
 	ds := &dataset.Dataset{}
-	// datasetFilePath := datastore.NewKey(filepath.Join(path.String(), PackageFileDataset.Filename()))
-	// fmt.Println(path)
 
 	data, err := fileBytes(store.Get(path))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error getting file bytes: %s", err.Error())
 	}
 
 	ds, err = dataset.UnmarshalDataset(data)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error unmarshaling %s file: %s", PackageFileDataset.String(), err.Error())
 	}
 
 	if err := DerefDatasetStructure(store, ds); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error dereferencing %s file: %s", PackageFileStructure, err.Error())
 	}
 
 	if err := DerefDatasetQuery(store, ds); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error dereferencing %s file: %s", PackageFileQuery, err.Error())
 	}
 
-	// TODO - decide if we should load resource datasets by default, probably shouldn't
-	// for _, d := range ds.Resources {
-	// 	if d.Path().String() != "" && d.IsEmpty() {
-	// 		continue
-	// 	} else if d != nil {
-	// 		if err := LoadDataset(store); err != nil {
-	// 			return nil, fmt.Errorf("error loading dataset resource: %s", err.Error())
-	// 		}
-	// 	}
-	// }
 	return ds, nil
 }
 
@@ -90,7 +77,7 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 	addedDataset := false
 	adder, err := store.NewAdder(pin, true)
 	if err != nil {
-		return datastore.NewKey(""), err
+		return datastore.NewKey(""), fmt.Errorf("error creating new adder: %s", err.Error())
 	}
 
 	// if dataset contains no references, place directly in.
@@ -100,7 +87,7 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 		fileTasks++
 		dsdata, err := json.Marshal(ds)
 		if err != nil {
-			return datastore.NewKey(""), err
+			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset to json: %s", err.Error())
 		}
 		adder.AddFile(memfs.NewMemfileBytes(PackageFileDataset.String(), dsdata))
 		addedDataset = true
@@ -110,7 +97,7 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 		fileTasks++
 		qdata, err := json.Marshal(ds.Query)
 		if err != nil {
-			return datastore.NewKey(""), err
+			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset query to json: %s", err.Error())
 		}
 		adder.AddFile(memfs.NewMemfileBytes(PackageFileQuery.String(), qdata))
 	}
@@ -119,21 +106,21 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 		fileTasks++
 		stdata, err := json.Marshal(ds.Structure)
 		if err != nil {
-			return datastore.NewKey(""), err
+			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset structure to json: %s", err.Error())
 		}
 		adder.AddFile(memfs.NewMemfileBytes(PackageFileStructure.String(), stdata))
 
 		fileTasks++
 		asdata, err := json.Marshal(ds.Structure.Abstract())
 		if err != nil {
-			return datastore.NewKey(""), err
+			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset abstract structure to json: %s", err.Error())
 		}
 		adder.AddFile(memfs.NewMemfileBytes(PackageFileAbstractStructure.String(), asdata))
 
 		fileTasks++
 		data, err := store.Get(ds.Data)
 		if err != nil {
-			return datastore.NewKey(""), err
+			return datastore.NewKey(""), fmt.Errorf("error getting dataset raw data: %s", err.Error())
 		}
 		adder.AddFile(memfs.NewMemfileReader("data."+ds.Structure.Format.String(), data))
 	}
