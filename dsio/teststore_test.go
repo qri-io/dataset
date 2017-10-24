@@ -5,48 +5,52 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/ipfs/go-datastore"
-	"github.com/qri-io/cafs"
-	"github.com/qri-io/cafs/memfs"
 	"github.com/qri-io/dataset"
-	"github.com/qri-io/dataset/dsfs"
 )
 
-func makeFilestore() (map[string]datastore.Key, cafs.Filestore, error) {
-	fs := memfs.NewMapstore()
+type testCase struct {
+	ds   *dataset.Dataset
+	data []byte
+	rows [][][]byte
+}
 
-	datasets := map[string]datastore.Key{
-		"movies": datastore.NewKey(""),
-		"cities": datastore.NewKey(""),
+var rows = map[string][][][]byte{
+	"cities": [][][]byte{
+		[][]byte{[]byte("toronto"), []byte("40000000"), []byte("55.5"), []byte("false")},
+		[][]byte{[]byte("new york"), []byte("8500000"), []byte("44.4"), []byte("true")},
+		[][]byte{[]byte("chicago"), []byte("300000"), []byte("44.4"), []byte("true")},
+		[][]byte{[]byte("chatham"), []byte("35000"), []byte("65.25"), []byte("true")},
+		[][]byte{[]byte("raleigh"), []byte("250000"), []byte("50.65"), []byte("true")},
+	},
+}
+
+func makeTestData() (map[string]*testCase, error) {
+	datasets := map[string]*testCase{
+		"movies": nil,
+		"cities": nil,
 	}
 
 	for k, _ := range datasets {
-		rawdata, err := ioutil.ReadFile(fmt.Sprintf("testdata/%s.csv", k))
+		data, err := ioutil.ReadFile(fmt.Sprintf("testdata/%s.csv", k))
 		if err != nil {
-			return datasets, nil, err
+			return datasets, err
 		}
-
-		datakey, err := fs.Put(memfs.NewMemfileBytes(k, rawdata), true)
-		if err != nil {
-			return datasets, nil, err
-		}
-
 		dsdata, err := ioutil.ReadFile(fmt.Sprintf("testdata/%s.json", k))
 		if err != nil {
-			return datasets, nil, err
+			return datasets, err
 		}
 
 		ds := &dataset.Dataset{}
 		if err := json.Unmarshal(dsdata, ds); err != nil {
-			return datasets, nil, err
+			return datasets, err
 		}
-		ds.Data = datakey
-		dskey, err := dsfs.SaveDataset(fs, ds, true)
-		if err != nil {
-			return datasets, nil, err
+
+		datasets[k] = &testCase{
+			ds:   ds,
+			data: data,
+			rows: rows[k],
 		}
-		datasets[k] = dskey
 	}
 
-	return datasets, fs, nil
+	return datasets, nil
 }
