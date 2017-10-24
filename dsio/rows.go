@@ -31,7 +31,7 @@ func ReadRows(store cafs.Filestore, ds *dataset.Dataset, limit, offset int) ([]b
 
 		if i < offset {
 			return nil
-		} else if added == limit {
+		} else if limit > 0 && added == limit {
 			return io.EOF
 		}
 
