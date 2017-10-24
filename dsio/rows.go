@@ -49,7 +49,7 @@ func ReadRows(store cafs.Filestore, ds *dataset.Dataset, limit, offset int) ([]b
 
 // EachRow calls fn on each row of raw data, using a structure for parsing
 func EachRow(st *dataset.Structure, r io.Reader, fn DataIteratorFunc) error {
-	rdr := NewReader(st, r)
+	rdr := NewRowReader(st, r)
 	num := 0
 	for {
 		row, err := rdr.ReadRow()

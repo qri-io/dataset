@@ -5,9 +5,8 @@ import (
 	"testing"
 )
 
-func TestVariableName(t *testing.T) {
-	// cases := []struct{
-	// }
+func TestLicense(t *testing.T) {
+
 }
 
 func CompareLicense(a, b *License) error {

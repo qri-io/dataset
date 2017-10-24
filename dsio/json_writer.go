@@ -12,16 +12,20 @@ import (
 type JsonWriter struct {
 	writeObjects bool
 	rowsWritten  int
-	ds           *dataset.Structure
+	st           *dataset.Structure
 	wr           io.Writer
 }
 
-func NewJsonWriter(ds *dataset.Structure, w io.Writer, writeObjects bool) *JsonWriter {
+func NewJsonWriter(st *dataset.Structure, w io.Writer, writeObjects bool) *JsonWriter {
 	return &JsonWriter{
 		writeObjects: writeObjects,
-		ds:           ds,
+		st:           st,
 		wr:           w,
 	}
+}
+
+func (w *JsonWriter) Structure() dataset.Structure {
+	return *w.st
 }
 
 func (w *JsonWriter) WriteRow(row [][]byte) error {
@@ -43,7 +47,7 @@ func (w *JsonWriter) writeObjectRow(row [][]byte) error {
 		enc = enc[1:]
 	}
 	for i, c := range row {
-		f := w.ds.Schema.Fields[i]
+		f := w.st.Schema.Fields[i]
 		ent := []byte(",\"" + f.Name + "\":")
 		if i == 0 {
 			ent = ent[1:]
@@ -87,7 +91,7 @@ func (w *JsonWriter) writeArrayRow(row [][]byte) error {
 		enc = enc[1:]
 	}
 	for i, c := range row {
-		f := w.ds.Schema.Fields[i]
+		f := w.st.Schema.Fields[i]
 		ent := []byte(",")
 		if i == 0 {
 			ent = ent[1:]
@@ -136,5 +140,6 @@ func (w *JsonWriter) Close() error {
 	return nil
 }
 
+// TODO
 type JsonReader struct {
 }

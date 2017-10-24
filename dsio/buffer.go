@@ -9,17 +9,21 @@ func NewBuffer(st *dataset.Structure) *Buffer {
 	buf := &bytes.Buffer{}
 	return &Buffer{
 		structure: st,
-		r:         NewReader(st, buf),
-		w:         NewWriter(st, buf),
+		r:         NewRowReader(st, buf),
+		w:         NewRowWriter(st, buf),
 		buf:       buf,
 	}
 }
 
 type Buffer struct {
 	structure *dataset.Structure
-	r         Reader
-	w         Writer
+	r         RowReader
+	w         RowWriter
 	buf       *bytes.Buffer
+}
+
+func (b *Buffer) Structure() dataset.Structure {
+	return *b.structure
 }
 
 func (b *Buffer) ReadRow() ([][]byte, error) {

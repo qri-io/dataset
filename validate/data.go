@@ -1,16 +1,11 @@
-package dataset
+package validate
 
 import (
 	"regexp"
-)
 
-// import (
-// 	"bytes"
-// 	"encoding/csv"
-// 	"net/http"
-// 	"net/url"
-// 	"strconv"
-// )
+	"github.com/qri-io/dataset"
+	"github.com/qri-io/dataset/dsio"
+)
 
 var alphaNumericRegex = regexp.MustCompile(`^[a-z0-9_-]{1-144}$`)
 
@@ -72,89 +67,89 @@ func truthCount(args ...bool) (count int) {
 // 	return nil
 // }
 
-// type ErrFormat int
+type ErrFormat int
 
-// const (
-// 	ErrFmtUnknown ErrFormat = iota
-// 	ErrFmtOneHotMatrix
-// 	ErrFmtErrStrings
-// )
+const (
+	ErrFmtUnknown ErrFormat = iota
+	ErrFmtOneHotMatrix
+	ErrFmtErrStrings
+)
 
-// type ValidateDataOpt struct {
-// 	ErrorFormat ErrFormat
-// 	DataFormat  DataFormat
-// }
+type ValidateDataOpt struct {
+	ErrorFormat ErrFormat
+	DataFormat  DataFormat
+}
 
-// func (ds *Resource) ValidateData(store fs.Store, options ...func(*ValidateDataOpt)) (validation *Resource, data []byte, count int, err error) {
+func ValidateData(r dsio.Reader, options ...func(*ValidateDataOpt)) (validation dsio.Reader, count int, err error) {
 
-// 	validation = &Resource{
-// 		Address: NewAddress(ds.Address.String(), "errors"),
-// 		Format:  CsvDataFormat,
-// 		Fields:  []*Field{&Field{Name: "entry_number", Type: datatype.Integer}},
-// 	}
-// 	for _, f := range ds.Fields {
-// 		validation.Fields = append(validation.Fields, &Field{Name: f.Name + "_error", Type: datatype.String})
-// 	}
+	validation = &dataset.Dataset{
+		Address: NewAddress(ds.Address.String(), "errors"),
+		Format:  CsvDataFormat,
+		Fields:  []*Field{&Field{Name: "entry_number", Type: datatype.Integer}},
+	}
+	for _, f := range ds.Fields {
+		validation.Fields = append(validation.Fields, &Field{Name: f.Name + "_error", Type: datatype.String})
+	}
 
-// 	dsData, e := ds.FetchBytes(store)
-// 	if e != nil {
-// 		err = e
-// 		return
-// 	}
-// 	ds.Data = dsData
+	dsData, e := ds.FetchBytes(store)
+	if e != nil {
+		err = e
+		return
+	}
+	ds.Data = dsData
 
-// 	buf := &bytes.Buffer{}
-// 	cw := csv.NewWriter(buf)
+	buf := &bytes.Buffer{}
+	cw := csv.NewWriter(buf)
 
-// 	err = ds.EachRow(func(num int, row [][]byte, err error) error {
-// 		if err != nil {
-// 			return err
-// 		}
+	err = ds.EachRow(func(num int, row [][]byte, err error) error {
+		if err != nil {
+			return err
+		}
 
-// 		errData, errNum, _ := validateRow(ds.Fields, num, row)
-// 		// data = append(data, errData)
-// 		count += errNum
+		errData, errNum, _ := validateRow(ds.Fields, num, row)
+		// data = append(data, errData)
+		count += errNum
 
-// 		if errNum != 0 {
-// 			csvRow := make([]string, len(errData))
-// 			for i, d := range errData {
-// 				csvRow[i] = string(d)
-// 			}
-// 			if err := cw.Write(csvRow); err != nil {
-// 				// fmt.Sprintln(err)
-// 				return err
-// 			}
-// 		}
+		if errNum != 0 {
+			csvRow := make([]string, len(errData))
+			for i, d := range errData {
+				csvRow[i] = string(d)
+			}
+			if err := cw.Write(csvRow); err != nil {
+				// fmt.Sprintln(err)
+				return err
+			}
+		}
 
-// 		return nil
-// 	})
+		return nil
+	})
 
-// 	cw.Flush()
-// 	data = buf.Bytes()
+	cw.Flush()
+	data = buf.Bytes()
 
-// 	return
-// }
+	return
+}
 
-// func validateRow(fields []*Field, num int, row [][]byte) ([][]byte, int, error) {
-// 	count := 0
-// 	errors := make([][]byte, len(fields)+1)
-// 	errors[0] = []byte(strconv.FormatInt(int64(num), 10))
-// 	if len(row) != len(fields) {
-// 		return errors, count, fmt.Errorf("column mismatch. expected: %d, got: %d", len(fields), len(row))
-// 	}
+func validateRow(fields []*Field, num int, row [][]byte) ([][]byte, int, error) {
+	count := 0
+	errors := make([][]byte, len(fields)+1)
+	errors[0] = []byte(strconv.FormatInt(int64(num), 10))
+	if len(row) != len(fields) {
+		return errors, count, fmt.Errorf("column mismatch. expected: %d, got: %d", len(fields), len(row))
+	}
 
-// 	for i, f := range fields {
-// 		_, e := f.Type.Parse(row[i])
-// 		if e != nil {
-// 			count++
-// 			errors[i+1] = []byte(e.Error())
-// 		} else {
-// 			errors[i+1] = []byte("")
-// 		}
-// 	}
+	for i, f := range fields {
+		_, e := f.Type.Parse(row[i])
+		if e != nil {
+			count++
+			errors[i+1] = []byte(e.Error())
+		} else {
+			errors[i+1] = []byte("")
+		}
+	}
 
-// 	return errors, count, nil
-// }
+	return errors, count, nil
+}
 
 // func (ds *Resource) ValidateDeadLinks(store fs.Store) (validation *Resource, data []byte, count int, err error) {
 // 	proj := map[int]int{}
