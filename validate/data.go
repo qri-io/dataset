@@ -1,6 +1,7 @@
 package validate
 
 import (
+	"fmt"
 	"regexp"
 
 	"github.com/qri-io/dataset"
@@ -19,54 +20,6 @@ func truthCount(args ...bool) (count int) {
 	return
 }
 
-// 	"github.com/qri-io/datatype"
-// 	"github.com/qri-io/fs"
-
-// 	"fmt"
-// )
-
-// func AddressErrors(a *Resource, prev *[]Address) (errs []error) {
-// 	if a.Address == nil || a.Address.IsEmpty() {
-// 		errs = append(errs, fmt.Errorf("address cannot be empty"))
-// 		return
-// 	}
-
-// 	if err := checkDup(a.Address, prev); err != nil {
-// 		errs = append(errs, err)
-// 	}
-
-// 	// query datasets get to skip ancestry validation
-// 	if a.Query == nil {
-// 		for _, ds := range a.Resources {
-// 			if err := checkDup(ds.Address, prev); err != nil {
-// 				errs = append(errs, err)
-// 			} else {
-// 				if !a.Address.IsAncestor(ds.Address) {
-// 					errs = append(errs, fmt.Errorf("%s cannot be a child of %s", ds.Address.String(), a.Address.String()))
-// 				} else if a.Address.Equal(ds.Address) {
-// 					errs = append(errs, fmt.Errorf("%s cannot be a child of %s", ds.Address.String(), a.Address.String()))
-// 				}
-// 			}
-
-// 			if ds.Resources != nil {
-// 				errs = append(errs, AddressErrors(ds, prev)...)
-// 			}
-// 		}
-// 	}
-
-// 	return
-// }
-
-// func checkDup(adr Address, prev *[]Address) error {
-// 	for _, p := range *prev {
-// 		if adr.Equal(p) {
-// 			return fmt.Errorf("duplicate address: %s", adr)
-// 		}
-// 	}
-// 	*prev = append(*prev, adr)
-// 	return nil
-// }
-
 type ErrFormat int
 
 const (
@@ -80,53 +33,45 @@ type ValidateDataOpt struct {
 	DataFormat  DataFormat
 }
 
-func ValidateData(r dsio.Reader, options ...func(*ValidateDataOpt)) (validation dsio.Reader, count int, err error) {
-
-	validation = &dataset.Dataset{
-		Address: NewAddress(ds.Address.String(), "errors"),
-		Format:  CsvDataFormat,
-		Fields:  []*Field{&Field{Name: "entry_number", Type: datatype.Integer}},
+func ValidateData(r dsio.RowReader, options ...func(*ValidateDataOpt)) (errors dsio.RowReader, count int, err error) {
+	vst := &dataset.Structure{
+		Format: CsvDataFormat,
+		Schema: &dataset.Schema{
+			Fields: []*dataset.Field{
+				&dataset.Field{Name: "row_index", Type: datatype.Integer},
+			},
+		},
 	}
-	for _, f := range ds.Fields {
-		validation.Fields = append(validation.Fields, &Field{Name: f.Name + "_error", Type: datatype.String})
+	for _, f := range r.Structure().Schema.Fields {
+		vst.Schema.Fields = append(vst.Schema.Fields, &Field{Name: f.Name + "_error", Type: datatype.String})
 	}
 
-	dsData, e := ds.FetchBytes(store)
-	if e != nil {
-		err = e
-		return
-	}
-	ds.Data = dsData
+	buf := dsio.NewBuffer(vst)
 
-	buf := &bytes.Buffer{}
-	cw := csv.NewWriter(buf)
-
-	err = ds.EachRow(func(num int, row [][]byte, err error) error {
+	err = dsio.EachRow(r, func(num int, row [][]byte, err error) error {
 		if err != nil {
 			return err
 		}
 
-		errData, errNum, _ := validateRow(ds.Fields, num, row)
-		// data = append(data, errData)
-		count += errNum
+		errData, errNum, err := validateRow(ds.Fields, num, row)
+		if err != nil {
+			return err
+		}
 
+		count += errNum
 		if errNum != 0 {
-			csvRow := make([]string, len(errData))
-			for i, d := range errData {
-				csvRow[i] = string(d)
-			}
-			if err := cw.Write(csvRow); err != nil {
-				// fmt.Sprintln(err)
-				return err
-			}
+			buf.WriteRow(errData)
 		}
 
 		return nil
 	})
 
-	cw.Flush()
-	data = buf.Bytes()
+	if err = buf.Close(); err != nil {
+		err = fmt.Errorf("error closing valdation buffer: %s", err.Error())
+		return
+	}
 
+	errors = buf
 	return
 }
 

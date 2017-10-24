@@ -14,7 +14,6 @@ type DataIteratorFunc func(int, [][]byte, error) error
 
 // ReadRows loads a slice of raw bytes inside a limit/offset row range
 func ReadRows(store cafs.Filestore, ds *dataset.Dataset, limit, offset int) ([]byte, error) {
-	st := ds.Structure
 
 	datafile, err := dsfs.LoadDatasetData(store, ds)
 	if err != nil {
@@ -22,9 +21,10 @@ func ReadRows(store cafs.Filestore, ds *dataset.Dataset, limit, offset int) ([]b
 	}
 
 	added := 0
-	buf := NewBuffer(st)
+	buf := NewBuffer(ds.Structure)
+	r := NewRowReader(ds.Structure, datafile)
 
-	err = EachRow(st, datafile, func(i int, row [][]byte, err error) error {
+	err = EachRow(r, func(i int, row [][]byte, err error) error {
 		if err != nil {
 			return err
 		}
@@ -47,12 +47,11 @@ func ReadRows(store cafs.Filestore, ds *dataset.Dataset, limit, offset int) ([]b
 	return buf.Bytes(), err
 }
 
-// EachRow calls fn on each row of raw data, using a structure for parsing
-func EachRow(st *dataset.Structure, r io.Reader, fn DataIteratorFunc) error {
-	rdr := NewRowReader(st, r)
+// EachRow calls fn on each row of a given RowReader
+func EachRow(rr RowReader, fn DataIteratorFunc) error {
 	num := 0
 	for {
-		row, err := rdr.ReadRow()
+		row, err := rr.ReadRow()
 		if err != nil {
 			if err.Error() == "EOF" {
 				return nil
@@ -69,5 +68,5 @@ func EachRow(st *dataset.Structure, r io.Reader, fn DataIteratorFunc) error {
 		num++
 	}
 
-	return fmt.Errorf("cannot parse data format '%s'", st.Format.String())
+	return fmt.Errorf("cannot parse data format '%s'", rr.Structure().Format.String())
 }

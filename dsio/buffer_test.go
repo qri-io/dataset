@@ -36,8 +36,8 @@ func TestBuffer(t *testing.T) {
 		return
 	}
 
-	// r := NewReader(ds.Structure, dsfile)
-	err = EachRow(ds.Structure, dsfile, func(i int, row [][]byte, err error) error {
+	rr := NewRowReader(ds.Structure, dsfile)
+	err = EachRow(rr, func(i int, row [][]byte, err error) error {
 		if err != nil {
 			return err
 		}

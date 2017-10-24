@@ -64,7 +64,8 @@ func TestEachRow(t *testing.T) {
 		[][]byte{[]byte("raleigh"), []byte("250000"), []byte("50.65"), []byte("true")},
 	}
 
-	err = EachRow(ds.Structure, file, func(i int, data [][]byte, err error) error {
+	rr := NewRowReader(ds.Structure, file)
+	err = EachRow(rr, func(i int, data [][]byte, err error) error {
 		if err != nil {
 			return err
 		}
