@@ -1,5 +1,10 @@
 package validate
 
+import (
+	"encoding/json"
+	"fmt"
+)
+
 // VariableName is a string that conforms to standard variable naming conventions
 // must start with a letter, no spaces
 // TODO - we're not really using this much, consider depricating, or using properly

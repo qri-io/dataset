@@ -3,8 +3,10 @@ package validate
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/dataset/datatypes"
 	"github.com/qri-io/dataset/dsio"
 )
 
@@ -30,20 +32,20 @@ const (
 
 type ValidateDataOpt struct {
 	ErrorFormat ErrFormat
-	DataFormat  DataFormat
+	// DataFormat  DataFormat
 }
 
-func ValidateData(r dsio.RowReader, options ...func(*ValidateDataOpt)) (errors dsio.RowReader, count int, err error) {
+func Data(r dsio.RowReader, options ...func(*ValidateDataOpt)) (errors dsio.RowReader, count int, err error) {
 	vst := &dataset.Structure{
-		Format: CsvDataFormat,
+		Format: dataset.CsvDataFormat,
 		Schema: &dataset.Schema{
 			Fields: []*dataset.Field{
-				&dataset.Field{Name: "row_index", Type: datatype.Integer},
+				&dataset.Field{Name: "row_index", Type: datatypes.Integer},
 			},
 		},
 	}
 	for _, f := range r.Structure().Schema.Fields {
-		vst.Schema.Fields = append(vst.Schema.Fields, &Field{Name: f.Name + "_error", Type: datatype.String})
+		vst.Schema.Fields = append(vst.Schema.Fields, &dataset.Field{Name: f.Name + "_error", Type: datatypes.String})
 	}
 
 	buf := dsio.NewBuffer(vst)
@@ -53,7 +55,7 @@ func ValidateData(r dsio.RowReader, options ...func(*ValidateDataOpt)) (errors d
 			return err
 		}
 
-		errData, errNum, err := validateRow(ds.Fields, num, row)
+		errData, errNum, err := validateRow(r.Structure().Schema.Fields, num, row)
 		if err != nil {
 			return err
 		}
@@ -75,7 +77,7 @@ func ValidateData(r dsio.RowReader, options ...func(*ValidateDataOpt)) (errors d
 	return
 }
 
-func validateRow(fields []*Field, num int, row [][]byte) ([][]byte, int, error) {
+func validateRow(fields []*dataset.Field, num int, row [][]byte) ([][]byte, int, error) {
 	count := 0
 	errors := make([][]byte, len(fields)+1)
 	errors[0] = []byte(strconv.FormatInt(int64(num), 10))
