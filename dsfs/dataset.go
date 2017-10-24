@@ -16,8 +16,17 @@ func LoadDataset(store cafs.Filestore, path datastore.Key) (*dataset.Dataset, er
 	ds := &dataset.Dataset{}
 
 	data, err := fileBytes(store.Get(path))
-	if err != nil {
-		return nil, fmt.Errorf("error getting file bytes: %s", err.Error())
+	// if err != nil {
+	// 	return nil, fmt.Errorf("error getting file bytes: %s", err.Error())
+	// }
+
+	// TODO - for some reason files are sometimes coming back empty from IPFS,
+	// every now & then. In the meantime, let's give a second try if data is empty
+	if err != nil || len(data) == 0 {
+		data, err = fileBytes(store.Get(path))
+		if err != nil {
+			return nil, fmt.Errorf("error getting file bytes: %s", err.Error())
+		}
 	}
 
 	ds, err = dataset.UnmarshalDataset(data)
