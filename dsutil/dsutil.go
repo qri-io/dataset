@@ -46,7 +46,7 @@ func WriteZipArchive(store cafs.Filestore, ds *dataset.Dataset, w io.Writer) err
 		return err
 	}
 
-	datasrc, err := dsfs.LoadDatasetData(store, ds)
+	datasrc, err := dsfs.LoadData(store, ds)
 	if err != nil {
 		return err
 	}
@@ -72,7 +72,7 @@ func WriteDir(store cafs.Filestore, ds *dataset.Dataset, path string) error {
 		return err
 	}
 
-	datasrc, err := dsfs.LoadDatasetData(store, ds)
+	datasrc, err := dsfs.LoadData(store, ds)
 	if err != nil {
 		return err
 	}
