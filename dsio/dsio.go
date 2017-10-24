@@ -7,22 +7,26 @@ import (
 	"github.com/qri-io/dataset"
 )
 
-type Writer interface {
+type RowWriter interface {
+	Structure() dataset.Structure
 	WriteRow(row [][]byte) error
 	Close() error
 }
 
-type Reader interface {
+type RowReader interface {
+	Structure() dataset.Structure
 	ReadRow() ([][]byte, error)
 }
 
-type ReadWriter interface {
-	Reader
-	Writer
+type RowReadWriter interface {
+	Structure() dataset.Structure
+	ReadRow() ([][]byte, error)
+	WriteRow(row [][]byte) error
+	Close() error
 	Bytes() []byte
 }
 
-func NewWriter(st *dataset.Structure, w io.Writer) Writer {
+func NewRowWriter(st *dataset.Structure, w io.Writer) RowWriter {
 	switch st.Format {
 	case dataset.CsvDataFormat:
 		return NewCsvWriter(st, w)
@@ -36,7 +40,7 @@ func NewWriter(st *dataset.Structure, w io.Writer) Writer {
 	}
 }
 
-func NewReader(st *dataset.Structure, r io.Reader) Reader {
+func NewRowReader(st *dataset.Structure, r io.Reader) RowReader {
 	switch st.Format {
 	case dataset.CsvDataFormat:
 		return NewCsvReader(st, r)

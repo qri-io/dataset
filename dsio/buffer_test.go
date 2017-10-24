@@ -1,21 +1,21 @@
 package dsio
 
 import (
+	"bytes"
 	"encoding/json"
 	"testing"
 
 	"github.com/qri-io/dataset"
-	"github.com/qri-io/dataset/dsfs"
 )
 
 func TestBuffer(t *testing.T) {
-	datasets, fs, err := makeFilestore()
+	datasets, err := makeTestData()
 	if err != nil {
 		t.Errorf("error creating filestore", err.Error())
 		return
 	}
 
-	ds, err := dsfs.LoadDataset(fs, datasets["movies"])
+	ds := datasets["movies"].ds
 	if err != nil {
 		t.Errorf("error creating dataset: %s", err.Error())
 		return
@@ -30,14 +30,9 @@ func TestBuffer(t *testing.T) {
 	}
 
 	buf := NewBuffer(outst)
-	dsfile, err := dsfs.LoadDatasetData(fs, ds)
-	if err != nil {
-		t.Errorf("error reading dataset file: %s", err.Error())
-		return
-	}
 
-	// r := NewReader(ds.Structure, dsfile)
-	err = EachRow(ds.Structure, dsfile, func(i int, row [][]byte, err error) error {
+	rr := NewRowReader(ds.Structure, bytes.NewBuffer(datasets["movies"].data))
+	err = EachRow(rr, func(i int, row [][]byte, err error) error {
 		if err != nil {
 			return err
 		}

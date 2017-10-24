@@ -28,7 +28,7 @@ func TestCsvReader(t *testing.T) {
 	}
 
 	buf := bytes.NewBuffer([]byte(data))
-	rdr := NewReader(st, buf)
+	rdr := NewRowReader(st, buf)
 	count := 0
 	for {
 		row, err := rdr.ReadRow()

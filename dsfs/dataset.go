@@ -5,17 +5,11 @@ import (
 	"fmt"
 
 	"github.com/ipfs/go-datastore"
-	"github.com/ipfs/go-ipfs/commands/files"
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/cafs/ipfs"
 	"github.com/qri-io/cafs/memfs"
 	"github.com/qri-io/dataset"
 )
-
-// LoadDatasetData loads the data this dataset points to from the store
-func LoadDatasetData(store cafs.Filestore, ds *dataset.Dataset) (files.File, error) {
-	return store.Get(ds.Data)
-}
 
 // Load a dataset from a cafs
 func LoadDataset(store cafs.Filestore, path datastore.Key) (*dataset.Dataset, error) {
