@@ -58,7 +58,7 @@ func (s *Structure) Abstract() *Structure {
 		}
 		for i, f := range s.Schema.Fields {
 			a.Schema.Fields[i] = &Field{
-				Name:         fmt.Sprintf("col_%d", i),
+				Name:         AbstractColumnName(i),
 				Type:         f.Type,
 				MissingValue: f.MissingValue,
 				Format:       f.Format,
@@ -226,4 +226,12 @@ func UnmarshalStructure(v interface{}) (*Structure, error) {
 	default:
 		return nil, fmt.Errorf("couldn't parse structure")
 	}
+}
+
+func AbstractTableName(i int) string {
+	return fmt.Sprintf("t%d", i+1)
+}
+
+func AbstractColumnName(i int) string {
+	return base26(i)
 }
