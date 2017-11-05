@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/ipfs/go-ipfs/commands/files"
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsio"
 )
 
 // LoadDatasetData loads the data this dataset points to from the store
-func LoadData(store cafs.Filestore, ds *dataset.Dataset) (files.File, error) {
+func LoadData(store cafs.Filestore, ds *dataset.Dataset) (cafs.File, error) {
 	return store.Get(ds.Data)
 }
 
