@@ -70,7 +70,7 @@ type Dataset struct {
 	// Languages this dataset is written in
 	Language []string `json:"language,omitempty"`
 	// Theme
-	Theme []*Theme `json:"theme,omitempty"`
+	Theme []string `json:"theme,omitempty"`
 
 	// QueryString is the user-inputted string of this query
 	QueryString string `json:"queryString,omitempty"`
