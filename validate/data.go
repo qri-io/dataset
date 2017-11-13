@@ -2,6 +2,7 @@ package validate
 
 import (
 	"fmt"
+	"io"
 	"regexp"
 	"strconv"
 
@@ -35,12 +36,50 @@ type ValidateDataOpt struct {
 	// DataFormat  DataFormat
 }
 
+// func Dataset(d *dataset.Dataset) error {
+// 	// TODO: implement
+// 	return nil
+// }
+
+// DataFormat ensures that for each accepted dataset.DataFromat,
+// we havea well-formed dataset (eg. for csv, we need rows to all
+// be of same length)
+func DataFormat(df dataset.DataFormat, r io.Reader) error {
+	switch df {
+	// explicitly supported at present
+	case dataset.CsvDataFormat:
+		return CheckCsvRowLengths(r)
+	// explicitly unsupported at present
+	case dataset.JsonDataFormat:
+		return fmt.Errorf("error: data format 'JsonData' not currently supported")
+	case dataset.JsonArrayDataFormat:
+		return fmt.Errorf("error: data format 'JsonArrayData' not currently supported")
+	case dataset.XlsDataFormat:
+		return fmt.Errorf("error: data format 'XlsData' not currently supported")
+	case dataset.XmlDataFormat:
+		return fmt.Errorf("error: data format 'XmlData' not currently supported")
+	// *implicitly unsupported
+	case dataset.UnknownDataFormat:
+		return fmt.Errorf("error: unknown data format not currently supported")
+	default:
+		return fmt.Errorf("error: data format not currently supported")
+	}
+}
+
+func CheckStructure(s *dataset.Structure) error {
+	// check column names
+	// data format config
+	// dataset.Structure should imply some constraints
+	return nil
+}
+
+// generating a new dataset
 func Data(r dsio.RowReader, options ...func(*ValidateDataOpt)) (errors dsio.RowReader, count int, err error) {
 	vst := &dataset.Structure{
 		Format: dataset.CsvDataFormat,
 		Schema: &dataset.Schema{
 			Fields: []*dataset.Field{
-				&dataset.Field{Name: "row_index", Type: datatypes.Integer},
+				{Name: "row_index", Type: datatypes.Integer},
 			},
 		},
 	}
