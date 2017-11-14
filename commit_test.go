@@ -120,7 +120,7 @@ func CompareCommitMsgs(a, b *CommitMsg) error {
 	if a == nil && b == nil {
 		return nil
 	} else if a == nil && b != nil || a != nil && b == nil {
-		return fmt.Errorf("Structure mismatch: %s != %s", a, b)
+		return fmt.Errorf("nil mismatch: %s != %s", a, b)
 	}
 
 	// TODO - compare authors

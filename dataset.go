@@ -38,8 +38,8 @@ type Dataset struct {
 	Length int `json:"length"`
 	// Previous connects datasets to form a historical DAG
 	Previous datastore.Key `json:"previous,omitempty"`
-	// CommitMsg contains author & change message information
-	CommitMsg *CommitMsg
+	// Commit contains author & change message information
+	Commit *CommitMsg `json:"commit"`
 
 	// Title of this dataset
 	Title string `json:"title,omitempty"`
@@ -139,6 +139,7 @@ func (d *Dataset) Assign(datasets ...*Dataset) {
 		if ds.Previous.String() != "" {
 			d.Previous = ds.Previous
 		}
+		ds.Commit.Assign(d.Commit)
 		if ds.Title != "" {
 			d.Title = ds.Title
 		}
@@ -274,6 +275,9 @@ func (d *Dataset) MarshalJSON() ([]byte, error) {
 	if d.Previous.String() != "" {
 		data["previous"] = d.Previous
 	}
+	if d.Commit != nil {
+		data["commit"] = d.Commit
+	}
 	if d.Query != nil {
 		data["query"] = d.Query
 	}
@@ -339,6 +343,7 @@ func (d *Dataset) UnmarshalJSON(data []byte) error {
 		"accessUrl",
 		"author",
 		"citations",
+		"commit",
 		"contributors",
 		"data",
 		"description",
@@ -446,5 +451,8 @@ func CompareDatasets(a, b *Dataset) error {
 	// if a.Contributors != b.Contributors {
 	//  return fmt.Errorf("Contributors mismatch: %s != %s", a.Contributors, b.Contributors)
 	// }
+	if err := CompareCommitMsgs(a.Commit, b.Commit); err != nil {
+		return fmt.Errorf("Commit mismatch: %s", err.Error())
+	}
 	return nil
 }

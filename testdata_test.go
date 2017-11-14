@@ -16,14 +16,14 @@ var AirportCodes = &Dataset{
 			Url:  "http://ourairports.com/data/",
 		},
 	},
-	CommitMsg: &CommitMsg{Message: "initial commit"},
+	Commit:    &CommitMsg{Title: "initial commit"},
 	Structure: AirportCodesStructure,
 	// File:   "data/airport-codes.csv",
 	// Readme: "readme.md",
 	// Format: "text/csv",
 }
 
-const AirportCodesJSON = `{"citations":[{"name":"Our Airports","url":"http://ourairports.com/data/"}],"data":"","homepage":"http://www.ourairports.com/","length":0,"license":"PDDL-1.0","structure":{"format":"csv","formatConfig":{"headerRow":true},"schema":{"fields":[{"name":"ident","type":"string"},{"name":"type","type":"string"},{"name":"name","type":"string"},{"name":"latitude_deg","type":"float"},{"name":"longitude_deg","type":"float"},{"name":"elevation_ft","type":"integer"},{"name":"continent","type":"string"},{"name":"iso_country","type":"string"},{"name":"iso_region","type":"string"},{"name":"municipality","type":"string"},{"name":"gps_code","type":"string"},{"name":"iata_code","type":"string"},{"name":"local_code","type":"string"}]}},"timestamp":"0001-01-01T00:00:00Z","title":"Airport Codes"}`
+const AirportCodesJSON = `{"citations":[{"name":"Our Airports","url":"http://ourairports.com/data/"}],"commit":{"title":"initial commit"},"data":"","homepage":"http://www.ourairports.com/","length":0,"license":"PDDL-1.0","structure":{"format":"csv","formatConfig":{"headerRow":true},"schema":{"fields":[{"name":"ident","type":"string"},{"name":"type","type":"string"},{"name":"name","type":"string"},{"name":"latitude_deg","type":"float"},{"name":"longitude_deg","type":"float"},{"name":"elevation_ft","type":"integer"},{"name":"continent","type":"string"},{"name":"iso_country","type":"string"},{"name":"iso_region","type":"string"},{"name":"municipality","type":"string"},{"name":"gps_code","type":"string"},{"name":"iata_code","type":"string"},{"name":"local_code","type":"string"}]}},"timestamp":"0001-01-01T00:00:00Z","title":"Airport Codes"}`
 
 var AirportCodesStructure = &Structure{
 	Format: CsvDataFormat,
