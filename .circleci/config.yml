@@ -1,0 +1,58 @@
+version: '2'
+jobs:
+  build:
+    working_directory: /go/src/github.com/qri-io/dataset
+    docker:
+      - image: circleci/golang:1.9
+        environment:
+          GOLANG_ENV: test
+          PORT: 3000
+    environment:
+      TEST_RESULTS: /tmp/test-results
+    steps:
+      - checkout
+      - run: mkdir -p $TEST_RESULTS
+      - run: 
+          name: Install gx
+          command: >
+            go get -v -u
+            github.com/whyrusleeping/gx 
+            github.com/whyrusleeping/gx-go
+      - restore_cache:
+          key: dependency-cache-{{ checksum "/go/src/github.com/ipfs/go-ipfs/package.json" }}
+      - run:
+          name: Install gx deps
+          command: >
+            go get github.com/ipfs/go-ipfs &&
+            cd /go/src/github.com/ipfs/go-ipfs &&
+            gx install &&
+            cd /go/src/github.com/qri-io/dataset
+      - save_cache:
+          key: dependency-cache-{{ checksum "/go/src/github.com/ipfs/go-ipfs/package.json" }}
+          paths:
+            - /go/src/gx/
+      - run:
+          name: Install non-gx deps
+          command: >
+            go get -d -v
+            github.com/ipfs/go-datastore
+            github.com/jbenet/go-base58
+            github.com/multiformats/go-multihash
+            github.com/qri-io/cafs
+            github.com/qri-io/cafs/ipfs
+            github.com/qri-io/cafs/memfs
+            github.com/qri-io/compare
+      - run: go get github.com/jstemmer/go-junit-report
+      - run:
+          name: Run Tests
+          command: |
+            trap "go-junit-report <${TEST_RESULTS}/go-test.out > ${TEST_RESULTS}/go-test-report.xml" EXIT
+            ./.circleci/cover.test.sh | tee ${TEST_RESULTS}/go-test.out
+      - run:
+          name: Publish coverage info to codecov.io
+          command: bash <(curl -s https://codecov.io/bash)
+      - store_artifacts:
+          path: /tmp/test-results
+          destination: raw-test-output
+      - store_test_results:
+          path: /tmp/test-results
