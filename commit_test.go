@@ -3,10 +3,47 @@ package dataset
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/ipfs/go-datastore"
 )
+
+func TestCommitMsgAssign(t *testing.T) {
+	doug := &User{Id: "doug_id", Email: "doug@example.com"}
+	expect := &CommitMsg{
+		Author:  doug,
+		Title:   "expect title",
+		Message: "expect message",
+	}
+	got := &CommitMsg{
+		Author:  &User{Id: "maha_id", Email: "maha@example.com"},
+		Title:   "title",
+		Message: "message",
+	}
+
+	got.Assign(&CommitMsg{
+		Author: doug,
+		Title:  "expect title",
+	}, &CommitMsg{
+		Message: "expect message",
+	})
+
+	if err := CompareCommitMsgs(expect, got); err != nil {
+		t.Error(err)
+	}
+
+	got.Assign(nil, nil)
+	if err := CompareCommitMsgs(expect, got); err != nil {
+		t.Error(err)
+	}
+
+	emptyMsg := &CommitMsg{}
+	emptyMsg.Assign(expect)
+	if err := CompareCommitMsgs(expect, emptyMsg); err != nil {
+		t.Error(err)
+	}
+}
 
 func TestCommitMsgMarshalJSON(t *testing.T) {
 	cases := []struct {
@@ -16,7 +53,6 @@ func TestCommitMsgMarshalJSON(t *testing.T) {
 	}{
 		{&CommitMsg{Title: "title"}, []byte(`{"title":"title"}`), nil},
 		{&CommitMsg{Author: &User{Id: "foo"}}, []byte(`{"author":{"id":"foo"},"title":""}`), nil},
-		// {AirportCodes, []byte(`{"format":"csv","formatConfig":{"header_row":true},"path":"","query":"","schema":{"fields":[{"name":"ident","type":"string"},{"name":"type","type":"string"},{"name":"name","type":"string"},{"name":"latitude_deg","type":"float"},{"name":"longitude_deg","type":"float"},{"name":"elevation_ft","type":"integer"},{"name":"continent","type":"string"},{"name":"iso_country","type":"string"},{"name":"iso_region","type":"string"},{"name":"municipality","type":"string"},{"name":"gps_code","type":"string"},{"name":"iata_code","type":"string"},{"name":"local_code","type":"string"}]}}`), nil},
 	}
 
 	for i, c := range cases {
@@ -41,4 +77,61 @@ func TestCommitMsgMarshalJSON(t *testing.T) {
 	if !bytes.Equal(strbytes, []byte("\"/path/to/dataset\"")) {
 		t.Errorf("marshal strbyte interface byte mismatch: %s != %s", string(strbytes), "\"/path/to/dataset\"")
 	}
+}
+
+func TestCommitMsgUnmarshalJSON(t *testing.T) {
+	cases := []struct {
+		data   string
+		result *CommitMsg
+		err    error
+	}{
+		{`{}`, &CommitMsg{}, nil},
+		{`{ "title": "title", "message": "message"}`, &CommitMsg{Title: "title", Message: "message"}, nil},
+		{`{ "author" : { "id": "id", "email": "email@email.com"} }`, &CommitMsg{Author: &User{Id: "id", Email: "email@email.com"}}, nil},
+	}
+
+	for i, c := range cases {
+		cm := &CommitMsg{}
+		if err := json.Unmarshal([]byte(c.data), cm); err != c.err {
+			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
+			continue
+		}
+
+		if err := CompareCommitMsgs(cm, c.result); err != nil {
+			t.Errorf("case %d comparison error: %s", i, err)
+			continue
+		}
+	}
+
+	strq := &CommitMsg{}
+	path := "/path/to/msg"
+	if err := json.Unmarshal([]byte(`"`+path+`"`), strq); err != nil {
+		t.Errorf("unmarshal string path error: %s", err.Error())
+		return
+	}
+
+	if strq.path.String() != path {
+		t.Errorf("unmarshal didn't set proper path: %s != %s", path, strq.path)
+		return
+	}
+}
+
+func CompareCommitMsgs(a, b *CommitMsg) error {
+	if a == nil && b == nil {
+		return nil
+	} else if a == nil && b != nil || a != nil && b == nil {
+		return fmt.Errorf("Structure mismatch: %s != %s", a, b)
+	}
+
+	// TODO - compare authors
+
+	if a.Title != b.Title {
+		return fmt.Errorf("Title mismatch: %s != %s", a.Title, b.Title)
+	}
+
+	if a.Message != b.Message {
+		return fmt.Errorf("Message mismatch: %s != %s", a.Message, b.Message)
+	}
+
+	return nil
 }

@@ -34,6 +34,29 @@ func (cm *CommitMsg) Path() datastore.Key {
 	return cm.path
 }
 
+// Assign collapses all properties of a set of CommitMsg onto one.
+// this is directly inspired by Javascript's Object.assign
+func (cm *CommitMsg) Assign(msgs ...*CommitMsg) {
+	for _, m := range msgs {
+		if m == nil {
+			continue
+		}
+
+		if m.path.String() != "" {
+			cm.path = m.path
+		}
+		if m.Author != nil {
+			cm.Author = m.Author
+		}
+		if m.Title != "" {
+			cm.Title = m.Title
+		}
+		if m.Message != "" {
+			cm.Message = m.Message
+		}
+	}
+}
+
 // MarshalJSON implements the json.Marshaler interface for CommitMsg
 // Empty CommitMsg instances with a non-empty path marshal to their path value
 // otherwise, CommitMsg marshals to an object
