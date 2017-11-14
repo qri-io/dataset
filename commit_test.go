@@ -3,7 +3,6 @@ package dataset
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/ipfs/go-datastore"
@@ -114,24 +113,4 @@ func TestCommitMsgUnmarshalJSON(t *testing.T) {
 		t.Errorf("unmarshal didn't set proper path: %s != %s", path, strq.path)
 		return
 	}
-}
-
-func CompareCommitMsgs(a, b *CommitMsg) error {
-	if a == nil && b == nil {
-		return nil
-	} else if a == nil && b != nil || a != nil && b == nil {
-		return fmt.Errorf("nil mismatch: %s != %s", a, b)
-	}
-
-	// TODO - compare authors
-
-	if a.Title != b.Title {
-		return fmt.Errorf("Title mismatch: %s != %s", a.Title, b.Title)
-	}
-
-	if a.Message != b.Message {
-		return fmt.Errorf("Message mismatch: %s != %s", a.Message, b.Message)
-	}
-
-	return nil
 }

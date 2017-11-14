@@ -109,3 +109,25 @@ func UnmarshalCommitMsg(v interface{}) (*CommitMsg, error) {
 		return nil, fmt.Errorf("couldn't parse commitMsg, value is invalid type")
 	}
 }
+
+// CompareCommitMsgs checks if all fields of a CommitMsg are equal,
+// returning an error on the first mismatch, nil if equal
+func CompareCommitMsgs(a, b *CommitMsg) error {
+	if a == nil && b == nil {
+		return nil
+	} else if a == nil && b != nil || a != nil && b == nil {
+		return fmt.Errorf("nil mismatch: %s != %s", a, b)
+	}
+
+	// TODO - compare authors
+
+	if a.Title != b.Title {
+		return fmt.Errorf("Title mismatch: %s != %s", a.Title, b.Title)
+	}
+
+	if a.Message != b.Message {
+		return fmt.Errorf("Message mismatch: %s != %s", a.Message, b.Message)
+	}
+
+	return nil
+}
