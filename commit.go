@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/ipfs/go-datastore"
-	"github.com/qri-io/qri/repo/profile"
 )
 
 // CommitMsg encapsulates information about changes to a dataset in
@@ -14,8 +13,9 @@ import (
 // git version control system
 type CommitMsg struct {
 	path    datastore.Key
-	Author  *profile.Profile `json:"author,omitempty"`
-	Message string           `json:"message"`
+	Author  *User  `json:"author,omitempty"`
+	Title   string `json:"title"`
+	Message string `json:"message,omitempty"`
 }
 
 // NewCommitMsgRef creates an empty struct with it's
@@ -43,6 +43,7 @@ func (cm *CommitMsg) MarshalJSON() ([]byte, error) {
 	}
 	m := &_commitMsg{
 		Author:  cm.Author,
+		Title:   cm.Title,
 		Message: cm.Message,
 	}
 	return json.Marshal(m)
