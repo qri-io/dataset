@@ -78,12 +78,12 @@ func DerefDatasetQuery(store cafs.Filestore, ds *dataset.Dataset) error {
 // DerefDatasetCommitMsg derferences a dataset's Commit element if required
 // should be a no-op if ds.Structure is nil or isn't a reference
 func DerefDatasetCommitMsg(store cafs.Filestore, ds *dataset.Dataset) error {
-	if ds.CommitMsg != nil && ds.CommitMsg.IsEmpty() && ds.CommitMsg.Path().String() != "" {
-		cm, err := LoadCommitMsg(store, ds.CommitMsg.Path())
+	if ds.Commit != nil && ds.Commit.IsEmpty() && ds.Commit.Path().String() != "" {
+		cm, err := LoadCommitMsg(store, ds.Commit.Path())
 		if err != nil {
 			return fmt.Errorf("error loading dataset commit: %s", err.Error())
 		}
-		ds.CommitMsg = cm
+		ds.Commit = cm
 	}
 	return nil
 }
@@ -122,8 +122,8 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 		adder.AddFile(memfs.NewMemfileBytes(PackageFileQuery.String(), qdata))
 	}
 
-	if ds.CommitMsg != nil {
-		cmdata, err := json.Marshal(ds.CommitMsg)
+	if ds.Commit != nil {
+		cmdata, err := json.Marshal(ds.Commit)
 		if err != nil {
 			return datastore.NewKey(""), fmt.Errorf("error marshilng dataset commit message to json: %s", err.Error())
 		}
@@ -182,7 +182,7 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 			case PackageFileQuery.String():
 				ds.Query = dataset.NewQueryRef(ao.Path)
 			case PackageFileCommitMsg.String():
-				ds.CommitMsg = dataset.NewCommitMsgRef(ao.Path)
+				ds.Commit = dataset.NewCommitMsgRef(ao.Path)
 				// case "resources":
 			}
 
