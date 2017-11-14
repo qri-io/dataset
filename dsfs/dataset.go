@@ -42,6 +42,10 @@ func LoadDataset(store cafs.Filestore, path datastore.Key) (*dataset.Dataset, er
 		return nil, fmt.Errorf("error dereferencing %s file: %s", PackageFileQuery, err.Error())
 	}
 
+	if err := DerefDatasetCommitMsg(store, ds); err != nil {
+		return nil, fmt.Errorf("error dereferencing %s file: %s", PackageFileQuery, err.Error())
+	}
+
 	return ds, nil
 }
 
@@ -67,6 +71,19 @@ func DerefDatasetQuery(store cafs.Filestore, ds *dataset.Dataset) error {
 			return fmt.Errorf("error loading dataset query: %s", err.Error())
 		}
 		ds.Query = q
+	}
+	return nil
+}
+
+// DerefDatasetCommitMsg derferences a dataset's Commit element if required
+// should be a no-op if ds.Structure is nil or isn't a reference
+func DerefDatasetCommitMsg(store cafs.Filestore, ds *dataset.Dataset) error {
+	if ds.CommitMsg != nil && ds.CommitMsg.IsEmpty() && ds.CommitMsg.Path().String() != "" {
+		cm, err := LoadCommitMsg(store, ds.CommitMsg.Path())
+		if err != nil {
+			return fmt.Errorf("error loading dataset commit: %s", err.Error())
+		}
+		ds.CommitMsg = cm
 	}
 	return nil
 }
