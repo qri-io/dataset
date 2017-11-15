@@ -82,11 +82,11 @@ func TestCheckStructure(t *testing.T) {
 		input []string
 		err   string
 	}{
-		{[]string{"abc", "12startsWithNumber"}, `error: illegal name '12startsWithNumber', must match regex pattern /^[a-zA-Z]\w{0,144}$/`},
-		{[]string{"abc", "$dollarsAtBeginning"}, `error: illegal name '$dollarsAtBeginning', must match regex pattern /^[a-zA-Z]\w{0,144}$/`},
-		{[]string{"abc", "Dollars$inTheMiddle"}, `error: illegal name 'Dollars$inTheMiddle', must match regex pattern /^[a-zA-Z]\w{0,144}$/`},
-		{[]string{"abc", ""}, `error: illegal name '', must match regex pattern /^[a-zA-Z]\w{0,144}$/`},
-		{[]string{"abc", "No|pipes"}, `error: illegal name 'No|pipes', must match regex pattern /^[a-zA-Z]\w{0,144}$/`},
+		{[]string{"abc", "12startsWithNumber"}, `error: illegal name '12startsWithNumber', must start with a letter and consist of only alpha-numeric characters and/or underscores and have a total length of no more than 144 characters`},
+		{[]string{"abc", "$dollarsAtBeginning"}, `error: illegal name '$dollarsAtBeginning', must start with a letter and consist of only alpha-numeric characters and/or underscores and have a total length of no more than 144 characters`},
+		{[]string{"abc", "Dollars$inTheMiddle"}, `error: illegal name 'Dollars$inTheMiddle', must start with a letter and consist of only alpha-numeric characters and/or underscores and have a total length of no more than 144 characters`},
+		{[]string{"abc", ""}, `error: illegal name '', must start with a letter and consist of only alpha-numeric characters and/or underscores and have a total length of no more than 144 characters`},
+		{[]string{"abc", "No|pipes"}, `error: illegal name 'No|pipes', must start with a letter and consist of only alpha-numeric characters and/or underscores and have a total length of no more than 144 characters`},
 		{[]string{"repeatedName", "repeatedName", "repeatedName"}, "error: cannot use the same name, 'repeatedName' more than once"},
 	}
 	for i, c := range cases {

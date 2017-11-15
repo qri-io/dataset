@@ -11,7 +11,7 @@ import (
 	"github.com/qri-io/dataset/dsio"
 )
 
-var alphaNumericRegex = regexp.MustCompile(`^[a-zA-Z]\w{0,144}$`)
+var alphaNumericRegex = regexp.MustCompile(`^[a-zA-Z]\w{0,143}$`)
 
 // truthCount returns the number of arguments that are true
 func truthCount(args ...bool) (count int) {
@@ -41,7 +41,7 @@ type ValidateDataOpt struct {
 // 	return nil
 // }
 
-// DataFormat ensures that for each accepted dataset.DataFromat,
+// DataFormat ensures that for each accepted dataset.DataFormat,
 // we havea well-formed dataset (eg. for csv, we need rows to all
 // be of same length)
 func DataFormat(df dataset.DataFormat, r io.Reader) error {
@@ -71,7 +71,7 @@ func CheckStructure(s *dataset.Structure) error {
 	fields := s.Schema.Fields
 	for _, field := range fields {
 		if alphaNumericRegex.FindString(field.Name) == "" {
-			return fmt.Errorf("error: illegal name '%s', must match regex pattern /^[a-zA-Z]\\w{0,144}$/", field.Name)
+			return fmt.Errorf("error: illegal name '%s', must start with a letter and consist of only alpha-numeric characters and/or underscores and have a total length of no more than 144 characters", field.Name)
 		}
 		seen := checkedFieldNames[field.Name]
 		if seen {

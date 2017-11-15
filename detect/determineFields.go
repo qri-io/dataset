@@ -35,6 +35,8 @@ func Fields(r *dataset.Structure, data io.Reader) (fields []*dataset.Field, err 
 
 func CsvFields(resource *dataset.Structure, data io.Reader) (fields []*dataset.Field, err error) {
 	r := csv.NewReader(data)
+	r.FieldsPerRecord = -1
+	r.TrimLeadingSpace = true
 	header, err := r.Read()
 	if err != nil {
 		return nil, err
@@ -43,7 +45,7 @@ func CsvFields(resource *dataset.Structure, data io.Reader) (fields []*dataset.F
 	fields = make([]*dataset.Field, len(header))
 	types := make([]map[datatypes.Type]int, len(header))
 
-	for i, _ := range fields {
+	for i := range fields {
 		fields[i] = &dataset.Field{
 			Name: fmt.Sprintf("field_%d", i+1),
 			Type: datatypes.Any,
