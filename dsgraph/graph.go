@@ -10,6 +10,7 @@ var (
 	NtCommit        = NodeType("commit")
 	NtData          = NodeType("data")
 	NtQuery         = NodeType("query")
+	NtAbstQuery     = NodeType("abst_query")
 	NtStructure     = NodeType("structure")
 	NtAbstStructure = NodeType("abst_structure")
 	NtNamespace     = NodeType("namespace")
@@ -38,31 +39,33 @@ ADDITIONS:
 	}
 }
 
-type LinkType string
+// TODO - still considering if links need to be typed or not
+// type LinkType string
 
-var (
-	LtPrevious      = LinkType("previous")
-	LtResource      = LinkType("resource")
-	LtDsData        = LinkType("dataset_data")
-	LtDsCommit      = LinkType("dataset_commit")
-	LtAbstStructure = LinkType("abst_structure")
-	LtQuery         = LinkType("query")
-	LtNamespaceTip  = LinkType("namespace_tip")
-)
+// var (
+// 	LtPrevious      = LinkType("previous")
+// 	LtResource      = LinkType("resource")
+// 	LtDsData        = LinkType("dataset_data")
+// 	LtDsCommit      = LinkType("dataset_commit")
+// 	LtAbstStructure = LinkType("abst_structure")
+// 	LtQuery         = LinkType("query")
+// 	LtAbstQuery     = LinkType("abst_query")
+// 	LtNamespaceTip  = LinkType("namespace_tip")
+// )
 
 // Link is a typed, directional connection from one
 // node to another
 type Link struct {
-	Type     LinkType
+	// Type     LinkType
 	From, To *Node
 }
 
 func (a Link) Equal(b Link) bool {
-	return a.Type == b.Type && a.To.Equal(b.To)
+	return a.From.Equal(b.From) && a.To.Equal(b.To)
 }
 
 func FilterNodeTypes(graph *Node, nodetypes ...NodeType) (nodes []*Node) {
-	Walk(graph, func(n *Node) error {
+	Walk(graph, 0, func(n *Node) error {
 		if n != nil {
 			for _, nt := range nodetypes {
 				if n.Type == nt {
@@ -76,12 +79,12 @@ func FilterNodeTypes(graph *Node, nodetypes ...NodeType) (nodes []*Node) {
 	return
 }
 
-func Walk(node *Node, visit func(n *Node) error) error {
+func Walk(node *Node, depth int, visit func(n *Node) error) error {
 	if err := visit(node); err != nil {
 		return err
 	}
 	for _, l := range node.Links {
-		if err := visit(l.To); err != nil {
+		if err := Walk(l.To, depth+1, visit); err != nil {
 			return err
 		}
 	}

@@ -100,7 +100,7 @@ func DerefDatasetCommitMsg(store cafs.Filestore, ds *dataset.Dataset) error {
 }
 
 // SaveDataset writes a dataset to a cafs, replacing subcomponents of a dataset with hash references
-// during the write process. Directory structure is according to PackageFile nameing conventions
+// during the write process. Directory structure is according to PackageFile naming conventions
 func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore.Key, error) {
 	if ds == nil {
 		return datastore.NewKey(""), nil
@@ -116,7 +116,7 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 	// if dataset contains no references, place directly in.
 	// TODO - this might not constitute a valid dataset. should we be
 	// validating datasets in here?
-	if ds.Query == nil && ds.Structure == nil && ds.Resources == nil {
+	if ds.Query == nil && ds.Structure == nil {
 		fileTasks++
 		dsdata, err := json.Marshal(ds)
 		if err != nil {
@@ -168,18 +168,6 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 	}
 
 	// if ds.Previous != nil {
-	// }
-
-	// for name, d := range ds.Resources {
-	//  if d.path.String() != "" && d.IsEmpty() {
-	//    continue
-	//  } else if d != nil {
-	//    // dspath, err := d.Save(store, pin)
-	//    // if err != nil {
-	//    //  return datastore.NewKey(""), fmt.Errorf("error saving dataset resource: %s", err.Error())
-	//    // }
-	//    // ds.Resources[name] = &Dataset{path: dspath}
-	//  }
 	// }
 
 	var path datastore.Key

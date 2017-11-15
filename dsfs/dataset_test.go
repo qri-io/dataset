@@ -26,8 +26,10 @@ func TestDatasetSave(t *testing.T) {
 	ds := &dataset.Dataset{
 		Title: "test store",
 		Query: &dataset.Query{
-			Syntax:    "dunno",
-			Statement: "test statement",
+			Syntax: "dunno",
+			Abstract: &dataset.AbstractQuery{
+				Statement: "test statement",
+			},
 		},
 	}
 
@@ -37,7 +39,7 @@ func TestDatasetSave(t *testing.T) {
 		return
 	}
 
-	hash := "/map/Qmc1e6ytPKJQ7YWNnms8GY7DEei8FXkbymbeseqQMD8nZz"
+	hash := "/map/QmPSe9unXfhhXacajUJ6gQBSMXcw8r9aX9Piu9GdDrHJMo"
 	if hash != key.String() {
 		t.Errorf("key mismatch: %s != %s", hash, key.String())
 		return
