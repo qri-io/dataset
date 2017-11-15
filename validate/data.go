@@ -71,7 +71,7 @@ func CheckStructure(s *dataset.Structure) error {
 	fields := s.Schema.Fields
 	for _, field := range fields {
 		if alphaNumericRegex.FindString(field.Name) == "" {
-			return fmt.Errorf("error: illegal name '%s', must match regex pattern /^[a-zA-Z]\\w{0,143}$/", field.Name)
+			return fmt.Errorf("error: illegal name '%s', must start with a letter and consist of only alpha-numeric characters and/or underscores and have a total length of no more than 144 characters", field.Name)
 		}
 		seen := checkedFieldNames[field.Name]
 		if seen {
