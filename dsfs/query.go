@@ -20,9 +20,12 @@ func LoadQuery(store cafs.Filestore, path datastore.Key) (q *dataset.Query, err 
 	return dataset.UnmarshalQuery(data)
 }
 
-func SaveQuery(store cafs.Filestore, q *dataset.Query, pin bool) (datastore.Key, error) {
+func queryFile(q *dataset.Query) (cafs.File, error) {
 	if q == nil {
-		return datastore.NewKey(""), nil
+		return nil, nil
+	}
+	if !q.Abstract.IsEmpty() {
+		return nil, fmt.Errorf("query abstract query must be a reference to generate a query file")
 	}
 
 	// convert any full datasets to path references
@@ -36,10 +39,10 @@ func SaveQuery(store cafs.Filestore, q *dataset.Query, pin bool) (datastore.Key,
 
 	qdata, err := json.Marshal(q)
 	if err != nil {
-		return datastore.NewKey(""), fmt.Errorf("error marshaling query data to json: %s", err.Error())
+		return nil, fmt.Errorf("error marshaling query data to json: %s", err.Error())
 	}
 
-	return store.Put(memfs.NewMemfileBytes("query.json", qdata), pin)
+	return memfs.NewMemfileBytes(PackageFileQuery.String(), qdata), nil
 }
 
 // LoadAbstractQuery loads a query from a given path in a store

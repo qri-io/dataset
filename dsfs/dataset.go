@@ -6,7 +6,6 @@ import (
 
 	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/cafs"
-	"github.com/qri-io/cafs/ipfs"
 	"github.com/qri-io/cafs/memfs"
 	"github.com/qri-io/dataset"
 )
@@ -127,12 +126,24 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 	}
 
 	if ds.Query != nil {
-		qdata, err := json.Marshal(ds.Query)
+		if ds.Query.Abstract != nil {
+			ds.AbstractQuery = ds.Query.Abstract
+		}
+		// qdata, err := json.Marshal(ds.Query)
+		// if err != nil {
+		// 	return datastore.NewKey(""), fmt.Errorf("error marshaling dataset query to json: %s", err.Error())
+		// }
+		// fileTasks++
+		// adder.AddFile(memfs.NewMemfileBytes(PackageFileQuery.String(), qdata))
+	}
+
+	if ds.AbstractQuery != nil {
+		qdata, err := json.Marshal(ds.AbstractQuery)
 		if err != nil {
-			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset query to json: %s", err.Error())
+			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset abstract query to json: %s", err.Error())
 		}
 		fileTasks++
-		adder.AddFile(memfs.NewMemfileBytes(PackageFileQuery.String(), qdata))
+		adder.AddFile(memfs.NewMemfileBytes(PackageFileAbstractQuery.String(), qdata))
 	}
 
 	if ds.Commit != nil {
@@ -182,6 +193,17 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 				ds.AbstractStructure = dataset.NewStructureRef(ao.Path)
 			case PackageFileQuery.String():
 				ds.Query = dataset.NewQueryRef(ao.Path)
+			case PackageFileAbstractQuery.String():
+				ds.AbstractQuery = dataset.NewAbstractQueryRef(ao.Path)
+				ds.Query.Abstract = ds.AbstractQuery
+				if ds.Query != nil {
+					if f, err := queryFile(ds.Query); err != nil {
+						done <- fmt.Errorf("error generating query file: %s", err.Error())
+					} else {
+						fileTasks++
+						adder.AddFile(f)
+					}
+				}
 			case PackageFileCommitMsg.String():
 				ds.Commit = dataset.NewCommitMsgRef(ao.Path)
 				// case "resources":
@@ -220,7 +242,7 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 	// the cafs interface, or the concrete cafs/ipfs implementation?
 	// TODO - remove this in favour of some sort of method on filestores
 	// that generate path roots
-	if _, ok := store.(*ipfs_filestore.Filestore); ok {
+	if store.PathPrefix() == "ipfs" {
 		path = datastore.NewKey(path.String() + "/" + PackageFileDataset.String())
 	}
 	return path, err
