@@ -52,8 +52,6 @@ func DataFormat(df dataset.DataFormat, r io.Reader) error {
 	// explicitly unsupported at present
 	case dataset.JsonDataFormat:
 		return fmt.Errorf("error: data format 'JsonData' not currently supported")
-	case dataset.JsonArrayDataFormat:
-		return fmt.Errorf("error: data format 'JsonArrayData' not currently supported")
 	case dataset.XlsDataFormat:
 		return fmt.Errorf("error: data format 'XlsData' not currently supported")
 	case dataset.XmlDataFormat:
