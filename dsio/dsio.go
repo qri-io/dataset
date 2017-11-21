@@ -32,6 +32,8 @@ func NewRowWriter(st *dataset.Structure, w io.Writer) RowWriter {
 		return NewCsvWriter(st, w)
 	case dataset.JsonDataFormat:
 		return NewJsonWriter(st, w)
+	case dataset.CdxjDataFormat:
+		return NewCdxjWriter(st, w)
 	default:
 		// TODO - should this error or something?
 		return nil
@@ -45,6 +47,8 @@ func NewRowReader(st *dataset.Structure, r io.Reader) RowReader {
 	case dataset.JsonDataFormat:
 		// fmt.Errorf("json readers not yet supported")
 		return nil
+	case dataset.CdxjDataFormat:
+		return NewCdxjReader(st, r)
 	default:
 		// fmt.Errorf("invalid format to create reader: %s", st.Format.String())
 		return nil
