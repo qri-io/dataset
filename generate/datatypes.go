@@ -23,9 +23,10 @@ func RandomValue(t datatypes.Type) interface{} {
 		return rand.Int()
 	case datatypes.Boolean:
 		return rand.Intn(10) > 4
-	case datatypes.Object:
-		return map[string]interface{}{}
-	case datatypes.Array:
+	case datatypes.Json:
+		if rand.Intn(2) == 1 {
+			return map[string]interface{}{}
+		}
 		return []interface{}{}
 	case datatypes.Date:
 		return time.Now().Add(time.Hour * 24 * time.Duration(rand.Intn(30)+1))
@@ -61,9 +62,10 @@ func RandomStringValue(t datatypes.Type) string {
 		} else {
 			return "false"
 		}
-	case datatypes.Object:
-		return "{}"
-	case datatypes.Array:
+	case datatypes.Json:
+		if rand.Intn(2) > 1 {
+			return "{}"
+		}
 		return "[]"
 	case datatypes.Date:
 		return time.Now().Add(time.Hour * 24 * time.Duration(rand.Intn(30)+1)).Format(time.ANSIC)

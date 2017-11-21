@@ -19,10 +19,6 @@ func TestDataFormat(t *testing.T) {
 			rawText1,
 			"error: data format 'JsonData' not currently supported",
 		},
-		{dataset.JsonArrayDataFormat,
-			rawText1,
-			"error: data format 'JsonArrayData' not currently supported",
-		},
 		{
 			dataset.XlsDataFormat,
 			rawText1,
