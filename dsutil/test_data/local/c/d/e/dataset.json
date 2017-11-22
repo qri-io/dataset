@@ -1,7 +1,0 @@
-{
-	"address" : "local.c.d.e",
-	"fields" : [
-		{ "name" : "one", "type" : "string" },
-		{ "name" : "two", "type" : "string" }
-	]
-}

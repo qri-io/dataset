@@ -1,7 +1,0 @@
-{
-	"address" : "local.a",
-	"fields" : [
-		{ "name" : "one", "type" : "string" },
-		{ "name" : "two", "type" : "string" }
-	]
-}
