@@ -59,26 +59,55 @@ func TestParseDataFormatString(t *testing.T) {
 }
 
 func TestDataFormatMarshalJSON(t *testing.T) {
-	got, err := CsvDataFormat.MarshalJSON()
-	if err != nil {
-		t.Error(err)
-		return
+	cases := []struct {
+		format DataFormat
+		expect []byte
+		err    string
+	}{
+		{CsvDataFormat, []byte(`"csv"`), ""},
+		{JsonDataFormat, []byte(`"json"`), ""},
+		{XmlDataFormat, []byte(`"xml"`), ""},
+		{XlsDataFormat, []byte(`"xls"`), ""},
+		{CdxjDataFormat, []byte(`"cdxj"`), ""},
 	}
-	if !bytes.Equal(got, []byte(`"csv"`)) {
-		t.Errorf(`expected CsvDataFormat.MarshalJSON to equal "csv"`)
-		return
+	for i, c := range cases {
+		got, err := c.format.MarshalJSON()
+		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
+			t.Errorf("case %d error mismatch. expected: %s, got: %s", i, c.err, err)
+			continue
+		}
+		if !bytes.Equal(got, c.expect) {
+			t.Errorf(`case %d response mismatch. expected: %s, got: %s`, i, string(c.expect), string(got))
+			continue
+		}
 	}
 }
 
 func TestDataFormatUnmarshalJSON(t *testing.T) {
-	a := DataFormat(0)
-	f := &a
-	err := f.UnmarshalJSON([]byte(`"json"`))
-	if err != nil {
-		t.Error(err)
-		return
+	cases := []struct {
+		data   []byte
+		expect DataFormat
+		err    string
+	}{
+		{[]byte(`"csv"`), CsvDataFormat, ""},
+		{[]byte(`"json"`), JsonDataFormat, ""},
+		{[]byte(`"xml"`), XmlDataFormat, ""},
+		{[]byte(`"xls"`), XlsDataFormat, ""},
+		{[]byte(`"cdxj"`), CdxjDataFormat, ""},
 	}
-	if *f != JsonDataFormat {
-		t.Errorf("expected json format")
+
+	for i, c := range cases {
+		a := DataFormat(0)
+		got := &a
+		err := got.UnmarshalJSON(c.data)
+		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
+			t.Errorf("case %d error mismatch. expected: %s, got: %s", i, c.err, err)
+			continue
+		}
+		if *got != c.expect {
+			t.Errorf(`case %d response mismatch. expected: %s, got: %s`, i, c.expect, *got)
+			continue
+		}
+
 	}
 }
