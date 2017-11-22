@@ -80,6 +80,20 @@ func TestJsonWriter(t *testing.T) {
 {"ident":"00AR","type":"heliport","name":"Newport Hospital & Clinic Heliport","latitude_deg":null,"longitude_deg":0,"elevation_ft":null,"continent":"NA","iso_country":"US","iso_region":"US-AR","municipality":"Newport","gps_code":"00AR","iata_code":null,"local_code":"00AR","bool_teim":null}
 ]`,
 		},
+		{&dataset.Structure{Schema: &dataset.Schema{
+			Fields: []*dataset.Field{
+				&dataset.Field{Name: "name", Type: datatypes.String},
+				&dataset.Field{Name: "metadata", Type: datatypes.Json},
+			}}},
+			[][][]byte{
+				[][]byte{[]byte("name_one"), []byte(`{ "data" : "stuff", "foo" : 5, "false" : true }`)},
+				[][]byte{[]byte("name_two"), []byte(`["stuff",5,false,null,27.5]`)},
+			},
+			`[
+{"name":"name_one","metadata":{ "data" : "stuff", "foo" : 5, "false" : true }},
+{"name":"name_two","metadata":["stuff",5,false,null,27.5]}
+]`,
+		},
 	}
 
 	for i, c := range cases {

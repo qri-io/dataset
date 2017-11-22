@@ -72,6 +72,8 @@ func (w *JsonWriter) writeObjectRow(row [][]byte) error {
 			case datatypes.Boolean:
 				// TODO - coerce to true & false specifically
 				ent = append(ent, c...)
+			case datatypes.Json:
+				ent = append(ent, c...)
 			default:
 				ent = append(ent, []byte(strconv.Quote(string(c)))...)
 			}
@@ -118,6 +120,8 @@ func (w *JsonWriter) writeArrayRow(row [][]byte) error {
 				// if len(c) == 0 {
 				// ent = append(ent, []byte("false")...)
 				// }
+				ent = append(ent, c...)
+			case datatypes.Json:
 				ent = append(ent, c...)
 			default:
 				ent = append(ent, []byte(strconv.Quote(string(c)))...)
