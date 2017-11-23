@@ -25,7 +25,7 @@ func NewJsonReader(st *dataset.Structure, r io.Reader) *JsonReader {
 		st: st,
 		sc: sc,
 	}
-	sc.Split(jr.scanJsonObject)
+	sc.Split(jr.scanJsonRow)
 	return jr
 }
 
@@ -61,7 +61,7 @@ func initialIndex(data []byte) (skip int, err error) {
 	return idx + 1, nil
 }
 
-func (r *JsonReader) scanJsonObject(data []byte, atEOF bool) (advance int, token []byte, err error) {
+func (r *JsonReader) scanJsonRow(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	if atEOF && len(data) == 0 {
 		return 0, nil, nil
 	}
@@ -84,22 +84,20 @@ func (r *JsonReader) scanJsonObject(data []byte, atEOF bool) (advance int, token
 LOOP:
 	for i, b := range data {
 		switch b {
-		case ']':
-			// if we encounter a closing bracket
-			// before any depth, it's the end of the line
+		case '{', '[':
 			if depth == 0 {
-				return len(data), nil, nil
-			}
-		case '{':
-			depth++
-			if depth == 1 {
 				starti = i
 			}
-		case '}':
+			depth++
+		case '}', ']':
 			depth--
 			if depth == 0 {
 				stopi = i + 1
 				break LOOP
+			} else if depth < 0 {
+				// if we encounter a closing bracket
+				// before any depth, it's the end of the line
+				return len(data), nil, nil
 			}
 		}
 	}
@@ -115,14 +113,6 @@ LOOP:
 
 	// Request more data.
 	return 0, nil, nil
-}
-
-// dropComma drops a terminal \r from the data.
-func dropComma(data []byte) []byte {
-	if len(data) > 0 && data[len(data)-1] == ',' {
-		return data[0 : len(data)-1]
-	}
-	return data
 }
 
 type JsonWriter struct {
