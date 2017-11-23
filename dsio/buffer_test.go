@@ -29,18 +29,46 @@ func TestBuffer(t *testing.T) {
 		Schema: ds.Structure.Schema,
 	}
 
-	buf := NewBuffer(outst)
+	buf, err := NewBuffer(outst)
+	if err != nil {
+		t.Errorf("error allocating Buffer: %s", err.Error())
+		return
+	}
 
-	rr := NewRowReader(ds.Structure, bytes.NewBuffer(datasets["movies"].data))
-	err = EachRow(rr, func(i int, row [][]byte, err error) error {
+	rr, err := NewRowReader(ds.Structure, bytes.NewBuffer(datasets["movies"].data))
+	if err != nil {
+		t.Errorf("error allocating RowReader: %s", err.Error())
+		return
+	}
+
+	if err = EachRow(rr, func(i int, row [][]byte, err error) error {
 		if err != nil {
 			return err
 		}
 		return buf.WriteRow(row)
-	})
+	}); err != nil {
+		t.Errorf("error writing rows: %s", err.Error())
+		return
+	}
+
+	if err = EachRow(buf, func(i int, row [][]byte, err error) error {
+		if err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		t.Errorf("error reading rows: %s", err.Error())
+		return
+	}
 
 	if err != nil {
 		t.Errorf("error iterating through rows: %s", err.Error())
+		return
+	}
+
+	bst := buf.Structure()
+	if err := dataset.CompareStructures(outst, &bst); err != nil {
+		t.Errorf("buffer structure mismatch: %s", err.Error())
 		return
 	}
 

@@ -9,6 +9,19 @@ import (
 	"github.com/qri-io/dataset/datatypes"
 )
 
+// TODO
+type JsonReader struct {
+	depth int
+	st    *dataset.Structure
+	rd    io.Reader
+}
+
+// func NewJsonReader(st *dataset.Structure, r io.Reader) {
+// 	return &JsonReader{
+
+// 	}
+// }
+
 type JsonWriter struct {
 	writeObjects bool
 	rowsWritten  int
@@ -146,8 +159,4 @@ func (w *JsonWriter) Close() error {
 		return fmt.Errorf("error closing writer: %s", err.Error())
 	}
 	return nil
-}
-
-// TODO
-type JsonReader struct {
 }
