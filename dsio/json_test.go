@@ -3,14 +3,82 @@ package dsio
 import (
 	"bytes"
 	"encoding/json"
+	"os"
 	"testing"
 
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/datatypes"
 )
 
-func TestJsonWriter(t *testing.T) {
+func TestJsonReader(t *testing.T) {
+	cases := []struct {
+		structure *dataset.Structure
+		filepath  string
+		count     int
+		err       string
+	}{
+		{&dataset.Structure{
+			Format: dataset.JsonDataFormat,
+			FormatConfig: &dataset.JsonOptions{
+				ArrayEntries: false,
+			}}, "testdata/city_data.json", 5, ""},
+	}
 
+	for i, c := range cases {
+		f, err := os.Open(c.filepath)
+		if err != nil {
+			t.Errorf("case %d error opening data file: %s", i, err.Error())
+			continue
+		}
+
+		r := NewJsonReader(c.structure, f)
+		j := 0
+		for {
+			// TODO - inspect row output for well formed json
+			_, err := r.ReadRow()
+			if err != nil {
+				if err.Error() == "EOF" {
+					break
+				}
+				t.Errorf("case %d error reading row %d: %s", i, j, err.Error())
+				break
+			}
+			j++
+		}
+
+		if c.count != j {
+			t.Errorf("case %d count mismatch. expected: %d, got: %d", i, c.count, j)
+			continue
+		}
+
+		// for _, ent := range c.entries {
+		// 	if err := r.ReadRow(ent); err != nil {
+		// 		t.Errorf("case %d WriteRow error: %s", i, err.Error())
+		// 		break
+		// 	}
+		// }
+		// if err := w.Close(); err != nil {
+		// 	t.Errorf("case %d Close error: %s", i, err.Error())
+		// }
+
+		// if string(buf.Bytes()) != c.out {
+		// 	t.Errorf("case %d result mismatch. expected:\n%s\ngot:\n%s", i, c.out, string(buf.Bytes()))
+		// }
+
+		// var v interface{}
+		// if cfg, ok := c.structure.FormatConfig.(*dataset.JsonOptions); ok && cfg.ArrayEntries {
+		// 	v = []interface{}{}
+		// } else {
+		// 	v = map[string]interface{}{}
+		// }
+
+		// if err := json.Unmarshal(buf.Bytes(), &v); err != nil {
+		// 	t.Errorf("unmarshal error: %s", err.Error())
+		// }
+	}
+}
+
+func TestJsonWriter(t *testing.T) {
 	cases := []struct {
 		structure *dataset.Structure
 		entries   [][][]byte

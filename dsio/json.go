@@ -1,6 +1,8 @@
 package dsio
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"strconv"
@@ -11,16 +13,117 @@ import (
 
 // TODO
 type JsonReader struct {
-	depth int
-	st    *dataset.Structure
-	rd    io.Reader
+	rowsRead    int
+	initialized bool
+	st          *dataset.Structure
+	sc          *bufio.Scanner
 }
 
-// func NewJsonReader(st *dataset.Structure, r io.Reader) {
-// 	return &JsonReader{
+func NewJsonReader(st *dataset.Structure, r io.Reader) *JsonReader {
+	sc := bufio.NewScanner(r)
+	jr := &JsonReader{
+		st: st,
+		sc: sc,
+	}
+	sc.Split(jr.scanJsonObject)
+	return jr
+}
 
-// 	}
-// }
+func (r *JsonReader) Structure() dataset.Structure {
+	return *r.st
+}
+
+func (r *JsonReader) ReadRow() ([][]byte, error) {
+	more := r.sc.Scan()
+	if !more {
+		return nil, fmt.Errorf("EOF")
+	}
+	r.rowsRead++
+
+	return [][]byte{r.sc.Bytes()}, r.sc.Err()
+}
+
+// initialIndex sets the scanner up to read data, advancing until the first
+// entry in the top level array & setting the scanner split func to scan objects
+func initialIndex(data []byte) (skip int, err error) {
+	typ, err := datatypes.JsonArrayOrObject(data)
+	if err != nil {
+		// might not have initial closure, request more data
+		return -1, err
+	}
+	if typ == "object" {
+		return 0, fmt.Errorf("jsonReader top level must be an array")
+	}
+
+	// grab first opening bracked index to advance past
+	// initial array closure
+	idx := bytes.IndexByte(data, '[')
+	return idx + 1, nil
+}
+
+func (r *JsonReader) scanJsonObject(data []byte, atEOF bool) (advance int, token []byte, err error) {
+	if atEOF && len(data) == 0 {
+		return 0, nil, nil
+	}
+
+	depth := 0
+	starti := -1
+	stopi := -1
+
+	if !r.initialized {
+		skip, err := initialIndex(data)
+		if err != nil {
+			return 0, nil, err
+		}
+		if skip > 0 {
+			r.initialized = true
+			data = data[skip:]
+		}
+	}
+
+LOOP:
+	for i, b := range data {
+		switch b {
+		case ']':
+			// if we encounter a closing bracket
+			// before any depth, it's the end of the line
+			if depth == 0 {
+				return len(data), nil, nil
+			}
+		case '{':
+			depth++
+			if depth == 1 {
+				starti = i
+			}
+		case '}':
+			depth--
+			if depth == 0 {
+				stopi = i + 1
+				break LOOP
+			}
+		}
+	}
+
+	if stopi == -1 || starti == -1 {
+		return 0, nil, nil
+	}
+
+	// return sliced data
+	if starti < stopi {
+		return stopi + 1, data[starti:stopi], nil
+	}
+
+	// Request more data.
+	return 0, nil, nil
+}
+
+// dropComma drops a terminal \r from the data.
+func dropComma(data []byte) []byte {
+	if len(data) > 0 && data[len(data)-1] == ',' {
+		return data[0 : len(data)-1]
+	}
+	return data
+}
 
 type JsonWriter struct {
 	writeObjects bool

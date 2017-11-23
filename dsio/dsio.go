@@ -33,9 +33,7 @@ func NewRowReader(st *dataset.Structure, r io.Reader) (RowReader, error) {
 	case dataset.CsvDataFormat:
 		return NewCsvReader(st, r), nil
 	case dataset.JsonDataFormat:
-		// TODO - this will make buffer tests fail.
-		// return nil, fmt.Errorf("json readers not yet supported")
-		return nil, nil
+		return NewJsonReader(st, r), nil
 	case dataset.CdxjDataFormat:
 		return NewCdxjReader(st, r), nil
 	case dataset.UnknownDataFormat:
