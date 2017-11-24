@@ -42,7 +42,6 @@ func LoadRows(store cafs.Filestore, ds *dataset.Dataset, limit, offset int) ([]b
 		} else if limit > 0 && added == limit {
 			return io.EOF
 		}
-
 		buf.WriteRow(row)
 		added++
 		return nil
