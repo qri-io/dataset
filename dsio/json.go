@@ -247,6 +247,14 @@ func (w *JsonWriter) writeArrayRow(row [][]byte) error {
 }
 
 func (w *JsonWriter) Close() error {
+	// if WriteRow is never called, write an empty array
+	if w.rowsWritten == 0 {
+		if _, err := w.wr.Write([]byte("[]")); err != nil {
+			return fmt.Errorf("error writing initial `[`: %s", err.Error())
+		}
+		return nil
+	}
+
 	_, err := w.wr.Write([]byte{'\n', ']'})
 	if err != nil {
 		return fmt.Errorf("error closing writer: %s", err.Error())
