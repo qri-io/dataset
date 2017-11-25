@@ -23,7 +23,7 @@ func RandomStructure(options ...func(*RandomStructureOpts)) *dataset.Structure {
 	opt := &RandomStructureOpts{
 		NumFields: rand.Intn(9) + 1,
 		Datatypes: nil,
-		Format:    dataset.CsvDataFormat,
+		Format:    dataset.CSVDataFormat,
 	}
 
 	for _, option := range options {

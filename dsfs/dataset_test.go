@@ -37,13 +37,13 @@ func TestDatasetSave(t *testing.T) {
 	ds := &dataset.Dataset{
 		Title: "test store",
 		Structure: &dataset.Structure{
-			Format: dataset.CsvDataFormat,
+			Format: dataset.CSVDataFormat,
 			Schema: &dataset.Schema{
 				Fields: []*dataset.Field{},
 			},
 		},
 		AbstractStructure: &dataset.Structure{
-			Format: dataset.CsvDataFormat,
+			Format: dataset.CSVDataFormat,
 			Schema: &dataset.Schema{
 				Fields: []*dataset.Field{},
 			},

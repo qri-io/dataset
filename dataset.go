@@ -47,9 +47,9 @@ type Dataset struct {
 	// Title of this dataset
 	Title string `json:"title,omitempty"`
 	// Url to access the dataset
-	AccessUrl string `json:"accessUrl,omitempty"`
+	AccessURL string `json:"accessUrl,omitempty"`
 	// Url that should / must lead directly to the data itself
-	DownloadUrl string `json:"downloadUrl,omitempty"`
+	DownloadURL string `json:"downloadUrl,omitempty"`
 	// The frequency with which dataset changes. Must be an ISO 8601 repeating duration
 	AccrualPeriodicity string `json:"accrualPeriodicity,omitempty"`
 	// path to readme
@@ -91,212 +91,216 @@ type Dataset struct {
 	meta map[string]interface{}
 }
 
+// IsEmpty checks to see if dataset has any fields other than the internal path
 func (ds *Dataset) IsEmpty() bool {
 	return ds.Title == "" && ds.Description == "" && ds.Structure == nil && ds.Timestamp.IsZero() && ds.Previous.String() == ""
 }
 
+// Path gives the internal path reference for this dataset
 func (ds *Dataset) Path() datastore.Key {
 	return ds.path
 }
 
+// NewDatasetRef creates a Dataset pointer with the internal
+// path property specified, and no other fields.
 func NewDatasetRef(path datastore.Key) *Dataset {
 	return &Dataset{path: path}
 }
 
 // Meta gives access to additional metadata not covered by dataset metadata
-func (d *Dataset) Meta() map[string]interface{} {
-	if d.meta == nil {
-		d.meta = map[string]interface{}{}
+func (ds *Dataset) Meta() map[string]interface{} {
+	if ds.meta == nil {
+		ds.meta = map[string]interface{}{}
 	}
-	return d.meta
+	return ds.meta
 }
 
 // Assign collapses all properties of a group of datasets onto one.
 // this is directly inspired by Javascript's Object.assign
-func (d *Dataset) Assign(datasets ...*Dataset) {
-	for _, ds := range datasets {
-		if ds == nil {
+func (ds *Dataset) Assign(datasets ...*Dataset) {
+	for _, d := range datasets {
+		if d == nil {
 			continue
 		}
 
-		if ds.path.String() != "" {
-			d.path = ds.path
+		if d.path.String() != "" {
+			ds.path = d.path
 		}
-		if !ds.Timestamp.IsZero() {
-			d.Timestamp = ds.Timestamp
+		if !d.Timestamp.IsZero() {
+			ds.Timestamp = d.Timestamp
 		}
 
-		if d.Structure == nil && ds.Structure != nil {
-			d.Structure = ds.Structure
+		if ds.Structure == nil && d.Structure != nil {
+			ds.Structure = d.Structure
 		} else if ds.Structure != nil {
-			d.Structure.Assign(ds.Structure)
+			ds.Structure.Assign(d.Structure)
 		}
 
-		if d.AbstractStructure == nil && ds.AbstractStructure != nil {
-			d.AbstractStructure = ds.AbstractStructure
+		if ds.AbstractStructure == nil && d.AbstractStructure != nil {
+			ds.AbstractStructure = d.AbstractStructure
 		} else if ds.AbstractStructure != nil {
-			d.AbstractStructure.Assign(ds.AbstractStructure)
+			ds.AbstractStructure.Assign(d.AbstractStructure)
 		}
 
-		if ds.Data.String() != "" {
-			d.Data = ds.Data
+		if d.Data.String() != "" {
+			ds.Data = d.Data
 		}
-		if ds.Length != 0 {
-			d.Length = ds.Length
+		if d.Length != 0 {
+			ds.Length = d.Length
 		}
-		if ds.Previous.String() != "" {
-			d.Previous = ds.Previous
+		if d.Previous.String() != "" {
+			ds.Previous = d.Previous
 		}
 		ds.Commit.Assign(d.Commit)
-		if ds.Title != "" {
-			d.Title = ds.Title
+		if d.Title != "" {
+			ds.Title = d.Title
 		}
-		if ds.AccessUrl != "" {
-			d.AccessUrl = ds.AccessUrl
+		if d.AccessURL != "" {
+			ds.AccessURL = d.AccessURL
 		}
-		if ds.DownloadUrl != "" {
-			d.DownloadUrl = ds.DownloadUrl
+		if d.DownloadURL != "" {
+			ds.DownloadURL = d.DownloadURL
 		}
-		if ds.Readme.String() != "" {
-			d.Readme = ds.Readme
+		if d.Readme.String() != "" {
+			ds.Readme = d.Readme
 		}
-		if ds.Author != nil {
-			d.Author = ds.Author
+		if d.Author != nil {
+			ds.Author = d.Author
 		}
-		if ds.AccrualPeriodicity != "" {
-			d.AccrualPeriodicity = ds.AccrualPeriodicity
+		if d.AccrualPeriodicity != "" {
+			ds.AccrualPeriodicity = d.AccrualPeriodicity
 		}
-		if ds.Citations != nil {
-			d.Citations = ds.Citations
+		if d.Citations != nil {
+			ds.Citations = d.Citations
 		}
-		if ds.Image != "" {
-			d.Image = ds.Image
+		if d.Image != "" {
+			ds.Image = d.Image
 		}
-		if ds.Description != "" {
-			d.Description = ds.Description
+		if d.Description != "" {
+			ds.Description = d.Description
 		}
-		if ds.Homepage != "" {
-			d.Homepage = ds.Homepage
+		if d.Homepage != "" {
+			ds.Homepage = d.Homepage
 		}
-		if ds.IconImage != "" {
-			d.IconImage = ds.IconImage
+		if d.IconImage != "" {
+			ds.IconImage = d.IconImage
 		}
-		if ds.Identifier != "" {
-			d.Identifier = ds.Identifier
+		if d.Identifier != "" {
+			ds.Identifier = d.Identifier
 		}
-		if ds.License != nil {
-			d.License = ds.License
+		if d.License != nil {
+			ds.License = d.License
 		}
-		if ds.Version != "" {
-			d.Version = ds.Version
+		if d.Version != "" {
+			ds.Version = d.Version
 		}
-		if ds.Keywords != nil {
-			d.Keywords = ds.Keywords
+		if d.Keywords != nil {
+			ds.Keywords = d.Keywords
 		}
-		if ds.Contributors != nil {
-			d.Contributors = ds.Contributors
+		if d.Contributors != nil {
+			ds.Contributors = d.Contributors
 		}
-		if ds.Language != nil {
-			d.Language = ds.Language
+		if d.Language != nil {
+			ds.Language = d.Language
 		}
-		if ds.Theme != nil {
-			d.Theme = ds.Theme
+		if d.Theme != nil {
+			ds.Theme = d.Theme
 		}
-		if ds.QueryString != "" {
-			d.QueryString = ds.QueryString
+		if d.QueryString != "" {
+			ds.QueryString = d.QueryString
 		}
-		if ds.Query != nil {
-			d.Query = ds.Query
+		if d.Query != nil {
+			ds.Query = d.Query
 		}
-		if ds.meta != nil {
-			d.meta = ds.meta
+		if d.meta != nil {
+			ds.meta = d.meta
 		}
 	}
 }
 
 // MarshalJSON uses a map to combine meta & standard fields.
 // Marshalling a map[string]interface{} automatically alpha-sorts the keys.
-func (d *Dataset) MarshalJSON() ([]byte, error) {
+func (ds *Dataset) MarshalJSON() ([]byte, error) {
 	// if we're dealing with an empty object that has a path specified, marshal to a string instead
 	// TODO - check all fields
-	if d.path.String() != "" && d.IsEmpty() {
-		return d.path.MarshalJSON()
+	if ds.path.String() != "" && ds.IsEmpty() {
+		return ds.path.MarshalJSON()
 	}
 
-	data := d.Meta()
-	if d.AbstractQuery != nil {
-		data["abstractQuery"] = d.AbstractQuery
+	data := ds.Meta()
+	if ds.AbstractQuery != nil {
+		data["abstractQuery"] = ds.AbstractQuery
 	}
-	if d.AbstractStructure != nil {
-		data["abstractStructure"] = d.AbstractStructure
+	if ds.AbstractStructure != nil {
+		data["abstractStructure"] = ds.AbstractStructure
 	}
-	if d.AccessUrl != "" {
-		data["accessUrl"] = d.AccessUrl
+	if ds.AccessURL != "" {
+		data["accessUrl"] = ds.AccessURL
 	}
-	if d.Author != nil {
-		data["author"] = d.Author
+	if ds.Author != nil {
+		data["author"] = ds.Author
 	}
-	if d.Citations != nil {
-		data["citations"] = d.Citations
+	if ds.Citations != nil {
+		data["citations"] = ds.Citations
 	}
-	if d.Contributors != nil {
-		data["contributors"] = d.Contributors
+	if ds.Contributors != nil {
+		data["contributors"] = ds.Contributors
 	}
-	data["data"] = d.Data
-	if d.Description != "" {
-		data["description"] = d.Description
+	data["data"] = ds.Data
+	if ds.Description != "" {
+		data["description"] = ds.Description
 	}
-	if d.DownloadUrl != "" {
-		data["downloadUrl"] = d.DownloadUrl
+	if ds.DownloadURL != "" {
+		data["downloadUrl"] = ds.DownloadURL
 	}
-	if d.Homepage != "" {
-		data["homepage"] = d.Homepage
+	if ds.Homepage != "" {
+		data["homepage"] = ds.Homepage
 	}
-	if d.IconImage != "" {
-		data["iconImage"] = d.IconImage
+	if ds.IconImage != "" {
+		data["iconImage"] = ds.IconImage
 	}
-	if d.Identifier != "" {
-		data["identifier"] = d.Identifier
+	if ds.Identifier != "" {
+		data["identifier"] = ds.Identifier
 	}
-	if d.Image != "" {
-		data["image"] = d.Image
+	if ds.Image != "" {
+		data["image"] = ds.Image
 	}
-	if d.Keywords != nil {
-		data["keywords"] = d.Keywords
+	if ds.Keywords != nil {
+		data["keywords"] = ds.Keywords
 	}
-	if d.Language != nil {
-		data["language"] = d.Language
+	if ds.Language != nil {
+		data["language"] = ds.Language
 	}
-	data["length"] = d.Length
-	if d.License != nil {
-		data["license"] = d.License
+	data["length"] = ds.Length
+	if ds.License != nil {
+		data["license"] = ds.License
 	}
-	if d.Previous.String() != "" {
-		data["previous"] = d.Previous
+	if ds.Previous.String() != "" {
+		data["previous"] = ds.Previous
 	}
-	if d.Commit != nil {
-		data["commit"] = d.Commit
+	if ds.Commit != nil {
+		data["commit"] = ds.Commit
 	}
-	if d.Query != nil {
-		data["query"] = d.Query
+	if ds.Query != nil {
+		data["query"] = ds.Query
 	}
-	if d.QueryString != "" {
-		data["queryString"] = d.QueryString
+	if ds.QueryString != "" {
+		data["queryString"] = ds.QueryString
 	}
-	if d.Readme.String() != "" {
-		data["readme"] = d.Readme
+	if ds.Readme.String() != "" {
+		data["readme"] = ds.Readme
 	}
-	data["structure"] = d.Structure
-	if d.Theme != nil {
-		data["theme"] = d.Theme
+	data["structure"] = ds.Structure
+	if ds.Theme != nil {
+		data["theme"] = ds.Theme
 	}
-	data["timestamp"] = d.Timestamp
-	data["title"] = d.Title
-	if d.AccrualPeriodicity != "" {
-		data["accrualPeriodicity"] = d.AccrualPeriodicity
+	data["timestamp"] = ds.Timestamp
+	data["title"] = ds.Title
+	if ds.AccrualPeriodicity != "" {
+		data["accrualPeriodicity"] = ds.AccrualPeriodicity
 	}
-	if d.Version != VersionNumber("") {
-		data["version"] = d.Version
+	if ds.Version != VersionNumber("") {
+		data["version"] = ds.Version
 	}
 
 	return json.Marshal(data)
@@ -306,17 +310,17 @@ func (d *Dataset) MarshalJSON() ([]byte, error) {
 type _dataset Dataset
 
 // UnmarshalJSON implements json.Unmarshaller
-func (d *Dataset) UnmarshalJSON(data []byte) error {
+func (ds *Dataset) UnmarshalJSON(data []byte) error {
 	// first check to see if this is a valid path ref
 	var path string
 	if err := json.Unmarshal(data, &path); err == nil {
-		*d = Dataset{path: datastore.NewKey(path)}
+		*ds = Dataset{path: datastore.NewKey(path)}
 		return nil
 	}
 
 	// TODO - I'm guessing what follows could be better
-	ds := _dataset{}
-	if err := json.Unmarshal(data, &ds); err != nil {
+	d := _dataset{}
+	if err := json.Unmarshal(data, &d); err != nil {
 		return fmt.Errorf("error unmarshling dataset: %s", err.Error())
 	}
 
@@ -358,8 +362,8 @@ func (d *Dataset) UnmarshalJSON(data []byte) error {
 		delete(meta, f)
 	}
 
-	ds.meta = meta
-	*d = Dataset(ds)
+	d.meta = meta
+	*ds = Dataset(d)
 	return nil
 }
 
@@ -391,8 +395,8 @@ func CompareDatasets(a, b *Dataset) error {
 	// 	return fmt.Errorf("meta mismatch: %s", err.Error())
 	// }
 
-	if a.AccessUrl != b.AccessUrl {
-		return fmt.Errorf("accessUrl mismatch: %s != %s", a.AccessUrl, b.AccessUrl)
+	if a.AccessURL != b.AccessURL {
+		return fmt.Errorf("accessUrl mismatch: %s != %s", a.AccessURL, b.AccessURL)
 	}
 	if a.Readme != b.Readme {
 		return fmt.Errorf("Readme mismatch: %s != %s", a.Readme, b.Readme)
@@ -412,8 +416,8 @@ func CompareDatasets(a, b *Dataset) error {
 	if a.IconImage != b.IconImage {
 		return fmt.Errorf("IconImage mismatch: %s != %s", a.IconImage, b.IconImage)
 	}
-	if a.DownloadUrl != b.DownloadUrl {
-		return fmt.Errorf("DownloadUrl mismatch: %s != %s", a.DownloadUrl, b.DownloadUrl)
+	if a.DownloadURL != b.DownloadURL {
+		return fmt.Errorf("DownloadURL mismatch: %s != %s", a.DownloadURL, b.DownloadURL)
 	}
 	if a.AccrualPeriodicity != b.AccrualPeriodicity {
 		return fmt.Errorf("AccrualPeriodicity mismatch: %s != %s", a.AccrualPeriodicity, b.AccrualPeriodicity)

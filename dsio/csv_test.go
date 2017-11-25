@@ -14,7 +14,7 @@ a,b,c,d
 a,b,c,d`
 
 var csvStruct = &dataset.Structure{
-	Format: dataset.CsvDataFormat,
+	Format: dataset.CSVDataFormat,
 	Schema: &dataset.Schema{
 		Fields: []*dataset.Field{
 			&dataset.Field{Name: "a", Type: datatypes.String},

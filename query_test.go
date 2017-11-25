@@ -189,7 +189,7 @@ func TestAbstractQueryAssign(t *testing.T) {
 		},
 		Structures: map[string]*Structure{
 			"a": &Structure{
-				Format: CsvDataFormat,
+				Format: CSVDataFormat,
 			},
 		},
 		Syntax: "foobar",
@@ -213,7 +213,7 @@ func TestAbstractQueryAssign(t *testing.T) {
 	}, &AbstractQuery{
 		Structures: map[string]*Structure{
 			"a": &Structure{
-				Format: CsvDataFormat,
+				Format: CSVDataFormat,
 			},
 		},
 		Syntax: "foobar",

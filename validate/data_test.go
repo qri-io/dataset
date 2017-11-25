@@ -14,17 +14,17 @@ func TestDataFormat(t *testing.T) {
 		input string
 		err   string
 	}{
-		{dataset.JsonDataFormat,
+		{dataset.JSONDataFormat,
 			rawText1,
 			"error: data format 'JsonData' not currently supported",
 		},
 		{
-			dataset.XlsDataFormat,
+			dataset.XLSDataFormat,
 			rawText1,
 			"error: data format 'XlsData' not currently supported",
 		},
 		{
-			dataset.XmlDataFormat,
+			dataset.XMLDataFormat,
 			rawText1,
 			"error: data format 'XmlData' not currently supported",
 		},
@@ -39,17 +39,17 @@ func TestDataFormat(t *testing.T) {
 			"error: data format not currently supported",
 		},
 		{
-			dataset.CsvDataFormat,
+			dataset.CSVDataFormat,
 			rawText4,
 			"error: inconsistent column length on line 4 of length 2 (rather than 1). ensure all csv columns same length",
 		},
 		{
-			dataset.CsvDataFormat,
+			dataset.CSVDataFormat,
 			rawText1,
 			"",
 		},
-		{dataset.CdxjDataFormat, emptyRawText, "invalid format, missing cdxj header"},
-		{dataset.CdxjDataFormat, cdxjRawText, ""},
+		{dataset.CDXJDataFormat, emptyRawText, "invalid format, missing cdxj header"},
+		{dataset.CDXJDataFormat, cdxjRawText, ""},
 	}
 	for i, c := range cases {
 		r := strings.NewReader(c.input)

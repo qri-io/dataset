@@ -30,11 +30,11 @@ type RowReadWriter interface {
 // NewRowReader allocates a RowReader based on a given structure
 func NewRowReader(st *dataset.Structure, r io.Reader) (RowReader, error) {
 	switch st.Format {
-	case dataset.CsvDataFormat:
+	case dataset.CSVDataFormat:
 		return NewCsvReader(st, r), nil
-	case dataset.JsonDataFormat:
+	case dataset.JSONDataFormat:
 		return NewJsonReader(st, r), nil
-	case dataset.CdxjDataFormat:
+	case dataset.CDXJDataFormat:
 		return NewCdxjReader(st, r), nil
 	case dataset.UnknownDataFormat:
 		return nil, fmt.Errorf("structure must have a data format")
@@ -46,11 +46,11 @@ func NewRowReader(st *dataset.Structure, r io.Reader) (RowReader, error) {
 // NewRowWriter allocates a RowWriter based on a given structure
 func NewRowWriter(st *dataset.Structure, w io.Writer) (RowWriter, error) {
 	switch st.Format {
-	case dataset.CsvDataFormat:
+	case dataset.CSVDataFormat:
 		return NewCsvWriter(st, w), nil
-	case dataset.JsonDataFormat:
+	case dataset.JSONDataFormat:
 		return NewJsonWriter(st, w), nil
-	case dataset.CdxjDataFormat:
+	case dataset.CDXJDataFormat:
 		return NewCdxjWriter(st, w), nil
 	case dataset.UnknownDataFormat:
 		return nil, fmt.Errorf("structure must have a data format")

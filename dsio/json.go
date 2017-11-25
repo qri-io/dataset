@@ -124,7 +124,7 @@ type JsonWriter struct {
 
 func NewJsonWriter(st *dataset.Structure, w io.Writer) *JsonWriter {
 	writeObjects := true
-	if opt, ok := st.FormatConfig.(*dataset.JsonOptions); ok {
+	if opt, ok := st.FormatConfig.(*dataset.JSONOptions); ok {
 		writeObjects = !opt.ArrayEntries
 	}
 	return &JsonWriter{

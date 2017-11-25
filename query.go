@@ -35,18 +35,24 @@ type Query struct {
 	Resources map[string]*Dataset
 }
 
+// NewQueryRef creates a Query pointer with the internal
+// path property specified, and no other fields.
 func NewQueryRef(path datastore.Key) *Query {
 	return &Query{path: path}
 }
 
+// Path gives the internal path reference for this Query
 func (q *Query) Path() datastore.Key {
 	return q.path
 }
 
+// IsEmpty checks to see if query has any fields other than the internal path
 func (q *Query) IsEmpty() bool {
 	return q.Abstract == nil && q.Resources == nil
 }
 
+// Assign collapses all properties of a group of queries onto one.
+// this is directly inspired by Javascript's Object.assign
 func (q *Query) Assign(qs ...*Query) {
 	for _, q2 := range qs {
 		if q2 == nil {
@@ -170,47 +176,50 @@ type AbstractQuery struct {
 	Syntax string `json:"syntax"`
 }
 
+// Path gives the internal path reference for this abstract query
 func (q *AbstractQuery) Path() datastore.Key {
 	return q.path
 }
 
-// NewAbstractQueryReference creates an empty struct with it's
-// internal path set
+// NewAbstractQueryRef creates an empty struct with it's internal path set
 func NewAbstractQueryRef(path datastore.Key) *AbstractQuery {
 	return &AbstractQuery{path: path}
 }
 
+// IsEmpty checks to see if AbstractQuery has any fields other than the internal path
 func (q *AbstractQuery) IsEmpty() bool {
 	return q.Statement == "" && q.Syntax == "" && q.Structure == nil && q.Structures == nil
 }
 
-func (aq *AbstractQuery) Assign(aqs ...*AbstractQuery) {
+// Assign collapses all properties of a group of AbstractQuery onto one.
+// this is directly inspired by Javascript's Object.assign
+func (q *AbstractQuery) Assign(aqs ...*AbstractQuery) {
 	for _, aq2 := range aqs {
 		if aq2 == nil {
 			continue
 		}
 		if aq2.path.String() != "" {
-			aq.path = aq2.path
+			q.path = aq2.path
 		}
 		if aq2.Statement != "" {
-			aq.Statement = aq2.Statement
+			q.Statement = aq2.Statement
 		}
 		if aq2.Structure != nil {
-			if aq.Structure == nil {
-				aq.Structure = &Structure{}
+			if q.Structure == nil {
+				q.Structure = &Structure{}
 			}
-			aq.Structure.Assign(aq2.Structure)
+			q.Structure.Assign(aq2.Structure)
 		}
 		if aq2.Structures != nil {
-			if aq.Structures == nil {
-				aq.Structures = map[string]*Structure{}
+			if q.Structures == nil {
+				q.Structures = map[string]*Structure{}
 			}
 			for key, val := range aq2.Structures {
-				aq.Structures[key] = val
+				q.Structures[key] = val
 			}
 		}
 		if aq2.Syntax != "" {
-			aq.Syntax = aq2.Syntax
+			q.Syntax = aq2.Syntax
 		}
 	}
 }

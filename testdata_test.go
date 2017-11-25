@@ -13,7 +13,7 @@ var AirportCodes = &Dataset{
 	Citations: []*Citation{
 		&Citation{
 			Name: "Our Airports",
-			Url:  "http://ourairports.com/data/",
+			URL:  "http://ourairports.com/data/",
 		},
 	},
 	Commit:    &CommitMsg{Title: "initial commit"},
@@ -26,8 +26,8 @@ var AirportCodes = &Dataset{
 const AirportCodesJSON = `{"citations":[{"name":"Our Airports","url":"http://ourairports.com/data/"}],"commit":{"title":"initial commit"},"data":"","homepage":"http://www.ourairports.com/","length":0,"license":"PDDL-1.0","structure":{"format":"csv","formatConfig":{"headerRow":true},"schema":{"fields":[{"name":"ident","type":"string"},{"name":"type","type":"string"},{"name":"name","type":"string"},{"name":"latitude_deg","type":"float"},{"name":"longitude_deg","type":"float"},{"name":"elevation_ft","type":"integer"},{"name":"continent","type":"string"},{"name":"iso_country","type":"string"},{"name":"iso_region","type":"string"},{"name":"municipality","type":"string"},{"name":"gps_code","type":"string"},{"name":"iata_code","type":"string"},{"name":"local_code","type":"string"}]}},"timestamp":"0001-01-01T00:00:00Z","title":"Airport Codes"}`
 
 var AirportCodesStructure = &Structure{
-	Format: CsvDataFormat,
-	FormatConfig: &CsvOptions{
+	Format: CSVDataFormat,
+	FormatConfig: &CSVOptions{
 		HeaderRow: true,
 	},
 	Schema: &Schema{
@@ -89,8 +89,8 @@ var AirportCodesStructure = &Structure{
 }
 
 var AirportCodesStructureAbstract = &Structure{
-	Format:       CsvDataFormat,
-	FormatConfig: &CsvOptions{HeaderRow: true},
+	Format:       CSVDataFormat,
+	FormatConfig: &CSVOptions{HeaderRow: true},
 	Schema: &Schema{
 		Fields: []*Field{
 			&Field{
@@ -154,7 +154,7 @@ var ContinentCodes = &Dataset{
 	Description: "list of continents with corresponding two letter codes",
 	License: &License{
 		Type: "odc-pddl",
-		Url:  "http://opendatacommons.org/licenses/pddl/",
+		URL:  "http://opendatacommons.org/licenses/pddl/",
 	},
 	Keywords: []string{
 		"Continents",
@@ -165,7 +165,7 @@ var ContinentCodes = &Dataset{
 }
 
 var ContinentCodesStructure = &Structure{
-	Format: CsvDataFormat,
+	Format: CSVDataFormat,
 	Schema: &Schema{
 		Fields: []*Field{
 			&Field{
@@ -186,7 +186,7 @@ var Hours = &Dataset{
 }
 
 var HoursStructure = &Structure{
-	Format: CsvDataFormat,
+	Format: CSVDataFormat,
 	Schema: &Schema{
 		Fields: []*Field{
 			&Field{Name: "field_1", Type: datatypes.Date},

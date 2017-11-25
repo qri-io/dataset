@@ -18,8 +18,8 @@ func TestJsonReader(t *testing.T) {
 		err       string
 	}{
 		{&dataset.Structure{
-			Format: dataset.JsonDataFormat,
-			FormatConfig: &dataset.JsonOptions{
+			Format: dataset.JSONDataFormat,
+			FormatConfig: &dataset.JSONOptions{
 				ArrayEntries: false,
 			}}, "testdata/city_data.json", 5, ""},
 	}
@@ -66,7 +66,7 @@ func TestJsonReader(t *testing.T) {
 		// }
 
 		// var v interface{}
-		// if cfg, ok := c.structure.FormatConfig.(*dataset.JsonOptions); ok && cfg.ArrayEntries {
+		// if cfg, ok := c.structure.FormatConfig.(*dataset.JSONOptions); ok && cfg.ArrayEntries {
 		// 	v = []interface{}{}
 		// } else {
 		// 	v = map[string]interface{}{}
@@ -86,7 +86,7 @@ func TestJsonWriter(t *testing.T) {
 	}{
 		{&dataset.Structure{Schema: &dataset.Schema{Fields: []*dataset.Field{&dataset.Field{Name: "a", Type: datatypes.String}}}}, [][][]byte{}, "[]"},
 		{&dataset.Structure{Schema: &dataset.Schema{Fields: []*dataset.Field{&dataset.Field{Name: "a", Type: datatypes.String}}}}, [][][]byte{[][]byte{[]byte("hello")}}, "[\n{\"a\":\"hello\"}\n]"},
-		{&dataset.Structure{Schema: &dataset.Schema{Fields: []*dataset.Field{&dataset.Field{Name: "a", Type: datatypes.String}}}, FormatConfig: &dataset.JsonOptions{ArrayEntries: true}}, [][][]byte{[][]byte{[]byte("hello")}}, "[\n[\"hello\"]\n]"},
+		{&dataset.Structure{Schema: &dataset.Schema{Fields: []*dataset.Field{&dataset.Field{Name: "a", Type: datatypes.String}}}, FormatConfig: &dataset.JSONOptions{ArrayEntries: true}}, [][][]byte{[][]byte{[]byte("hello")}}, "[\n[\"hello\"]\n]"},
 		{&dataset.Structure{Schema: &dataset.Schema{Fields: []*dataset.Field{&dataset.Field{Name: "a", Type: datatypes.String}}}}, [][][]byte{
 			[][]byte{[]byte("hello")},
 			[][]byte{[]byte("world")},
@@ -95,7 +95,7 @@ func TestJsonWriter(t *testing.T) {
 		// 	[][]byte{[]byte("hello")},
 		// 	[][]byte{[]byte("world")},
 		// }, "[\n[\"hello\"],\n[\"world\"]\n]"},
-		{&dataset.Structure{Schema: &dataset.Schema{Fields: []*dataset.Field{&dataset.Field{Name: "a", Type: datatypes.String}}}, FormatConfig: &dataset.JsonOptions{ArrayEntries: true}}, [][][]byte{
+		{&dataset.Structure{Schema: &dataset.Schema{Fields: []*dataset.Field{&dataset.Field{Name: "a", Type: datatypes.String}}}, FormatConfig: &dataset.JSONOptions{ArrayEntries: true}}, [][][]byte{
 			[][]byte{[]byte("hello\n?")},
 			[][]byte{[]byte("world")},
 		}, "[\n[\"hello\\n?\"],\n[\"world\"]\n]"},
@@ -116,7 +116,7 @@ func TestJsonWriter(t *testing.T) {
 				&dataset.Field{Name: "local_code", Type: datatypes.String},
 				&dataset.Field{Name: "bool_teim", Type: datatypes.Boolean},
 			}},
-			FormatConfig: &dataset.JsonOptions{ArrayEntries: true}},
+			FormatConfig: &dataset.JSONOptions{ArrayEntries: true}},
 			[][][]byte{
 				[][]byte{[]byte("00AR"), []byte("heliport"), []byte("Newport Hospital & Clinic Heliport"), []byte{}, []byte{}, []byte{}, []byte("NA"), []byte("US"), []byte("US-AR"), []byte("Newport"), []byte("00AR"), []byte{}, []byte("00AR"), []byte{}},
 			},
@@ -183,7 +183,7 @@ func TestJsonWriter(t *testing.T) {
 		}
 
 		var v interface{}
-		if cfg, ok := c.structure.FormatConfig.(*dataset.JsonOptions); ok && cfg.ArrayEntries {
+		if cfg, ok := c.structure.FormatConfig.(*dataset.JSONOptions); ok && cfg.ArrayEntries {
 			v = []interface{}{}
 		} else {
 			v = map[string]interface{}{}

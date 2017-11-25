@@ -79,8 +79,8 @@ func (r *CsvReader) ReadRow() ([][]byte, error) {
 }
 
 func HasHeaderRow(st *dataset.Structure) bool {
-	if st.Format == dataset.CsvDataFormat && st.FormatConfig != nil {
-		if csvOpt, ok := st.FormatConfig.(*dataset.CsvOptions); ok {
+	if st.Format == dataset.CSVDataFormat && st.FormatConfig != nil {
+		if csvOpt, ok := st.FormatConfig.(*dataset.CSVOptions); ok {
 			return csvOpt.HeaderRow
 		}
 	}

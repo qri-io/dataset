@@ -20,16 +20,16 @@ var alphaNumericRegex = regexp.MustCompile(`^[a-zA-Z]\w{0,143}$`)
 func DataFormat(df dataset.DataFormat, r io.Reader) error {
 	switch df {
 	// explicitly supported at present
-	case dataset.CsvDataFormat:
+	case dataset.CSVDataFormat:
 		return CheckCsvRowLengths(r)
-	case dataset.CdxjDataFormat:
+	case dataset.CDXJDataFormat:
 		return cdxj.Validate(r)
 	// explicitly unsupported at present
-	case dataset.JsonDataFormat:
+	case dataset.JSONDataFormat:
 		return fmt.Errorf("error: data format 'JsonData' not currently supported")
-	case dataset.XlsDataFormat:
+	case dataset.XLSDataFormat:
 		return fmt.Errorf("error: data format 'XlsData' not currently supported")
-	case dataset.XmlDataFormat:
+	case dataset.XMLDataFormat:
 		return fmt.Errorf("error: data format 'XmlData' not currently supported")
 	// *implicitly unsupported
 	case dataset.UnknownDataFormat:
@@ -63,7 +63,7 @@ func DataErrors(r dsio.RowReader, options ...func(*DataErrorsCfg)) (errors dsio.
 	}
 
 	vst := &dataset.Structure{
-		Format: dataset.CsvDataFormat,
+		Format: dataset.CSVDataFormat,
 		Schema: &dataset.Schema{
 			Fields: []*dataset.Field{
 				{Name: "row_index", Type: datatypes.Integer},
@@ -134,7 +134,7 @@ func validateRow(fields []*dataset.Field, num int, row [][]byte) ([][]byte, int,
 // 	proj := map[int]int{}
 // 	validation = &Resource{
 // 		Address: NewAddress(ds.Address.String(), "errors"),
-// 		Format:  CsvDataFormat,
+// 		Format:  CSVDataFormat,
 // 	}
 
 // 	for i, f := range ds.Fields {

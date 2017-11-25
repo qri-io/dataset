@@ -12,9 +12,9 @@ func TestParseFormatConfigMap(t *testing.T) {
 		cfg  FormatConfig
 		err  error
 	}{
-		{CsvDataFormat, map[string]interface{}{}, &CsvOptions{}, nil},
-		{JsonDataFormat, map[string]interface{}{}, &JsonOptions{}, nil},
-		{JsonDataFormat, map[string]interface{}{"arrayEntries": true}, &JsonOptions{ArrayEntries: true}, nil},
+		{CSVDataFormat, map[string]interface{}{}, &CSVOptions{}, nil},
+		{JSONDataFormat, map[string]interface{}{}, &JSONOptions{}, nil},
+		{JSONDataFormat, map[string]interface{}{"arrayEntries": true}, &JSONOptions{ArrayEntries: true}, nil},
 	}
 
 	for i, c := range cases {

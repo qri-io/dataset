@@ -21,7 +21,7 @@ var AirportCodes = &dataset.Dataset{
 	Citations: []*dataset.Citation{
 		&dataset.Citation{
 			Name: "Our Airports",
-			Url:  "http://ourairports.com/data/",
+			URL:  "http://ourairports.com/data/",
 		},
 	},
 	// File:   "data/airport-codes.csv",
@@ -34,8 +34,8 @@ var AirportCodesCommitMsg = &dataset.CommitMsg{
 }
 
 var AirportCodesStructure = &dataset.Structure{
-	Format: dataset.CsvDataFormat,
-	FormatConfig: &dataset.CsvOptions{
+	Format: dataset.CSVDataFormat,
+	FormatConfig: &dataset.CSVOptions{
 		HeaderRow: true,
 	},
 	Schema: &dataset.Schema{
@@ -97,8 +97,8 @@ var AirportCodesStructure = &dataset.Structure{
 }
 
 var AirportCodesStructureAgebraic = &dataset.Structure{
-	Format:       dataset.CsvDataFormat,
-	FormatConfig: &dataset.CsvOptions{HeaderRow: true},
+	Format:       dataset.CSVDataFormat,
+	FormatConfig: &dataset.CSVOptions{HeaderRow: true},
 	Schema: &dataset.Schema{
 		Fields: []*dataset.Field{
 			&dataset.Field{
@@ -162,7 +162,7 @@ var ContinentCodes = &dataset.Dataset{
 	Description: "list of continents with corresponding two letter codes",
 	License: &dataset.License{
 		Type: "odc-pddl",
-		Url:  "http://opendatacommons.org/licenses/pddl/",
+		URL:  "http://opendatacommons.org/licenses/pddl/",
 	},
 	Keywords: []string{
 		"Continents",
@@ -173,7 +173,7 @@ var ContinentCodes = &dataset.Dataset{
 }
 
 var ContinentCodesStructure = &dataset.Structure{
-	Format: dataset.CsvDataFormat,
+	Format: dataset.CSVDataFormat,
 	Schema: &dataset.Schema{
 		Fields: []*dataset.Field{
 			&dataset.Field{
@@ -194,7 +194,7 @@ var Hours = &dataset.Dataset{
 }
 
 var HoursStructure = &dataset.Structure{
-	Format: dataset.CsvDataFormat,
+	Format: dataset.CSVDataFormat,
 	Schema: &dataset.Schema{
 		Fields: []*dataset.Field{
 			&dataset.Field{Name: "field_1", Type: datatypes.Date},

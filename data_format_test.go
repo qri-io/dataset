@@ -11,11 +11,11 @@ func TestDataFormatString(t *testing.T) {
 		expect string
 	}{
 		{UnknownDataFormat, ""},
-		{CsvDataFormat, "csv"},
-		{JsonDataFormat, "json"},
-		{XmlDataFormat, "xml"},
-		{XlsDataFormat, "xls"},
-		{CdxjDataFormat, "cdxj"},
+		{CSVDataFormat, "csv"},
+		{JSONDataFormat, "json"},
+		{XMLDataFormat, "xml"},
+		{XLSDataFormat, "xls"},
+		{CDXJDataFormat, "cdxj"},
 	}
 
 	for i, c := range cases {
@@ -33,16 +33,16 @@ func TestParseDataFormatString(t *testing.T) {
 		err    string
 	}{
 		{"", UnknownDataFormat, ""},
-		{".csv", CsvDataFormat, ""},
-		{"csv", CsvDataFormat, ""},
-		{".json", JsonDataFormat, ""},
-		{"json", JsonDataFormat, ""},
-		{".xml", XmlDataFormat, ""},
-		{"xml", XmlDataFormat, ""},
-		{".xls", XlsDataFormat, ""},
-		{"xls", XlsDataFormat, ""},
-		{".cdxj", CdxjDataFormat, ""},
-		{"cdxj", CdxjDataFormat, ""},
+		{".csv", CSVDataFormat, ""},
+		{"csv", CSVDataFormat, ""},
+		{".json", JSONDataFormat, ""},
+		{"json", JSONDataFormat, ""},
+		{".xml", XMLDataFormat, ""},
+		{"xml", XMLDataFormat, ""},
+		{".xls", XLSDataFormat, ""},
+		{"xls", XLSDataFormat, ""},
+		{".cdxj", CDXJDataFormat, ""},
+		{"cdxj", CDXJDataFormat, ""},
 	}
 
 	for i, c := range cases {
@@ -64,11 +64,11 @@ func TestDataFormatMarshalJSON(t *testing.T) {
 		expect []byte
 		err    string
 	}{
-		{CsvDataFormat, []byte(`"csv"`), ""},
-		{JsonDataFormat, []byte(`"json"`), ""},
-		{XmlDataFormat, []byte(`"xml"`), ""},
-		{XlsDataFormat, []byte(`"xls"`), ""},
-		{CdxjDataFormat, []byte(`"cdxj"`), ""},
+		{CSVDataFormat, []byte(`"csv"`), ""},
+		{JSONDataFormat, []byte(`"json"`), ""},
+		{XMLDataFormat, []byte(`"xml"`), ""},
+		{XLSDataFormat, []byte(`"xls"`), ""},
+		{CDXJDataFormat, []byte(`"cdxj"`), ""},
 	}
 	for i, c := range cases {
 		got, err := c.format.MarshalJSON()
@@ -89,11 +89,11 @@ func TestDataFormatUnmarshalJSON(t *testing.T) {
 		expect DataFormat
 		err    string
 	}{
-		{[]byte(`"csv"`), CsvDataFormat, ""},
-		{[]byte(`"json"`), JsonDataFormat, ""},
-		{[]byte(`"xml"`), XmlDataFormat, ""},
-		{[]byte(`"xls"`), XlsDataFormat, ""},
-		{[]byte(`"cdxj"`), CdxjDataFormat, ""},
+		{[]byte(`"csv"`), CSVDataFormat, ""},
+		{[]byte(`"json"`), JSONDataFormat, ""},
+		{[]byte(`"xml"`), XMLDataFormat, ""},
+		{[]byte(`"xls"`), XLSDataFormat, ""},
+		{[]byte(`"cdxj"`), CDXJDataFormat, ""},
 	}
 
 	for i, c := range cases {

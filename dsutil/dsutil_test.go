@@ -99,7 +99,7 @@ func testStore() (cafs.Filestore, map[string]datastore.Key, error) {
 
 	ds := &dataset.Dataset{
 		Structure: &dataset.Structure{
-			Format: dataset.CsvDataFormat,
+			Format: dataset.CSVDataFormat,
 			Schema: &dataset.Schema{
 				Fields: []*dataset.Field{
 					&dataset.Field{Name: "movie", Type: datatypes.String},

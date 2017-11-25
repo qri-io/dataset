@@ -15,7 +15,7 @@ type VersionNumber string
 
 // User is a placholder for talking about people, groups, organizations
 type User struct {
-	Id       string `json:"id,omitempty"`
+	ID       string `json:"id,omitempty"`
 	Fullname string `json:"name,omitempty"`
 	Email    string `json:"email,omitempty"`
 }
@@ -23,7 +23,7 @@ type User struct {
 // License represents a legal licensing agreement
 type License struct {
 	Type string `json:"type"`
-	Url  string `json:"url"`
+	URL  string `json:"url"`
 }
 
 // private struct for marshaling
@@ -31,7 +31,7 @@ type _license License
 
 // MarshalJSON satisfies the json.Marshaller interface
 func (l License) MarshalJSON() ([]byte, error) {
-	if l.Type != "" && l.Url == "" {
+	if l.Type != "" && l.URL == "" {
 		return []byte(fmt.Sprintf(`"%s"`, l.Type)), nil
 	}
 
@@ -58,7 +58,7 @@ func (l *License) UnmarshalJSON(data []byte) error {
 // Citation is a place that this dataset drew it's information from
 type Citation struct {
 	Name  string `json:"name,omitempty"`
-	Url   string `json:"url,omitempty"`
+	URL   string `json:"url,omitempty"`
 	Email string `json:"email,omitempty"`
 }
 
@@ -66,13 +66,13 @@ type Citation struct {
 type Theme struct {
 	Description     string `json:"description,omitempty"`
 	DisplayName     string `json:"display_name,omitempty"`
-	ImageDisplayUrl string `json:"image_display_url,omitempty"`
-	Id              string `json:"id,omitempty"`
+	ImageDisplayURL string `json:"image_display_url,omitempty"`
+	ID              string `json:"id,omitempty"`
 	Name            string `json:"name,omitempty"`
 	Title           string `json:"title,omitempty"`
 }
 
-// takes an ISO 8601 periodicity measure & returns a time.Duration.
+// AccuralDuration takes an ISO 8601 periodicity measure & returns a time.Duration.
 // invalid periodicities return time.Duration(0)
 func AccuralDuration(p string) time.Duration {
 	switch p {

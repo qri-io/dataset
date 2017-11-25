@@ -15,7 +15,7 @@ func TestDatasetAssign(t *testing.T) {
 	expect := &Dataset{
 		Title:       "Final Title",
 		Description: "Final Description",
-		AccessUrl:   "AccessUrl",
+		AccessURL:   "AccessURL",
 		Structure: &Structure{
 			Schema: &Schema{
 				Fields: []*Field{
@@ -42,7 +42,7 @@ func TestDatasetAssign(t *testing.T) {
 	got.Assign(&Dataset{
 		Title:       "Final Title",
 		Description: "Final Description",
-		AccessUrl:   "AccessUrl",
+		AccessURL:   "AccessURL",
 		Structure: &Structure{
 			Schema: &Schema{
 				Fields: []*Field{

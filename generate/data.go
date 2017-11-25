@@ -18,12 +18,12 @@ func RandomData(st *dataset.Structure, opts ...func(o *RandomDataOpts)) []byte {
 	opt := &RandomDataOpts{
 		Data:           nil,
 		NumRandRecords: 500,
-		Format:         dataset.CsvDataFormat,
+		Format:         dataset.CSVDataFormat,
 	}
 	for _, option := range opts {
 		option(opt)
 	}
-	if opt.NumRandRecords == 0 || opt.Format != dataset.CsvDataFormat {
+	if opt.NumRandRecords == 0 || opt.Format != dataset.CSVDataFormat {
 		return nil
 	}
 

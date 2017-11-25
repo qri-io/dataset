@@ -16,7 +16,7 @@ func TestStrucureHash(t *testing.T) {
 		hash string
 		err  error
 	}{
-		{&Structure{Format: CsvDataFormat}, "QmQS5d6vtwMCiCgtjS5883oHMK44EMcuCtvyMhDXsha4wo", nil},
+		{&Structure{Format: CSVDataFormat}, "QmQS5d6vtwMCiCgtjS5883oHMK44EMcuCtvyMhDXsha4wo", nil},
 	}
 
 	for i, c := range cases {
@@ -63,7 +63,7 @@ func TestStructureAbstract(t *testing.T) {
 
 func TestStructureAssign(t *testing.T) {
 	expect := &Structure{
-		Format: CsvDataFormat,
+		Format: CSVDataFormat,
 		Schema: &Schema{
 			Fields: []*Field{
 				&Field{Type: datatypes.String, Name: "foo"},
@@ -73,7 +73,7 @@ func TestStructureAssign(t *testing.T) {
 		},
 	}
 	got := &Structure{
-		Format: CsvDataFormat,
+		Format: CSVDataFormat,
 		Schema: &Schema{
 			Fields: []*Field{
 				&Field{Type: datatypes.String},
@@ -156,7 +156,7 @@ func TestStructureMarshalJSON(t *testing.T) {
 		out []byte
 		err error
 	}{
-		{&Structure{Format: CsvDataFormat}, []byte(`{"format":"csv"}`), nil},
+		{&Structure{Format: CSVDataFormat}, []byte(`{"format":"csv"}`), nil},
 		{AirportCodesStructure, []byte(`{"format":"csv","formatConfig":{"headerRow":true},"schema":{"fields":[{"name":"ident","type":"string"},{"name":"type","type":"string"},{"name":"name","type":"string"},{"name":"latitude_deg","type":"float"},{"name":"longitude_deg","type":"float"},{"name":"elevation_ft","type":"integer"},{"name":"continent","type":"string"},{"name":"iso_country","type":"string"},{"name":"iso_region","type":"string"},{"name":"municipality","type":"string"},{"name":"gps_code","type":"string"},{"name":"iata_code","type":"string"},{"name":"local_code","type":"string"}]}}`), nil},
 	}
 

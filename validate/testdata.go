@@ -14,8 +14,8 @@ Ken,Thompson,ken, 75.5
 "Robert","Griesemer","gri", 100`
 
 var namesStructure = &dataset.Structure{
-	Format: dataset.CsvDataFormat,
-	FormatConfig: &dataset.CsvOptions{
+	Format: dataset.CSVDataFormat,
+	FormatConfig: &dataset.CSVOptions{
 		HeaderRow: true,
 	},
 	Schema: &dataset.Schema{
@@ -69,7 +69,7 @@ var rawText4 = `<html>
 </html>`
 
 var cdxjStructure = &dataset.Structure{
-	Format: dataset.CdxjDataFormat,
+	Format: dataset.CDXJDataFormat,
 	Schema: &dataset.Schema{
 		Fields: []*dataset.Field{
 			&dataset.Field{Name: "url", Type: datatypes.String},

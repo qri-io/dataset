@@ -9,14 +9,14 @@ import (
 )
 
 func TestCommitMsgAssign(t *testing.T) {
-	doug := &User{Id: "doug_id", Email: "doug@example.com"}
+	doug := &User{ID: "doug_id", Email: "doug@example.com"}
 	expect := &CommitMsg{
 		Author:  doug,
 		Title:   "expect title",
 		Message: "expect message",
 	}
 	got := &CommitMsg{
-		Author:  &User{Id: "maha_id", Email: "maha@example.com"},
+		Author:  &User{ID: "maha_id", Email: "maha@example.com"},
 		Title:   "title",
 		Message: "message",
 	}
@@ -51,7 +51,7 @@ func TestCommitMsgMarshalJSON(t *testing.T) {
 		err error
 	}{
 		{&CommitMsg{Title: "title"}, []byte(`{"title":"title"}`), nil},
-		{&CommitMsg{Author: &User{Id: "foo"}}, []byte(`{"author":{"id":"foo"},"title":""}`), nil},
+		{&CommitMsg{Author: &User{ID: "foo"}}, []byte(`{"author":{"id":"foo"},"title":""}`), nil},
 	}
 
 	for i, c := range cases {
@@ -86,7 +86,7 @@ func TestCommitMsgUnmarshalJSON(t *testing.T) {
 	}{
 		{`{}`, &CommitMsg{}, nil},
 		{`{ "title": "title", "message": "message"}`, &CommitMsg{Title: "title", Message: "message"}, nil},
-		{`{ "author" : { "id": "id", "email": "email@email.com"} }`, &CommitMsg{Author: &User{Id: "id", Email: "email@email.com"}}, nil},
+		{`{ "author" : { "id": "id", "email": "email@email.com"} }`, &CommitMsg{Author: &User{ID: "id", Email: "email@email.com"}}, nil},
 	}
 
 	for i, c := range cases {

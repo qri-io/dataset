@@ -32,6 +32,7 @@ type Structure struct {
 	Schema *Schema `json:"schema"`
 }
 
+// Path gives the internal path reference for this structure
 func (s *Structure) Path() datastore.Key {
 	return s.path
 }
@@ -70,8 +71,8 @@ func (s *Structure) Abstract() *Structure {
 }
 
 // Hash gives the hash of this structure
-func (r *Structure) Hash() (string, error) {
-	return JSONHash(r)
+func (s *Structure) Hash() (string, error) {
+	return JSONHash(s)
 }
 
 // separate type for marshalling into & out of
@@ -105,8 +106,11 @@ func (s Structure) MarshalJSON() (data []byte, err error) {
 }
 
 // UnmarshalJSON satisfies the json.Unmarshaler interface
-func (s *Structure) UnmarshalJSON(data []byte) error {
-	var str string
+func (s *Structure) UnmarshalJSON(data []byte) (err error) {
+	var (
+		str    string
+		fmtCfg FormatConfig
+	)
 	if err := json.Unmarshal(data, &str); err == nil {
 		*s = Structure{path: datastore.NewKey(str)}
 		return nil
@@ -117,9 +121,12 @@ func (s *Structure) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("error unmarshaling dataset structure from json: %s", err.Error())
 	}
 
-	fmtCfg, err := ParseFormatConfigMap(_s.Format, _s.FormatConfig)
-	if err != nil {
-		return fmt.Errorf("error parsing structure formatConfig: %s", err.Error())
+	if _s.FormatConfig != nil {
+		fmtCfg, err = ParseFormatConfigMap(_s.Format, _s.FormatConfig)
+		if err != nil {
+			return fmt.Errorf("error parsing structure formatConfig: %s", err.Error())
+		}
+
 	}
 
 	*s = Structure{
@@ -139,8 +146,9 @@ func (s *Structure) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (st *Structure) IsEmpty() bool {
-	return st.Format == UnknownDataFormat && st.FormatConfig == nil && st.Encoding == "" && st.Schema == nil
+// IsEmpty checks to see if structure has any fields other than the internal path
+func (s *Structure) IsEmpty() bool {
+	return s.Format == UnknownDataFormat && s.FormatConfig == nil && s.Encoding == "" && s.Schema == nil
 }
 
 // Assign collapses all properties of a group of structures on to one
@@ -177,12 +185,12 @@ func (s *Structure) Assign(structures ...*Structure) {
 
 // StringFieldIndex gives the index of a field who's name matches s
 // it returns -1 if no match is found
-func (st *Structure) StringFieldIndex(s string) int {
-	if st.Schema == nil {
+func (s *Structure) StringFieldIndex(str string) int {
+	if s.Schema == nil {
 		return -1
 	}
-	for i, f := range st.Schema.Fields {
-		if f.Name == s {
+	for i, f := range s.Schema.Fields {
+		if f.Name == str {
 			return i
 		}
 	}

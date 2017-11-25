@@ -5,10 +5,11 @@ import (
 	"fmt"
 )
 
-// CompressionType represents a type of byte compression
+// Type represents a type of byte compression
 type Type int
 
 const (
+	// None speficies no compression
 	None Type = iota
 )
 
@@ -22,6 +23,7 @@ var Codes = map[string]Type{
 	"": None,
 }
 
+// ParseTypeString returns a compression type for a given string
 func ParseTypeString(s string) (t Type, err error) {
 	t, ok := Codes[s]
 	if !ok {
@@ -49,11 +51,11 @@ func (t *Type) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("Compression type value should be a string, got %s", data)
 	}
 
-	if _t, err := ParseTypeString(s); err != nil {
+	_t, err := ParseTypeString(s)
+	if err != nil {
 		return err
-	} else {
-		*t = _t
 	}
 
+	*t = _t
 	return nil
 }

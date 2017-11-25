@@ -1,4 +1,3 @@
-// TODO - consider placing this in a subpackage: dataformats
 package dataset
 
 import (
@@ -6,18 +5,34 @@ import (
 	"fmt"
 )
 
+// ErrUnknownDataFormat is the expected error for
+// when a data format is missing or unknown
 var ErrUnknownDataFormat = fmt.Errorf("Unknown Data Format")
 
-// DataFormat represents different types of data
+// DataFormat represents different types of data formats.
+// formats specified here have some degree of support within
+// the dataset packages
+// TODO - consider placing this in a subpackage: dataformats
 type DataFormat int
 
 const (
+	// UnknownDataFormat is the default dataformat, meaning
+	// that a data format should always be specified when
+	// using the DataFormat type
 	UnknownDataFormat DataFormat = iota
-	CsvDataFormat
-	JsonDataFormat
-	XmlDataFormat
-	XlsDataFormat
-	CdxjDataFormat
+	// CSVDataFormat specifies comma separated value-formatted data
+	CSVDataFormat
+	// JSONDataFormat specifies Javascript Object Notation-formatted data
+	JSONDataFormat
+	// XMLDataFormat specifies eXtensible Markup Language-formatted data
+	// currently not supported.
+	XMLDataFormat
+	// XLSDataFormat specifies microsoft excel formatted data
+	// currently not supported.
+	XLSDataFormat
+	// CDXJDataFormat specifies the Wayback machine's CDX-Json formated data
+	// https://github.com/iipc/warc-specifications/blob/gh-pages/specifications/cdx-format/openwayback-cdxj/index.md
+	CDXJDataFormat
 	// TODO - make this list more exhaustive
 )
 
@@ -25,11 +40,11 @@ const (
 func (f DataFormat) String() string {
 	s, ok := map[DataFormat]string{
 		UnknownDataFormat: "",
-		CsvDataFormat:     "csv",
-		JsonDataFormat:    "json",
-		XmlDataFormat:     "xml",
-		XlsDataFormat:     "xls",
-		CdxjDataFormat:    "cdxj",
+		CSVDataFormat:     "csv",
+		JSONDataFormat:    "json",
+		XMLDataFormat:     "xml",
+		XLSDataFormat:     "xls",
+		CDXJDataFormat:    "cdxj",
 	}[f]
 
 	if !ok {
@@ -43,16 +58,16 @@ func (f DataFormat) String() string {
 func ParseDataFormatString(s string) (df DataFormat, err error) {
 	df, ok := map[string]DataFormat{
 		"":      UnknownDataFormat,
-		".csv":  CsvDataFormat,
-		"csv":   CsvDataFormat,
-		".json": JsonDataFormat,
-		"json":  JsonDataFormat,
-		".xml":  XmlDataFormat,
-		"xml":   XmlDataFormat,
-		".xls":  XlsDataFormat,
-		"xls":   XlsDataFormat,
-		".cdxj": CdxjDataFormat,
-		"cdxj":  CdxjDataFormat,
+		".csv":  CSVDataFormat,
+		"csv":   CSVDataFormat,
+		".json": JSONDataFormat,
+		"json":  JSONDataFormat,
+		".xml":  XMLDataFormat,
+		"xml":   XMLDataFormat,
+		".xls":  XLSDataFormat,
+		"xls":   XLSDataFormat,
+		".cdxj": CDXJDataFormat,
+		"cdxj":  CDXJDataFormat,
 	}[s]
 	if !ok {
 		err = fmt.Errorf("invalid data format: `%s`", s)
@@ -77,11 +92,11 @@ func (f *DataFormat) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("Data Format type should be a string, got %s", data)
 	}
 
-	if df, err := ParseDataFormatString(s); err != nil {
+	df, err := ParseDataFormatString(s)
+	if err != nil {
 		return err
-	} else {
-		*f = df
 	}
 
+	*f = df
 	return nil
 }

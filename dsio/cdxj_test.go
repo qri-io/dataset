@@ -17,7 +17,7 @@ const cdxjData = `!OpenWayback-CDXJ 1.0
 `
 
 var cdxjStruct = &dataset.Structure{
-	Format: dataset.CdxjDataFormat,
+	Format: dataset.CDXJDataFormat,
 	Schema: &dataset.Schema{
 		Fields: []*dataset.Field{
 			&dataset.Field{Name: "surt_uri", Type: datatypes.String},

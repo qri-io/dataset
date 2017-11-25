@@ -44,7 +44,7 @@ func (s *Schema) FieldTypeStrings() (types []string) {
 	return
 }
 
-// AssignSchema collapses all properties of a group of schemas on to one
+// Assign collapses all properties of a group of schemas on to one
 // this is directly inspired by Javascript's Object.assign
 func (s *Schema) Assign(schemas ...*Schema) {
 	for _, sh := range schemas {
@@ -81,6 +81,8 @@ func (s *Schema) Assign(schemas ...*Schema) {
 	}
 }
 
+// Assign collapses all properties of a group of fields onto one.
+// this is directly inspired by Javascript's Object.assign
 func (f *Field) Assign(fields ...*Field) {
 	for _, fd := range fields {
 		if fd == nil {

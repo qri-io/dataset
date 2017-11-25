@@ -22,11 +22,11 @@ func Fields(r *dataset.Structure, data io.Reader) (fields []*dataset.Field, err 
 	}
 
 	switch r.Format {
-	case dataset.CsvDataFormat:
+	case dataset.CSVDataFormat:
 		return CsvFields(r, data)
-	case dataset.JsonDataFormat:
+	case dataset.JSONDataFormat:
 		return JsonFields(r, data)
-	case dataset.XmlDataFormat:
+	case dataset.XMLDataFormat:
 		return XmlFields(r, data)
 	}
 
@@ -58,7 +58,7 @@ func CsvFields(resource *dataset.Structure, data io.Reader) (fields []*dataset.F
 			f.Name = Camelize(header[i])
 			f.Type = datatypes.Any
 		}
-		resource.FormatConfig = &dataset.CsvOptions{
+		resource.FormatConfig = &dataset.CSVOptions{
 			HeaderRow: true,
 		}
 		// ds.HeaderRow = true

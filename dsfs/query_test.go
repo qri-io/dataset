@@ -39,9 +39,9 @@ func TestQuerySave(t *testing.T) {
 		Abstract: &dataset.AbstractQuery{
 			Syntax:    "sweet syntax",
 			Statement: "select * from a",
-			Structure: &dataset.Structure{Format: dataset.CsvDataFormat, Schema: &dataset.Schema{Fields: []*dataset.Field{&dataset.Field{Name: "its_a_field"}}}},
+			Structure: &dataset.Structure{Format: dataset.CSVDataFormat, Schema: &dataset.Schema{Fields: []*dataset.Field{&dataset.Field{Name: "its_a_field"}}}},
 			Structures: map[string]*dataset.Structure{
-				"a": &dataset.Structure{Format: dataset.CsvDataFormat, Schema: &dataset.Schema{Fields: []*dataset.Field{&dataset.Field{Name: "its_a_field"}}}},
+				"a": &dataset.Structure{Format: dataset.CSVDataFormat, Schema: &dataset.Schema{Fields: []*dataset.Field{&dataset.Field{Name: "its_a_field"}}}},
 			},
 		},
 		Resources: map[string]*dataset.Dataset{

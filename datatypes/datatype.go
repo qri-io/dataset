@@ -10,6 +10,7 @@ import (
 	"time"
 )
 
+// Type is a type of data
 type Type int
 
 const (

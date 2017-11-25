@@ -5,6 +5,9 @@ import (
 	"fmt"
 )
 
+// CompareTypeBytes compares two byte slices with a known type
+// real on the real, this is a bit of a work in progress
+// TODO - up tests
 func CompareTypeBytes(a, b []byte, t Type) (int, error) {
 	if len(a) == 0 && len(b) > 0 {
 		return -1, nil
@@ -27,6 +30,7 @@ func CompareTypeBytes(a, b []byte, t Type) (int, error) {
 	}
 }
 
+// CompareIntegerBytes compares two byte slices of interger data
 func CompareIntegerBytes(a, b []byte) (int, error) {
 	at, err := ParseInteger(a)
 	if err != nil {
@@ -44,6 +48,7 @@ func CompareIntegerBytes(a, b []byte) (int, error) {
 	return -1, nil
 }
 
+// CompareFloatBytes compares two byte slices of float data
 func CompareFloatBytes(a, b []byte) (int, error) {
 	at, err := ParseFloat(a)
 	if err != nil {
