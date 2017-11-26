@@ -36,8 +36,7 @@ const (
 	JSON
 )
 
-// NumDataTypes is the total count of data types, including
-// unknown type
+// NumDatatypes is the total count of data types, including unknown type
 const NumDatatypes = 8
 
 // TypeFromString takes a string & tries to return it's type

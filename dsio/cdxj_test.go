@@ -29,7 +29,7 @@ var cdxjStruct = &dataset.Structure{
 	},
 }
 
-func TestCdxjReader(t *testing.T) {
+func TestCDXJReader(t *testing.T) {
 	buf := bytes.NewBuffer([]byte(cdxjData))
 	rdr, err := NewRowReader(cdxjStruct, buf)
 	if err != nil {
@@ -58,7 +58,7 @@ func TestCdxjReader(t *testing.T) {
 	}
 }
 
-func TestCdxjWriter(t *testing.T) {
+func TestCDXJWriter(t *testing.T) {
 	rows := [][][]byte{
 		// TODO - vary up test input
 		{[]byte("(com,cnn,)/world"), []byte("2015-09-03T13:27:52Z"), []byte("response"), []byte(`{"a" : 0, "b" : "b", "c" : false }`)},

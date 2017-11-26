@@ -1,4 +1,4 @@
-// dataset io defines writers & readers for datasets
+// Package dsio defines writers & readers for dataset data
 package dsio
 
 import (
@@ -8,22 +8,37 @@ import (
 	"github.com/qri-io/dataset"
 )
 
+// RowWriter is a generalized interface for writing structured data
 type RowWriter interface {
+	// Structure gives the structure being written
 	Structure() dataset.Structure
+	// WriteRow writes one row of structured data to the Writer
 	WriteRow(row [][]byte) error
+	// Close finalizes the writer, indicating all entries
+	// have been written
 	Close() error
 }
 
+// RowReader is a generalized interface for reading Structured Data
 type RowReader interface {
+	// Structure gives the structure being read
 	Structure() dataset.Structure
+	// ReadRow reads one row of structured data from the reader
 	ReadRow() ([][]byte, error)
 }
 
+// RowReadWriter combines RowWriter and RowReader behaviors
 type RowReadWriter interface {
+	// Structure gives the structure being read and written
 	Structure() dataset.Structure
+	// ReadRow reads one row of structured data from the reader
 	ReadRow() ([][]byte, error)
+	// WriteRow writes one row of structured data to the ReadWriter
 	WriteRow(row [][]byte) error
+	// Close finalizes the ReadWriter, indicating all entries
+	// have been written
 	Close() error
+	// Bytes gives the raw contents of the ReadWriter
 	Bytes() []byte
 }
 
@@ -31,11 +46,11 @@ type RowReadWriter interface {
 func NewRowReader(st *dataset.Structure, r io.Reader) (RowReader, error) {
 	switch st.Format {
 	case dataset.CSVDataFormat:
-		return NewCsvReader(st, r), nil
+		return NewCSVReader(st, r), nil
 	case dataset.JSONDataFormat:
-		return NewJsonReader(st, r), nil
+		return NewJSONReader(st, r), nil
 	case dataset.CDXJDataFormat:
-		return NewCdxjReader(st, r), nil
+		return NewCDXJReader(st, r), nil
 	case dataset.UnknownDataFormat:
 		return nil, fmt.Errorf("structure must have a data format")
 	default:
@@ -47,11 +62,11 @@ func NewRowReader(st *dataset.Structure, r io.Reader) (RowReader, error) {
 func NewRowWriter(st *dataset.Structure, w io.Writer) (RowWriter, error) {
 	switch st.Format {
 	case dataset.CSVDataFormat:
-		return NewCsvWriter(st, w), nil
+		return NewCSVWriter(st, w), nil
 	case dataset.JSONDataFormat:
-		return NewJsonWriter(st, w), nil
+		return NewJSONWriter(st, w), nil
 	case dataset.CDXJDataFormat:
-		return NewCdxjWriter(st, w), nil
+		return NewCDXJWriter(st, w), nil
 	case dataset.UnknownDataFormat:
 		return nil, fmt.Errorf("structure must have a data format")
 	default:

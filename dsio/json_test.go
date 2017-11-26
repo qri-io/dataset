@@ -10,7 +10,7 @@ import (
 	"github.com/qri-io/dataset/datatypes"
 )
 
-func TestJsonReader(t *testing.T) {
+func TestJSONReader(t *testing.T) {
 	cases := []struct {
 		structure *dataset.Structure
 		filepath  string
@@ -31,7 +31,7 @@ func TestJsonReader(t *testing.T) {
 			continue
 		}
 
-		r := NewJsonReader(c.structure, f)
+		r := NewJSONReader(c.structure, f)
 		j := 0
 		for {
 			// TODO - inspect row output for well formed json
@@ -78,7 +78,7 @@ func TestJsonReader(t *testing.T) {
 	}
 }
 
-func TestJsonWriter(t *testing.T) {
+func TestJSONWriter(t *testing.T) {
 	cases := []struct {
 		structure *dataset.Structure
 		entries   [][][]byte
@@ -167,7 +167,7 @@ func TestJsonWriter(t *testing.T) {
 
 	for i, c := range cases {
 		buf := &bytes.Buffer{}
-		w := NewJsonWriter(c.structure, buf)
+		w := NewJSONWriter(c.structure, buf)
 		for _, ent := range c.entries {
 			if err := w.WriteRow(ent); err != nil {
 				t.Errorf("case %d WriteRow error: %s", i, err.Error())
