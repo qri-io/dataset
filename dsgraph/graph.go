@@ -2,7 +2,7 @@ package dsgraph
 
 var walkParallelism = 4
 
-// NodeType specifies differnt types of qri nodes
+// NodeType specifies different types of qri nodes
 type NodeType string
 
 var (

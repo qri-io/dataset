@@ -240,7 +240,7 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 	// the actual dataset.json on ipfs will be /[hash]/dataset.json, a property
 	// that may or may not apply to other cafs implementations.
 	// We want to store the reference to the directory hash, so the
-	// /[hash]/dataset.json form is desirable, becuase we can do stuff like
+	// /[hash]/dataset.json form is desirable, because we can do stuff like
 	// /[hash]/abstract_structure.json, and so on, but it's hard to extract
 	// in a clean way. maybe a function that re-extracts this info on either
 	// the cafs interface, or the concrete cafs/ipfs implementation?

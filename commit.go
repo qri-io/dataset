@@ -9,7 +9,7 @@ import (
 
 // CommitMsg encapsulates information about changes to a dataset in
 // relation to other entries in a given history. CommitMsg is intended
-// to be directly analagous to the concept of a Commit Message in the
+// to be directly analogous to the concept of a Commit Message in the
 // git version control system
 type CommitMsg struct {
 	path    datastore.Key
