@@ -43,4 +43,5 @@ const (
 	relaxed = `(` + strict + `|` + webURL + `)`
 )
 
+// Relaxed is a url-parsing regex
 var Relaxed = regexp.MustCompile(relaxed)

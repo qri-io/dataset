@@ -24,7 +24,7 @@ var cdxjStruct = &dataset.Structure{
 			// TODO - currently using string b/c date interface isn't fully implemented
 			{Name: "timestamp", Type: datatypes.String},
 			{Name: "record_type", Type: datatypes.String},
-			{Name: "metadata", Type: datatypes.Json},
+			{Name: "metadata", Type: datatypes.JSON},
 		},
 	},
 }

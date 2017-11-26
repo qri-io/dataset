@@ -14,14 +14,15 @@ func TestTypeString(t *testing.T) {
 		expect string
 	}{
 		{Unknown, ""},
+		{Type(-1), ""},
 		{Any, "any"},
 		{String, "string"},
 		{Integer, "integer"},
 		{Float, "float"},
 		{Boolean, "boolean"},
 		{Date, "date"},
-		{Url, "url"},
-		{Json, "json"},
+		{URL, "url"},
+		{JSON, "json"},
 	}
 
 	for i, c := range cases {
@@ -45,8 +46,8 @@ func TestTypeFromString(t *testing.T) {
 		{"float", Float},
 		{"boolean", Boolean},
 		{"date", Date},
-		{"url", Url},
-		{"json", Json},
+		{"url", URL},
+		{"json", JSON},
 	}
 
 	for i, c := range cases {
@@ -94,8 +95,8 @@ func TestTypeParse(t *testing.T) {
 		{Float, "101.5", 101.5, ""},
 		{Boolean, "false", false, ""},
 		// {Date, "date", nil, ""},
-		// {Url, "url", nil, ""},
-		{Json, "{\"data\":\"json\"}", map[string]interface{}{"data": "json"}, ""},
+		// {URL, "url", nil, ""},
+		{JSON, "{\"data\":\"json\"}", map[string]interface{}{"data": "json"}, ""},
 	}
 
 	for i, c := range cases {
@@ -106,6 +107,29 @@ func TestTypeParse(t *testing.T) {
 		}
 		if compare.Interface(c.parsed, got); err != nil {
 			t.Errorf("case %d error mistmatch. expected: %s, got: %s", i, c.err, err)
+			continue
+		}
+	}
+}
+
+func TestParseDatatype(t *testing.T) {
+	cases := []struct {
+		value  string
+		expect Type
+	}{
+		{"{}", JSON},
+		{"[]", JSON},
+		{"1", Integer},
+		{"1.5", Float},
+		{"false", Boolean},
+		{"true", Boolean},
+		{"2015-09-03T13:27:52Z", Date},
+		{"", String},
+	}
+	for i, c := range cases {
+		got := ParseDatatype([]byte(c.value))
+		if c.expect != got {
+			t.Errorf("case %d response mismatch. expected: %s, got: %s", i, c.expect, got)
 			continue
 		}
 	}
@@ -209,7 +233,7 @@ func TestParseBoolean(t *testing.T) {
 	}
 }
 
-func TestJsonArrayOrObject(t *testing.T) {
+func TestJSONArrayOrObject(t *testing.T) {
 	cases := []struct {
 		data, expect, err string
 	}{
@@ -220,7 +244,7 @@ func TestJsonArrayOrObject(t *testing.T) {
 		{"{[", "object", ""},
 	}
 	for i, c := range cases {
-		got, err := JsonArrayOrObject([]byte(c.data))
+		got, err := JSONArrayOrObject([]byte(c.data))
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("case %d error mismatch. expected: %s, got: %s", i, c.err, err.Error())
 			continue
@@ -232,7 +256,7 @@ func TestJsonArrayOrObject(t *testing.T) {
 	}
 }
 
-func TestParseJson(t *testing.T) {
+func TestParseJSON(t *testing.T) {
 	cases := []struct {
 		input  []byte
 		expect interface{}
@@ -247,7 +271,7 @@ func TestParseJson(t *testing.T) {
 		{[]byte(`[{ "a" : "b" }]`), []interface{}{map[string]interface{}{"a": "b"}}, ""},
 	}
 	for i, c := range cases {
-		value, err := ParseJson(c.input)
+		value, err := ParseJSON(c.input)
 
 		if err := compare.Interface(c.expect, value); err != nil {
 			t.Errorf("case %d value mismatch. expected: %s, got: %s, error %s", i, c.expect, value, err.Error())
@@ -278,7 +302,7 @@ func TestParseDate(t *testing.T) {
 	}
 }
 
-func TestParseUrl(t *testing.T) {
+func TestParseURL(t *testing.T) {
 	cases := []struct {
 		input  string
 		expect string
@@ -293,7 +317,7 @@ func TestParseUrl(t *testing.T) {
 		{"https://beastmo.de/this/path?input=blah#bad fragment", "https://beastmo.de/this/path?input=blah#bad%20fragment", nil},
 	}
 	for i, c := range cases {
-		value, got := ParseUrl([]byte(c.input))
+		value, got := ParseURL([]byte(c.input))
 		if value.String() != c.expect {
 			t.Errorf("case %d value mismatch. expected: %s, got: %s", i, c.expect, value.String())
 		}
@@ -301,6 +325,80 @@ func TestParseUrl(t *testing.T) {
 			if c.err != nil && got.Error() != c.err.Error() {
 				t.Errorf("case %d error mismatch. expected: %s, got: %s", i, c.err, got)
 			}
+		}
+	}
+}
+
+func TestValueToString(t *testing.T) {
+	cases := []struct {
+		t      Type
+		v      interface{}
+		expect string
+		err    string
+	}{
+		{Unknown, "", "", "cannot get string value of unknown datatype"},
+		{Integer, 234, "234", ""},
+		{Integer, "234", "", "234 is not an integer value"},
+		{Float, float32(234.0), "234", ""},
+		{Float, float32(234.12339782714844), "234.12339782714844", ""},
+		{Float, "234", "", "234 is not a float value"},
+		{Boolean, false, "false", ""},
+		{Boolean, true, "true", ""},
+		{Boolean, "234", "", "234 is not a boolean value"},
+		{JSON, map[string]interface{}{"a": "b"}, `{"a":"b"}`, ""},
+		// {JSON, "234", "", "234 is not a json value"},
+		{Date, time.Date(2001, 1, 1, 0, 0, 0, 0, time.UTC), "2001-01-01T00:00:00Z", ""},
+		{Date, "234", "", "234 is not a date value"},
+		{String, "foo", "foo", ""},
+		{String, 234, "", "234 is not a string value"},
+	}
+
+	for i, c := range cases {
+		got, err := c.t.ValueToString(c.v)
+		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
+			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
+			continue
+		}
+		if c.expect != got {
+			t.Errorf("case %d mismatch. expected: '%s', got: '%s'", i, c.expect, got)
+			continue
+		}
+	}
+}
+
+func TestValueToBytes(t *testing.T) {
+	cases := []struct {
+		t      Type
+		v      interface{}
+		expect string
+		err    string
+	}{
+		{Unknown, "", "", "cannot get string value of unknown datatype"},
+		{Integer, 234, "234", ""},
+		{Integer, "234", "", "234 is not an integer value"},
+		{Float, float32(234.0), "234", ""},
+		{Float, float32(234.12339782714844), "234.12339782714844", ""},
+		{Float, "234", "", "234 is not a float value"},
+		{Boolean, false, "false", ""},
+		{Boolean, true, "true", ""},
+		{Boolean, "234", "", "234 is not a boolean value"},
+		{JSON, map[string]interface{}{"a": "b"}, `{"a":"b"}`, ""},
+		// {JSON, "234", "", "234 is not a json value"},
+		{Date, time.Date(2001, 1, 1, 0, 0, 0, 0, time.UTC), "2001-01-01T00:00:00Z", ""},
+		{Date, "234", "", "234 is not a date value"},
+		{String, "foo", "foo", ""},
+		{String, 234, "", "234 is not a string value"},
+	}
+
+	for i, c := range cases {
+		got, err := c.t.ValueToBytes(c.v)
+		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
+			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
+			continue
+		}
+		if !bytes.Equal([]byte(c.expect), got) {
+			t.Errorf("case %d mismatch. expected: '%s', got: '%s'", i, c.expect, string(got))
+			continue
 		}
 	}
 }

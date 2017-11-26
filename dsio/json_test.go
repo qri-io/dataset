@@ -152,7 +152,7 @@ func TestJsonWriter(t *testing.T) {
 		{&dataset.Structure{Schema: &dataset.Schema{
 			Fields: []*dataset.Field{
 				{Name: "name", Type: datatypes.String},
-				{Name: "metadata", Type: datatypes.Json},
+				{Name: "metadata", Type: datatypes.JSON},
 			}}},
 			[][][]byte{
 				{[]byte("name_one"), []byte(`{ "data" : "stuff", "foo" : 5, "false" : true }`)},

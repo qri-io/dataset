@@ -5,23 +5,23 @@
     "fields": [
       {
         "name": "state_code",
-        "type": "float"
+        "type": "integer"
       },
       {
         "name": "county_code",
-        "type": "float"
+        "type": "integer"
       },
       {
         "name": "site_num",
-        "type": "float"
+        "type": "integer"
       },
       {
         "name": "parameter_code",
-        "type": "float"
+        "type": "integer"
       },
       {
         "name": "poc",
-        "type": "float"
+        "type": "integer"
       },
       {
         "name": "latitude",
@@ -61,7 +61,7 @@
       },
       {
         "name": "observation_count",
-        "type": "float"
+        "type": "integer"
       },
       {
         "name": "observation_percent",
@@ -77,7 +77,7 @@
       },
       {
         "name": "_1st_max_hour",
-        "type": "float"
+        "type": "integer"
       },
       {
         "name": "aqi",
@@ -85,7 +85,7 @@
       },
       {
         "name": "method_code",
-        "type": "float"
+        "type": "integer"
       },
       {
         "name": "method_name",

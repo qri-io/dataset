@@ -75,7 +75,7 @@ var cdxjStructure = &dataset.Structure{
 			{Name: "url", Type: datatypes.String},
 			{Name: "date", Type: datatypes.String},
 			{Name: "record_type", Type: datatypes.String},
-			{Name: "meta", Type: datatypes.Json},
+			{Name: "meta", Type: datatypes.JSON},
 		},
 	},
 }

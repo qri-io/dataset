@@ -46,7 +46,7 @@ func (r *JsonReader) ReadRow() ([][]byte, error) {
 // initialIndex sets the scanner up to read data, advancing until the first
 // entry in the top level array & setting the scanner split func to scan objects
 func initialIndex(data []byte) (skip int, err error) {
-	typ, err := datatypes.JsonArrayOrObject(data)
+	typ, err := datatypes.JSONArrayOrObject(data)
 	if err != nil {
 		// might not have initial closure, request more data
 		return -1, err
@@ -178,7 +178,7 @@ func (w *JsonWriter) writeObjectRow(row [][]byte) error {
 			case datatypes.Boolean:
 				// TODO - coerce to true & false specifically
 				ent = append(ent, c...)
-			case datatypes.Json:
+			case datatypes.JSON:
 				ent = append(ent, c...)
 			default:
 				ent = append(ent, []byte(strconv.Quote(string(c)))...)
@@ -227,7 +227,7 @@ func (w *JsonWriter) writeArrayRow(row [][]byte) error {
 				// ent = append(ent, []byte("false")...)
 				// }
 				ent = append(ent, c...)
-			case datatypes.Json:
+			case datatypes.JSON:
 				ent = append(ent, c...)
 			default:
 				ent = append(ent, []byte(strconv.Quote(string(c)))...)

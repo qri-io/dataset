@@ -68,7 +68,7 @@ func RandomField(options ...func(*RandomFieldOpt)) *dataset.Field {
 		if opt.Datatypes != nil {
 			opt.Type = opt.Datatypes[rand.Intn((len(opt.Datatypes)-1))+1]
 		} else {
-			opt.Type = datatypes.Type(rand.Intn(datatypes.NUM_DATA_TYPES) + 1)
+			opt.Type = datatypes.Type(rand.Intn(datatypes.NumDatatypes) + 1)
 		}
 	}
 

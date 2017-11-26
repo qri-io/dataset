@@ -14,7 +14,7 @@ func RandomValue(t datatypes.Type) interface{} {
 	case datatypes.Unknown:
 		return nil
 	case datatypes.Any:
-		return RandomValue(datatypes.Type((rand.Intn(datatypes.NUM_DATA_TYPES) + 1) - 2))
+		return RandomValue(datatypes.Type((rand.Intn(datatypes.NumDatatypes) + 1) - 2))
 	case datatypes.String:
 		return randString(rand.Intn(100))
 	case datatypes.Float:
@@ -23,14 +23,14 @@ func RandomValue(t datatypes.Type) interface{} {
 		return rand.Int()
 	case datatypes.Boolean:
 		return rand.Intn(10) > 4
-	case datatypes.Json:
+	case datatypes.JSON:
 		if rand.Intn(2) == 1 {
 			return map[string]interface{}{}
 		}
 		return []interface{}{}
 	case datatypes.Date:
 		return time.Now().Add(time.Hour * 24 * time.Duration(rand.Intn(30)+1))
-	case datatypes.Url:
+	case datatypes.URL:
 		return &url.URL{
 			Scheme: "http",
 			Host:   "bit.ly",
@@ -47,7 +47,7 @@ func RandomStringValue(t datatypes.Type) string {
 	case datatypes.Unknown:
 		return ""
 	case datatypes.Any:
-		return RandomStringValue(datatypes.Type((rand.Intn(datatypes.NUM_DATA_TYPES) + 1) - 2))
+		return RandomStringValue(datatypes.Type((rand.Intn(datatypes.NumDatatypes) + 1) - 2))
 	case datatypes.String:
 		return randString(rand.Intn(100))
 	case datatypes.Float:
@@ -62,14 +62,14 @@ func RandomStringValue(t datatypes.Type) string {
 		} else {
 			return "false"
 		}
-	case datatypes.Json:
+	case datatypes.JSON:
 		if rand.Intn(2) > 1 {
 			return "{}"
 		}
 		return "[]"
 	case datatypes.Date:
 		return time.Now().Add(time.Hour * 24 * time.Duration(rand.Intn(30)+1)).Format(time.ANSIC)
-	case datatypes.Url:
+	case datatypes.URL:
 		return "http://bit.ly/" + randString(6)
 	}
 
