@@ -12,6 +12,10 @@ jobs:
     steps:
       - checkout
       - run: mkdir -p $TEST_RESULTS
+      - run: go get github.com/jstemmer/go-junit-report github.com/golang/lint/golint
+      - run: 
+          name: Run Lint Tests
+          command: golint ./...
       - run: 
           name: Install gx
           command: >
@@ -43,7 +47,6 @@ jobs:
             github.com/qri-io/cafs/memfs
             github.com/qri-io/compare
             github.com/datatogether/cdxj
-      - run: go get github.com/jstemmer/go-junit-report
       - run:
           name: Run Tests
           command: |
