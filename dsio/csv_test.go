@@ -25,7 +25,7 @@ var csvStruct = &dataset.Structure{
 	},
 }
 
-func TestCsvReader(t *testing.T) {
+func TestCSVReader(t *testing.T) {
 	buf := bytes.NewBuffer([]byte(csvData))
 	rdr, err := NewRowReader(csvStruct, buf)
 	if err != nil {
@@ -54,7 +54,7 @@ func TestCsvReader(t *testing.T) {
 	}
 }
 
-func TestCsvWriter(t *testing.T) {
+func TestCSVWriter(t *testing.T) {
 	rows := [][][]byte{
 		// TODO - vary up test input
 		{[]byte("a"), []byte("b"), []byte("c"), []byte("d")},

@@ -8,7 +8,7 @@ import (
 	// "github.com/qri-io/datatypes/datatypes_generate"
 )
 
-// GenerateRandomFieldsOpt specifies the options for GenerateRandomFields
+// RandomFieldsOpt specifies the options for GenerateRandomFields
 type RandomFieldsOpt struct {
 	// use a provided name instead of a random one
 	Name string
@@ -21,7 +21,7 @@ type RandomFieldsOpt struct {
 	Fields []*dataset.Field
 }
 
-// GenerateRandomFields creates a random valid table. Provide option func(s) to customize
+// RandomFields creates a random valid table. Provide option func(s) to customize
 func RandomFields(options ...func(*RandomFieldsOpt)) []*dataset.Field {
 	opt := &RandomFieldsOpt{
 		Name:      randString(16),

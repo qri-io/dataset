@@ -8,6 +8,7 @@ import (
 // QueryResults graphs query paths to result paths
 type QueryResults map[datastore.Key][]datastore.Key
 
+// AddResult adds a result to the QueryResults map
 func (qr QueryResults) AddResult(query, result datastore.Key) {
 	for _, r := range qr[query] {
 		if r.Equal(result) {
@@ -17,6 +18,7 @@ func (qr QueryResults) AddResult(query, result datastore.Key) {
 	qr[query] = append(qr[query], result)
 }
 
+// MarshalJSON implements the json.Marshaler interface for QueryResults
 func (qr QueryResults) MarshalJSON() ([]byte, error) {
 	qrmap := map[string]interface{}{}
 	for key, vals := range qr {
@@ -29,6 +31,7 @@ func (qr QueryResults) MarshalJSON() ([]byte, error) {
 	return json.Marshal(qrmap)
 }
 
+// UnmarshalJSON implements the json.Unmarshaler interface for QueryResults
 func (qr *QueryResults) UnmarshalJSON(data []byte) error {
 	qrmap := map[string][]datastore.Key{}
 	if err := json.Unmarshal(data, &qrmap); err != nil {

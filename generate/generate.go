@@ -1,6 +1,5 @@
-// Generate is a package for generating random instances
-// of objects in the dataset package.
-// It's primary use is for fuzzing.
+// Package generate is suite of functions generating random
+// structures and data
 package generate
 
 import (

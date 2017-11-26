@@ -11,29 +11,32 @@ import (
 	"github.com/qri-io/dataset/datatypes"
 )
 
-// TODO
-type JsonReader struct {
+// JSONReader implements the RowReader interface for the JSON data format
+type JSONReader struct {
 	rowsRead    int
 	initialized bool
 	st          *dataset.Structure
 	sc          *bufio.Scanner
 }
 
-func NewJsonReader(st *dataset.Structure, r io.Reader) *JsonReader {
+// NewJSONReader creates a reader from a structure and read source
+func NewJSONReader(st *dataset.Structure, r io.Reader) *JSONReader {
 	sc := bufio.NewScanner(r)
-	jr := &JsonReader{
+	jr := &JSONReader{
 		st: st,
 		sc: sc,
 	}
-	sc.Split(jr.scanJsonRow)
+	sc.Split(jr.scanJSONRow)
 	return jr
 }
 
-func (r *JsonReader) Structure() dataset.Structure {
+// Structure gives this writer's structure
+func (r *JSONReader) Structure() dataset.Structure {
 	return *r.st
 }
 
-func (r *JsonReader) ReadRow() ([][]byte, error) {
+// ReadRow reads one JSON record from the reader
+func (r *JSONReader) ReadRow() ([][]byte, error) {
 	more := r.sc.Scan()
 	if !more {
 		return nil, fmt.Errorf("EOF")
@@ -61,7 +64,8 @@ func initialIndex(data []byte) (skip int, err error) {
 	return idx + 1, nil
 }
 
-func (r *JsonReader) scanJsonRow(data []byte, atEOF bool) (advance int, token []byte, err error) {
+// scanJSONRow scans according to json closures ([] and {})
+func (r *JSONReader) scanJSONRow(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	if atEOF && len(data) == 0 {
 		return 0, nil, nil
 	}
@@ -115,30 +119,35 @@ LOOP:
 	return 0, nil, nil
 }
 
-type JsonWriter struct {
+// JSONWriter implements the RowWriter interface for
+// JSON-formatted data
+type JSONWriter struct {
 	writeObjects bool
 	rowsWritten  int
 	st           *dataset.Structure
 	wr           io.Writer
 }
 
-func NewJsonWriter(st *dataset.Structure, w io.Writer) *JsonWriter {
+// NewJSONWriter creates a Writer from a structure and write destination
+func NewJSONWriter(st *dataset.Structure, w io.Writer) *JSONWriter {
 	writeObjects := true
 	if opt, ok := st.FormatConfig.(*dataset.JSONOptions); ok {
 		writeObjects = !opt.ArrayEntries
 	}
-	return &JsonWriter{
+	return &JSONWriter{
 		writeObjects: writeObjects,
 		st:           st,
 		wr:           w,
 	}
 }
 
-func (w *JsonWriter) Structure() dataset.Structure {
+// Structure gives this writer's structure
+func (w *JSONWriter) Structure() dataset.Structure {
 	return *w.st
 }
 
-func (w *JsonWriter) WriteRow(row [][]byte) error {
+// WriteRow writes one JSON record to the writer
+func (w *JSONWriter) WriteRow(row [][]byte) error {
 	if w.rowsWritten == 0 {
 		if _, err := w.wr.Write([]byte{'['}); err != nil {
 			return fmt.Errorf("error writing initial `[`: %s", err.Error())
@@ -151,7 +160,7 @@ func (w *JsonWriter) WriteRow(row [][]byte) error {
 	return w.writeArrayRow(row)
 }
 
-func (w *JsonWriter) writeObjectRow(row [][]byte) error {
+func (w *JSONWriter) writeObjectRow(row [][]byte) error {
 	enc := []byte{',', '\n', '{'}
 	if w.rowsWritten == 0 {
 		enc = enc[1:]
@@ -197,7 +206,7 @@ func (w *JsonWriter) writeObjectRow(row [][]byte) error {
 	return nil
 }
 
-func (w *JsonWriter) writeArrayRow(row [][]byte) error {
+func (w *JSONWriter) writeArrayRow(row [][]byte) error {
 	enc := []byte{',', '\n', '['}
 	if w.rowsWritten == 0 {
 		enc = enc[1:]
@@ -246,7 +255,9 @@ func (w *JsonWriter) writeArrayRow(row [][]byte) error {
 	return nil
 }
 
-func (w *JsonWriter) Close() error {
+// Close finalizes the writer, indicating no more records
+// will be written
+func (w *JSONWriter) Close() error {
 	// if WriteRow is never called, write an empty array
 	if w.rowsWritten == 0 {
 		if _, err := w.wr.Write([]byte("[]")); err != nil {

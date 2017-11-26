@@ -8,6 +8,7 @@ import (
 	"github.com/qri-io/dataset/datatypes"
 )
 
+// RandomStructureOpts configures the RandomStructure func
 type RandomStructureOpts struct {
 	Path      datastore.Key
 	Datatypes []datatypes.Type

@@ -35,7 +35,7 @@ func FromFile(path string) (ds *dataset.Structure, err error) {
 		return nil, err
 	}
 
-	return DetectStructure(format, f)
+	return Structure(format, f)
 }
 
 // FromReader is a shorthand for a path/filename and reader
@@ -44,11 +44,11 @@ func FromReader(path string, data io.Reader) (ds *dataset.Structure, err error) 
 	if err != nil {
 		return nil, err
 	}
-	return DetectStructure(format, data)
+	return Structure(format, data)
 }
 
 // Structure attemptes to extract a reader based on a given format and data reader
-func DetectStructure(format dataset.DataFormat, data io.Reader) (r *dataset.Structure, err error) {
+func Structure(format dataset.DataFormat, data io.Reader) (r *dataset.Structure, err error) {
 
 	r = &dataset.Structure{
 		Format: format,
