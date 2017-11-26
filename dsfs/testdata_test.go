@@ -19,7 +19,7 @@ var AirportCodes = &dataset.Dataset{
 		Type: "PDDL-1.0",
 	},
 	Citations: []*dataset.Citation{
-		&dataset.Citation{
+		{
 			Name: "Our Airports",
 			URL:  "http://ourairports.com/data/",
 		},
@@ -40,55 +40,55 @@ var AirportCodesStructure = &dataset.Structure{
 	},
 	Schema: &dataset.Schema{
 		Fields: []*dataset.Field{
-			&dataset.Field{
+			{
 				Name: "ident",
 				Type: datatypes.String,
 			},
-			&dataset.Field{
+			{
 				Name: "type",
 				Type: datatypes.String,
 			},
-			&dataset.Field{
+			{
 				Name: "name",
 				Type: datatypes.String,
 			},
-			&dataset.Field{
+			{
 				Name: "latitude_deg",
 				Type: datatypes.Float,
 			},
-			&dataset.Field{
+			{
 				Name: "longitude_deg",
 				Type: datatypes.Float,
 			},
-			&dataset.Field{
+			{
 				Name: "elevation_ft",
 				Type: datatypes.Integer,
 			},
-			&dataset.Field{
+			{
 				Name: "continent",
 				Type: datatypes.String,
 			},
-			&dataset.Field{
+			{
 				Name: "iso_country",
 				Type: datatypes.String,
 			},
-			&dataset.Field{
+			{
 				Name: "iso_region",
 				Type: datatypes.String,
 			},
-			&dataset.Field{
+			{
 				Name: "municipality",
 				Type: datatypes.String,
 			},
-			&dataset.Field{
+			{
 				Name: "gps_code",
 				Type: datatypes.String,
 			},
-			&dataset.Field{
+			{
 				Name: "iata_code",
 				Type: datatypes.String,
 			},
-			&dataset.Field{
+			{
 				Name: "local_code",
 				Type: datatypes.String,
 			},
@@ -101,55 +101,55 @@ var AirportCodesStructureAgebraic = &dataset.Structure{
 	FormatConfig: &dataset.CSVOptions{HeaderRow: true},
 	Schema: &dataset.Schema{
 		Fields: []*dataset.Field{
-			&dataset.Field{
+			{
 				Name: "col_0",
 				Type: datatypes.String,
 			},
-			&dataset.Field{
+			{
 				Name: "col_1",
 				Type: datatypes.String,
 			},
-			&dataset.Field{
+			{
 				Name: "col_2",
 				Type: datatypes.String,
 			},
-			&dataset.Field{
+			{
 				Name: "col_3",
 				Type: datatypes.Float,
 			},
-			&dataset.Field{
+			{
 				Name: "col_4",
 				Type: datatypes.Float,
 			},
-			&dataset.Field{
+			{
 				Name: "col_5",
 				Type: datatypes.Integer,
 			},
-			&dataset.Field{
+			{
 				Name: "col_6",
 				Type: datatypes.String,
 			},
-			&dataset.Field{
+			{
 				Name: "col_7",
 				Type: datatypes.String,
 			},
-			&dataset.Field{
+			{
 				Name: "col_8",
 				Type: datatypes.String,
 			},
-			&dataset.Field{
+			{
 				Name: "col_9",
 				Type: datatypes.String,
 			},
-			&dataset.Field{
+			{
 				Name: "col_10",
 				Type: datatypes.String,
 			},
-			&dataset.Field{
+			{
 				Name: "col_11",
 				Type: datatypes.String,
 			},
-			&dataset.Field{
+			{
 				Name: "col_12",
 				Type: datatypes.String,
 			},
@@ -176,11 +176,11 @@ var ContinentCodesStructure = &dataset.Structure{
 	Format: dataset.CSVDataFormat,
 	Schema: &dataset.Schema{
 		Fields: []*dataset.Field{
-			&dataset.Field{
+			{
 				Name: "Code",
 				Type: datatypes.String,
 			},
-			&dataset.Field{
+			{
 				Name: "Name",
 				Type: datatypes.String,
 			},
@@ -197,10 +197,10 @@ var HoursStructure = &dataset.Structure{
 	Format: dataset.CSVDataFormat,
 	Schema: &dataset.Schema{
 		Fields: []*dataset.Field{
-			&dataset.Field{Name: "field_1", Type: datatypes.Date},
-			&dataset.Field{Name: "field_2", Type: datatypes.Float},
-			&dataset.Field{Name: "field_3", Type: datatypes.String},
-			&dataset.Field{Name: "field_4", Type: datatypes.String},
+			{Name: "field_1", Type: datatypes.Date},
+			{Name: "field_2", Type: datatypes.Float},
+			{Name: "field_3", Type: datatypes.String},
+			{Name: "field_4", Type: datatypes.String},
 		},
 	},
 }
@@ -214,7 +214,7 @@ func makeFilestore() (map[string]datastore.Key, cafs.Filestore, error) {
 		"archive": datastore.NewKey(""),
 	}
 
-	for k, _ := range datasets {
+	for k := range datasets {
 		dsdata, err := ioutil.ReadFile(fmt.Sprintf("testdata/%s.json", k))
 		if err != nil {
 			return datasets, nil, err

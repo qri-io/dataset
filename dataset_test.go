@@ -19,9 +19,9 @@ func TestDatasetAssign(t *testing.T) {
 		Structure: &Structure{
 			Schema: &Schema{
 				Fields: []*Field{
-					&Field{Type: datatypes.String, Name: "foo"},
-					&Field{Type: datatypes.Integer, Name: "bar"},
-					&Field{Description: "bat"},
+					{Type: datatypes.String, Name: "foo"},
+					{Type: datatypes.Integer, Name: "bar"},
+					{Description: "bat"},
 				},
 			},
 		},
@@ -32,8 +32,8 @@ func TestDatasetAssign(t *testing.T) {
 		Structure: &Structure{
 			Schema: &Schema{
 				Fields: []*Field{
-					&Field{Type: datatypes.String},
-					&Field{Type: datatypes.Integer},
+					{Type: datatypes.String},
+					{Type: datatypes.Integer},
 				},
 			},
 		},
@@ -46,9 +46,9 @@ func TestDatasetAssign(t *testing.T) {
 		Structure: &Structure{
 			Schema: &Schema{
 				Fields: []*Field{
-					&Field{Name: "foo"},
-					&Field{Name: "bar"},
-					&Field{Description: "bat"},
+					{Name: "foo"},
+					{Name: "bar"},
+					{Description: "bat"},
 				},
 			},
 		},

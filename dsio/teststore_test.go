@@ -15,12 +15,12 @@ type testCase struct {
 }
 
 var rows = map[string][][][]byte{
-	"cities": [][][]byte{
-		[][]byte{[]byte("toronto"), []byte("40000000"), []byte("55.5"), []byte("false")},
-		[][]byte{[]byte("new york"), []byte("8500000"), []byte("44.4"), []byte("true")},
-		[][]byte{[]byte("chicago"), []byte("300000"), []byte("44.4"), []byte("true")},
-		[][]byte{[]byte("chatham"), []byte("35000"), []byte("65.25"), []byte("true")},
-		[][]byte{[]byte("raleigh"), []byte("250000"), []byte("50.65"), []byte("true")},
+	"cities": {
+		{[]byte("toronto"), []byte("40000000"), []byte("55.5"), []byte("false")},
+		{[]byte("new york"), []byte("8500000"), []byte("44.4"), []byte("true")},
+		{[]byte("chicago"), []byte("300000"), []byte("44.4"), []byte("true")},
+		{[]byte("chatham"), []byte("35000"), []byte("65.25"), []byte("true")},
+		{[]byte("raleigh"), []byte("250000"), []byte("50.65"), []byte("true")},
 	},
 }
 
@@ -30,7 +30,7 @@ func makeTestData() (map[string]*testCase, error) {
 		"cities": nil,
 	}
 
-	for k, _ := range datasets {
+	for k := range datasets {
 		data, err := ioutil.ReadFile(fmt.Sprintf("testdata/%s.csv", k))
 		if err != nil {
 			return datasets, err

@@ -84,41 +84,41 @@ func TestJsonWriter(t *testing.T) {
 		entries   [][][]byte
 		out       string
 	}{
-		{&dataset.Structure{Schema: &dataset.Schema{Fields: []*dataset.Field{&dataset.Field{Name: "a", Type: datatypes.String}}}}, [][][]byte{}, "[]"},
-		{&dataset.Structure{Schema: &dataset.Schema{Fields: []*dataset.Field{&dataset.Field{Name: "a", Type: datatypes.String}}}}, [][][]byte{[][]byte{[]byte("hello")}}, "[\n{\"a\":\"hello\"}\n]"},
-		{&dataset.Structure{Schema: &dataset.Schema{Fields: []*dataset.Field{&dataset.Field{Name: "a", Type: datatypes.String}}}, FormatConfig: &dataset.JSONOptions{ArrayEntries: true}}, [][][]byte{[][]byte{[]byte("hello")}}, "[\n[\"hello\"]\n]"},
-		{&dataset.Structure{Schema: &dataset.Schema{Fields: []*dataset.Field{&dataset.Field{Name: "a", Type: datatypes.String}}}}, [][][]byte{
-			[][]byte{[]byte("hello")},
-			[][]byte{[]byte("world")},
+		{&dataset.Structure{Schema: &dataset.Schema{Fields: []*dataset.Field{{Name: "a", Type: datatypes.String}}}}, [][][]byte{}, "[]"},
+		{&dataset.Structure{Schema: &dataset.Schema{Fields: []*dataset.Field{{Name: "a", Type: datatypes.String}}}}, [][][]byte{{[]byte("hello")}}, "[\n{\"a\":\"hello\"}\n]"},
+		{&dataset.Structure{Schema: &dataset.Schema{Fields: []*dataset.Field{{Name: "a", Type: datatypes.String}}}, FormatConfig: &dataset.JSONOptions{ArrayEntries: true}}, [][][]byte{{[]byte("hello")}}, "[\n[\"hello\"]\n]"},
+		{&dataset.Structure{Schema: &dataset.Schema{Fields: []*dataset.Field{{Name: "a", Type: datatypes.String}}}}, [][][]byte{
+			{[]byte("hello")},
+			{[]byte("world")},
 		}, "[\n{\"a\":\"hello\"},\n{\"a\":\"world\"}\n]"},
 		// {&dataset.Structure{ Schema: &dataset.Schema{ Fields: []*dataset.Field{&dataset.Field{Name: "a", Type: datatypes.String}}}}, [][][]byte{
 		// 	[][]byte{[]byte("hello")},
 		// 	[][]byte{[]byte("world")},
 		// }, "[\n[\"hello\"],\n[\"world\"]\n]"},
-		{&dataset.Structure{Schema: &dataset.Schema{Fields: []*dataset.Field{&dataset.Field{Name: "a", Type: datatypes.String}}}, FormatConfig: &dataset.JSONOptions{ArrayEntries: true}}, [][][]byte{
-			[][]byte{[]byte("hello\n?")},
-			[][]byte{[]byte("world")},
+		{&dataset.Structure{Schema: &dataset.Schema{Fields: []*dataset.Field{{Name: "a", Type: datatypes.String}}}, FormatConfig: &dataset.JSONOptions{ArrayEntries: true}}, [][][]byte{
+			{[]byte("hello\n?")},
+			{[]byte("world")},
 		}, "[\n[\"hello\\n?\"],\n[\"world\"]\n]"},
 		{&dataset.Structure{Schema: &dataset.Schema{
 			Fields: []*dataset.Field{
-				&dataset.Field{Name: "ident", Type: datatypes.String},
-				&dataset.Field{Name: "type", Type: datatypes.String},
-				&dataset.Field{Name: "name", Type: datatypes.String},
-				&dataset.Field{Name: "latitude_deg", Type: datatypes.Float},
-				&dataset.Field{Name: "longitude_deg", Type: datatypes.Float},
-				&dataset.Field{Name: "elevation_ft", Type: datatypes.Integer},
-				&dataset.Field{Name: "continent", Type: datatypes.String},
-				&dataset.Field{Name: "iso_country", Type: datatypes.String},
-				&dataset.Field{Name: "iso_region", Type: datatypes.String},
-				&dataset.Field{Name: "municipality", Type: datatypes.String},
-				&dataset.Field{Name: "gps_code", Type: datatypes.String},
-				&dataset.Field{Name: "iata_code", Type: datatypes.String},
-				&dataset.Field{Name: "local_code", Type: datatypes.String},
-				&dataset.Field{Name: "bool_teim", Type: datatypes.Boolean},
+				{Name: "ident", Type: datatypes.String},
+				{Name: "type", Type: datatypes.String},
+				{Name: "name", Type: datatypes.String},
+				{Name: "latitude_deg", Type: datatypes.Float},
+				{Name: "longitude_deg", Type: datatypes.Float},
+				{Name: "elevation_ft", Type: datatypes.Integer},
+				{Name: "continent", Type: datatypes.String},
+				{Name: "iso_country", Type: datatypes.String},
+				{Name: "iso_region", Type: datatypes.String},
+				{Name: "municipality", Type: datatypes.String},
+				{Name: "gps_code", Type: datatypes.String},
+				{Name: "iata_code", Type: datatypes.String},
+				{Name: "local_code", Type: datatypes.String},
+				{Name: "bool_teim", Type: datatypes.Boolean},
 			}},
 			FormatConfig: &dataset.JSONOptions{ArrayEntries: true}},
 			[][][]byte{
-				[][]byte{[]byte("00AR"), []byte("heliport"), []byte("Newport Hospital & Clinic Heliport"), []byte{}, []byte{}, []byte{}, []byte("NA"), []byte("US"), []byte("US-AR"), []byte("Newport"), []byte("00AR"), []byte{}, []byte("00AR"), []byte{}},
+				{[]byte("00AR"), []byte("heliport"), []byte("Newport Hospital & Clinic Heliport"), {}, {}, {}, []byte("NA"), []byte("US"), []byte("US-AR"), []byte("Newport"), []byte("00AR"), {}, []byte("00AR"), {}},
 			},
 			// "[\n[\"00AR\",\"heliport\",\"Newport Hospital & Clinic Heliport\",0,0,0,\"NA\",\"US\",\"US-AR\",\"Newport\",\"00AR\",\"\",\"00AR\",false]\n]",
 			`[
@@ -127,23 +127,23 @@ func TestJsonWriter(t *testing.T) {
 		},
 		{&dataset.Structure{Schema: &dataset.Schema{
 			Fields: []*dataset.Field{
-				&dataset.Field{Name: "ident", Type: datatypes.String},
-				&dataset.Field{Name: "type", Type: datatypes.String},
-				&dataset.Field{Name: "name", Type: datatypes.String},
-				&dataset.Field{Name: "latitude_deg", Type: datatypes.Float},
-				&dataset.Field{Name: "longitude_deg", Type: datatypes.Float},
-				&dataset.Field{Name: "elevation_ft", Type: datatypes.Integer},
-				&dataset.Field{Name: "continent", Type: datatypes.String},
-				&dataset.Field{Name: "iso_country", Type: datatypes.String},
-				&dataset.Field{Name: "iso_region", Type: datatypes.String},
-				&dataset.Field{Name: "municipality", Type: datatypes.String},
-				&dataset.Field{Name: "gps_code", Type: datatypes.String},
-				&dataset.Field{Name: "iata_code", Type: datatypes.String},
-				&dataset.Field{Name: "local_code", Type: datatypes.String},
-				&dataset.Field{Name: "bool_teim", Type: datatypes.Boolean},
+				{Name: "ident", Type: datatypes.String},
+				{Name: "type", Type: datatypes.String},
+				{Name: "name", Type: datatypes.String},
+				{Name: "latitude_deg", Type: datatypes.Float},
+				{Name: "longitude_deg", Type: datatypes.Float},
+				{Name: "elevation_ft", Type: datatypes.Integer},
+				{Name: "continent", Type: datatypes.String},
+				{Name: "iso_country", Type: datatypes.String},
+				{Name: "iso_region", Type: datatypes.String},
+				{Name: "municipality", Type: datatypes.String},
+				{Name: "gps_code", Type: datatypes.String},
+				{Name: "iata_code", Type: datatypes.String},
+				{Name: "local_code", Type: datatypes.String},
+				{Name: "bool_teim", Type: datatypes.Boolean},
 			}}},
 			[][][]byte{
-				[][]byte{[]byte("00AR"), []byte("heliport"), []byte("Newport Hospital & Clinic Heliport"), []byte{}, []byte("0"), []byte{}, []byte("NA"), []byte("US"), []byte("US-AR"), []byte("Newport"), []byte("00AR"), []byte{}, []byte("00AR"), []byte{}},
+				{[]byte("00AR"), []byte("heliport"), []byte("Newport Hospital & Clinic Heliport"), {}, []byte("0"), {}, []byte("NA"), []byte("US"), []byte("US-AR"), []byte("Newport"), []byte("00AR"), {}, []byte("00AR"), {}},
 			},
 			`[
 {"ident":"00AR","type":"heliport","name":"Newport Hospital & Clinic Heliport","latitude_deg":null,"longitude_deg":0,"elevation_ft":null,"continent":"NA","iso_country":"US","iso_region":"US-AR","municipality":"Newport","gps_code":"00AR","iata_code":null,"local_code":"00AR","bool_teim":null}
@@ -151,12 +151,12 @@ func TestJsonWriter(t *testing.T) {
 		},
 		{&dataset.Structure{Schema: &dataset.Schema{
 			Fields: []*dataset.Field{
-				&dataset.Field{Name: "name", Type: datatypes.String},
-				&dataset.Field{Name: "metadata", Type: datatypes.Json},
+				{Name: "name", Type: datatypes.String},
+				{Name: "metadata", Type: datatypes.Json},
 			}}},
 			[][][]byte{
-				[][]byte{[]byte("name_one"), []byte(`{ "data" : "stuff", "foo" : 5, "false" : true }`)},
-				[][]byte{[]byte("name_two"), []byte(`["stuff",5,false,null,27.5]`)},
+				{[]byte("name_one"), []byte(`{ "data" : "stuff", "foo" : 5, "false" : true }`)},
+				{[]byte("name_two"), []byte(`["stuff",5,false,null,27.5]`)},
 			},
 			`[
 {"name":"name_one","metadata":{ "data" : "stuff", "foo" : 5, "false" : true }},

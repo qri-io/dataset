@@ -17,10 +17,10 @@ var csvStruct = &dataset.Structure{
 	Format: dataset.CSVDataFormat,
 	Schema: &dataset.Schema{
 		Fields: []*dataset.Field{
-			&dataset.Field{Name: "a", Type: datatypes.String},
-			&dataset.Field{Name: "b", Type: datatypes.String},
-			&dataset.Field{Name: "c", Type: datatypes.String},
-			&dataset.Field{Name: "d", Type: datatypes.String},
+			{Name: "a", Type: datatypes.String},
+			{Name: "b", Type: datatypes.String},
+			{Name: "c", Type: datatypes.String},
+			{Name: "d", Type: datatypes.String},
 		},
 	},
 }
@@ -57,11 +57,11 @@ func TestCsvReader(t *testing.T) {
 func TestCsvWriter(t *testing.T) {
 	rows := [][][]byte{
 		// TODO - vary up test input
-		[][]byte{[]byte("a"), []byte("b"), []byte("c"), []byte("d")},
-		[][]byte{[]byte("a"), []byte("b"), []byte("c"), []byte("d")},
-		[][]byte{[]byte("a"), []byte("b"), []byte("c"), []byte("d")},
-		[][]byte{[]byte("a"), []byte("b"), []byte("c"), []byte("d")},
-		[][]byte{[]byte("a"), []byte("b"), []byte("c"), []byte("d")},
+		{[]byte("a"), []byte("b"), []byte("c"), []byte("d")},
+		{[]byte("a"), []byte("b"), []byte("c"), []byte("d")},
+		{[]byte("a"), []byte("b"), []byte("c"), []byte("d")},
+		{[]byte("a"), []byte("b"), []byte("c"), []byte("d")},
+		{[]byte("a"), []byte("b"), []byte("c"), []byte("d")},
 	}
 
 	buf := &bytes.Buffer{}

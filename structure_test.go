@@ -66,9 +66,9 @@ func TestStructureAssign(t *testing.T) {
 		Format: CSVDataFormat,
 		Schema: &Schema{
 			Fields: []*Field{
-				&Field{Type: datatypes.String, Name: "foo"},
-				&Field{Type: datatypes.Integer, Name: "bar"},
-				&Field{Description: "bat"},
+				{Type: datatypes.String, Name: "foo"},
+				{Type: datatypes.Integer, Name: "bar"},
+				{Description: "bat"},
 			},
 		},
 	}
@@ -76,8 +76,8 @@ func TestStructureAssign(t *testing.T) {
 		Format: CSVDataFormat,
 		Schema: &Schema{
 			Fields: []*Field{
-				&Field{Type: datatypes.String},
-				&Field{Type: datatypes.Integer},
+				{Type: datatypes.String},
+				{Type: datatypes.Integer},
 			},
 		},
 	}
@@ -85,9 +85,9 @@ func TestStructureAssign(t *testing.T) {
 	got.Assign(&Structure{
 		Schema: &Schema{
 			Fields: []*Field{
-				&Field{Name: "foo"},
-				&Field{Name: "bar"},
-				&Field{Description: "bat"},
+				{Name: "foo"},
+				{Name: "bar"},
+				{Description: "bat"},
 			},
 		},
 	})

@@ -182,13 +182,13 @@ func TestAbstractQueryAssign(t *testing.T) {
 		Structure: &Structure{
 			Schema: &Schema{
 				Fields: []*Field{
-					&Field{Name: "col_a"},
-					&Field{Name: "col_b"},
+					{Name: "col_a"},
+					{Name: "col_b"},
 				},
 			},
 		},
 		Structures: map[string]*Structure{
-			"a": &Structure{
+			"a": {
 				Format: CSVDataFormat,
 			},
 		},
@@ -205,14 +205,14 @@ func TestAbstractQueryAssign(t *testing.T) {
 		Structure: &Structure{
 			Schema: &Schema{
 				Fields: []*Field{
-					&Field{Name: "col_a"},
-					&Field{Name: "col_b"},
+					{Name: "col_a"},
+					{Name: "col_b"},
 				},
 			},
 		},
 	}, &AbstractQuery{
 		Structures: map[string]*Structure{
-			"a": &Structure{
+			"a": {
 				Format: CSVDataFormat,
 			},
 		},

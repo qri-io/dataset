@@ -20,10 +20,10 @@ var namesStructure = &dataset.Structure{
 	},
 	Schema: &dataset.Schema{
 		Fields: []*dataset.Field{
-			&dataset.Field{Name: "first_name", Type: datatypes.String},
-			&dataset.Field{Name: "last_name", Type: datatypes.String},
-			&dataset.Field{Name: "username", Type: datatypes.String},
-			&dataset.Field{Name: "age", Type: datatypes.Integer},
+			{Name: "first_name", Type: datatypes.String},
+			{Name: "last_name", Type: datatypes.String},
+			{Name: "username", Type: datatypes.String},
+			{Name: "age", Type: datatypes.Integer},
 		},
 	},
 }
@@ -72,10 +72,10 @@ var cdxjStructure = &dataset.Structure{
 	Format: dataset.CDXJDataFormat,
 	Schema: &dataset.Schema{
 		Fields: []*dataset.Field{
-			&dataset.Field{Name: "url", Type: datatypes.String},
-			&dataset.Field{Name: "date", Type: datatypes.String},
-			&dataset.Field{Name: "record_type", Type: datatypes.String},
-			&dataset.Field{Name: "meta", Type: datatypes.Json},
+			{Name: "url", Type: datatypes.String},
+			{Name: "date", Type: datatypes.String},
+			{Name: "record_type", Type: datatypes.String},
+			{Name: "meta", Type: datatypes.Json},
 		},
 	},
 }

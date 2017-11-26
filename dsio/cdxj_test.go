@@ -20,11 +20,11 @@ var cdxjStruct = &dataset.Structure{
 	Format: dataset.CDXJDataFormat,
 	Schema: &dataset.Schema{
 		Fields: []*dataset.Field{
-			&dataset.Field{Name: "surt_uri", Type: datatypes.String},
+			{Name: "surt_uri", Type: datatypes.String},
 			// TODO - currently using string b/c date interface isn't fully implemented
-			&dataset.Field{Name: "timestamp", Type: datatypes.String},
-			&dataset.Field{Name: "record_type", Type: datatypes.String},
-			&dataset.Field{Name: "metadata", Type: datatypes.Json},
+			{Name: "timestamp", Type: datatypes.String},
+			{Name: "record_type", Type: datatypes.String},
+			{Name: "metadata", Type: datatypes.Json},
 		},
 	},
 }
@@ -61,10 +61,10 @@ func TestCdxjReader(t *testing.T) {
 func TestCdxjWriter(t *testing.T) {
 	rows := [][][]byte{
 		// TODO - vary up test input
-		[][]byte{[]byte("(com,cnn,)/world"), []byte("2015-09-03T13:27:52Z"), []byte("response"), []byte(`{"a" : 0, "b" : "b", "c" : false }`)},
-		[][]byte{[]byte("(com,cnn,)/world"), []byte("2015-09-03T13:27:52Z"), []byte("response"), []byte(`{"a" : 0, "b" : "b", "c" : false }`)},
-		[][]byte{[]byte("(com,cnn,)/world"), []byte("2015-09-03T13:27:52Z"), []byte("response"), []byte(`{"a" : 0, "b" : "b", "c" : false }`)},
-		[][]byte{[]byte("(com,cnn,)/world"), []byte("2015-09-03T13:27:52Z"), []byte("response"), []byte(`{"a" : 0, "b" : "b", "c" : false }`)},
+		{[]byte("(com,cnn,)/world"), []byte("2015-09-03T13:27:52Z"), []byte("response"), []byte(`{"a" : 0, "b" : "b", "c" : false }`)},
+		{[]byte("(com,cnn,)/world"), []byte("2015-09-03T13:27:52Z"), []byte("response"), []byte(`{"a" : 0, "b" : "b", "c" : false }`)},
+		{[]byte("(com,cnn,)/world"), []byte("2015-09-03T13:27:52Z"), []byte("response"), []byte(`{"a" : 0, "b" : "b", "c" : false }`)},
+		{[]byte("(com,cnn,)/world"), []byte("2015-09-03T13:27:52Z"), []byte("response"), []byte(`{"a" : 0, "b" : "b", "c" : false }`)},
 	}
 
 	buf := &bytes.Buffer{}

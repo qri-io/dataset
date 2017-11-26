@@ -11,7 +11,7 @@ var AirportCodes = &Dataset{
 		Type: "PDDL-1.0",
 	},
 	Citations: []*Citation{
-		&Citation{
+		{
 			Name: "Our Airports",
 			URL:  "http://ourairports.com/data/",
 		},
@@ -32,55 +32,55 @@ var AirportCodesStructure = &Structure{
 	},
 	Schema: &Schema{
 		Fields: []*Field{
-			&Field{
+			{
 				Name: "ident",
 				Type: datatypes.String,
 			},
-			&Field{
+			{
 				Name: "type",
 				Type: datatypes.String,
 			},
-			&Field{
+			{
 				Name: "name",
 				Type: datatypes.String,
 			},
-			&Field{
+			{
 				Name: "latitude_deg",
 				Type: datatypes.Float,
 			},
-			&Field{
+			{
 				Name: "longitude_deg",
 				Type: datatypes.Float,
 			},
-			&Field{
+			{
 				Name: "elevation_ft",
 				Type: datatypes.Integer,
 			},
-			&Field{
+			{
 				Name: "continent",
 				Type: datatypes.String,
 			},
-			&Field{
+			{
 				Name: "iso_country",
 				Type: datatypes.String,
 			},
-			&Field{
+			{
 				Name: "iso_region",
 				Type: datatypes.String,
 			},
-			&Field{
+			{
 				Name: "municipality",
 				Type: datatypes.String,
 			},
-			&Field{
+			{
 				Name: "gps_code",
 				Type: datatypes.String,
 			},
-			&Field{
+			{
 				Name: "iata_code",
 				Type: datatypes.String,
 			},
-			&Field{
+			{
 				Name: "local_code",
 				Type: datatypes.String,
 			},
@@ -93,55 +93,55 @@ var AirportCodesStructureAbstract = &Structure{
 	FormatConfig: &CSVOptions{HeaderRow: true},
 	Schema: &Schema{
 		Fields: []*Field{
-			&Field{
+			{
 				Name: "a",
 				Type: datatypes.String,
 			},
-			&Field{
+			{
 				Name: "b",
 				Type: datatypes.String,
 			},
-			&Field{
+			{
 				Name: "c",
 				Type: datatypes.String,
 			},
-			&Field{
+			{
 				Name: "d",
 				Type: datatypes.Float,
 			},
-			&Field{
+			{
 				Name: "e",
 				Type: datatypes.Float,
 			},
-			&Field{
+			{
 				Name: "f",
 				Type: datatypes.Integer,
 			},
-			&Field{
+			{
 				Name: "g",
 				Type: datatypes.String,
 			},
-			&Field{
+			{
 				Name: "h",
 				Type: datatypes.String,
 			},
-			&Field{
+			{
 				Name: "i",
 				Type: datatypes.String,
 			},
-			&Field{
+			{
 				Name: "j",
 				Type: datatypes.String,
 			},
-			&Field{
+			{
 				Name: "k",
 				Type: datatypes.String,
 			},
-			&Field{
+			{
 				Name: "l",
 				Type: datatypes.String,
 			},
-			&Field{
+			{
 				Name: "m",
 				Type: datatypes.String,
 			},
@@ -168,11 +168,11 @@ var ContinentCodesStructure = &Structure{
 	Format: CSVDataFormat,
 	Schema: &Schema{
 		Fields: []*Field{
-			&Field{
+			{
 				Name: "Code",
 				Type: datatypes.String,
 			},
-			&Field{
+			{
 				Name: "Name",
 				Type: datatypes.String,
 			},
@@ -189,10 +189,10 @@ var HoursStructure = &Structure{
 	Format: CSVDataFormat,
 	Schema: &Schema{
 		Fields: []*Field{
-			&Field{Name: "field_1", Type: datatypes.Date},
-			&Field{Name: "field_2", Type: datatypes.Float},
-			&Field{Name: "field_3", Type: datatypes.String},
-			&Field{Name: "field_4", Type: datatypes.String},
+			{Name: "field_1", Type: datatypes.Date},
+			{Name: "field_2", Type: datatypes.Float},
+			{Name: "field_3", Type: datatypes.String},
+			{Name: "field_4", Type: datatypes.String},
 		},
 	},
 }
