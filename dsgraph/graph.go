@@ -2,18 +2,29 @@ package dsgraph
 
 var walkParallelism = 4
 
+// NodeType specifies differnt types of qri nodes
 type NodeType string
 
 var (
-	NtDataset       = NodeType("dataset")
-	NtMetadata      = NodeType("metadata")
-	NtCommit        = NodeType("commit")
-	NtData          = NodeType("data")
-	NtQuery         = NodeType("query")
-	NtAbstQuery     = NodeType("abst_query")
-	NtStructure     = NodeType("structure")
+	// NtDataset is a holistic reference to a dataset,
+	// aka the base hash of a dataset
+	NtDataset = NodeType("dataset")
+	// NtMetadata is the dataset.json file in a dataset
+	NtMetadata = NodeType("metadata")
+	// NtCommit is the commit.json file in a dataset
+	NtCommit = NodeType("commit")
+	// NtData is a dataset's raw data
+	NtData = NodeType("data")
+	// NtQuery is the query.json in a dataset
+	NtQuery = NodeType("query")
+	// NtAbstQuery is the abstract_query.json in a dataset
+	NtAbstQuery = NodeType("abst_query")
+	// NtStructure is the structure.json in a dataset
+	NtStructure = NodeType("structure")
+	// NtAbstStructure is the abstract_structure.json in a dataset
 	NtAbstStructure = NodeType("abst_structure")
-	NtNamespace     = NodeType("namespace")
+	// NtNamespace is the namespace of a single qri repository
+	NtNamespace = NodeType("namespace")
 )
 
 // Node is a typed reference to a path
@@ -23,10 +34,12 @@ type Node struct {
 	Links []Link
 }
 
-func (a Node) Equal(b *Node) bool {
-	return a.Type == b.Type && a.Path == b.Path
+// Equal checks for field-level equality with another Node
+func (n Node) Equal(b *Node) bool {
+	return n.Type == b.Type && n.Path == b.Path
 }
 
+// AddLinks is a no-duplicates method for adding one or more links to a node
 func (n *Node) AddLinks(links ...Link) {
 ADDITIONS:
 	for _, link := range links {
@@ -60,10 +73,13 @@ type Link struct {
 	From, To *Node
 }
 
+// Equal checks for field-level equality with another Link
 func (a Link) Equal(b Link) bool {
 	return a.From.Equal(b.From) && a.To.Equal(b.To)
 }
 
+// FilterNodeTypes returns a slice of node pointers from a graph that match
+// the provided NodeType's
 func FilterNodeTypes(graph *Node, nodetypes ...NodeType) (nodes []*Node) {
 	Walk(graph, 0, func(n *Node) error {
 		if n != nil {
@@ -79,6 +95,7 @@ func FilterNodeTypes(graph *Node, nodetypes ...NodeType) (nodes []*Node) {
 	return
 }
 
+// Walk visits node and all descendants with a provided visit function
 func Walk(node *Node, depth int, visit func(n *Node) error) error {
 	if err := visit(node); err != nil {
 		return err

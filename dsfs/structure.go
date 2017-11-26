@@ -17,6 +17,7 @@ func LoadStructure(store cafs.Filestore, path datastore.Key) (st *dataset.Struct
 	return dataset.UnmarshalStructure(data)
 }
 
+// SaveStructure saves a query's structure to a given store
 func SaveStructure(store cafs.Filestore, s *dataset.Structure, pin bool) (path datastore.Key, err error) {
 	file, err := jsonFile(PackageFileStructure.String(), s)
 	if err != nil {

@@ -17,6 +17,7 @@ func LoadCommitMsg(store cafs.Filestore, path datastore.Key) (st *dataset.Commit
 	return dataset.UnmarshalCommitMsg(data)
 }
 
+// SaveCommitMsg writes a commit message to a cafs
 func SaveCommitMsg(store cafs.Filestore, s *dataset.CommitMsg, pin bool) (path datastore.Key, err error) {
 	file, err := jsonFile(PackageFileCommitMsg.String(), s)
 	if err != nil {

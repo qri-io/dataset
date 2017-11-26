@@ -9,12 +9,12 @@ import (
 	"github.com/qri-io/dataset/dsio"
 )
 
-// LoadDatasetData loads the data this dataset points to from the store
+// LoadData loads the data this dataset points to from the store
 func LoadData(store cafs.Filestore, ds *dataset.Dataset) (cafs.File, error) {
 	return store.Get(ds.Data)
 }
 
-// ReadRows loads a slice of raw bytes inside a limit/offset row range
+// LoadRows loads a slice of raw bytes inside a limit/offset row range
 func LoadRows(store cafs.Filestore, ds *dataset.Dataset, limit, offset int) ([]byte, error) {
 
 	datafile, err := LoadData(store, ds)

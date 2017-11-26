@@ -59,9 +59,8 @@ func RandomStringValue(t datatypes.Type) string {
 	case datatypes.Boolean:
 		if rand.Intn(10) > 4 {
 			return "true"
-		} else {
-			return "false"
 		}
+		return "false"
 	case datatypes.JSON:
 		if rand.Intn(2) > 1 {
 			return "{}"

@@ -40,15 +40,22 @@ func DataFormat(df dataset.DataFormat, r io.Reader) error {
 }
 
 const (
+	// ErrFmtOneHotMatrix designates a dataset of errors, with errors designated by
+	// 1's, no error designated by 0's
 	ErrFmtOneHotMatrix = "oneHotMatrix"
-	ErrFmtString       = "string"
+	// ErrFmtString designates a dataset with empty string signifying no error,
+	// and a string representation of the error when an error is present
+	ErrFmtString = "string"
 )
 
+// DataErrorsCfg configures the DataErrors function
 type DataErrorsCfg struct {
 	ErrorFormat string
 	// DataFormat  DataFormat
 }
 
+// DefaultDataErrorsCfg is the default configuration for
+// the DataErrors function
 func DefaultDataErrorsCfg() *DataErrorsCfg {
 	return &DataErrorsCfg{
 		ErrorFormat: ErrFmtString,

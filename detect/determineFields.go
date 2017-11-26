@@ -16,6 +16,7 @@ var (
 	startsWithNumberRegex = regexp.MustCompile(`^[0-9]`)
 )
 
+// Fields determines the fields of a given reader, for a given structure
 func Fields(r *dataset.Structure, data io.Reader) (fields []*dataset.Field, err error) {
 	if r.Format == dataset.UnknownDataFormat {
 		return nil, errors.New("dataset format must be specified to determine fields")
@@ -23,17 +24,18 @@ func Fields(r *dataset.Structure, data io.Reader) (fields []*dataset.Field, err 
 
 	switch r.Format {
 	case dataset.CSVDataFormat:
-		return CsvFields(r, data)
+		return CSVFields(r, data)
 	case dataset.JSONDataFormat:
-		return JsonFields(r, data)
+		return JSONFields(r, data)
 	case dataset.XMLDataFormat:
-		return XmlFields(r, data)
+		return XMLFields(r, data)
 	}
 
 	return nil, fmt.Errorf("'%s' is not supported for field detection", r.Format.String())
 }
 
-func CsvFields(resource *dataset.Structure, data io.Reader) (fields []*dataset.Field, err error) {
+// CSVFields determines the field names and types of an io.Reader of CSV-formatted data
+func CSVFields(resource *dataset.Structure, data io.Reader) (fields []*dataset.Field, err error) {
 	r := csv.NewReader(data)
 	r.FieldsPerRecord = -1
 	r.TrimLeadingSpace = true
@@ -100,12 +102,14 @@ func CsvFields(resource *dataset.Structure, data io.Reader) (fields []*dataset.F
 	return fields, nil
 }
 
-func JsonFields(ds *dataset.Structure, data io.Reader) (fields []*dataset.Field, err error) {
+// JSONFields determines the field names and types of a given io.Reader of JSON-formatted data
+func JSONFields(ds *dataset.Structure, data io.Reader) (fields []*dataset.Field, err error) {
 	// TODO
 	return nil, errors.New("json field detection not yet implemented")
 }
 
-func XmlFields(ds *dataset.Structure, data io.Reader) (fields []*dataset.Field, err error) {
+// XMLFields determines the field names and types of a given io.Reader of XML-formatted data
+func XMLFields(ds *dataset.Structure, data io.Reader) (fields []*dataset.Field, err error) {
 	// TODO
 	return nil, errors.New("xml field detection not yet implemented")
 }

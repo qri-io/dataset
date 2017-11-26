@@ -1,4 +1,6 @@
-// Dataset util funcs, placed here to avoid dataset package bloat
+// Package dsutil includes dataset util funcs, placed here to avoid dataset package bloat
+// TODO - consider merging this package with the dsfs package, as most of the functions in
+// here rely on a Filestore argument
 package dsutil
 
 import (
@@ -25,6 +27,7 @@ import (
 // 	return path, nil
 // }
 
+// WriteZipArchive generates a zip archive of a dataset and writes it to w
 func WriteZipArchive(store cafs.Filestore, ds *dataset.Dataset, w io.Writer) error {
 	zw := zip.NewWriter(w)
 
@@ -58,6 +61,7 @@ func WriteZipArchive(store cafs.Filestore, ds *dataset.Dataset, w io.Writer) err
 	return zw.Close()
 }
 
+// WriteDir loads a dataset & writes all contents to a directory specified by path
 func WriteDir(store cafs.Filestore, ds *dataset.Dataset, path string) error {
 	if err := os.MkdirAll(path, os.ModePerm); err != nil {
 		return err

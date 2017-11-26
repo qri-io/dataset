@@ -1,2 +1,2 @@
-// dsfs glues datsets to cafs (content-addressed-file-system)
+// Package dsfs glues datsets to cafs (content-addressed-file-system)
 package dsfs

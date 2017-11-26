@@ -20,6 +20,7 @@ func LoadQuery(store cafs.Filestore, path datastore.Key) (q *dataset.Query, err 
 	return dataset.UnmarshalQuery(data)
 }
 
+// SaveQuery writes a query to a cafs
 func SaveQuery(store cafs.Filestore, q *dataset.Query, pin bool) (path datastore.Key, err error) {
 	// copy query
 	save := &dataset.Query{}
@@ -83,6 +84,7 @@ func LoadAbstractQuery(store cafs.Filestore, path datastore.Key) (q *dataset.Abs
 	return dataset.UnmarshalAbstractQuery(data)
 }
 
+// SaveAbstractQuery writes an AbstractQuery to a cafs
 func SaveAbstractQuery(store cafs.Filestore, q *dataset.AbstractQuery, pin bool) (datastore.Key, error) {
 	if q == nil {
 		return datastore.NewKey(""), nil
