@@ -11,7 +11,7 @@ import (
 // RowWriter is a generalized interface for writing structured data
 type RowWriter interface {
 	// Structure gives the structure being written
-	Structure() dataset.Structure
+	Structure() *dataset.Structure
 	// WriteRow writes one row of structured data to the Writer
 	WriteRow(row [][]byte) error
 	// Close finalizes the writer, indicating all entries
@@ -22,7 +22,7 @@ type RowWriter interface {
 // RowReader is a generalized interface for reading Structured Data
 type RowReader interface {
 	// Structure gives the structure being read
-	Structure() dataset.Structure
+	Structure() *dataset.Structure
 	// ReadRow reads one row of structured data from the reader
 	ReadRow() ([][]byte, error)
 }
@@ -30,7 +30,7 @@ type RowReader interface {
 // RowReadWriter combines RowWriter and RowReader behaviors
 type RowReadWriter interface {
 	// Structure gives the structure being read and written
-	Structure() dataset.Structure
+	Structure() *dataset.Structure
 	// ReadRow reads one row of structured data from the reader
 	ReadRow() ([][]byte, error)
 	// WriteRow writes one row of structured data to the ReadWriter

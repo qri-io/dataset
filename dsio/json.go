@@ -31,8 +31,8 @@ func NewJSONReader(st *dataset.Structure, r io.Reader) *JSONReader {
 }
 
 // Structure gives this writer's structure
-func (r *JSONReader) Structure() dataset.Structure {
-	return *r.st
+func (r *JSONReader) Structure() *dataset.Structure {
+	return r.st
 }
 
 // ReadRow reads one JSON record from the reader
@@ -112,6 +112,7 @@ LOOP:
 
 	// return sliced data
 	if starti < stopi {
+		// TODO - this should semantically advance past a comma or something...
 		return stopi + 1, data[starti:stopi], nil
 	}
 
@@ -142,8 +143,8 @@ func NewJSONWriter(st *dataset.Structure, w io.Writer) *JSONWriter {
 }
 
 // Structure gives this writer's structure
-func (w *JSONWriter) Structure() dataset.Structure {
-	return *w.st
+func (w *JSONWriter) Structure() *dataset.Structure {
+	return w.st
 }
 
 // WriteRow writes one JSON record to the writer

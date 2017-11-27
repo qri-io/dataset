@@ -8,7 +8,7 @@ import (
 	"github.com/qri-io/dataset"
 )
 
-func TestBuffer(t *testing.T) {
+func TestStructuredBuffer(t *testing.T) {
 	datasets, err := makeTestData()
 	if err != nil {
 		t.Errorf("error creating filestore", err.Error())
@@ -29,9 +29,9 @@ func TestBuffer(t *testing.T) {
 		Schema: ds.Structure.Schema,
 	}
 
-	rbuf, err := NewBuffer(outst)
+	rbuf, err := NewStructuredBuffer(outst)
 	if err != nil {
-		t.Errorf("error allocating Buffer: %s", err.Error())
+		t.Errorf("error allocating StructuredBuffer: %s", err.Error())
 		return
 	}
 
@@ -52,7 +52,7 @@ func TestBuffer(t *testing.T) {
 	}
 
 	bst := rbuf.Structure()
-	if err := dataset.CompareStructures(outst, &bst); err != nil {
+	if err := dataset.CompareStructures(outst, bst); err != nil {
 		t.Errorf("buffer structure mismatch: %s", err.Error())
 		return
 	}

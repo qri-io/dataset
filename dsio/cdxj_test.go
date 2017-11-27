@@ -74,7 +74,7 @@ func TestCDXJWriter(t *testing.T) {
 		return
 	}
 	st := rw.Structure()
-	if err := dataset.CompareStructures(&st, cdxjStruct); err != nil {
+	if err := dataset.CompareStructures(st, cdxjStruct); err != nil {
 		t.Errorf("structure mismatch: %s", err.Error())
 		return
 	}

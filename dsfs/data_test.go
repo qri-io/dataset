@@ -56,7 +56,8 @@ func TestLoadRows(t *testing.T) {
 		err           string
 	}{
 		// {"cities", 0, 0, "", ""},
-		{"cities", 2, 2, `chicago,300000,44.4,true
+		{"cities", 2, 2, `city,pop,avg_age,in_usa
+chicago,300000,44.4,true
 chatham,35000,65.25,true
 `, ""},
 		{"archive", 10, 0, `!OpenWayback-CDXJ 1.0

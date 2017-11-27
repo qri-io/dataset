@@ -22,8 +22,8 @@ func NewCSVReader(st *dataset.Structure, r io.Reader) *CSVReader {
 }
 
 // Structure gives this reader's structure
-func (r *CSVReader) Structure() dataset.Structure {
-	return *r.st
+func (r *CSVReader) Structure() *dataset.Structure {
+	return r.st
 }
 
 // ReadRow reads one CSV record from the reader
@@ -72,15 +72,24 @@ type CSVWriter struct {
 // NewCSVWriter creates a Writer from a structure and write destination
 func NewCSVWriter(st *dataset.Structure, w io.Writer) *CSVWriter {
 	writer := csv.NewWriter(w)
-	return &CSVWriter{
+	wr := &CSVWriter{
 		st: st,
 		w:  writer,
 	}
+
+	if CSVOpts, ok := st.FormatConfig.(*dataset.CSVOptions); ok {
+		if CSVOpts.HeaderRow {
+			// TODO - capture error
+			writer.Write(st.Schema.FieldNames())
+		}
+	}
+
+	return wr
 }
 
 // Structure gives this writer's structure
-func (w *CSVWriter) Structure() dataset.Structure {
-	return *w.st
+func (w *CSVWriter) Structure() *dataset.Structure {
+	return w.st
 }
 
 // WriteRow writes one CSV record to the writer

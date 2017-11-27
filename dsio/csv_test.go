@@ -2,12 +2,14 @@ package dsio
 
 import (
 	"bytes"
+	"testing"
+
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/datatypes"
-	"testing"
 )
 
-const csvData = `a,b,c,d
+const csvData = `col_a,col_b,col_c,col_d
+a,b,c,d
 a,b,c,d
 a,b,c,d
 a,b,c,d
@@ -15,12 +17,15 @@ a,b,c,d`
 
 var csvStruct = &dataset.Structure{
 	Format: dataset.CSVDataFormat,
+	FormatConfig: &dataset.CSVOptions{
+		HeaderRow: true,
+	},
 	Schema: &dataset.Schema{
 		Fields: []*dataset.Field{
-			{Name: "a", Type: datatypes.String},
-			{Name: "b", Type: datatypes.String},
-			{Name: "c", Type: datatypes.String},
-			{Name: "d", Type: datatypes.String},
+			{Name: "col_a", Type: datatypes.String},
+			{Name: "col_b", Type: datatypes.String},
+			{Name: "col_c", Type: datatypes.String},
+			{Name: "col_d", Type: datatypes.String},
 		},
 	},
 }
@@ -71,7 +76,7 @@ func TestCSVWriter(t *testing.T) {
 		return
 	}
 	st := rw.Structure()
-	if err := dataset.CompareStructures(&st, csvStruct); err != nil {
+	if err := dataset.CompareStructures(st, csvStruct); err != nil {
 		t.Errorf("structure mismatch: %s", err.Error())
 		return
 	}
@@ -86,7 +91,6 @@ func TestCSVWriter(t *testing.T) {
 		t.Errorf("close reader error: %s", err.Error())
 		return
 	}
-
 	if bytes.Equal(buf.Bytes(), []byte(csvData)) {
 		t.Errorf("output mismatch. %s != %s", buf.String(), csvData)
 	}
