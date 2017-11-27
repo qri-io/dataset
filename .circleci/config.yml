@@ -36,18 +36,12 @@ jobs:
             github.com/whyrusleeping/gx-go
       - run:
           name: Install gx deps
-          command: >
-            go get github.com/ipfs/go-ipfs &&
-            cd /go/src/github.com/ipfs/go-ipfs &&
-            gx install &&
-            cd /go/src/github.com/qri-io/dataset
+          command: gx install
       - run:
           name: Install gx-dependant packages
           command: >
             go get -v -d
             github.com/qri-io/cafs
-            github.com/qri-io/cafs/ipfs
-            github.com/qri-io/cafs/memfs
       - save_cache:
           key: dependency-cache-{{ checksum "package.json" }}
           paths:
