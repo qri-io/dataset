@@ -13,17 +13,28 @@ jobs:
       - checkout
       - run: mkdir -p $TEST_RESULTS
       - run: go get github.com/jstemmer/go-junit-report github.com/golang/lint/golint
+      - run:
+          name: Install non-gx deps
+          command: >
+            go get -v -d -u
+            github.com/jstemmer/go-junit-report 
+            github.com/ipfs/go-datastore
+            github.com/jbenet/go-base58
+            github.com/multiformats/go-multihash
+            github.com/qri-io/compare
+            github.com/datatogether/cdxj
+            github.com/sergi/go-diff/diffmatchpatch
       - run: 
           name: Run Lint Tests
           command: golint ./...
+      - restore_cache:
+          key: dependency-cache-{{ checksum "/go/src/github.com/qri-io/cafs/ipfs/package.json" }}
       - run: 
           name: Install gx
           command: >
             go get -v -u
             github.com/whyrusleeping/gx 
             github.com/whyrusleeping/gx-go
-      - restore_cache:
-          key: dependency-cache-{{ checksum "/go/src/github.com/ipfs/go-ipfs/package.json" }}
       - run:
           name: Install gx deps
           command: >
@@ -32,21 +43,16 @@ jobs:
             gx install &&
             cd /go/src/github.com/qri-io/dataset
       - save_cache:
-          key: dependency-cache-{{ checksum "/go/src/github.com/ipfs/go-ipfs/package.json" }}
+          key: dependency-cache-{{ checksum "/go/src/github.com/qri-io/cafs/ipfs/package.json" }}
           paths:
             - /go/src/gx/
       - run:
-          name: Install non-gx deps
+          name: Install gx-dependant packages
           command: >
-            go get -d -v
-            github.com/ipfs/go-datastore
-            github.com/jbenet/go-base58
-            github.com/multiformats/go-multihash
+            go get -v -d
             github.com/qri-io/cafs
             github.com/qri-io/cafs/ipfs
             github.com/qri-io/cafs/memfs
-            github.com/qri-io/compare
-            github.com/datatogether/cdxj
       - run:
           name: Run Tests
           command: |
