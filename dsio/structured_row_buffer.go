@@ -9,11 +9,13 @@ import (
 	"github.com/qri-io/dataset/datatypes"
 )
 
-// StructuredRowBuffer is the fully-featured version of StructuredBuffer
+// StructuredRowBuffer is the full-featured version of StructuredBuffer
+// While incurring additional overhead & programmatic completexity, it brings
+// the capactity to do things like sort data by fields, filter duplicate
+// rows, etc.
 type StructuredRowBuffer struct {
-	st   *dataset.Structure
-	rows [][][]byte
-	// buf    *StructuredBuffer
+	st     *dataset.Structure
+	rows   [][][]byte
 	less   *func(i, j int) bool
 	unique bool
 	err    error
@@ -21,13 +23,14 @@ type StructuredRowBuffer struct {
 
 // StructuredRowBufferCfg encapsulates configuration for StructuredRowBuffer
 type StructuredRowBufferCfg struct {
-	// OrderBy
-	OrderBy     []*dataset.Field
+	// OrderBy gives a list of orders
+	OrderBy []*dataset.Field
+	// OrderByDesc reverses the order given
 	OrderByDesc bool
 	// Unique silently rejects writing rows
 	// already present in the buffer
 	Unique bool
-	// TODO - FilterFunc
+	// TODO - FilterFunc only allows rows that pass a given test function
 	// FilterFunc func(row [][]byte) bool
 }
 
@@ -170,14 +173,20 @@ func (rb *StructuredRowBuffer) makeLessFunc(st *dataset.Structure, cfg *Structur
 		for _, o := range orders {
 			l, err := datatypes.CompareTypeBytes(rb.rows[i][o.idx], rb.rows[j][o.idx], o.dt)
 			if err != nil {
+				// TODO - wut
 				continue
 			}
-			if (o.desc && l < 0) || l > 0 {
+			if l == 0 {
 				continue
 			}
-			return true
+			return l < 0
 		}
 		return false
+	}
+
+	if cfg.OrderByDesc {
+		opposite := func(i, j int) bool { return !less(i, j) }
+		return &opposite, nil
 	}
 
 	return &less, nil

@@ -1,0 +1,29 @@
+{
+  "author": "b5",
+  "bugs": {
+    "url": "https://github.com/qri-io/dataset"
+  },
+  "gx": {
+    "dvcsimport": "github.com/qri-io/dataset"
+  },
+  "gxDependencies": [
+    {
+      "hash": "QmdKL1GVaUaDVt3JUWiYQSLYRsJMym2KRWxsiXAeEU6pzX",
+      "name": "go-ipfs",
+      "version": "0.4.12"
+    },
+    {
+      "author": "jbenet",
+      "hash": "QmVSase1JP7cq9QkPT46oNwdp9pT6kBkG3oqS14y3QcZjG",
+      "name": "go-datastore",
+      "version": "1.2.2"
+    }
+  ],
+  "gxVersion": "0.11.0",
+  "language": "go",
+  "license": "",
+  "name": "ipfs",
+  "releaseCmd": "git commit -a -m \"gx publish $VERSION\"",
+  "version": "0.0.0"
+}
+
