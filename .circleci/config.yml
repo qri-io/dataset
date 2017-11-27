@@ -42,10 +42,6 @@ jobs:
             cd /go/src/github.com/ipfs/go-ipfs &&
             gx install &&
             cd /go/src/github.com/qri-io/dataset
-      - save_cache:
-          key: dependency-cache-{{ checksum "/go/src/github.com/qri-io/cafs/ipfs/package.json" }}
-          paths:
-            - /go/src/gx/
       - run:
           name: Install gx-dependant packages
           command: >
@@ -53,6 +49,10 @@ jobs:
             github.com/qri-io/cafs
             github.com/qri-io/cafs/ipfs
             github.com/qri-io/cafs/memfs
+      - save_cache:
+          key: dependency-cache-{{ checksum "/go/src/github.com/qri-io/cafs/ipfs/package.json" }}
+          paths:
+            - /go/src/gx/
       - run:
           name: Run Tests
           command: |
