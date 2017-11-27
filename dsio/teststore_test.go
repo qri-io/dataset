@@ -17,6 +17,7 @@ type testCase struct {
 var rows = map[string][][][]byte{
 	"cities": {
 		{[]byte("toronto"), []byte("40000000"), []byte("55.5"), []byte("false")},
+		{[]byte("toronto"), []byte("40000000"), []byte("55.5"), []byte("false")},
 		{[]byte("new york"), []byte("8500000"), []byte("44.4"), []byte("true")},
 		{[]byte("chicago"), []byte("300000"), []byte("44.4"), []byte("true")},
 		{[]byte("chatham"), []byte("35000"), []byte("65.25"), []byte("true")},

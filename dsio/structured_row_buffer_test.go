@@ -30,6 +30,27 @@ func TestStructuredRowBuffer(t *testing.T) {
 				&dataset.Field{Name: "movie_title"},
 			}
 		}, "testdata/movies_sorted_movie_title.csv"},
+		{"movies", func(cfg *StructuredRowBufferCfg) {
+			cfg.OrderBy = []*dataset.Field{
+				&dataset.Field{Name: "movie_title"},
+			}
+			cfg.OrderByDesc = true
+		}, "testdata/movies_sorted_movie_title_desc.csv"},
+		{"movies", func(cfg *StructuredRowBufferCfg) {
+			cfg.OrderBy = []*dataset.Field{
+				&dataset.Field{Name: "duration"},
+				&dataset.Field{Name: "movie_title"},
+			}
+		}, "testdata/movies_sorted_duration_movie_title.csv"},
+		{"movies", func(cfg *StructuredRowBufferCfg) {
+			cfg.OrderBy = []*dataset.Field{
+				&dataset.Field{Name: "duration"},
+			}
+			cfg.OrderByDesc = true
+		}, "testdata/movies_sorted_duration_desc.csv"},
+		{"cities", func(cfg *StructuredRowBufferCfg) {
+			cfg.Unique = true
+		}, "testdata/cities_unique.csv"},
 	}
 
 	for i, c := range cases {
@@ -53,7 +74,7 @@ func TestStructuredRowBuffer(t *testing.T) {
 			continue
 		}
 
-		rr, err := NewRowReader(ds.Structure, bytes.NewBuffer(datasets["movies"].data))
+		rr, err := NewRowReader(ds.Structure, bytes.NewBuffer(datasets[c.dsName].data))
 		if err != nil {
 			t.Errorf("case %d error allocating RowReader: %s", i, err.Error())
 			continue

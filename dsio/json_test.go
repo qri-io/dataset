@@ -21,7 +21,7 @@ func TestJSONReader(t *testing.T) {
 			Format: dataset.JSONDataFormat,
 			FormatConfig: &dataset.JSONOptions{
 				ArrayEntries: false,
-			}}, "testdata/city_data.json", 5, ""},
+			}}, "testdata/city_data.json", 6, ""},
 	}
 
 	for i, c := range cases {

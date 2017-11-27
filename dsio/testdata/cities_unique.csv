@@ -1,6 +1,5 @@
 city,pop,avg_age,in_usa
 toronto,40000000,55.5,false
-toronto,40000000,55.5,false
 new york,8500000,44.4,true
 chicago,300000,44.4,true
 chatham,35000,65.25,true
