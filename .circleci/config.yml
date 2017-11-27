@@ -28,7 +28,7 @@ jobs:
           name: Run Lint Tests
           command: golint ./...
       - restore_cache:
-          key: dependency-cache-{{ checksum "/go/src/github.com/qri-io/cafs/ipfs/package.json" }}
+          key: dependency-cache-{{ checksum "/go/src/github.com/ipfs/go-ipfs/package.json" }}
       - run: 
           name: Install gx
           command: >
@@ -50,7 +50,7 @@ jobs:
             github.com/qri-io/cafs/ipfs
             github.com/qri-io/cafs/memfs
       - save_cache:
-          key: dependency-cache-{{ checksum "/go/src/github.com/qri-io/cafs/ipfs/package.json" }}
+          key: dependency-cache-{{ checksum "/go/src/github.com/ipfs/go-ipfs/package.json" }}
           paths:
             - /go/src/gx/
       - run:
