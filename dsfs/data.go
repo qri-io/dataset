@@ -23,7 +23,7 @@ func LoadRows(store cafs.Filestore, ds *dataset.Dataset, limit, offset int) ([]b
 	}
 
 	added := 0
-	buf, err := dsio.NewBuffer(ds.Structure)
+	buf, err := dsio.NewStructuredBuffer(ds.Structure)
 	if err != nil {
 		return nil, fmt.Errorf("error loading dataset data: %s", err.Error())
 	}

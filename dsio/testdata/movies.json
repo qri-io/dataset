@@ -8,7 +8,7 @@
     "schema": {
       "fields": [
         {
-          "name": "title",
+          "name": "movie_title",
           "type": "string"
         },
         {

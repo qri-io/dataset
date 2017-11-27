@@ -25,8 +25,8 @@ func NewCDXJReader(st *dataset.Structure, r io.Reader) *CDXJReader {
 }
 
 // Structure gives this reader's structure
-func (r *CDXJReader) Structure() dataset.Structure {
-	return *r.st
+func (r *CDXJReader) Structure() *dataset.Structure {
+	return r.st
 }
 
 // ReadRow reads one CDXJ record from the reader
@@ -70,8 +70,8 @@ func NewCDXJWriter(st *dataset.Structure, w io.Writer) *CDXJWriter {
 }
 
 // Structure gives this writer's structure
-func (w *CDXJWriter) Structure() dataset.Structure {
-	return *w.st
+func (w *CDXJWriter) Structure() *dataset.Structure {
+	return w.st
 }
 
 // WriteRow writes one CDXJ record to the writer
