@@ -11,11 +11,11 @@ func TestStructure(t *testing.T) {
 		input []string
 		err   string
 	}{
-		{[]string{"abc", "12startsWithNumber"}, `error: illegal name '12startsWithNumber', must start with a letter and consist of only alpha-numeric characters and/or underscores and have a total length of no more than 144 characters`},
-		{[]string{"abc", "$dollarsAtBeginning"}, `error: illegal name '$dollarsAtBeginning', must start with a letter and consist of only alpha-numeric characters and/or underscores and have a total length of no more than 144 characters`},
-		{[]string{"abc", "Dollars$inTheMiddle"}, `error: illegal name 'Dollars$inTheMiddle', must start with a letter and consist of only alpha-numeric characters and/or underscores and have a total length of no more than 144 characters`},
-		{[]string{"abc", ""}, `error: illegal name '', must start with a letter and consist of only alpha-numeric characters and/or underscores and have a total length of no more than 144 characters`},
-		{[]string{"abc", "No|pipes"}, `error: illegal name 'No|pipes', must start with a letter and consist of only alpha-numeric characters and/or underscores and have a total length of no more than 144 characters`},
+		{[]string{"abc", "12startsWithNumber"}, `error: illegal name '12startsWithNumber', names must start with a letter and consist of only a-z,0-9, and _. max length 144 characters`},
+		{[]string{"abc", "$dollarsAtBeginning"}, `error: illegal name '$dollarsAtBeginning', names must start with a letter and consist of only a-z,0-9, and _. max length 144 characters`},
+		{[]string{"abc", "Dollars$inTheMiddle"}, `error: illegal name 'Dollars$inTheMiddle', names must start with a letter and consist of only a-z,0-9, and _. max length 144 characters`},
+		{[]string{"abc", ""}, `error: name cannot be empty`},
+		{[]string{"abc", "No|pipes"}, `error: illegal name 'No|pipes', names must start with a letter and consist of only a-z,0-9, and _. max length 144 characters`},
 		{[]string{"repeatedName", "repeatedName", "repeatedName"}, "error: cannot use the same name, 'repeatedName' more than once"},
 	}
 	for i, c := range cases {

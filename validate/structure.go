@@ -12,8 +12,8 @@ func Structure(s *dataset.Structure) error {
 	checkedFieldNames := map[string]bool{}
 	fields := s.Schema.Fields
 	for _, field := range fields {
-		if alphaNumericRegex.FindString(field.Name) == "" {
-			return fmt.Errorf("error: illegal name '%s', must start with a letter and consist of only alpha-numeric characters and/or underscores and have a total length of no more than 144 characters", field.Name)
+		if err := ValidName(field.Name); err != nil {
+			return err
 		}
 		seen := checkedFieldNames[field.Name]
 		if seen {

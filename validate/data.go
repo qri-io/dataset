@@ -2,17 +2,14 @@ package validate
 
 import (
 	"fmt"
-	"github.com/datatogether/cdxj"
 	"io"
-	"regexp"
 	"strconv"
 
+	"github.com/datatogether/cdxj"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/datatypes"
 	"github.com/qri-io/dataset/dsio"
 )
-
-var alphaNumericRegex = regexp.MustCompile(`^[a-zA-Z]\w{0,143}$`)
 
 // DataFormat ensures that for each accepted dataset.DataFormat,
 // we havea well-formed dataset (eg. for csv, we need rows to all
