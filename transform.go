@@ -7,10 +7,14 @@ import (
 	"github.com/ipfs/go-datastore"
 )
 
-// Transform is a record of executing a transformation on data. It connects an
-// AbstractTransform (which contains all SQL details of the transform) and pointers
-// to the datasets that were used in this particular exectution, referenced
-// by their abstract name string
+// Transform is a record of executing a transformation on data.
+// Transforms could be anything from an SQL query, a jupyter notebook, the state of an
+// ETL pipeline, etc, so long as the input is one or more datasets, and the output
+// is a single dataset.
+// Transform should contain all the machine-necessary bits to deterministicly execute
+// the process referenced in "Data".
+// Consumers of Transforms may be able to produce abstract versions of
+// transformations, a decision left to implementations
 type Transform struct {
 	// private storage for reference to this object
 	path datastore.Key
@@ -20,8 +24,6 @@ type Transform struct {
 	// AppVersion is an identifier for the application and version number that produced the result
 	AppVersion string
 	// Data is the path to the process that produced this transformation.
-	// This could be anything from an SQL query, a jupyter notebook, the state of an
-	// ETL pipeline, etc.
 	Data string `json:"data,omitempty"`
 
 	// Structure is the output structure of this transformation

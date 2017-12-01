@@ -8,18 +8,21 @@ import (
 	"github.com/ipfs/go-datastore"
 )
 
-// Dataset is stored separately from prescriptive metadata stored in Resource structs
-// to maximize overlap of the formal transform & resource definitions.
-// A Dataset must resolve to one and only one entity, specified by a `data` property.
-// It's structure must be specified by a structure definition.
-// This also creates space for subjective claims about datasets, and allows metadata
-// to take on a higher frequency of change in contrast to the underlying definition.
-// In addition, descriptive metadata can and should be author attributed
-// associating descriptive claims about a resource with a cyptographic keypair which
-// may represent a person, group of people, or software.
-// This metadata format is also subject to massive amounts of change.
-// Design goals should include making this compatible with the DCAT spec,
-// with the one major exception that hashes are acceptable in place of urls.
+// Dataset is a description of a single structured data resource. with the following properties:
+// * A Dataset must resolve to one and only one entity, specified by a `data` property.
+// * All datasets have a structure that defines how to intepret the data.
+// * Datasets contain descriptive metadata
+// * Though software Dataset metadata is interoperable with the DCAT, Project Open Data,
+//   Open Knowledge Foundation DataPackage and JSON-LD specifications,
+//   with the one major exception that content-addressed hashes are acceptable in place of urls.
+// * Datasets have a "Previous" field that forms historical DAGs
+// * Datasets contain a "commit" object that describes changes over time
+// * Dataset Commits can and should be author attributed via keypair signing
+// * Datasets "Transformations" provide determinstic records of the process used to
+//   create a dataset
+// * Dataset Structures & Transformations can have Abstract variants
+//   that describe a general form of their applicability to other datasets
+// Finally, commit messages should also be able to interoperate with git commits
 type Dataset struct {
 	// private storage for reference to this object
 	path datastore.Key
@@ -29,11 +32,20 @@ type Dataset struct {
 
 	// Time this dataset was created. Required. Datasets are immutable, so no "updated"
 	Timestamp time.Time `json:"timestamp,omitempty"`
-	// Structure of this dataset, required
+
+	// Structure of this dataset
 	Structure *Structure `json:"structure"`
 	// AbstractStructure is the abstract form of the structure field
 	AbstractStructure *Structure `json:"abstractStructure,omitempty"`
-
+	// Transform is a path to the transformation that generated this resource
+	Transform *Transform `json:"transform,omitempty"`
+	// AbstractTransform is a reference to the general form of the transformation
+	// that resulted in this dataset
+	AbstractTransform *Transform `json:"abstractTransform,omitempty"`
+	// Commit contains author & change message information
+	Commit *CommitMsg `json:"commit"`
+	// Previous connects datasets to form a historical DAG
+	Previous datastore.Key `json:"previous,omitempty"`
 	// Data is the path to the hash of raw data as it resolves on the network.
 	Data string `json:"data,omitempty"`
 
@@ -43,11 +55,6 @@ type Dataset struct {
 	// number of rows in the dataset.
 	// required and must match underlying dataset.
 	Rows int `json:"rows"`
-	// Previous connects datasets to form a historical DAG
-	Previous datastore.Key `json:"previous,omitempty"`
-	// Commit contains author & change message information
-	Commit *CommitMsg `json:"commit"`
-
 	// Title of this dataset
 	Title string `json:"title,omitempty"`
 	// Url to access the dataset
@@ -85,11 +92,6 @@ type Dataset struct {
 
 	// QueryString is the user-inputted string of an SQL transform
 	QueryString string `json:"queryString,omitempty"`
-
-	// Transform is a path to the transformation that generated this resource
-	Transform *Transform `json:"transform,omitempty"`
-	// AbstractTransform is a reference to the general form of the transform this dataset represents
-	AbstractTransform *Transform `json:"abstractTransform,omitempty"`
 
 	// meta holds additional arbitrarty metadata not covered by the spec
 	// when encoding & decoding json values here will be hoisted into the
