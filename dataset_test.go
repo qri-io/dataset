@@ -76,7 +76,7 @@ func TestDatasetMarshalJSON(t *testing.T) {
 		out []byte
 		err error
 	}{
-		{&Dataset{}, []byte(`{"data":"","length":0,"structure":null,"timestamp":"0001-01-01T00:00:00Z","title":""}`), nil},
+		{&Dataset{}, []byte(`{"data":"","kind":"qri:ds:0","length":0,"structure":null,"timestamp":"0001-01-01T00:00:00Z","title":""}`), nil},
 		{AirportCodes, []byte(AirportCodesJSON), nil},
 	}
 

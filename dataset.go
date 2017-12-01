@@ -24,6 +24,9 @@ type Dataset struct {
 	// private storage for reference to this object
 	path datastore.Key
 
+	// Kind is required, must be qri:ds:[version]
+	Kind Kind `json:"kind"`
+
 	// Time this dataset was created. Required. Datasets are immutable, so no "updated"
 	Timestamp time.Time `json:"timestamp"`
 	// Structure of this dataset, required
@@ -58,8 +61,8 @@ type Dataset struct {
 	Author    *User       `json:"author,omitempty"`
 	Citations []*Citation `json:"citations"`
 	Image     string      `json:"image,omitempty"`
-	// Description follows the DCAT sense of the word, it should be around a paragraph of human-readable
-	// text that outlines the
+	// Description follows the DCAT sense of the word, it should be around a paragraph of
+	// human-readable text
 	Description string `json:"description,omitempty"`
 	Homepage    string `json:"homepage,omitempty"`
 	IconImage   string `json:"iconImage,omitempty"`
@@ -69,7 +72,7 @@ type Dataset struct {
 	// License will automatically parse to & from a string value if provided as a raw string
 	License *License `json:"license,omitempty"`
 	// SemVersion this dataset?
-	Version VersionNumber `json:"version,omitempty"`
+	Version string `json:"version,omitempty"`
 	// String of Keywords
 	Keywords []string `json:"keywords,omitempty"`
 	// Contribute
@@ -85,6 +88,7 @@ type Dataset struct {
 	AbstractQuery *AbstractQuery `json:"abstractQuery,omitempty"`
 	// Query is a path to the query that generated this resource
 	Query *Query `json:"query,omitempty"`
+
 	// meta holds additional arbitrarty metadata not covered by the spec
 	// when encoding & decoding json values here will be hoisted into the
 	// Dataset object
@@ -268,6 +272,7 @@ func (ds *Dataset) MarshalJSON() ([]byte, error) {
 	if ds.Keywords != nil {
 		data["keywords"] = ds.Keywords
 	}
+	data["kind"] = DatasetKind
 	if ds.Language != nil {
 		data["language"] = ds.Language
 	}
@@ -299,7 +304,7 @@ func (ds *Dataset) MarshalJSON() ([]byte, error) {
 	if ds.AccrualPeriodicity != "" {
 		data["accrualPeriodicity"] = ds.AccrualPeriodicity
 	}
-	if ds.Version != VersionNumber("") {
+	if ds.Version != "" {
 		data["version"] = ds.Version
 	}
 
@@ -346,6 +351,7 @@ func (ds *Dataset) UnmarshalJSON(data []byte) error {
 		"identifier",
 		"image",
 		"keywords",
+		"kind",
 		"language",
 		"length",
 		"license",
