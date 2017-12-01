@@ -8,42 +8,53 @@ import (
 	"github.com/ipfs/go-datastore"
 )
 
-// Dataset is stored separately from prescriptive metadata stored in Resource structs
-// to maximize overlap of the formal query & resource definitions.
-// A Dataset must resolve to one and only one entity, specified by a `data` property.
-// It's structure must be specified by a structure definition.
-// This also creates space for subjective claims about datasets, and allows metadata
-// to take on a higher frequency of change in contrast to the underlying definition.
-// In addition, descriptive metadata can and should be author attributed
-// associating descriptive claims about a resource with a cyptographic keypair which
-// may represent a person, group of people, or software.
-// This metadata format is also subject to massive amounts of change.
-// Design goals should include making this compatible with the DCAT spec,
-// with the one major exception that hashes are acceptable in place of urls.
+// Dataset is a description of a single structured data resource. with the following properties:
+// * A Dataset must resolve to one and only one entity, specified by a `data` property.
+// * All datasets have a structure that defines how to intepret the data.
+// * Datasets contain descriptive metadata
+// * Though software Dataset metadata is interoperable with the DCAT, Project Open Data,
+//   Open Knowledge Foundation DataPackage and JSON-LD specifications,
+//   with the one major exception that content-addressed hashes are acceptable in place of urls.
+// * Datasets have a "Previous" field that forms historical DAGs
+// * Datasets contain a "commit" object that describes changes over time
+// * Dataset Commits can and should be author attributed via keypair signing
+// * Datasets "Transformations" provide determinstic records of the process used to
+//   create a dataset
+// * Dataset Structures & Transformations can have Abstract variants
+//   that describe a general form of their applicability to other datasets
+// Finally, commit messages should also be able to interoperate with git commits
 type Dataset struct {
 	// private storage for reference to this object
 	path datastore.Key
 
+	// Kind is required, must be qri:ds:[version]
+	Kind Kind `json:"kind"`
+
 	// Time this dataset was created. Required. Datasets are immutable, so no "updated"
-	Timestamp time.Time `json:"timestamp"`
-	// Structure of this dataset, required
+	Timestamp time.Time `json:"timestamp,omitempty"`
+
+	// Structure of this dataset
 	Structure *Structure `json:"structure"`
 	// AbstractStructure is the abstract form of the structure field
 	AbstractStructure *Structure `json:"abstractStructure,omitempty"`
-
+	// Transform is a path to the transformation that generated this resource
+	Transform *Transform `json:"transform,omitempty"`
+	// AbstractTransform is a reference to the general form of the transformation
+	// that resulted in this dataset
+	AbstractTransform *Transform `json:"abstractTransform,omitempty"`
+	// Commit contains author & change message information
+	Commit *CommitMsg `json:"commit"`
+	// Previous connects datasets to form a historical DAG
+	Previous datastore.Key `json:"previous,omitempty"`
 	// Data is the path to the hash of raw data as it resolves on the network.
-	Data datastore.Key `json:"data"`
+	Data string `json:"data,omitempty"`
+
 	// Length is the length of the data object in bytes.
 	// must always match & be present
-	Length int `json:"length"`
+	Length int `json:"length,omitempty"`
 	// number of rows in the dataset.
 	// required and must match underlying dataset.
 	Rows int `json:"rows"`
-	// Previous connects datasets to form a historical DAG
-	Previous datastore.Key `json:"previous,omitempty"`
-	// Commit contains author & change message information
-	Commit *CommitMsg `json:"commit"`
-
 	// Title of this dataset
 	Title string `json:"title,omitempty"`
 	// Url to access the dataset
@@ -58,8 +69,8 @@ type Dataset struct {
 	Author    *User       `json:"author,omitempty"`
 	Citations []*Citation `json:"citations"`
 	Image     string      `json:"image,omitempty"`
-	// Description follows the DCAT sense of the word, it should be around a paragraph of human-readable
-	// text that outlines the
+	// Description follows the DCAT sense of the word, it should be around a paragraph of
+	// human-readable text
 	Description string `json:"description,omitempty"`
 	Homepage    string `json:"homepage,omitempty"`
 	IconImage   string `json:"iconImage,omitempty"`
@@ -69,7 +80,7 @@ type Dataset struct {
 	// License will automatically parse to & from a string value if provided as a raw string
 	License *License `json:"license,omitempty"`
 	// SemVersion this dataset?
-	Version VersionNumber `json:"version,omitempty"`
+	Version string `json:"version,omitempty"`
 	// String of Keywords
 	Keywords []string `json:"keywords,omitempty"`
 	// Contribute
@@ -79,12 +90,9 @@ type Dataset struct {
 	// Theme
 	Theme []string `json:"theme,omitempty"`
 
-	// QueryString is the user-inputted string of this query
+	// QueryString is the user-inputted string of an SQL transform
 	QueryString string `json:"queryString,omitempty"`
-	// AbstractQuery is a reference to the general form of the query this dataset represents
-	AbstractQuery *AbstractQuery `json:"abstractQuery,omitempty"`
-	// Query is a path to the query that generated this resource
-	Query *Query `json:"query,omitempty"`
+
 	// meta holds additional arbitrarty metadata not covered by the spec
 	// when encoding & decoding json values here will be hoisted into the
 	// Dataset object
@@ -115,6 +123,21 @@ func (ds *Dataset) Meta() map[string]interface{} {
 	return ds.meta
 }
 
+// Abstract returns a copy of dataset with all
+// semantically-identifiable and concrete references replaced with
+// uniform values
+func (ds *Dataset) Abstract() *Dataset {
+	abs := &Dataset{Kind: ds.Kind}
+
+	if ds.Structure != nil {
+		return &Dataset{
+			Kind:      ds.Kind,
+			Structure: ds.Structure.Abstract(),
+		}
+	}
+	return abs
+}
+
 // Assign collapses all properties of a group of datasets onto one.
 // this is directly inspired by Javascript's Object.assign
 func (ds *Dataset) Assign(datasets ...*Dataset) {
@@ -142,7 +165,7 @@ func (ds *Dataset) Assign(datasets ...*Dataset) {
 			ds.AbstractStructure.Assign(d.AbstractStructure)
 		}
 
-		if d.Data.String() != "" {
+		if d.Data != "" {
 			ds.Data = d.Data
 		}
 		if d.Length != 0 {
@@ -209,8 +232,8 @@ func (ds *Dataset) Assign(datasets ...*Dataset) {
 		if d.QueryString != "" {
 			ds.QueryString = d.QueryString
 		}
-		if d.Query != nil {
-			ds.Query = d.Query
+		if d.Transform != nil {
+			ds.Transform = d.Transform
 		}
 		if d.meta != nil {
 			ds.meta = d.meta
@@ -228,8 +251,8 @@ func (ds *Dataset) MarshalJSON() ([]byte, error) {
 	}
 
 	data := ds.Meta()
-	if ds.AbstractQuery != nil {
-		data["abstractQuery"] = ds.AbstractQuery
+	if ds.AbstractTransform != nil {
+		data["abstractTransform"] = ds.AbstractTransform
 	}
 	if ds.AbstractStructure != nil {
 		data["abstractStructure"] = ds.AbstractStructure
@@ -246,7 +269,9 @@ func (ds *Dataset) MarshalJSON() ([]byte, error) {
 	if ds.Contributors != nil {
 		data["contributors"] = ds.Contributors
 	}
-	data["data"] = ds.Data
+	if ds.Data != "" {
+		data["data"] = ds.Data
+	}
 	if ds.Description != "" {
 		data["description"] = ds.Description
 	}
@@ -268,10 +293,13 @@ func (ds *Dataset) MarshalJSON() ([]byte, error) {
 	if ds.Keywords != nil {
 		data["keywords"] = ds.Keywords
 	}
+	data["kind"] = DatasetKind
 	if ds.Language != nil {
 		data["language"] = ds.Language
 	}
-	data["length"] = ds.Length
+	if ds.Length != 0 {
+		data["length"] = ds.Length
+	}
 	if ds.License != nil {
 		data["license"] = ds.License
 	}
@@ -281,8 +309,8 @@ func (ds *Dataset) MarshalJSON() ([]byte, error) {
 	if ds.Commit != nil {
 		data["commit"] = ds.Commit
 	}
-	if ds.Query != nil {
-		data["query"] = ds.Query
+	if ds.Transform != nil {
+		data["transform"] = ds.Transform
 	}
 	if ds.QueryString != "" {
 		data["queryString"] = ds.QueryString
@@ -294,12 +322,16 @@ func (ds *Dataset) MarshalJSON() ([]byte, error) {
 	if ds.Theme != nil {
 		data["theme"] = ds.Theme
 	}
-	data["timestamp"] = ds.Timestamp
-	data["title"] = ds.Title
+	if !ds.Timestamp.IsZero() {
+		data["timestamp"] = ds.Timestamp
+	}
+	if ds.Title != "" {
+		data["title"] = ds.Title
+	}
 	if ds.AccrualPeriodicity != "" {
 		data["accrualPeriodicity"] = ds.AccrualPeriodicity
 	}
-	if ds.Version != VersionNumber("") {
+	if ds.Version != "" {
 		data["version"] = ds.Version
 	}
 
@@ -330,7 +362,7 @@ func (ds *Dataset) UnmarshalJSON(data []byte) error {
 	}
 
 	for _, f := range []string{
-		"abstractQuery",
+		"abstractTransform",
 		"abstractStructure",
 		"accessUrl",
 		"accrualPeriodicity",
@@ -346,11 +378,12 @@ func (ds *Dataset) UnmarshalJSON(data []byte) error {
 		"identifier",
 		"image",
 		"keywords",
+		"kind",
 		"language",
 		"length",
 		"license",
 		"previous",
-		"query",
+		"transform",
 		"queryString",
 		"readme",
 		"structure",
@@ -394,6 +427,9 @@ func CompareDatasets(a, b *Dataset) error {
 	// if err := compare.MapStringInterface(a.Meta(), b.Meta()); err != nil {
 	// 	return fmt.Errorf("meta mismatch: %s", err.Error())
 	// }
+	if a.Kind.String() != b.Kind.String() {
+		return fmt.Errorf("kind mismatch: %s != %s", a.Kind, b.Kind)
+	}
 
 	if a.AccessURL != b.AccessURL {
 		return fmt.Errorf("accessUrl mismatch: %s != %s", a.AccessURL, b.AccessURL)

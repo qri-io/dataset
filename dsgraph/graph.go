@@ -15,10 +15,10 @@ var (
 	NtCommit = NodeType("commit")
 	// NtData is a dataset's raw data
 	NtData = NodeType("data")
-	// NtQuery is the query.json in a dataset
-	NtQuery = NodeType("query")
-	// NtAbstQuery is the abstract_query.json in a dataset
-	NtAbstQuery = NodeType("abst_query")
+	// NtTransform is the transform.json in a dataset
+	NtTransform = NodeType("transform")
+	// NtAbstTransform is the abstract_transform.json in a dataset
+	NtAbstTransform = NodeType("abst_transform")
 	// NtStructure is the structure.json in a dataset
 	NtStructure = NodeType("structure")
 	// NtAbstStructure is the abstract_structure.json in a dataset
@@ -61,8 +61,8 @@ ADDITIONS:
 // 	LtDsData        = LinkType("dataset_data")
 // 	LtDsCommit      = LinkType("dataset_commit")
 // 	LtAbstStructure = LinkType("abst_structure")
-// 	LtQuery         = LinkType("query")
-// 	LtAbstQuery     = LinkType("abst_query")
+// 	LtTransform         = LinkType("transform")
+// 	LtAbstTransform     = LinkType("abst_transform")
 // 	LtNamespaceTip  = LinkType("namespace_tip")
 // )
 

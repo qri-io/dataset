@@ -235,7 +235,7 @@ func makeFilestore() (map[string]datastore.Key, cafs.Filestore, error) {
 			return datasets, nil, err
 		}
 
-		ds.Data = datakey
+		ds.Data = datakey.String()
 		dskey, err := SaveDataset(fs, ds, true)
 		if err != nil {
 			return datasets, nil, err

@@ -1,5 +1,6 @@
 {
   "title": "Continent Codes",
+  "kind": "qri:ds:0",
   "description": "list of continents with corresponding two letter codes",
   "license": {
     "type": "odc-pddl",

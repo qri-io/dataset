@@ -1,5 +1,6 @@
 {
   "title": "Airport Codes",
+  "kind": "qri:ds:0",
   "homepage": "http://www.ourairports.com/",
   "license": "PDDL-1.0",
   "commit" : {

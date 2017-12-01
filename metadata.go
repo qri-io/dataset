@@ -6,13 +6,6 @@ import (
 	"time"
 )
 
-// Current version of the specification
-const version = "0.0.1"
-
-// VersionNumber is a semantic major.minor.patch
-// TODO - make Version enforce this format
-type VersionNumber string
-
 // User is a placholder for talking about people, groups, organizations
 type User struct {
 	ID       string `json:"id,omitempty"`
