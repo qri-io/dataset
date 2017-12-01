@@ -9,22 +9,22 @@ import (
 	"testing"
 )
 
-func TestQueryAssign(t *testing.T) {
-	expect := &Query{
+func TestTransformAssign(t *testing.T) {
+	expect := &Transform{
 		path:       datastore.NewKey("path"),
 		Syntax:     "a",
 		AppVersion: "b",
 		Config: map[string]interface{}{
 			"foo": "bar",
 		},
-		Abstract: &AbstractQuery{
+		Abstract: &AbstractTransform{
 			Syntax: "abstract_syntax",
 		},
 		Resources: map[string]*Dataset{
 			"a": NewDatasetRef(datastore.NewKey("/path/to/a")),
 		},
 	}
-	got := &Query{
+	got := &Transform{
 		Syntax:     "no",
 		AppVersion: "change",
 		Config: map[string]interface{}{
@@ -34,7 +34,7 @@ func TestQueryAssign(t *testing.T) {
 		Resources: nil,
 	}
 
-	got.Assign(&Query{
+	got.Assign(&Transform{
 		Syntax:     "a",
 		AppVersion: "b",
 		Config: map[string]interface{}{
@@ -42,8 +42,8 @@ func TestQueryAssign(t *testing.T) {
 		},
 		Abstract:  nil,
 		Resources: nil,
-	}, &Query{
-		Abstract: &AbstractQuery{
+	}, &Transform{
+		Abstract: &AbstractTransform{
 			Syntax: "abstract_syntax",
 		},
 		Resources: map[string]*Dataset{
@@ -51,30 +51,30 @@ func TestQueryAssign(t *testing.T) {
 		},
 	})
 
-	if err := CompareQuery(expect, got); err != nil {
+	if err := CompareTransform(expect, got); err != nil {
 		t.Error(err)
 	}
 
 	got.Assign(nil, nil)
-	if err := CompareQuery(expect, got); err != nil {
+	if err := CompareTransform(expect, got); err != nil {
 		t.Error(err)
 	}
 
-	emptyMsg := &Query{}
+	emptyMsg := &Transform{}
 	emptyMsg.Assign(expect)
-	if err := CompareQuery(expect, emptyMsg); err != nil {
+	if err := CompareTransform(expect, emptyMsg); err != nil {
 		t.Error(err)
 	}
 }
 
-func CompareQuery(a, b *Query) error {
+func CompareTransform(a, b *Transform) error {
 	if a == nil && b != nil || a != nil && b == nil {
 		return fmt.Errorf("nil mismatch: %v != %v", a, b)
 	}
 	if a == nil && b == nil {
 		return nil
 	}
-	if err := CompareAbstractQuery(a.Abstract, b.Abstract); err != nil {
+	if err := CompareAbstractTransform(a.Abstract, b.Abstract); err != nil {
 		return err
 	}
 	if len(a.Resources) != len(b.Resources) {
@@ -88,32 +88,32 @@ func CompareQuery(a, b *Query) error {
 	return nil
 }
 
-func TestQueryUnmarshalJSON(t *testing.T) {
+func TestTransformUnmarshalJSON(t *testing.T) {
 	cases := []struct {
-		str   string
-		query *Query
-		err   error
+		str       string
+		transform *Transform
+		err       error
 	}{
-		{`{}`, &Query{}, nil},
-		{`{ "abstract" : "/path/to/abstract" }`, &Query{Abstract: &AbstractQuery{path: datastore.NewKey("/path/to/abstract")}}, nil},
-		// {`{ "syntax" : "ql", "statement" : "select a from b" }`, &Query{Syntax: "ql", Statement: "select a from b"}, nil},
+		{`{}`, &Transform{}, nil},
+		{`{ "abstract" : "/path/to/abstract" }`, &Transform{Abstract: &AbstractTransform{path: datastore.NewKey("/path/to/abstract")}}, nil},
+		// {`{ "syntax" : "ql", "statement" : "select a from b" }`, &Transform{Syntax: "ql", Statement: "select a from b"}, nil},
 	}
 
 	for i, c := range cases {
-		got := &Query{}
+		got := &Transform{}
 		if err := json.Unmarshal([]byte(c.str), got); err != c.err {
 			t.Errorf("case %d error mismatch. expected: %s, got: %s", i, c.err, err)
 			continue
 		}
 
-		if err := CompareQuery(c.query, got); err != nil {
-			t.Errorf("case %d query mismatch: %s", i, err)
+		if err := CompareTransform(c.transform, got); err != nil {
+			t.Errorf("case %d transform mismatch: %s", i, err)
 			continue
 		}
 	}
 
-	strq := &Query{}
-	path := "/path/to/query"
+	strq := &Transform{}
+	path := "/path/to/transform"
 	if err := json.Unmarshal([]byte(`"`+path+`"`), strq); err != nil {
 		t.Errorf("unmarshal string path error: %s", err.Error())
 		return
@@ -125,14 +125,14 @@ func TestQueryUnmarshalJSON(t *testing.T) {
 	}
 }
 
-func TestQueryMarshalJSON(t *testing.T) {
+func TestTransformMarshalJSON(t *testing.T) {
 	cases := []struct {
-		q   *Query
+		q   *Transform
 		out string
 		err error
 	}{
-		{&Query{}, `{}`, nil},
-		// {&Query{Syntax: "sql", Statement: "select a from b"}, `{"outputStructure":null,"statement":"select a from b","structures":null,"syntax":"sql"}`, nil},
+		{&Transform{}, `{}`, nil},
+		// {&Transform{Syntax: "sql", Statement: "select a from b"}, `{"outputStructure":null,"statement":"select a from b","structures":null,"syntax":"sql"}`, nil},
 	}
 
 	for i, c := range cases {
@@ -147,18 +147,18 @@ func TestQueryMarshalJSON(t *testing.T) {
 		}
 	}
 
-	strbytes, err := json.Marshal(&Query{path: datastore.NewKey("/path/to/query")})
+	strbytes, err := json.Marshal(&Transform{path: datastore.NewKey("/path/to/transform")})
 	if err != nil {
 		t.Errorf("unexpected string marshal error: %s", err.Error())
 		return
 	}
 
-	if !bytes.Equal(strbytes, []byte("\"/path/to/query\"")) {
-		t.Errorf("marshal strbyte interface byte mismatch: %s != %s", string(strbytes), "\"/path/to/query\"")
+	if !bytes.Equal(strbytes, []byte("\"/path/to/transform\"")) {
+		t.Errorf("marshal strbyte interface byte mismatch: %s != %s", string(strbytes), "\"/path/to/transform\"")
 	}
 }
 
-func CompareAbstractQuery(a, b *AbstractQuery) error {
+func CompareAbstractTransform(a, b *AbstractTransform) error {
 	if a == nil && b != nil || a != nil && b == nil {
 		return fmt.Errorf("nil mismatch: %v != %v", a, b)
 	}
@@ -175,9 +175,9 @@ func CompareAbstractQuery(a, b *AbstractQuery) error {
 	return nil
 }
 
-func TestAbstractQueryAssign(t *testing.T) {
-	expect := &AbstractQuery{
-		path:      datastore.NewKey("/path/to/abstract/query"),
+func TestAbstractTransformAssign(t *testing.T) {
+	expect := &AbstractTransform{
+		path:      datastore.NewKey("/path/to/abstract/transform"),
 		Statement: "what a statement",
 		Structure: &Structure{
 			Schema: &Schema{
@@ -194,13 +194,13 @@ func TestAbstractQueryAssign(t *testing.T) {
 		},
 		Syntax: "foobar",
 	}
-	got := &AbstractQuery{
+	got := &AbstractTransform{
 		path:      datastore.NewKey("/clobber/me/plz"),
 		Statement: "who the statement",
 	}
 
-	got.Assign(&AbstractQuery{
-		path:      datastore.NewKey("/path/to/abstract/query"),
+	got.Assign(&AbstractTransform{
+		path:      datastore.NewKey("/path/to/abstract/transform"),
 		Statement: "what a statement",
 		Structure: &Structure{
 			Schema: &Schema{
@@ -210,7 +210,7 @@ func TestAbstractQueryAssign(t *testing.T) {
 				},
 			},
 		},
-	}, &AbstractQuery{
+	}, &AbstractTransform{
 		Structures: map[string]*Structure{
 			"a": {
 				Format: CSVDataFormat,
@@ -219,47 +219,47 @@ func TestAbstractQueryAssign(t *testing.T) {
 		Syntax: "foobar",
 	})
 
-	if err := CompareAbstractQuery(expect, got); err != nil {
+	if err := CompareAbstractTransform(expect, got); err != nil {
 		t.Error(err)
 	}
 
 	got.Assign(nil, nil)
-	if err := CompareAbstractQuery(expect, got); err != nil {
+	if err := CompareAbstractTransform(expect, got); err != nil {
 		t.Error(err)
 	}
 
-	emptyMsg := &AbstractQuery{}
+	emptyMsg := &AbstractTransform{}
 	emptyMsg.Assign(expect)
-	if err := CompareAbstractQuery(expect, emptyMsg); err != nil {
+	if err := CompareAbstractTransform(expect, emptyMsg); err != nil {
 		t.Error(err)
 	}
 }
 
-func TestAbstractQueryUnmarshalJSON(t *testing.T) {
+func TestAbstractTransformUnmarshalJSON(t *testing.T) {
 	cases := []struct {
-		str   string
-		query *AbstractQuery
-		err   error
+		str       string
+		transform *AbstractTransform
+		err       error
 	}{
-		{`{ "statement" : "select a from b" }`, &AbstractQuery{Statement: "select a from b"}, nil},
-		{`{ "syntax" : "ql", "statement" : "select a from b" }`, &AbstractQuery{Syntax: "ql", Statement: "select a from b"}, nil},
+		{`{ "statement" : "select a from b" }`, &AbstractTransform{Statement: "select a from b"}, nil},
+		{`{ "syntax" : "ql", "statement" : "select a from b" }`, &AbstractTransform{Syntax: "ql", Statement: "select a from b"}, nil},
 	}
 
 	for i, c := range cases {
-		got := &AbstractQuery{}
+		got := &AbstractTransform{}
 		if err := json.Unmarshal([]byte(c.str), got); err != c.err {
 			t.Errorf("case %d error mismatch. expected: %s, got: %s", i, c.err, err)
 			continue
 		}
 
-		if err := CompareAbstractQuery(c.query, got); err != nil {
-			t.Errorf("case %d query mismatch: %s", i, err)
+		if err := CompareAbstractTransform(c.transform, got); err != nil {
+			t.Errorf("case %d transform mismatch: %s", i, err)
 			continue
 		}
 	}
 
-	strq := &AbstractQuery{}
-	path := "/path/to/query"
+	strq := &AbstractTransform{}
+	path := "/path/to/transform"
 	if err := json.Unmarshal([]byte(`"`+path+`"`), strq); err != nil {
 		t.Errorf("unmarshal string path error: %s", err.Error())
 		return
@@ -271,13 +271,13 @@ func TestAbstractQueryUnmarshalJSON(t *testing.T) {
 	}
 }
 
-func TestAbstractQueryMarshalJSON(t *testing.T) {
+func TestAbstractTransformMarshalJSON(t *testing.T) {
 	cases := []struct {
-		q   *AbstractQuery
+		q   *AbstractTransform
 		out string
 		err error
 	}{
-		{&AbstractQuery{Syntax: "sql", Statement: "select a from b"}, `{"outputStructure":null,"statement":"select a from b","structures":null,"syntax":"sql"}`, nil},
+		{&AbstractTransform{Syntax: "sql", Statement: "select a from b"}, `{"outputStructure":null,"statement":"select a from b","structures":null,"syntax":"sql"}`, nil},
 	}
 
 	for i, c := range cases {
@@ -292,13 +292,13 @@ func TestAbstractQueryMarshalJSON(t *testing.T) {
 		}
 	}
 
-	strbytes, err := json.Marshal(&AbstractQuery{path: datastore.NewKey("/path/to/abstractquery")})
+	strbytes, err := json.Marshal(&AbstractTransform{path: datastore.NewKey("/path/to/abstracttransform")})
 	if err != nil {
 		t.Errorf("unexpected string marshal error: %s", err.Error())
 		return
 	}
 
-	if !bytes.Equal(strbytes, []byte("\"/path/to/abstractquery\"")) {
-		t.Errorf("marshal strbyte interface byte mismatch: %s != %s", string(strbytes), "\"/path/to/abstractquery\"")
+	if !bytes.Equal(strbytes, []byte("\"/path/to/abstracttransform\"")) {
+		t.Errorf("marshal strbyte interface byte mismatch: %s != %s", string(strbytes), "\"/path/to/abstracttransform\"")
 	}
 }

@@ -21,17 +21,17 @@ const (
 	PackageFileAbstractStructure
 	// PackageFileResources lists the resource datasets
 	// that went into creating a dataset
-	// TODO - I think this can be removed now that Query exists
+	// TODO - I think this can be removed now that Transform exists
 	PackageFileResources
 	// PackageFileCommitMsg is isolates the user-entered
 	// documentation of the changes to this dataset's history
 	PackageFileCommitMsg
-	// PackageFileQuery isloates the concrete query that
+	// PackageFileTransform isloates the concrete transform that
 	// generated this dataset
-	PackageFileQuery
-	// PackageFileAbstractQuery is the abstract version of
+	PackageFileTransform
+	// PackageFileAbstractTransform is the abstract version of
 	// the operation performed to create this dataset
-	PackageFileAbstractQuery
+	PackageFileAbstractTransform
 )
 
 // filenames maps PackageFile to their filename counterparts
@@ -40,10 +40,10 @@ var filenames = map[PackageFile]string{
 	PackageFileDataset:           "dataset.json",
 	PackageFileStructure:         "structure.json",
 	PackageFileAbstractStructure: "abstract_structure.json",
-	PackageFileAbstractQuery:     "abstract_query.json",
+	PackageFileAbstractTransform: "abstract_transform.json",
 	PackageFileResources:         "resources",
 	PackageFileCommitMsg:         "commit.json",
-	PackageFileQuery:             "query.json",
+	PackageFileTransform:         "transform.json",
 }
 
 // String implements the io.Stringer interface for PackageFile

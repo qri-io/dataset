@@ -9,34 +9,34 @@ import (
 	"github.com/qri-io/dataset"
 )
 
-func TestLoadAbstractQuery(t *testing.T) {
+func TestLoadAbstractTransform(t *testing.T) {
 	store := memfs.NewMapstore()
-	q := &dataset.AbstractQuery{Statement: "select * from whatever booooooo go home"}
-	a, err := SaveAbstractQuery(store, q, true)
+	q := &dataset.AbstractTransform{Statement: "select * from whatever booooooo go home"}
+	a, err := SaveAbstractTransform(store, q, true)
 	if err != nil {
 		t.Errorf(err.Error())
 		return
 	}
 
-	if _, err = LoadAbstractQuery(store, a); err != nil {
+	if _, err = LoadAbstractTransform(store, a); err != nil {
 		t.Errorf(err.Error())
 	}
 	// TODO - other tests & stuff
 }
 
-func TestQueryLoadAbstractStructures(t *testing.T) {
+func TestTransformLoadAbstractStructures(t *testing.T) {
 	// store := datastore.NewMapDatastore()
 	// TODO - finish dis test
 }
 
-func TestQuerySave(t *testing.T) {
+func TestTransformSave(t *testing.T) {
 	dsa := dataset.NewDatasetRef(datastore.NewKey("/path/to/dataset/a"))
 	dsa.Assign(&dataset.Dataset{Title: "now dataset isn't empty "})
 
 	store := memfs.NewMapstore()
-	q := &dataset.Query{
+	q := &dataset.Transform{
 		Syntax: "sweet syntax",
-		Abstract: &dataset.AbstractQuery{
+		Abstract: &dataset.AbstractTransform{
 			Syntax:    "sweet syntax",
 			Statement: "select * from a",
 			Structure: &dataset.Structure{Format: dataset.CSVDataFormat, Schema: &dataset.Schema{Fields: []*dataset.Field{{Name: "its_a_field"}}}},
@@ -49,7 +49,7 @@ func TestQuerySave(t *testing.T) {
 		},
 	}
 
-	key, err := SaveQuery(store, q, true)
+	key, err := SaveTransform(store, q, true)
 	if err != nil {
 		t.Error(err.Error())
 		return
@@ -73,18 +73,18 @@ func TestQuerySave(t *testing.T) {
 		return
 	}
 
-	res := &dataset.Query{}
+	res := &dataset.Transform{}
 	if err := json.NewDecoder(f).Decode(res); err != nil {
-		t.Errorf("error decoding query json: %s", err.Error())
+		t.Errorf("error decoding transform json: %s", err.Error())
 		return
 	}
 
 	if !res.Abstract.IsEmpty() {
-		t.Errorf("expected stored query.Abstract to be a reference")
+		t.Errorf("expected stored transform.Abstract to be a reference")
 	}
 	for name, ref := range res.Resources {
 		if !ref.IsEmpty() {
-			t.Errorf("expected stored query reference '%s' to be empty", name)
+			t.Errorf("expected stored transform reference '%s' to be empty", name)
 		}
 	}
 }

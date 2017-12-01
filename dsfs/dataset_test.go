@@ -48,17 +48,17 @@ func TestDatasetSave(t *testing.T) {
 				Fields: []*dataset.Field{},
 			},
 		},
-		Query: &dataset.Query{
+		Transform: &dataset.Transform{
 			Syntax: "dunno",
-			Abstract: &dataset.AbstractQuery{
+			Abstract: &dataset.AbstractTransform{
 				Statement: "test statement",
 			},
 			Resources: map[string]*dataset.Dataset{
 				"test": resource,
 			},
 		},
-		AbstractQuery: &dataset.AbstractQuery{Statement: "select fooo from bar"},
-		Data:          datapath,
+		AbstractTransform: &dataset.AbstractTransform{Statement: "select fooo from bar"},
+		Data:              datapath,
 	}
 
 	key, err := SaveDataset(store, ds, true)
@@ -67,7 +67,7 @@ func TestDatasetSave(t *testing.T) {
 		return
 	}
 
-	hash := "/map/QmSiEFF9KKXdVX2ibpWiUgD6tUhBW6BA8Gy6U6Uk8PpW6N"
+	hash := "/map/QmPGKFvhSKWNcn35D69eKhjUms7Y25MQR6TtxhgiChSkQT"
 	if hash != key.String() {
 		t.Errorf("key mismatch: %s != %s", hash, key.String())
 		return
@@ -91,11 +91,11 @@ func TestDatasetSave(t *testing.T) {
 		return
 	}
 
-	if !result.AbstractQuery.IsEmpty() {
-		t.Errorf("expected stored dataset.AbstractQuery to be a reference")
+	if !result.AbstractTransform.IsEmpty() {
+		t.Errorf("expected stored dataset.AbstractTransform to be a reference")
 	}
-	if !result.Query.IsEmpty() {
-		t.Errorf("expected stored dataset.Query to be a reference")
+	if !result.Transform.IsEmpty() {
+		t.Errorf("expected stored dataset.Transform to be a reference")
 	}
 	if !result.Structure.IsEmpty() {
 		t.Errorf("expected stored dataset.Structure to be a reference")
@@ -104,24 +104,24 @@ func TestDatasetSave(t *testing.T) {
 		t.Errorf("expected stored dataset.AbstractStructure to be a reference")
 	}
 
-	qf, err := store.Get(result.Query.Path())
+	qf, err := store.Get(result.Transform.Path())
 	if err != nil {
-		t.Errorf("error getting query file: %s", err.Error())
+		t.Errorf("error getting transform file: %s", err.Error())
 		return
 	}
 
-	q := &dataset.Query{}
+	q := &dataset.Transform{}
 	if err := json.NewDecoder(qf).Decode(q); err != nil {
-		t.Errorf("error decoding query json: %s", err.Error())
+		t.Errorf("error decoding transform json: %s", err.Error())
 		return
 	}
 
 	if !q.Abstract.IsEmpty() {
-		t.Errorf("expected stored query.Abstract to be a reference")
+		t.Errorf("expected stored transform.Abstract to be a reference")
 	}
 	for name, ref := range q.Resources {
 		if !ref.IsEmpty() {
-			t.Errorf("expected stored query reference '%s' to be empty", name)
+			t.Errorf("expected stored transform reference '%s' to be empty", name)
 		}
 	}
 }

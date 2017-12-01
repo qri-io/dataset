@@ -10,7 +10,7 @@ import (
 	"github.com/qri-io/dataset"
 )
 
-// LoadDataset reads a dataset from a cafs and dereferences structure, query, and commitMsg if they exist,
+// LoadDataset reads a dataset from a cafs and dereferences structure, transform, and commitMsg if they exist,
 // returning a fully-hydrated dataset
 func LoadDataset(store cafs.Filestore, path datastore.Key) (*dataset.Dataset, error) {
 	ds, err := LoadDatasetRefs(store, path)
@@ -22,12 +22,12 @@ func LoadDataset(store cafs.Filestore, path datastore.Key) (*dataset.Dataset, er
 		return nil, fmt.Errorf("error dereferencing %s file: %s", PackageFileStructure, err.Error())
 	}
 
-	if err := DerefDatasetQuery(store, ds); err != nil {
-		return nil, fmt.Errorf("error dereferencing %s file: %s", PackageFileQuery, err.Error())
+	if err := DerefDatasetTransform(store, ds); err != nil {
+		return nil, fmt.Errorf("error dereferencing %s file: %s", PackageFileTransform, err.Error())
 	}
 
 	if err := DerefDatasetCommitMsg(store, ds); err != nil {
-		return nil, fmt.Errorf("error dereferencing %s file: %s", PackageFileQuery, err.Error())
+		return nil, fmt.Errorf("error dereferencing %s file: %s", PackageFileTransform, err.Error())
 	}
 
 	return ds, nil
@@ -76,15 +76,15 @@ func DerefDatasetStructure(store cafs.Filestore, ds *dataset.Dataset) error {
 	return nil
 }
 
-// DerefDatasetQuery derferences a dataset's query element if required
+// DerefDatasetTransform derferences a dataset's transform element if required
 // should be a no-op if ds.Structure is nil or isn't a reference
-func DerefDatasetQuery(store cafs.Filestore, ds *dataset.Dataset) error {
-	if ds.Query != nil && ds.Query.IsEmpty() && ds.Query.Path().String() != "" {
-		q, err := LoadQuery(store, ds.Query.Path())
+func DerefDatasetTransform(store cafs.Filestore, ds *dataset.Dataset) error {
+	if ds.Transform != nil && ds.Transform.IsEmpty() && ds.Transform.Path().String() != "" {
+		q, err := LoadTransform(store, ds.Transform.Path())
 		if err != nil {
-			return fmt.Errorf("error loading dataset query: %s", err.Error())
+			return fmt.Errorf("error loading dataset transform: %s", err.Error())
 		}
-		ds.Query = q
+		ds.Transform = q
 	}
 	return nil
 }
@@ -119,7 +119,7 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 	// if dataset contains no references, place directly in.
 	// TODO - this might not constitute a valid dataset. should we be
 	// validating datasets in here?
-	if ds.Query == nil && ds.Structure == nil {
+	if ds.Transform == nil && ds.Structure == nil {
 		fileTasks++
 		dsdata, err := json.Marshal(ds)
 		if err != nil {
@@ -129,25 +129,25 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 		addedDataset = true
 	}
 
-	if ds.Query != nil {
-		if ds.Query.Abstract != nil {
-			ds.AbstractQuery = ds.Query.Abstract
+	if ds.Transform != nil {
+		if ds.Transform.Abstract != nil {
+			ds.AbstractTransform = ds.Transform.Abstract
 		}
-		// qdata, err := json.Marshal(ds.Query)
+		// qdata, err := json.Marshal(ds.Transform)
 		// if err != nil {
-		// 	return datastore.NewKey(""), fmt.Errorf("error marshaling dataset query to json: %s", err.Error())
+		// 	return datastore.NewKey(""), fmt.Errorf("error marshaling dataset transform to json: %s", err.Error())
 		// }
 		// fileTasks++
-		// adder.AddFile(memfs.NewMemfileBytes(PackageFileQuery.String(), qdata))
+		// adder.AddFile(memfs.NewMemfileBytes(PackageFileTransform.String(), qdata))
 	}
 
-	if ds.AbstractQuery != nil {
-		qdata, err := json.Marshal(ds.AbstractQuery)
+	if ds.AbstractTransform != nil {
+		qdata, err := json.Marshal(ds.AbstractTransform)
 		if err != nil {
-			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset abstract query to json: %s", err.Error())
+			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset abstract transform to json: %s", err.Error())
 		}
 		fileTasks++
-		adder.AddFile(memfs.NewMemfileBytes(PackageFileAbstractQuery.String(), qdata))
+		adder.AddFile(memfs.NewMemfileBytes(PackageFileAbstractTransform.String(), qdata))
 	}
 
 	if ds.Commit != nil {
@@ -195,14 +195,14 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 				ds.Structure = dataset.NewStructureRef(ao.Path)
 			case PackageFileAbstractStructure.String():
 				ds.AbstractStructure = dataset.NewStructureRef(ao.Path)
-			case PackageFileQuery.String():
-				ds.Query = dataset.NewQueryRef(ao.Path)
-			case PackageFileAbstractQuery.String():
-				ds.AbstractQuery = dataset.NewAbstractQueryRef(ao.Path)
-				ds.Query.Abstract = ds.AbstractQuery
-				if ds.Query != nil {
-					if f, err := queryFile(ds.Query); err != nil {
-						done <- fmt.Errorf("error generating query file: %s", err.Error())
+			case PackageFileTransform.String():
+				ds.Transform = dataset.NewTransformRef(ao.Path)
+			case PackageFileAbstractTransform.String():
+				ds.AbstractTransform = dataset.NewAbstractTransformRef(ao.Path)
+				ds.Transform.Abstract = ds.AbstractTransform
+				if ds.Transform != nil {
+					if f, err := transformFile(ds.Transform); err != nil {
+						done <- fmt.Errorf("error generating transform file: %s", err.Error())
 					} else {
 						fileTasks++
 						adder.AddFile(f)

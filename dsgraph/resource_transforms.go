@@ -9,13 +9,13 @@ package dsgraph
 // // that consume the resource
 // type ResourceQueries map[datastore.Key][]datastore.Key
 
-// func (qr ResourceQueries) AddQuery(resource, query datastore.Key) {
+// func (qr ResourceQueries) AddTransform(resource, transform datastore.Key) {
 // 	for _, r := range qr[resource] {
-// 		if r.Equal(query) {
+// 		if r.Equal(transform) {
 // 			return
 // 		}
 // 	}
-// 	qr[resource] = append(qr[resource], query)
+// 	qr[resource] = append(qr[resource], transform)
 // }
 
 // func (qr ResourceQueries) MarshalJSON() ([]byte, error) {

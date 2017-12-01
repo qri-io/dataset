@@ -9,7 +9,7 @@ import (
 )
 
 // Dataset is stored separately from prescriptive metadata stored in Resource structs
-// to maximize overlap of the formal query & resource definitions.
+// to maximize overlap of the formal transform & resource definitions.
 // A Dataset must resolve to one and only one entity, specified by a `data` property.
 // It's structure must be specified by a structure definition.
 // This also creates space for subjective claims about datasets, and allows metadata
@@ -82,12 +82,13 @@ type Dataset struct {
 	// Theme
 	Theme []string `json:"theme,omitempty"`
 
-	// QueryString is the user-inputted string of this query
+	// QueryString is the user-inputted string of an SQL transform
 	QueryString string `json:"queryString,omitempty"`
-	// AbstractQuery is a reference to the general form of the query this dataset represents
-	AbstractQuery *AbstractQuery `json:"abstractQuery,omitempty"`
-	// Query is a path to the query that generated this resource
-	Query *Query `json:"query,omitempty"`
+
+	// Transform is a path to the transformation that generated this resource
+	Transform *Transform `json:"transform,omitempty"`
+	// AbstractTransform is a reference to the general form of the transform this dataset represents
+	AbstractTransform *AbstractTransform `json:"abstractTransform,omitempty"`
 
 	// meta holds additional arbitrarty metadata not covered by the spec
 	// when encoding & decoding json values here will be hoisted into the
@@ -213,8 +214,8 @@ func (ds *Dataset) Assign(datasets ...*Dataset) {
 		if d.QueryString != "" {
 			ds.QueryString = d.QueryString
 		}
-		if d.Query != nil {
-			ds.Query = d.Query
+		if d.Transform != nil {
+			ds.Transform = d.Transform
 		}
 		if d.meta != nil {
 			ds.meta = d.meta
@@ -232,8 +233,8 @@ func (ds *Dataset) MarshalJSON() ([]byte, error) {
 	}
 
 	data := ds.Meta()
-	if ds.AbstractQuery != nil {
-		data["abstractQuery"] = ds.AbstractQuery
+	if ds.AbstractTransform != nil {
+		data["abstractTransform"] = ds.AbstractTransform
 	}
 	if ds.AbstractStructure != nil {
 		data["abstractStructure"] = ds.AbstractStructure
@@ -286,8 +287,8 @@ func (ds *Dataset) MarshalJSON() ([]byte, error) {
 	if ds.Commit != nil {
 		data["commit"] = ds.Commit
 	}
-	if ds.Query != nil {
-		data["query"] = ds.Query
+	if ds.Transform != nil {
+		data["transform"] = ds.Transform
 	}
 	if ds.QueryString != "" {
 		data["queryString"] = ds.QueryString
@@ -335,7 +336,7 @@ func (ds *Dataset) UnmarshalJSON(data []byte) error {
 	}
 
 	for _, f := range []string{
-		"abstractQuery",
+		"abstractTransform",
 		"abstractStructure",
 		"accessUrl",
 		"accrualPeriodicity",
@@ -356,7 +357,7 @@ func (ds *Dataset) UnmarshalJSON(data []byte) error {
 		"length",
 		"license",
 		"previous",
-		"query",
+		"transform",
 		"queryString",
 		"readme",
 		"structure",
