@@ -28,17 +28,18 @@ type Dataset struct {
 	Kind Kind `json:"kind"`
 
 	// Time this dataset was created. Required. Datasets are immutable, so no "updated"
-	Timestamp time.Time `json:"timestamp"`
+	Timestamp time.Time `json:"timestamp,omitempty"`
 	// Structure of this dataset, required
 	Structure *Structure `json:"structure"`
 	// AbstractStructure is the abstract form of the structure field
 	AbstractStructure *Structure `json:"abstractStructure,omitempty"`
 
 	// Data is the path to the hash of raw data as it resolves on the network.
-	Data datastore.Key `json:"data"`
+	Data string `json:"data,omitempty"`
+
 	// Length is the length of the data object in bytes.
 	// must always match & be present
-	Length int `json:"length"`
+	Length int `json:"length,omitempty"`
 	// number of rows in the dataset.
 	// required and must match underlying dataset.
 	Rows int `json:"rows"`
@@ -88,7 +89,7 @@ type Dataset struct {
 	// Transform is a path to the transformation that generated this resource
 	Transform *Transform `json:"transform,omitempty"`
 	// AbstractTransform is a reference to the general form of the transform this dataset represents
-	AbstractTransform *AbstractTransform `json:"abstractTransform,omitempty"`
+	AbstractTransform *Transform `json:"abstractTransform,omitempty"`
 
 	// meta holds additional arbitrarty metadata not covered by the spec
 	// when encoding & decoding json values here will be hoisted into the
@@ -120,6 +121,21 @@ func (ds *Dataset) Meta() map[string]interface{} {
 	return ds.meta
 }
 
+// Abstract returns a copy of dataset with all
+// semantically-identifiable and concrete references replaced with
+// uniform values
+func (ds *Dataset) Abstract() *Dataset {
+	abs := &Dataset{Kind: ds.Kind}
+
+	if ds.Structure != nil {
+		return &Dataset{
+			Kind:      ds.Kind,
+			Structure: ds.Structure.Abstract(),
+		}
+	}
+	return abs
+}
+
 // Assign collapses all properties of a group of datasets onto one.
 // this is directly inspired by Javascript's Object.assign
 func (ds *Dataset) Assign(datasets ...*Dataset) {
@@ -147,7 +163,7 @@ func (ds *Dataset) Assign(datasets ...*Dataset) {
 			ds.AbstractStructure.Assign(d.AbstractStructure)
 		}
 
-		if d.Data.String() != "" {
+		if d.Data != "" {
 			ds.Data = d.Data
 		}
 		if d.Length != 0 {
@@ -251,7 +267,9 @@ func (ds *Dataset) MarshalJSON() ([]byte, error) {
 	if ds.Contributors != nil {
 		data["contributors"] = ds.Contributors
 	}
-	data["data"] = ds.Data
+	if ds.Data != "" {
+		data["data"] = ds.Data
+	}
 	if ds.Description != "" {
 		data["description"] = ds.Description
 	}
@@ -277,7 +295,9 @@ func (ds *Dataset) MarshalJSON() ([]byte, error) {
 	if ds.Language != nil {
 		data["language"] = ds.Language
 	}
-	data["length"] = ds.Length
+	if ds.Length != 0 {
+		data["length"] = ds.Length
+	}
 	if ds.License != nil {
 		data["license"] = ds.License
 	}
@@ -300,8 +320,12 @@ func (ds *Dataset) MarshalJSON() ([]byte, error) {
 	if ds.Theme != nil {
 		data["theme"] = ds.Theme
 	}
-	data["timestamp"] = ds.Timestamp
-	data["title"] = ds.Title
+	if !ds.Timestamp.IsZero() {
+		data["timestamp"] = ds.Timestamp
+	}
+	if ds.Title != "" {
+		data["title"] = ds.Title
+	}
 	if ds.AccrualPeriodicity != "" {
 		data["accrualPeriodicity"] = ds.AccrualPeriodicity
 	}
@@ -401,6 +425,9 @@ func CompareDatasets(a, b *Dataset) error {
 	// if err := compare.MapStringInterface(a.Meta(), b.Meta()); err != nil {
 	// 	return fmt.Errorf("meta mismatch: %s", err.Error())
 	// }
+	if a.Kind.String() != b.Kind.String() {
+		return fmt.Errorf("kind mismatch: %s != %s", a.Kind, b.Kind)
+	}
 
 	if a.AccessURL != b.AccessURL {
 		return fmt.Errorf("accessUrl mismatch: %s != %s", a.AccessURL, b.AccessURL)

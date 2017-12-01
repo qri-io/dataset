@@ -76,7 +76,7 @@ func TestDatasetMarshalJSON(t *testing.T) {
 		out []byte
 		err error
 	}{
-		{&Dataset{}, []byte(`{"data":"","kind":"qri:ds:0","length":0,"structure":null,"timestamp":"0001-01-01T00:00:00Z","title":""}`), nil},
+		{&Dataset{}, []byte(`{"kind":"qri:ds:0","structure":null}`), nil},
 		{AirportCodes, []byte(AirportCodesJSON), nil},
 	}
 
@@ -143,5 +143,36 @@ func TestDatasetUnmarshalJSON(t *testing.T) {
 	if strds.path.String() != path {
 		t.Errorf("unmarshal didn't set proper path: %s != %s", path, strds.path)
 		return
+	}
+}
+
+func TestDatasetAbstract(t *testing.T) {
+	cases := []struct {
+		FileName string
+		result   *Dataset
+		err      error
+	}{
+		{"testdata/datasets/airport-codes.json", AirportCodesAbstract, nil},
+		// {"testdata/datasets/continent-codes.json", ContinentCodes, nil},
+		// {"testdata/datasets/hours.json", Hours, nil},
+	}
+
+	for i, c := range cases {
+		data, err := ioutil.ReadFile(c.FileName)
+		if err != nil {
+			t.Errorf("case %d couldn't read file: %s", i, err.Error())
+		}
+
+		ds := &Dataset{}
+		if err := json.Unmarshal(data, ds); err != c.err {
+			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
+			continue
+		}
+		abs := ds.Abstract()
+
+		if err = CompareDatasets(abs, c.result); err != nil {
+			t.Errorf("case %d resource comparison error: %s", i, err)
+			continue
+		}
 	}
 }

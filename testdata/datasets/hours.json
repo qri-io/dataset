@@ -1,5 +1,6 @@
 {
   "title" : "hours",
+  "kind": "qri:ds:0",
   "length": 0,
   "data": "/ipfs/QmS1dVa1xemo7gQzJgjimj1WwnVBF3TwRTGsyKa1uEBWbJ",
   "transformEngineConfig": null

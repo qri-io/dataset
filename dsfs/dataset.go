@@ -130,9 +130,9 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 	}
 
 	if ds.Transform != nil {
-		if ds.Transform.Abstract != nil {
-			ds.AbstractTransform = ds.Transform.Abstract
-		}
+		// if ds.Transform.Abstract != nil {
+		// 	ds.AbstractTransform = ds.Transform.Abstract
+		// }
 		// qdata, err := json.Marshal(ds.Transform)
 		// if err != nil {
 		// 	return datastore.NewKey(""), fmt.Errorf("error marshaling dataset transform to json: %s", err.Error())
@@ -174,7 +174,7 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 		fileTasks++
 		adder.AddFile(memfs.NewMemfileBytes(PackageFileAbstractStructure.String(), asdata))
 
-		data, err := store.Get(ds.Data)
+		data, err := store.Get(datastore.NewKey(ds.Data))
 		if err != nil {
 			return datastore.NewKey(""), fmt.Errorf("error getting dataset raw data: %s", err.Error())
 		}
@@ -198,8 +198,7 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 			case PackageFileTransform.String():
 				ds.Transform = dataset.NewTransformRef(ao.Path)
 			case PackageFileAbstractTransform.String():
-				ds.AbstractTransform = dataset.NewAbstractTransformRef(ao.Path)
-				ds.Transform.Abstract = ds.AbstractTransform
+				ds.AbstractTransform = dataset.NewTransformRef(ao.Path)
 				if ds.Transform != nil {
 					if f, err := transformFile(ds.Transform); err != nil {
 						done <- fmt.Errorf("error generating transform file: %s", err.Error())
