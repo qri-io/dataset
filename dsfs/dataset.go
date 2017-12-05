@@ -130,15 +130,12 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 	}
 
 	if ds.Transform != nil {
-		// if ds.Transform.Abstract != nil {
-		// 	ds.AbstractTransform = ds.Transform.Abstract
-		// }
-		// qdata, err := json.Marshal(ds.Transform)
-		// if err != nil {
-		// 	return datastore.NewKey(""), fmt.Errorf("error marshaling dataset transform to json: %s", err.Error())
-		// }
-		// fileTasks++
-		// adder.AddFile(memfs.NewMemfileBytes(PackageFileTransform.String(), qdata))
+		qdata, err := json.Marshal(ds.Transform)
+		if err != nil {
+			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset transform to json: %s", err.Error())
+		}
+		fileTasks++
+		adder.AddFile(memfs.NewMemfileBytes(PackageFileTransform.String(), qdata))
 	}
 
 	if ds.AbstractTransform != nil {
