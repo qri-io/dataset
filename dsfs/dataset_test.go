@@ -2,6 +2,7 @@ package dsfs
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/ipfs/go-datastore"
@@ -105,11 +106,14 @@ func TestDatasetSave(t *testing.T) {
 		return
 	}
 
-	if !result.AbstractTransform.IsEmpty() {
-		t.Errorf("expected stored dataset.AbstractTransform to be a reference")
-	}
+	rd, _ := result.MarshalJSON()
+	fmt.Println(string(rd))
+
 	if !result.Transform.IsEmpty() {
 		t.Errorf("expected stored dataset.Transform to be a reference")
+	}
+	if !result.AbstractTransform.IsEmpty() {
+		t.Errorf("expected stored dataset.AbstractTransform to be a reference")
 	}
 	if !result.Structure.IsEmpty() {
 		t.Errorf("expected stored dataset.Structure to be a reference")
@@ -130,13 +134,22 @@ func TestDatasetSave(t *testing.T) {
 		return
 	}
 
-	// TODO - restore
-	// if !q.Abstract.IsEmpty() {
-	// 	t.Errorf("expected stored transform.Abstract to be a reference")
-	// }
 	for name, ref := range q.Resources {
 		if !ref.IsEmpty() {
 			t.Errorf("expected stored transform reference '%s' to be empty", name)
 		}
 	}
+
+	atf, err := store.Get(result.AbstractTransform.Path())
+	if err != nil {
+		t.Errorf("error getting abstract transform file: %s", err.Error())
+		return
+	}
+
+	at := &dataset.Transform{}
+	if err := json.NewDecoder(atf).Decode(at); err != nil {
+		t.Errorf("error decoding transform json: %s", err.Error())
+		return
+	}
+
 }
