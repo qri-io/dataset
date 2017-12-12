@@ -9,6 +9,8 @@ var (
 	// NtDataset is a holistic reference to a dataset,
 	// aka the base hash of a dataset
 	NtDataset = NodeType("dataset")
+	// NtAbstDataset is the abstract form of a dataset
+	NtAbstDataset = NodeType("abst_dataset")
 	// NtMetadata is the dataset.json file in a dataset
 	NtMetadata = NodeType("metadata")
 	// NtCommit is the commit.json file in a dataset
