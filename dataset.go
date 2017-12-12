@@ -293,7 +293,7 @@ func (ds *Dataset) MarshalJSON() ([]byte, error) {
 	if ds.Keywords != nil {
 		data["keywords"] = ds.Keywords
 	}
-	data["kind"] = DatasetKind
+	data["kind"] = KindDataset
 	if ds.Language != nil {
 		data["language"] = ds.Language
 	}

@@ -5,7 +5,7 @@ import (
 )
 
 var AirportCodes = &Dataset{
-	Kind:     DatasetKind,
+	Kind:     KindDataset,
 	Title:    "Airport Codes",
 	Homepage: "http://www.ourairports.com/",
 	License: &License{
@@ -25,7 +25,7 @@ var AirportCodes = &Dataset{
 }
 
 var AirportCodesAbstract = &Dataset{
-	Kind:      DatasetKind,
+	Kind:      KindDataset,
 	Structure: AirportCodesStructureAbstract,
 }
 
@@ -157,7 +157,7 @@ var AirportCodesStructureAbstract = &Structure{
 
 var ContinentCodes = &Dataset{
 	Title:       "Continent Codes",
-	Kind:        DatasetKind,
+	Kind:        KindDataset,
 	Description: "list of continents with corresponding two letter codes",
 	License: &License{
 		Type: "odc-pddl",
@@ -189,7 +189,7 @@ var ContinentCodesStructure = &Structure{
 
 var Hours = &Dataset{
 	Title: "hours",
-	Kind:  DatasetKind,
+	Kind:  KindDataset,
 	// Data:   datastore.NewKey("/ipfs/QmS1dVa1xemo7gQzJgjimj1WwnVBF3TwRTGsyKa1uEBWbJ"),
 }
 

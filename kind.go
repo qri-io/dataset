@@ -12,13 +12,21 @@ const CurrentSpecVersion = "0"
 // definition from other formats
 const KindPrefix = "qri:"
 
-// DatasetKind is the current kind for datasets
-const DatasetKind = Kind("qri:ds:0")
+const (
+	// KindDataset is the current kind for datasets
+	KindDataset = Kind("qri:ds:0")
+	// KindStructure is the current kind for dataset structures
+	KindStructure = Kind("qri:st:0")
+	// KindTransform is the current kind for dataset transforms
+	KindTransform = Kind("qri:tf:0")
+	// KindCommitMsg is the current kind for dataset transforms
+	KindCommitMsg = Kind("qri:cm:0")
+)
 
 // Kind is a short identifier for all types of qri dataset objects
 // Kind does three things:
 // 1. Distinguish qri datasets from other formats
-// 2. Distinguish different types (Dataset/Structure/Process)
+// 2. Distinguish different types (Dataset/Structure/Transform)
 // 3. Distinguish between versions of the dataset spec
 // Kind is a string in the format qri:ds:[version]
 type Kind string

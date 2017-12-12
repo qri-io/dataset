@@ -168,6 +168,7 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 	}
 
 	if ds.Commit != nil {
+		ds.Commit.Kind = dataset.KindCommitMsg
 		cmdata, err := json.Marshal(ds.Commit)
 		if err != nil {
 			return datastore.NewKey(""), fmt.Errorf("error marshilng dataset commit message to json: %s", err.Error())
@@ -216,14 +217,6 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 				ds.Transform = dataset.NewTransformRef(ao.Path)
 			case PackageFileAbstractTransform.String():
 				ds.AbstractTransform = dataset.NewTransformRef(ao.Path)
-				// if ds.Transform != nil {
-				// 	if f, err := transformFile(ds.Transform); err != nil {
-				// 		done <- fmt.Errorf("error generating transform file: %s", err.Error())
-				// 	} else {
-				// 		fileTasks++
-				// 		adder.AddFile(f)
-				// 	}
-				// }
 			case PackageFileCommitMsg.String():
 				ds.Commit = dataset.NewCommitMsgRef(ao.Path)
 			default:
