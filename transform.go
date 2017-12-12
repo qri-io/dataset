@@ -88,6 +88,9 @@ func (q *Transform) Assign(qs ...*Transform) {
 			}
 			q.Structure.Assign(q2.Structure)
 		}
+		if q2.Data != "" {
+			q.Data = q2.Data
+		}
 		if q2.Resources != nil {
 			if q.Resources == nil {
 				q.Resources = map[string]*Dataset{}
