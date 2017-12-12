@@ -14,8 +14,9 @@ import (
 type CommitMsg struct {
 	path    datastore.Key
 	Author  *User  `json:"author,omitempty"`
-	Title   string `json:"title"`
+	Kind    Kind   `json:"kind,omitempty"`
 	Message string `json:"message,omitempty"`
+	Title   string `json:"title"`
 }
 
 // NewCommitMsgRef creates an empty struct with it's
@@ -54,6 +55,9 @@ func (cm *CommitMsg) Assign(msgs ...*CommitMsg) {
 		if m.Message != "" {
 			cm.Message = m.Message
 		}
+		if m.Kind.String() != "" {
+			cm.Kind = m.Kind
+		}
 	}
 }
 
@@ -66,8 +70,9 @@ func (cm *CommitMsg) MarshalJSON() ([]byte, error) {
 	}
 	m := &_commitMsg{
 		Author:  cm.Author,
-		Title:   cm.Title,
+		Kind:    cm.Kind,
 		Message: cm.Message,
+		Title:   cm.Title,
 	}
 	return json.Marshal(m)
 }

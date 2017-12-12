@@ -17,6 +17,8 @@ import (
 type Structure struct {
 	// private storage for reference to this object
 	path datastore.Key
+	// Kind should always be KindStructure
+	Kind
 	// Format specifies the format of the raw data MIME type
 	Format DataFormat `json:"format"`
 	// FormatConfig removes as much ambiguity as possible about how

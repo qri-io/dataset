@@ -18,7 +18,8 @@ import (
 type Transform struct {
 	// private storage for reference to this object
 	path datastore.Key
-
+	// Kind should always equal KindTransform
+	Kind `json:"kind,omitempty"`
 	// Syntax this transform was written in
 	Syntax string `json:"syntax,omitempty"`
 	// AppVersion is an identifier for the application and version number that produced the result
@@ -87,6 +88,9 @@ func (q *Transform) Assign(qs ...*Transform) {
 			}
 			q.Structure.Assign(q2.Structure)
 		}
+		if q2.Data != "" {
+			q.Data = q2.Data
+		}
 		if q2.Resources != nil {
 			if q.Resources == nil {
 				q.Resources = map[string]*Dataset{}
@@ -104,6 +108,7 @@ type _transform struct {
 	AppVersion string                 `json:"appVersion,omitempty"`
 	Config     map[string]interface{} `json:"config,omitempty"`
 	Data       string                 `json:"data,omitempty"`
+	Kind       Kind                   `json:"kind,omitempty"`
 	Resources  map[string]*Dataset    `json:"resources,omitempty"`
 	Structure  *Structure             `json:"structure,omitempty"`
 	Syntax     string                 `json:"syntax,omitempty"`
@@ -120,6 +125,7 @@ func (q Transform) MarshalJSON() ([]byte, error) {
 		AppVersion: q.AppVersion,
 		Config:     q.Config,
 		Data:       q.Data,
+		Kind:       q.Kind,
 		Resources:  q.Resources,
 		Structure:  q.Structure,
 		Syntax:     q.Syntax,
@@ -143,6 +149,7 @@ func (q *Transform) UnmarshalJSON(data []byte) error {
 		AppVersion: _q.AppVersion,
 		Config:     _q.Config,
 		Data:       _q.Data,
+		Kind:       _q.Kind,
 		Resources:  _q.Resources,
 		Structure:  _q.Structure,
 		Syntax:     _q.Syntax,

@@ -120,16 +120,25 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 	// TODO - this might not constitute a valid dataset. should we be
 	// validating datasets in here?
 	if ds.Transform == nil && ds.Structure == nil {
-		fileTasks++
 		dsdata, err := json.Marshal(ds)
 		if err != nil {
 			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset to json: %s", err.Error())
 		}
+		fileTasks++
 		adder.AddFile(memfs.NewMemfileBytes(PackageFileDataset.String(), dsdata))
 		addedDataset = true
 	}
 
 	if ds.Transform != nil {
+		// all resources must be references
+		for key, r := range ds.Transform.Resources {
+			if r.Path().String() == "" {
+				return datastore.NewKey(""), fmt.Errorf("transform resource %s requires a path to save", key)
+			}
+			if !r.IsEmpty() {
+				ds.Transform.Resources[key] = dataset.NewDatasetRef(r.Path())
+			}
+		}
 		qdata, err := json.Marshal(ds.Transform)
 		if err != nil {
 			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset transform to json: %s", err.Error())
@@ -139,6 +148,17 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 	}
 
 	if ds.AbstractTransform != nil {
+		// ensure all dataset references are abstract
+		for key, r := range ds.AbstractTransform.Resources {
+			// ds.AbstractTransform.Resources[key]
+			absdata, err := json.Marshal(dataset.Abstract(r))
+			if err != nil {
+				return datastore.NewKey(""), fmt.Errorf("error marshaling dataset abstract to json: %s", err.Error())
+			}
+
+			fileTasks++
+			adder.AddFile(memfs.NewMemfileBytes(fmt.Sprintf("%s_abst.json", key), absdata))
+		}
 		qdata, err := json.Marshal(ds.AbstractTransform)
 		if err != nil {
 			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset abstract transform to json: %s", err.Error())
@@ -148,6 +168,7 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 	}
 
 	if ds.Commit != nil {
+		ds.Commit.Kind = dataset.KindCommitMsg
 		cmdata, err := json.Marshal(ds.Commit)
 		if err != nil {
 			return datastore.NewKey(""), fmt.Errorf("error marshilng dataset commit message to json: %s", err.Error())
@@ -164,12 +185,12 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 		fileTasks++
 		adder.AddFile(memfs.NewMemfileBytes(PackageFileStructure.String(), stdata))
 
-		asdata, err := json.Marshal(ds.Structure.Abstract())
+		asdata, err := json.Marshal(dataset.Abstract(ds))
 		if err != nil {
-			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset abstract structure to json: %s", err.Error())
+			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset abstract to json: %s", err.Error())
 		}
 		fileTasks++
-		adder.AddFile(memfs.NewMemfileBytes(PackageFileAbstractStructure.String(), asdata))
+		adder.AddFile(memfs.NewMemfileBytes(PackageFileAbstract.String(), asdata))
 
 		data, err := store.Get(datastore.NewKey(ds.Data))
 		if err != nil {
@@ -190,23 +211,22 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 			switch ao.Name {
 			case PackageFileStructure.String():
 				ds.Structure = dataset.NewStructureRef(ao.Path)
-			case PackageFileAbstractStructure.String():
-				ds.AbstractStructure = dataset.NewStructureRef(ao.Path)
+			case PackageFileAbstract.String():
+				ds.Abstract = dataset.NewDatasetRef(ao.Path)
 			case PackageFileTransform.String():
 				ds.Transform = dataset.NewTransformRef(ao.Path)
 			case PackageFileAbstractTransform.String():
 				ds.AbstractTransform = dataset.NewTransformRef(ao.Path)
-				if ds.Transform != nil {
-					if f, err := transformFile(ds.Transform); err != nil {
-						done <- fmt.Errorf("error generating transform file: %s", err.Error())
-					} else {
-						fileTasks++
-						adder.AddFile(f)
-					}
-				}
 			case PackageFileCommitMsg.String():
 				ds.Commit = dataset.NewCommitMsgRef(ao.Path)
-				// case "resources":
+			default:
+				if ds.AbstractTransform != nil {
+					for key := range ds.AbstractTransform.Resources {
+						if ao.Name == fmt.Sprintf("%s_abst.json", key) {
+							ds.AbstractTransform.Resources[key] = dataset.NewDatasetRef(ao.Path)
+						}
+					}
+				}
 			}
 
 			fileTasks--

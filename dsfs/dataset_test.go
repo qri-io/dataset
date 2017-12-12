@@ -2,7 +2,6 @@ package dsfs
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/ipfs/go-datastore"
@@ -43,10 +42,12 @@ func TestDatasetSave(t *testing.T) {
 				Fields: []*dataset.Field{},
 			},
 		},
-		AbstractStructure: &dataset.Structure{
-			Format: dataset.CSVDataFormat,
-			Schema: &dataset.Schema{
-				Fields: []*dataset.Field{},
+		Abstract: &dataset.Dataset{
+			Structure: &dataset.Structure{
+				Format: dataset.CSVDataFormat,
+				Schema: &dataset.Schema{
+					Fields: []*dataset.Field{},
+				},
 			},
 		},
 		Transform: &dataset.Transform{
@@ -82,15 +83,15 @@ func TestDatasetSave(t *testing.T) {
 		return
 	}
 
-	hash := "/map/QmQ42yS6gQ2LNywxKuwwyJnMGKeKtnkKXwn5j41V4AixyR"
+	hash := "/map/QmUHnEPuYbp2QtC8PmawZn6vKYyy5BqYMmiPACDB81WNQ5"
 	if hash != key.String() {
 		t.Errorf("key mismatch: %s != %s", hash, key.String())
 		return
 	}
 
-	expectedEntries := 5
+	expectedEntries := 7
 	if len(store.(memfs.MapStore)) != expectedEntries {
-		t.Error("invalid number of entries added to store: %d != %d", expectedEntries, len(store.(memfs.MapStore)))
+		t.Errorf("invalid number of entries added to store: %d != %d", expectedEntries, len(store.(memfs.MapStore)))
 		return
 	}
 
@@ -106,9 +107,6 @@ func TestDatasetSave(t *testing.T) {
 		return
 	}
 
-	rd, _ := result.MarshalJSON()
-	fmt.Println(string(rd))
-
 	if !result.Transform.IsEmpty() {
 		t.Errorf("expected stored dataset.Transform to be a reference")
 	}
@@ -118,8 +116,8 @@ func TestDatasetSave(t *testing.T) {
 	if !result.Structure.IsEmpty() {
 		t.Errorf("expected stored dataset.Structure to be a reference")
 	}
-	if !result.AbstractStructure.IsEmpty() {
-		t.Errorf("expected stored dataset.AbstractStructure to be a reference")
+	if !result.Abstract.IsEmpty() {
+		t.Errorf("expected stored dataset.Abstract to be a reference")
 	}
 
 	qf, err := store.Get(result.Transform.Path())

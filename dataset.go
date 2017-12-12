@@ -35,8 +35,8 @@ type Dataset struct {
 
 	// Structure of this dataset
 	Structure *Structure `json:"structure"`
-	// AbstractStructure is the abstract form of the structure field
-	AbstractStructure *Structure `json:"abstractStructure,omitempty"`
+	// Abstract is the abstract form of this dataset
+	Abstract *Dataset `json:"abstract,omitempty"`
 	// Transform is a path to the transformation that generated this resource
 	Transform *Transform `json:"transform,omitempty"`
 	// AbstractTransform is a reference to the general form of the transformation
@@ -115,18 +115,10 @@ func NewDatasetRef(path datastore.Key) *Dataset {
 	return &Dataset{path: path}
 }
 
-// Meta gives access to additional metadata not covered by dataset metadata
-func (ds *Dataset) Meta() map[string]interface{} {
-	if ds.meta == nil {
-		ds.meta = map[string]interface{}{}
-	}
-	return ds.meta
-}
-
 // Abstract returns a copy of dataset with all
 // semantically-identifiable and concrete references replaced with
 // uniform values
-func (ds *Dataset) Abstract() *Dataset {
+func Abstract(ds *Dataset) *Dataset {
 	abs := &Dataset{Kind: ds.Kind}
 
 	if ds.Structure != nil {
@@ -136,6 +128,14 @@ func (ds *Dataset) Abstract() *Dataset {
 		}
 	}
 	return abs
+}
+
+// Meta gives access to additional metadata not covered by dataset metadata
+func (ds *Dataset) Meta() map[string]interface{} {
+	if ds.meta == nil {
+		ds.meta = map[string]interface{}{}
+	}
+	return ds.meta
 }
 
 // Assign collapses all properties of a group of datasets onto one.
@@ -159,10 +159,10 @@ func (ds *Dataset) Assign(datasets ...*Dataset) {
 			ds.Structure.Assign(d.Structure)
 		}
 
-		if ds.AbstractStructure == nil && d.AbstractStructure != nil {
-			ds.AbstractStructure = d.AbstractStructure
-		} else if ds.AbstractStructure != nil {
-			ds.AbstractStructure.Assign(d.AbstractStructure)
+		if ds.Abstract == nil && d.Abstract != nil {
+			ds.Abstract = d.Abstract
+		} else if ds.Abstract != nil {
+			ds.Abstract.Assign(d.Abstract)
 		}
 
 		if d.Data != "" {
@@ -254,8 +254,8 @@ func (ds *Dataset) MarshalJSON() ([]byte, error) {
 	if ds.AbstractTransform != nil {
 		data["abstractTransform"] = ds.AbstractTransform
 	}
-	if ds.AbstractStructure != nil {
-		data["abstractStructure"] = ds.AbstractStructure
+	if ds.Abstract != nil {
+		data["abstract"] = ds.Abstract
 	}
 	if ds.AccessURL != "" {
 		data["accessUrl"] = ds.AccessURL
@@ -293,7 +293,7 @@ func (ds *Dataset) MarshalJSON() ([]byte, error) {
 	if ds.Keywords != nil {
 		data["keywords"] = ds.Keywords
 	}
-	data["kind"] = DatasetKind
+	data["kind"] = KindDataset
 	if ds.Language != nil {
 		data["language"] = ds.Language
 	}
@@ -363,7 +363,7 @@ func (ds *Dataset) UnmarshalJSON(data []byte) error {
 
 	for _, f := range []string{
 		"abstractTransform",
-		"abstractStructure",
+		"abstract",
 		"accessUrl",
 		"accrualPeriodicity",
 		"author",
