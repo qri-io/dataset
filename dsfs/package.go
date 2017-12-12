@@ -16,9 +16,9 @@ const (
 	// PackageFileStructure isolates this dataset's structure
 	// in it's own file
 	PackageFileStructure
-	// PackageFileAbstractStructure is the abstract verion of
+	// PackageFileAbstract is the abstract verion of
 	// structure
-	PackageFileAbstractStructure
+	PackageFileAbstract
 	// PackageFileResources lists the resource datasets
 	// that went into creating a dataset
 	// TODO - I think this can be removed now that Transform exists
@@ -39,7 +39,7 @@ var filenames = map[PackageFile]string{
 	PackageFileUnknown:           "",
 	PackageFileDataset:           "dataset.json",
 	PackageFileStructure:         "structure.json",
-	PackageFileAbstractStructure: "abstract_structure.json",
+	PackageFileAbstract:          "abstract.json",
 	PackageFileAbstractTransform: "abstract_transform.json",
 	PackageFileResources:         "resources",
 	PackageFileCommitMsg:         "commit.json",

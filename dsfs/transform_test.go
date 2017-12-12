@@ -25,7 +25,7 @@ func TestLoadTransform(t *testing.T) {
 	// TODO - other tests & stuff
 }
 
-func TestTransformLoadAbstractStructures(t *testing.T) {
+func TestTransformLoadAbstract(t *testing.T) {
 	// store := datastore.NewMapDatastore()
 	// TODO - finish dis test
 }

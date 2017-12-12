@@ -146,7 +146,7 @@ func TestDatasetUnmarshalJSON(t *testing.T) {
 	}
 }
 
-func TestDatasetAbstract(t *testing.T) {
+func TestAbstract(t *testing.T) {
 	cases := []struct {
 		FileName string
 		result   *Dataset
@@ -168,7 +168,7 @@ func TestDatasetAbstract(t *testing.T) {
 			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
 			continue
 		}
-		abs := ds.Abstract()
+		abs := Abstract(ds)
 
 		if err = CompareDatasets(abs, c.result); err != nil {
 			t.Errorf("case %d resource comparison error: %s", i, err)
