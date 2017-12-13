@@ -52,31 +52,27 @@ func (s *Schema) Assign(schemas ...*Schema) {
 			continue
 		}
 
-		// @TODO - wouldn't this be nice...
-		// if s == nil && sh != nil {
-		// 	s = sh
-		// 	continue
-		// }
-
 		if sh.PrimaryKey != nil {
 			s.PrimaryKey = sh.PrimaryKey
 		}
 
-		if s.Fields == nil && sh.Fields != nil {
-			s.Fields = sh.Fields
-			continue
-		}
-
 		for i, f := range sh.Fields {
-			if i > len(s.Fields)-1 {
-				s.Fields = append(s.Fields, f)
-				continue
+			if f != nil {
+				if i > len(s.Fields)-1 {
+					fi := &Field{}
+					fi.Assign(f)
+					s.Fields = append(s.Fields, fi)
+					continue
+				}
+
+				if s.Fields[i] == nil {
+					s.Fields[i] = &Field{}
+					// s.Fields[i].Assign(f)
+					// s.Fields[i] = f
+					// continue
+				}
+				s.Fields[i].Assign(f)
 			}
-			if s.Fields[i] == nil && f != nil {
-				s.Fields[i] = f
-				continue
-			}
-			s.Fields[i].Assign(f)
 		}
 	}
 }
@@ -88,11 +84,6 @@ func (f *Field) Assign(fields ...*Field) {
 		if fd == nil {
 			continue
 		}
-		// TODO - wouldn't this be nice...
-		// if f == nil && fd != nil {
-		// 	f = fd
-		// 	continue
-		// }
 
 		if fd.Name != "" {
 			f.Name = fd.Name

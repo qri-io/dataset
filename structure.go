@@ -177,11 +177,12 @@ func (s *Structure) Assign(structures ...*Structure) {
 			s.Compression = st.Compression
 		}
 
-		if s.Schema == nil && st.Schema != nil {
-			s.Schema = st.Schema
-			continue
+		if st.Schema != nil {
+			if s.Schema == nil {
+				s.Schema = &Schema{}
+			}
+			s.Schema.Assign(st.Schema)
 		}
-		s.Schema.Assign(st.Schema)
 	}
 }
 

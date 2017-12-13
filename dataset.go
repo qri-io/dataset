@@ -120,12 +120,9 @@ func NewDatasetRef(path datastore.Key) *Dataset {
 // uniform values
 func Abstract(ds *Dataset) *Dataset {
 	abs := &Dataset{Kind: ds.Kind}
-
 	if ds.Structure != nil {
-		return &Dataset{
-			Kind:      ds.Kind,
-			Structure: ds.Structure.Abstract(),
-		}
+		abs.Structure = &Structure{}
+		abs.Structure.Assign(ds.Structure.Abstract())
 	}
 	return abs
 }
