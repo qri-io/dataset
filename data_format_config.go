@@ -23,8 +23,6 @@ func ParseFormatConfigMap(f DataFormat, opts map[string]interface{}) (FormatConf
 	default:
 		return nil, fmt.Errorf("cannot parse configuration for format: %s", f.String())
 	}
-
-	return nil, nil
 }
 
 // NewCSVOptions creates a CSVOptions pointer from a map

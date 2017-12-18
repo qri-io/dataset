@@ -82,6 +82,12 @@ func (q *Transform) Assign(qs ...*Transform) {
 				q.Config[key] = val
 			}
 		}
+		if q2.AppVersion != "" {
+			q.AppVersion = q2.AppVersion
+		}
+		if q2.Kind != "" {
+			q.Kind = q2.Kind
+		}
 		if q2.Structure != nil {
 			if q.Structure == nil {
 				q.Structure = &Structure{}
@@ -121,11 +127,16 @@ func (q Transform) MarshalJSON() ([]byte, error) {
 		return q.path.MarshalJSON()
 	}
 
+	kind := q.Kind
+	if kind == "" {
+		kind = KindTransform
+	}
+
 	return json.Marshal(&_transform{
 		AppVersion: q.AppVersion,
 		Config:     q.Config,
 		Data:       q.Data,
-		Kind:       q.Kind,
+		Kind:       kind,
 		Resources:  q.Resources,
 		Structure:  q.Structure,
 		Syntax:     q.Syntax,

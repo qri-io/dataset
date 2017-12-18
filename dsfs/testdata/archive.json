@@ -1,8 +1,10 @@
 {
   "title": "example cdxj index archive",
   "timestamp": "2017-01-01T01:00:00.000Z",
+  "kind": "qri:ds:0",
   "structure": {
     "format": "cdxj",
+    "kind": "qri:st:0",
     "schema": {
       "fields": [
         {

@@ -1,6 +1,8 @@
 {
   "title": "example city data",
+  "kind": "qri:ds:0",
   "structure": {
+    "kind": "qri:st:0",
     "format": "csv",
     "formatConfig": {
       "headerRow": true

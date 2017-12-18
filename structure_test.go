@@ -16,7 +16,7 @@ func TestStrucureHash(t *testing.T) {
 		hash string
 		err  error
 	}{
-		{&Structure{Format: CSVDataFormat}, "QmQS5d6vtwMCiCgtjS5883oHMK44EMcuCtvyMhDXsha4wo", nil},
+		{&Structure{Kind: KindStructure, Format: CSVDataFormat}, "QmfJRjmdxpZKrWvJeVzFwrB5UTK45xs9FB4Uv7EJYfNwyW", nil},
 	}
 
 	for i, c := range cases {
@@ -156,8 +156,9 @@ func TestStructureMarshalJSON(t *testing.T) {
 		out []byte
 		err error
 	}{
-		{&Structure{Format: CSVDataFormat}, []byte(`{"format":"csv"}`), nil},
-		{AirportCodesStructure, []byte(`{"format":"csv","formatConfig":{"headerRow":true},"schema":{"fields":[{"name":"ident","type":"string"},{"name":"type","type":"string"},{"name":"name","type":"string"},{"name":"latitude_deg","type":"float"},{"name":"longitude_deg","type":"float"},{"name":"elevation_ft","type":"integer"},{"name":"continent","type":"string"},{"name":"iso_country","type":"string"},{"name":"iso_region","type":"string"},{"name":"municipality","type":"string"},{"name":"gps_code","type":"string"},{"name":"iata_code","type":"string"},{"name":"local_code","type":"string"}]}}`), nil},
+		{&Structure{Format: CSVDataFormat}, []byte(`{"format":"csv","kind":"qri:st:0"}`), nil},
+		{&Structure{Format: CSVDataFormat, Kind: KindStructure}, []byte(`{"format":"csv","kind":"qri:st:0"}`), nil},
+		{AirportCodesStructure, []byte(`{"format":"csv","formatConfig":{"headerRow":true},"kind":"qri:st:0","schema":{"fields":[{"name":"ident","type":"string"},{"name":"type","type":"string"},{"name":"name","type":"string"},{"name":"latitude_deg","type":"float"},{"name":"longitude_deg","type":"float"},{"name":"elevation_ft","type":"integer"},{"name":"continent","type":"string"},{"name":"iso_country","type":"string"},{"name":"iso_region","type":"string"},{"name":"municipality","type":"string"},{"name":"gps_code","type":"string"},{"name":"iata_code","type":"string"},{"name":"local_code","type":"string"}]}}`), nil},
 	}
 
 	for i, c := range cases {
@@ -167,7 +168,7 @@ func TestStructureMarshalJSON(t *testing.T) {
 			continue
 		}
 
-		if !bytes.Equal(c.out, got) {
+		if string(c.out) != string(got) {
 			t.Errorf("case %d error mismatch. %s != %s", i, string(c.out), string(got))
 			continue
 		}
@@ -181,5 +182,31 @@ func TestStructureMarshalJSON(t *testing.T) {
 
 	if !bytes.Equal(strbytes, []byte("\"/path/to/structure\"")) {
 		t.Errorf("marshal strbyte interface byte mismatch: %s != %s", string(strbytes), "\"/path/to/structure\"")
+	}
+}
+
+func TestUnmarshalStructure(t *testing.T) {
+	sta := Structure{Kind: KindStructure, Format: CSVDataFormat}
+	cases := []struct {
+		value interface{}
+		out   *Structure
+		err   string
+	}{
+		{sta, &sta, ""},
+		{&sta, &sta, ""},
+		{[]byte("{\"kind\":\"qri:st:0\"}"), &Structure{Kind: KindStructure}, ""},
+		{5, nil, "couldn't parse structure, value is invalid type"},
+	}
+
+	for i, c := range cases {
+		got, err := UnmarshalStructure(c.value)
+		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
+			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
+			continue
+		}
+		if err := CompareStructures(c.out, got); err != nil {
+			t.Errorf("case %d structure mismatch: %s", i, err.Error())
+			continue
+		}
 	}
 }
