@@ -29,10 +29,11 @@ var AirportCodesAbstract = &Dataset{
 	Structure: AirportCodesStructureAbstract,
 }
 
-const AirportCodesJSON = `{"citations":[{"name":"Our Airports","url":"http://ourairports.com/data/"}],"commit":{"title":"initial commit"},"homepage":"http://www.ourairports.com/","kind":"qri:ds:0","license":"PDDL-1.0","structure":{"format":"csv","formatConfig":{"headerRow":true},"schema":{"fields":[{"name":"ident","type":"string"},{"name":"type","type":"string"},{"name":"name","type":"string"},{"name":"latitude_deg","type":"float"},{"name":"longitude_deg","type":"float"},{"name":"elevation_ft","type":"integer"},{"name":"continent","type":"string"},{"name":"iso_country","type":"string"},{"name":"iso_region","type":"string"},{"name":"municipality","type":"string"},{"name":"gps_code","type":"string"},{"name":"iata_code","type":"string"},{"name":"local_code","type":"string"}]}},"title":"Airport Codes"}`
+const AirportCodesJSON = `{"citations":[{"name":"Our Airports","url":"http://ourairports.com/data/"}],"commit":{"title":"initial commit"},"homepage":"http://www.ourairports.com/","kind":"qri:ds:0","license":"PDDL-1.0","structure":{"format":"csv","formatConfig":{"headerRow":true},"kind":"qri:st:0","schema":{"fields":[{"name":"ident","type":"string"},{"name":"type","type":"string"},{"name":"name","type":"string"},{"name":"latitude_deg","type":"float"},{"name":"longitude_deg","type":"float"},{"name":"elevation_ft","type":"integer"},{"name":"continent","type":"string"},{"name":"iso_country","type":"string"},{"name":"iso_region","type":"string"},{"name":"municipality","type":"string"},{"name":"gps_code","type":"string"},{"name":"iata_code","type":"string"},{"name":"local_code","type":"string"}]}},"title":"Airport Codes"}`
 
 var AirportCodesStructure = &Structure{
 	Format: CSVDataFormat,
+	Kind:   KindStructure,
 	FormatConfig: &CSVOptions{
 		HeaderRow: true,
 	},
@@ -190,7 +191,7 @@ var ContinentCodesStructure = &Structure{
 var Hours = &Dataset{
 	Title: "hours",
 	Kind:  KindDataset,
-	// Data:   datastore.NewKey("/ipfs/QmS1dVa1xemo7gQzJgjimj1WwnVBF3TwRTGsyKa1uEBWbJ"),
+	Data:  "/ipfs/QmS1dVa1xemo7gQzJgjimj1WwnVBF3TwRTGsyKa1uEBWbJ",
 }
 
 var HoursStructure = &Structure{

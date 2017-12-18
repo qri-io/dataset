@@ -1,5 +1,6 @@
 {
-  "schema" : {
+  "format": "csv",
+  "schema": {
     "fields": [
       {
         "name": "Code",

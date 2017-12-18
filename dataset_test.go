@@ -176,3 +176,29 @@ func TestAbstract(t *testing.T) {
 		}
 	}
 }
+
+func TestUnmarshalDataset(t *testing.T) {
+	dsa := Dataset{Kind: KindDataset, Title: "foo"}
+	cases := []struct {
+		value interface{}
+		out   *Dataset
+		err   string
+	}{
+		{dsa, &dsa, ""},
+		{&dsa, &dsa, ""},
+		{[]byte("{\"kind\":\"qri:ds:0\"}"), &Dataset{Kind: KindDataset}, ""},
+		{5, nil, "couldn't parse dataset, value is invalid type"},
+	}
+
+	for i, c := range cases {
+		got, err := UnmarshalDataset(c.value)
+		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
+			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
+			continue
+		}
+		if err := CompareDatasets(c.out, got); err != nil {
+			t.Errorf("case %d dataset mismatch: %s", i, err.Error())
+			continue
+		}
+	}
+}

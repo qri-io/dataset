@@ -83,7 +83,7 @@ func TestDatasetSave(t *testing.T) {
 		return
 	}
 
-	hash := "/map/QmUHnEPuYbp2QtC8PmawZn6vKYyy5BqYMmiPACDB81WNQ5"
+	hash := "/map/QmRg51ZWmaZm8iTZUWAZZw2tmfkWaRqrQMvrqtHHgdHVc3"
 	if hash != key.String() {
 		t.Errorf("key mismatch: %s != %s", hash, key.String())
 		return

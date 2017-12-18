@@ -3,13 +3,76 @@
   "kind": "qri:ds:0",
   "homepage": "http://www.ourairports.com/",
   "license": "PDDL-1.0",
-  "commit" : {
-    "title" : "initial commit"
+  "commit": {
+    "title": "initial commit"
   },
   "citations": [
     {
       "name": "Our Airports",
       "web": "http://ourairports.com/data/"
     }
-  ]
+  ],
+  "structure": {
+    "format": "csv",
+    "kind" : "qri:st:0",
+    "formatConfig": {
+      "headerRow": true
+    },
+    "schema": {
+      "fields": [
+        {
+          "name": "ident",
+          "type": "string"
+        },
+        {
+          "name": "type",
+          "type": "string"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "latitude_deg",
+          "type": "float"
+        },
+        {
+          "name": "longitude_deg",
+          "type": "float"
+        },
+        {
+          "name": "elevation_ft",
+          "type": "integer"
+        },
+        {
+          "name": "continent",
+          "type": "string"
+        },
+        {
+          "name": "iso_country",
+          "type": "string"
+        },
+        {
+          "name": "iso_region",
+          "type": "string"
+        },
+        {
+          "name": "municipality",
+          "type": "string"
+        },
+        {
+          "name": "gps_code",
+          "type": "string"
+        },
+        {
+          "name": "iata_code",
+          "type": "string"
+        },
+        {
+          "name": "local_code",
+          "type": "string"
+        }
+      ]
+    }
+  }
 }

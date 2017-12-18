@@ -1,3 +1,5 @@
+// Package compression is a horrible hack & should be replaced
+// as soon as humanly possible
 package compression
 
 import (
@@ -11,11 +13,15 @@ type Type int
 const (
 	// None speficies no compression
 	None Type = iota
+	Gzip
+	Tar
 )
 
 // Names maps the name of a hash to codes
 var Names = map[Type]string{
 	None: "",
+	Gzip: "gzip",
+	Tar:  "tar",
 }
 
 // Codes maps a hash code to it's name

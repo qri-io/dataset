@@ -3,6 +3,7 @@
   "format_options": {
     "header_row": true
   },
+  "kind": "qri:st:0",
   "mediatype": "text/csv",
   "readme": "readme.md",
   "schema": {

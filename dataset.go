@@ -26,29 +26,10 @@ import (
 type Dataset struct {
 	// private storage for reference to this object
 	path datastore.Key
-
 	// Kind is required, must be qri:ds:[version]
 	Kind Kind `json:"kind"`
-
 	// Time this dataset was created. Required. Datasets are immutable, so no "updated"
 	Timestamp time.Time `json:"timestamp,omitempty"`
-
-	// Structure of this dataset
-	Structure *Structure `json:"structure"`
-	// Abstract is the abstract form of this dataset
-	Abstract *Dataset `json:"abstract,omitempty"`
-	// Transform is a path to the transformation that generated this resource
-	Transform *Transform `json:"transform,omitempty"`
-	// AbstractTransform is a reference to the general form of the transformation
-	// that resulted in this dataset
-	AbstractTransform *Transform `json:"abstractTransform,omitempty"`
-	// Commit contains author & change message information
-	Commit *CommitMsg `json:"commit"`
-	// Previous connects datasets to form a historical DAG
-	Previous datastore.Key `json:"previous,omitempty"`
-	// Data is the path to the hash of raw data as it resolves on the network.
-	Data string `json:"data,omitempty"`
-
 	// Length is the length of the data object in bytes.
 	// must always match & be present
 	Length int `json:"length,omitempty"`
@@ -64,7 +45,7 @@ type Dataset struct {
 	// The frequency with which dataset changes. Must be an ISO 8601 repeating duration
 	AccrualPeriodicity string `json:"accrualPeriodicity,omitempty"`
 	// path to readme
-	Readme datastore.Key `json:"readme,omitempty"`
+	Readme string `json:"readme,omitempty"`
 	// Author
 	Author    *User       `json:"author,omitempty"`
 	Citations []*Citation `json:"citations"`
@@ -89,14 +70,28 @@ type Dataset struct {
 	Language []string `json:"language,omitempty"`
 	// Theme
 	Theme []string `json:"theme,omitempty"`
-
 	// QueryString is the user-inputted string of an SQL transform
 	QueryString string `json:"queryString,omitempty"`
-
 	// meta holds additional arbitrarty metadata not covered by the spec
 	// when encoding & decoding json values here will be hoisted into the
 	// Dataset object
 	meta map[string]interface{}
+
+	// Structure of this dataset
+	Structure *Structure `json:"structure"`
+	// Abstract is the abstract form of this dataset
+	Abstract *Dataset `json:"abstract,omitempty"`
+	// Transform is a path to the transformation that generated this resource
+	Transform *Transform `json:"transform,omitempty"`
+	// AbstractTransform is a reference to the general form of the transformation
+	// that resulted in this dataset
+	AbstractTransform *Transform `json:"abstractTransform,omitempty"`
+	// Commit contains author & change message information
+	Commit *CommitMsg `json:"commit"`
+	// Previous connects datasets to form a historical DAG
+	Previous datastore.Key `json:"previous,omitempty"`
+	// Data is the path to the hash of raw data as it resolves on the network.
+	Data string `json:"data,omitempty"`
 }
 
 // IsEmpty checks to see if dataset has any fields other than the internal path
@@ -181,7 +176,7 @@ func (ds *Dataset) Assign(datasets ...*Dataset) {
 		if d.DownloadURL != "" {
 			ds.DownloadURL = d.DownloadURL
 		}
-		if d.Readme.String() != "" {
+		if d.Readme != "" {
 			ds.Readme = d.Readme
 		}
 		if d.Author != nil {
@@ -312,7 +307,7 @@ func (ds *Dataset) MarshalJSON() ([]byte, error) {
 	if ds.QueryString != "" {
 		data["queryString"] = ds.QueryString
 	}
-	if ds.Readme.String() != "" {
+	if ds.Readme != "" {
 		data["readme"] = ds.Readme
 	}
 	data["structure"] = ds.Structure
@@ -412,63 +407,4 @@ func UnmarshalDataset(v interface{}) (*Dataset, error) {
 	default:
 		return nil, fmt.Errorf("couldn't parse dataset, value is invalid type")
 	}
-}
-
-// CompareDatasets checks if all fields of a dataset are equal,
-// returning an error on the first mismatch, nil if equal
-func CompareDatasets(a, b *Dataset) error {
-	if a.Title != b.Title {
-		return fmt.Errorf("Title mismatch: %s != %s", a.Title, b.Title)
-	}
-
-	// if err := compare.MapStringInterface(a.Meta(), b.Meta()); err != nil {
-	// 	return fmt.Errorf("meta mismatch: %s", err.Error())
-	// }
-	if a.Kind.String() != b.Kind.String() {
-		return fmt.Errorf("kind mismatch: %s != %s", a.Kind, b.Kind)
-	}
-
-	if a.AccessURL != b.AccessURL {
-		return fmt.Errorf("accessUrl mismatch: %s != %s", a.AccessURL, b.AccessURL)
-	}
-	if a.Readme != b.Readme {
-		return fmt.Errorf("Readme mismatch: %s != %s", a.Readme, b.Readme)
-	}
-	if a.Author != b.Author {
-		return fmt.Errorf("Author mismatch: %s != %s", a.Author, b.Author)
-	}
-	if a.Image != b.Image {
-		return fmt.Errorf("Image mismatch: %s != %s", a.Image, b.Image)
-	}
-	if a.Description != b.Description {
-		return fmt.Errorf("Description mismatch: %s != %s", a.Description, b.Description)
-	}
-	if a.Homepage != b.Homepage {
-		return fmt.Errorf("Homepage mismatch: %s != %s", a.Homepage, b.Homepage)
-	}
-	if a.IconImage != b.IconImage {
-		return fmt.Errorf("IconImage mismatch: %s != %s", a.IconImage, b.IconImage)
-	}
-	if a.DownloadURL != b.DownloadURL {
-		return fmt.Errorf("DownloadURL mismatch: %s != %s", a.DownloadURL, b.DownloadURL)
-	}
-	if a.AccrualPeriodicity != b.AccrualPeriodicity {
-		return fmt.Errorf("AccrualPeriodicity mismatch: %s != %s", a.AccrualPeriodicity, b.AccrualPeriodicity)
-	}
-	// if err := CompareLicense(a.License, b.License); err != nil {
-	// 	return err
-	// }
-	if a.Version != b.Version {
-		return fmt.Errorf("Version mismatch: %s != %s", a.Version, b.Version)
-	}
-	if len(a.Keywords) != len(b.Keywords) {
-		return fmt.Errorf("Keyword length mismatch: %s != %s", len(a.Keywords), len(b.Keywords))
-	}
-	// if a.Contributors != b.Contributors {
-	//  return fmt.Errorf("Contributors mismatch: %s != %s", a.Contributors, b.Contributors)
-	// }
-	if err := CompareCommitMsgs(a.Commit, b.Commit); err != nil {
-		return fmt.Errorf("Commit mismatch: %s", err.Error())
-	}
-	return nil
 }

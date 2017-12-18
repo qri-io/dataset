@@ -8,9 +8,22 @@ import (
 	"github.com/ipfs/go-datastore"
 )
 
+func TestCommitMsg(t *testing.T) {
+	ref := NewCommitMsgRef(datastore.NewKey("a"))
+	if !ref.IsEmpty() {
+		t.Errorf("expected reference to be empty")
+	}
+
+	if !ref.Path().Equal(datastore.NewKey("a")) {
+		t.Errorf("expected ref path to equal /a")
+	}
+}
+
 func TestCommitMsgAssign(t *testing.T) {
 	doug := &User{ID: "doug_id", Email: "doug@example.com"}
 	expect := &CommitMsg{
+		path:    datastore.NewKey("a"),
+		Kind:    KindCommitMsg,
 		Author:  doug,
 		Title:   "expect title",
 		Message: "expect message",
@@ -23,8 +36,10 @@ func TestCommitMsgAssign(t *testing.T) {
 
 	got.Assign(&CommitMsg{
 		Author: doug,
+		Kind:   KindCommitMsg,
 		Title:  "expect title",
 	}, &CommitMsg{
+		path:    datastore.NewKey("a"),
 		Message: "expect message",
 	})
 
@@ -112,5 +127,31 @@ func TestCommitMsgUnmarshalJSON(t *testing.T) {
 	if strq.path.String() != path {
 		t.Errorf("unmarshal didn't set proper path: %s != %s", path, strq.path)
 		return
+	}
+}
+
+func TestUnmarshalCommitMsg(t *testing.T) {
+	cma := CommitMsg{Kind: KindCommitMsg, Message: "foo"}
+	cases := []struct {
+		value interface{}
+		out   *CommitMsg
+		err   string
+	}{
+		{cma, &cma, ""},
+		{&cma, &cma, ""},
+		{[]byte("{\"kind\":\"qri:cm:0\"}"), &CommitMsg{Kind: KindCommitMsg}, ""},
+		{5, nil, "couldn't parse commitMsg, value is invalid type"},
+	}
+
+	for i, c := range cases {
+		got, err := UnmarshalCommitMsg(c.value)
+		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
+			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
+			continue
+		}
+		if err := CompareCommitMsgs(c.out, got); err != nil {
+			t.Errorf("case %d dataset mismatch: %s", i, err.Error())
+			continue
+		}
 	}
 }

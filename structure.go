@@ -18,7 +18,7 @@ type Structure struct {
 	// private storage for reference to this object
 	path datastore.Key
 	// Kind should always be KindStructure
-	Kind
+	Kind `json:"kind"`
 	// Format specifies the format of the raw data MIME type
 	Format DataFormat `json:"format"`
 	// FormatConfig removes as much ambiguity as possible about how
@@ -42,7 +42,7 @@ func (s *Structure) Path() datastore.Key {
 // NewStructureRef creates an empty struct with it's
 // internal path set
 func NewStructureRef(path datastore.Key) *Structure {
-	return &Structure{path: path}
+	return &Structure{Kind: KindStructure, path: path}
 }
 
 // Abstract returns this structure instance in it's "Abstract" form
@@ -82,8 +82,9 @@ func (s *Structure) Hash() (string, error) {
 type _structure struct {
 	Compression  compression.Type       `json:"compression,omitempty"`
 	Encoding     string                 `json:"encoding,omitempty"`
-	Format       DataFormat             `json:"format"`
+	Format       DataFormat             `json:"format,omitempty"`
 	FormatConfig map[string]interface{} `json:"formatConfig,omitempty"`
+	Kind         Kind                   `json:"kind"`
 	Schema       *Schema                `json:"schema,omitempty"`
 }
 
@@ -91,6 +92,11 @@ type _structure struct {
 func (s Structure) MarshalJSON() (data []byte, err error) {
 	if s.path.String() != "" && s.Encoding == "" && s.Schema == nil {
 		return s.path.MarshalJSON()
+	}
+
+	kind := s.Kind
+	if kind == "" {
+		kind = KindStructure
 	}
 
 	var opt map[string]interface{}
@@ -103,6 +109,7 @@ func (s Structure) MarshalJSON() (data []byte, err error) {
 		Encoding:     s.Encoding,
 		Format:       s.Format,
 		FormatConfig: opt,
+		Kind:         kind,
 		Schema:       s.Schema,
 	})
 }
@@ -136,6 +143,7 @@ func (s *Structure) UnmarshalJSON(data []byte) (err error) {
 		Encoding:     _s.Encoding,
 		Format:       _s.Format,
 		FormatConfig: fmtCfg,
+		Kind:         _s.Kind,
 		Schema:       _s.Schema,
 	}
 
@@ -213,7 +221,7 @@ func UnmarshalStructure(v interface{}) (*Structure, error) {
 		err := json.Unmarshal(r, structure)
 		return structure, err
 	default:
-		return nil, fmt.Errorf("couldn't parse structure")
+		return nil, fmt.Errorf("couldn't parse structure, value is invalid type")
 	}
 }
 
@@ -253,20 +261,4 @@ func base26(d int) (s string) {
 		}
 	}
 	return s
-}
-
-// CompareStructures checks if all fields of two structure pointers are equal,
-// returning an error on the first mismatch, nil if equal
-func CompareStructures(a, b *Structure) error {
-	if a == nil && b == nil {
-		return nil
-	} else if a == nil && b != nil || a != nil && b == nil {
-		return fmt.Errorf("Structure mismatch: %s != %s", a, b)
-	}
-
-	if err := CompareSchemas(a.Schema, b.Schema); err != nil {
-		return fmt.Errorf("Schema mismatch: %s", err.Error())
-	}
-
-	return nil
 }
