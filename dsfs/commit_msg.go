@@ -10,7 +10,7 @@ import (
 
 // SaveCommitMsg writes a commit message to a cafs
 func SaveCommitMsg(store cafs.Filestore, s *dataset.CommitMsg, pin bool) (path datastore.Key, err error) {
-	file, err := jsonFile(PackageFileCommitMsg.String(), s)
+	file, err := JSONFile(PackageFileCommitMsg.String(), s)
 	if err != nil {
 		return datastore.NewKey(""), fmt.Errorf("error saving json commit file: %s", err.Error())
 	}

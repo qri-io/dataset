@@ -13,7 +13,9 @@ type Type int
 const (
 	// None speficies no compression
 	None Type = iota
+	// Gzip specifies Gzip compression
 	Gzip
+	// Tar specifies tar compression
 	Tar
 )
 

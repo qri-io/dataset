@@ -44,12 +44,12 @@ func SaveTransform(store cafs.Filestore, q *dataset.Transform, pin bool) (path d
 		}
 	}
 
-	qdata, err := save.MarshalJSON()
+	tf, err := JSONFile(PackageFileTransform.String(), save)
 	if err != nil {
 		return datastore.NewKey(""), fmt.Errorf("error marshaling transform data to json: %s", err.Error())
 	}
 
-	return store.Put(memfs.NewMemfileBytes(PackageFileTransform.String(), qdata), pin)
+	return store.Put(tf, pin)
 }
 
 // SaveAbstractTransform writes a transform to a cafs, ensuring only it's abstract form is written

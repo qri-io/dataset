@@ -134,7 +134,7 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 				return datastore.NewKey(""), fmt.Errorf("abstract transform resource '%s' is not a reference", key)
 			}
 		}
-		abstff, err := jsonFile(PackageFileAbstractTransform.String(), ds.AbstractTransform)
+		abstff, err := JSONFile(PackageFileAbstractTransform.String(), ds.AbstractTransform)
 		if err != nil {
 			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset abstract transform to json: %s", err.Error())
 		}
@@ -147,7 +147,7 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 	// TODO - this might not constitute a valid dataset. should we be
 	// validating datasets in here?
 	if ds.Transform == nil && ds.Structure == nil {
-		dsf, err := jsonFile(PackageFileDataset.String(), ds)
+		dsf, err := JSONFile(PackageFileDataset.String(), ds)
 		if err != nil {
 			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset to json: %s", err.Error())
 		}
@@ -176,7 +176,7 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 	}
 
 	if ds.Commit != nil {
-		cmf, err := jsonFile(PackageFileCommitMsg.String(), ds.Commit)
+		cmf, err := JSONFile(PackageFileCommitMsg.String(), ds.Commit)
 		if err != nil {
 			return datastore.NewKey(""), fmt.Errorf("error marshilng dataset commit message to json: %s", err.Error())
 		}
@@ -185,7 +185,7 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 	}
 
 	if ds.Structure != nil {
-		stf, err := jsonFile(PackageFileStructure.String(), ds.Structure)
+		stf, err := JSONFile(PackageFileStructure.String(), ds.Structure)
 		if err != nil {
 			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset structure to json: %s", err.Error())
 		}
@@ -194,7 +194,7 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 	}
 
 	if ds.Abstract != nil {
-		abf, err := jsonFile(PackageFileAbstract.String(), ds.Abstract)
+		abf, err := JSONFile(PackageFileAbstract.String(), ds.Abstract)
 		if err != nil {
 			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset abstract to json: %s", err.Error())
 		}

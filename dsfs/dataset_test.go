@@ -56,7 +56,7 @@ func TestLoadDataset(t *testing.T) {
 	for i, c := range cases {
 		path := c.ds.Path()
 		if !c.ds.IsEmpty() {
-			dsf, err := jsonFile(PackageFileDataset.String(), c.ds)
+			dsf, err := JSONFile(PackageFileDataset.String(), c.ds)
 			if err != nil {
 				t.Errorf("case %d error generating json file: %s", i, err.Error())
 				continue
