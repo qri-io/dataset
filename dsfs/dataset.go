@@ -111,14 +111,14 @@ func DerefDatasetCommitMsg(store cafs.Filestore, ds *dataset.Dataset) error {
 // SaveDataset writes a dataset to a cafs, replacing subcomponents of a dataset with hash references
 // during the write process. Directory structure is according to PackageFile naming conventions
 func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore.Key, error) {
-	if ds == nil {
-		return datastore.NewKey(""), nil
-	}
-
 	// assign to a new dataset instance to avoid clobbering input dataset
 	cp := &dataset.Dataset{}
 	cp.Assign(ds)
 	ds = cp
+
+	if ds.IsEmpty() {
+		return datastore.NewKey(""), fmt.Errorf("cannot save empty dataset")
+	}
 
 	fileTasks := 0
 	addedDataset := false
@@ -218,14 +218,6 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 				ds.AbstractTransform = dataset.NewTransformRef(ao.Path)
 			case PackageFileCommitMsg.String():
 				ds.Commit = dataset.NewCommitMsgRef(ao.Path)
-			default:
-				if ds.AbstractTransform != nil {
-					for key := range ds.AbstractTransform.Resources {
-						if ao.Name == fmt.Sprintf("%s_abst.json", key) {
-							ds.AbstractTransform.Resources[key] = dataset.NewDatasetRef(ao.Path)
-						}
-					}
-				}
 			}
 
 			fileTasks--

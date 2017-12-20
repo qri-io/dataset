@@ -80,6 +80,13 @@ func TestLoadDataset(t *testing.T) {
 func TestSaveDataset(t *testing.T) {
 	store := memfs.NewMapstore()
 
+	if _, err := SaveDataset(store, nil, true); err == nil || err.Error() != "cannot save empty dataset" {
+		t.Errorf("didn't reject empty dataset: %s", err)
+	}
+	if _, err := SaveDataset(store, &dataset.Dataset{}, true); err == nil || err.Error() != "cannot save empty dataset" {
+		t.Errorf("didn't reject empty dataset: %s", err)
+	}
+
 	cases := []struct {
 		infile      string
 		path        datastore.Key
