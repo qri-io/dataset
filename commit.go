@@ -68,9 +68,15 @@ func (cm *CommitMsg) MarshalJSON() ([]byte, error) {
 	if cm.path.String() != "" && cm.IsEmpty() {
 		return cm.path.MarshalJSON()
 	}
+
+	kind := cm.Kind
+	if kind == "" {
+		kind = KindCommitMsg
+	}
+
 	m := &_commitMsg{
 		Author:  cm.Author,
-		Kind:    cm.Kind,
+		Kind:    kind,
 		Message: cm.Message,
 		Title:   cm.Title,
 	}

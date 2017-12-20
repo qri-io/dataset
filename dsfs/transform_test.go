@@ -2,7 +2,6 @@ package dsfs
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/ipfs/go-datastore"
@@ -142,9 +141,6 @@ func TestSaveAbstractTransform(t *testing.T) {
 		t.Errorf("error decoding transform json: %s", err.Error())
 		return
 	}
-
-	data, _ := res.MarshalJSON()
-	fmt.Println(string(data))
 
 	if !res.Structure.IsEmpty() {
 		t.Errorf("expected stored transform.Structure to be a reference")

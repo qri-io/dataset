@@ -65,8 +65,8 @@ func TestCommitMsgMarshalJSON(t *testing.T) {
 		out []byte
 		err error
 	}{
-		{&CommitMsg{Title: "title"}, []byte(`{"title":"title"}`), nil},
-		{&CommitMsg{Author: &User{ID: "foo"}}, []byte(`{"author":{"id":"foo"},"title":""}`), nil},
+		{&CommitMsg{Title: "title"}, []byte(`{"kind":"qri:cm:0","title":"title"}`), nil},
+		{&CommitMsg{Author: &User{ID: "foo"}}, []byte(`{"author":{"id":"foo"},"kind":"qri:cm:0","title":""}`), nil},
 	}
 
 	for i, c := range cases {
