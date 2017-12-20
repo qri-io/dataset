@@ -10,6 +10,23 @@ import (
 	"github.com/qri-io/dataset"
 )
 
+// func TestPrepareDataset(t *testing.T) {
+// 	store := memfs.NewMapstore()
+
+// 	cases := []struct {
+// 		in, out *dataset.Dataset
+// 		err     string
+// 	}{}
+
+// 	for i, c := range cases {
+// 		err := PrepareDataset(store, ds)
+// 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
+// 			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
+// 			continue
+// 		}
+// 	}
+// }
+
 func TestLoadDataset(t *testing.T) {
 	store := memfs.NewMapstore()
 
