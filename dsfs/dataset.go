@@ -10,6 +10,38 @@ import (
 	"github.com/qri-io/dataset"
 )
 
+// PrepareDataset modifies a dataset in preparation for adding to a dsfs
+// assumes the given dataset is valid
+// func PrepareDataset(store cafs.Filestore, ds *dataset.Dataset) error {
+
+// 	// generate abstract form of dataset
+// 	ds.Abstract = dataset.Abstract(ds)
+
+// 	if ds.AbstractTransform != nil {
+// 		// convert abstract transform to abstract references
+// 		for name, ref := range ds.AbstractTransform.Resources {
+// 			// data, _ := ref.MarshalJSON()
+// 			// fmt.Println(string(data))
+// 			if ref.Abstract != nil {
+// 				ds.AbstractTransform.Resources[name] = ref.Abstract
+// 			} else {
+
+// 				absf, err := JSONFile(PackageFileAbstract.String(), dataset.Abstract(ref))
+// 				if err != nil {
+// 					return err
+// 				}
+// 				path, err := store.Put(absf, true)
+// 				if err != nil {
+// 					return err
+// 				}
+// 				ds.AbstractTransform.Resources[name] = dataset.NewDatasetRef(path)
+// 			}
+// 		}
+// 	}
+
+// 	return nil
+// }
+
 // LoadDataset reads a dataset from a cafs and dereferences structure, transform, and commitMsg if they exist,
 // returning a fully-hydrated dataset
 func LoadDataset(store cafs.Filestore, path datastore.Key) (*dataset.Dataset, error) {
