@@ -25,13 +25,9 @@ func Fields(r *dataset.Structure, data io.Reader) (fields []*dataset.Field, err 
 	switch r.Format {
 	case dataset.CSVDataFormat:
 		return CSVFields(r, data)
-	case dataset.JSONDataFormat:
-		return JSONFields(r, data)
-	case dataset.XMLDataFormat:
-		return XMLFields(r, data)
+	default:
+		return nil, fmt.Errorf("'%s' is not supported for field detection", r.Format.String())
 	}
-
-	return nil, fmt.Errorf("'%s' is not supported for field detection", r.Format.String())
 }
 
 // CSVFields determines the field names and types of an io.Reader of CSV-formatted data
@@ -100,18 +96,6 @@ func CSVFields(resource *dataset.Structure, data io.Reader) (fields []*dataset.F
 	}
 
 	return fields, nil
-}
-
-// JSONFields determines the field names and types of a given io.Reader of JSON-formatted data
-func JSONFields(ds *dataset.Structure, data io.Reader) (fields []*dataset.Field, err error) {
-	// TODO
-	return nil, errors.New("json field detection not yet implemented")
-}
-
-// XMLFields determines the field names and types of a given io.Reader of XML-formatted data
-func XMLFields(ds *dataset.Structure, data io.Reader) (fields []*dataset.Field, err error) {
-	// TODO
-	return nil, errors.New("xml field detection not yet implemented")
 }
 
 // PossibleHeaderRow makes an educated guess about weather or not this csv file has a header row.

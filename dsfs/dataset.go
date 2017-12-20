@@ -15,19 +15,19 @@ import (
 func LoadDataset(store cafs.Filestore, path datastore.Key) (*dataset.Dataset, error) {
 	ds, err := LoadDatasetRefs(store, path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error loading dataset: %s", err.Error())
 	}
 
 	if err := DerefDatasetStructure(store, ds); err != nil {
-		return nil, fmt.Errorf("error dereferencing %s file: %s", PackageFileStructure, err.Error())
+		return nil, err
 	}
 
 	if err := DerefDatasetTransform(store, ds); err != nil {
-		return nil, fmt.Errorf("error dereferencing %s file: %s", PackageFileTransform, err.Error())
+		return nil, err
 	}
 
 	if err := DerefDatasetCommitMsg(store, ds); err != nil {
-		return nil, fmt.Errorf("error dereferencing %s file: %s", PackageFileTransform, err.Error())
+		return nil, err
 	}
 
 	return ds, nil
@@ -71,6 +71,8 @@ func DerefDatasetStructure(store cafs.Filestore, ds *dataset.Dataset) error {
 		if err != nil {
 			return fmt.Errorf("error loading dataset structure: %s", err.Error())
 		}
+		// assign path to retain internal reference to path
+		st.Assign(dataset.NewStructureRef(ds.Structure.Path()))
 		ds.Structure = st
 	}
 	return nil
@@ -80,11 +82,13 @@ func DerefDatasetStructure(store cafs.Filestore, ds *dataset.Dataset) error {
 // should be a no-op if ds.Structure is nil or isn't a reference
 func DerefDatasetTransform(store cafs.Filestore, ds *dataset.Dataset) error {
 	if ds.Transform != nil && ds.Transform.IsEmpty() && ds.Transform.Path().String() != "" {
-		q, err := LoadTransform(store, ds.Transform.Path())
+		t, err := LoadTransform(store, ds.Transform.Path())
 		if err != nil {
 			return fmt.Errorf("error loading dataset transform: %s", err.Error())
 		}
-		ds.Transform = q
+		// assign path to retain internal reference to path
+		t.Assign(dataset.NewTransformRef(ds.Transform.Path()))
+		ds.Transform = t
 	}
 	return nil
 }
@@ -97,6 +101,8 @@ func DerefDatasetCommitMsg(store cafs.Filestore, ds *dataset.Dataset) error {
 		if err != nil {
 			return fmt.Errorf("error loading dataset commit: %s", err.Error())
 		}
+		// assign path to retain internal reference to path
+		cm.Assign(dataset.NewCommitMsgRef(ds.Commit.Path()))
 		ds.Commit = cm
 	}
 	return nil
@@ -109,6 +115,11 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 		return datastore.NewKey(""), nil
 	}
 
+	// assign to a new dataset instance to avoid clobbering input dataset
+	cp := &dataset.Dataset{}
+	cp.Assign(ds)
+	ds = cp
+
 	fileTasks := 0
 	addedDataset := false
 	adder, err := store.NewAdder(pin, true)
@@ -116,16 +127,33 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 		return datastore.NewKey(""), fmt.Errorf("error creating new adder: %s", err.Error())
 	}
 
+	if ds.AbstractTransform != nil {
+		// ensure all dataset references are abstract
+		for key, r := range ds.AbstractTransform.Resources {
+			if !r.IsEmpty() {
+				return datastore.NewKey(""), fmt.Errorf("abstract transform resource '%s' is not a reference", key)
+			}
+		}
+		abstff, err := jsonFile(PackageFileAbstractTransform.String(), ds.AbstractTransform)
+		if err != nil {
+			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset abstract transform to json: %s", err.Error())
+		}
+
+		fileTasks++
+		adder.AddFile(abstff)
+	}
+
 	// if dataset contains no references, place directly in.
 	// TODO - this might not constitute a valid dataset. should we be
 	// validating datasets in here?
 	if ds.Transform == nil && ds.Structure == nil {
-		dsdata, err := json.Marshal(ds)
+		dsf, err := jsonFile(PackageFileDataset.String(), ds)
 		if err != nil {
 			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset to json: %s", err.Error())
 		}
+
 		fileTasks++
-		adder.AddFile(memfs.NewMemfileBytes(PackageFileDataset.String(), dsdata))
+		adder.AddFile(dsf)
 		addedDataset = true
 	}
 
@@ -147,61 +175,32 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 		adder.AddFile(memfs.NewMemfileBytes(PackageFileTransform.String(), qdata))
 	}
 
-	if ds.AbstractTransform != nil {
-		// ensure all dataset references are abstract
-		for key, r := range ds.AbstractTransform.Resources {
-			// ds.AbstractTransform.Resources[key]
-			absdata, err := json.Marshal(dataset.Abstract(r))
-			if err != nil {
-				return datastore.NewKey(""), fmt.Errorf("error marshaling dataset abstract to json: %s", err.Error())
-			}
-
-			fileTasks++
-			adder.AddFile(memfs.NewMemfileBytes(fmt.Sprintf("%s_abst.json", key), absdata))
-		}
-		qdata, err := json.Marshal(ds.AbstractTransform)
-		if err != nil {
-			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset abstract transform to json: %s", err.Error())
-		}
-		fileTasks++
-		adder.AddFile(memfs.NewMemfileBytes(PackageFileAbstractTransform.String(), qdata))
-	}
-
 	if ds.Commit != nil {
-		ds.Commit.Kind = dataset.KindCommitMsg
-		cmdata, err := json.Marshal(ds.Commit)
+		cmf, err := jsonFile(PackageFileCommitMsg.String(), ds.Commit)
 		if err != nil {
 			return datastore.NewKey(""), fmt.Errorf("error marshilng dataset commit message to json: %s", err.Error())
 		}
 		fileTasks++
-		adder.AddFile(memfs.NewMemfileBytes(PackageFileCommitMsg.String(), cmdata))
+		adder.AddFile(cmf)
 	}
 
 	if ds.Structure != nil {
-		stdata, err := json.Marshal(ds.Structure)
+		stf, err := jsonFile(PackageFileStructure.String(), ds.Structure)
 		if err != nil {
 			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset structure to json: %s", err.Error())
 		}
 		fileTasks++
-		adder.AddFile(memfs.NewMemfileBytes(PackageFileStructure.String(), stdata))
+		adder.AddFile(stf)
+	}
 
-		asdata, err := json.Marshal(dataset.Abstract(ds))
+	if ds.Abstract != nil {
+		abf, err := jsonFile(PackageFileAbstract.String(), ds.Abstract)
 		if err != nil {
 			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset abstract to json: %s", err.Error())
 		}
 		fileTasks++
-		adder.AddFile(memfs.NewMemfileBytes(PackageFileAbstract.String(), asdata))
-
-		data, err := store.Get(datastore.NewKey(ds.Data))
-		if err != nil {
-			return datastore.NewKey(""), fmt.Errorf("error getting dataset raw data: %s", err.Error())
-		}
-		fileTasks++
-		adder.AddFile(memfs.NewMemfileReader("data."+ds.Structure.Format.String(), data))
+		adder.AddFile(abf)
 	}
-
-	// if ds.Previous != nil {
-	// }
 
 	var path datastore.Key
 	done := make(chan error, 0)

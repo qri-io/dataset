@@ -157,6 +157,18 @@ func (ds *Dataset) Assign(datasets ...*Dataset) {
 			ds.Abstract.Assign(d.Abstract)
 		}
 
+		if ds.AbstractTransform == nil && d.AbstractTransform != nil {
+			ds.AbstractTransform = d.AbstractTransform
+		} else if ds.AbstractTransform != nil {
+			ds.AbstractTransform.Assign(d.AbstractTransform)
+		}
+
+		if ds.Commit == nil && d.Commit != nil {
+			ds.Commit = d.Commit
+		} else if ds.Commit != nil {
+			ds.Commit.Assign(d.Commit)
+		}
+
 		if d.Data != "" {
 			ds.Data = d.Data
 		}

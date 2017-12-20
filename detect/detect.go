@@ -13,29 +13,19 @@ import (
 )
 
 var (
-	spaces         = regexp.MustCompile(`[\s-]+`)
-	nonAlpha       = regexp.MustCompile(`[^a-zA-z0-9_]`)
-	carriageReturn = regexp.MustCompile(`(?m)\r[^\n]`)
+	spaces   = regexp.MustCompile(`[\s-]+`)
+	nonAlpha = regexp.MustCompile(`[^a-zA-z0-9_]`)
 )
 
 // FromFile takes a filepath & tries to work out the corresponding dataset
 // for the sake of speed, it only works with files that have a recognized extension
 func FromFile(path string) (ds *dataset.Structure, err error) {
-	// if filepath.Base(path) == dataset.Filename {
-	// 	return nil, fmt.Errorf("cannot determine schema of a %s file", dataset.Filename)
-	// }
-
-	format, err := ExtensionDataFormat(path)
-	if err != nil {
-		return nil, err
-	}
-
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
 
-	return Structure(format, f)
+	return FromReader(path, f)
 }
 
 // FromReader is a shorthand for a path/filename and reader
@@ -84,13 +74,8 @@ func Camelize(path string) (name string) {
 // TODO - make software robust to the problem, instead presenting a warning to the user
 // also, we should write all output files with unified line breaks.
 func ReplaceSoloCarriageReturns(data []byte) []byte {
-	if carriageReturn.Match(data) {
-		return carriageReturn.ReplaceAllFunc(data, func(in []byte) []byte {
-			return []byte{'\r', '\n', in[1]}
-		})
-	}
-
-	return data
+	cleaned := strings.NewReplacer("\r\n", "\r\n", "\r", "\r\n").Replace(string(data))
+	return []byte(cleaned)
 }
 
 // DataFormat does it's best to determine the format of a specified dataset
@@ -114,9 +99,6 @@ func ExtensionDataFormat(path string) (format dataset.DataFormat, err error) {
 	case "":
 		return dataset.UnknownDataFormat, errors.New("no file extension provided")
 	default:
-		return dataset.UnknownDataFormat, fmt.Errorf("unrecognized file extension: '%s' ", ext)
+		return dataset.UnknownDataFormat, fmt.Errorf("unsupported file type: '%s'", ext)
 	}
-
-	// can't happen
-	return
 }

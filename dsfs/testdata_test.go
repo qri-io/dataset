@@ -30,6 +30,7 @@ var AirportCodes = &dataset.Dataset{
 }
 
 var AirportCodesCommitMsg = &dataset.CommitMsg{
+	Kind:    dataset.KindCommitMsg,
 	Message: "initial commit",
 }
 

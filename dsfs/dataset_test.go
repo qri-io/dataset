@@ -2,6 +2,7 @@ package dsfs
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"testing"
 
 	"github.com/ipfs/go-datastore"
@@ -11,143 +12,174 @@ import (
 
 func TestLoadDataset(t *testing.T) {
 	store := memfs.NewMapstore()
-	apath, err := SaveDataset(store, AirportCodes, true)
+
+	data, err := ioutil.ReadFile("testdata/complete.json")
+	if err != nil {
+		t.Errorf("error loading test dataset: %s", err.Error())
+		return
+	}
+	ds := &dataset.Dataset{}
+	if err := ds.UnmarshalJSON(data); err != nil {
+		t.Errorf("error unmarshaling test dataset: %s", err.Error())
+	}
+	apath, err := SaveDataset(store, ds, true)
 	if err != nil {
 		t.Errorf(err.Error())
 		return
 	}
-
 	_, err = LoadDataset(store, apath)
 	if err != nil {
 		t.Errorf(err.Error())
-	}
-}
-
-func TestDatasetSave(t *testing.T) {
-	store := memfs.NewMapstore()
-	resource := dataset.NewDatasetRef(datastore.NewKey("resource1"))
-	resource.Title = "now resource.Empty() == false"
-
-	datapath, err := store.Put(memfs.NewMemfileBytes("data.csv", []byte("hello world")), false)
-	if err != nil {
-		t.Errorf("error putting test data in store: %s", err.Error())
 		return
 	}
 
-	ds := &dataset.Dataset{
-		Title: "test store",
-		Structure: &dataset.Structure{
-			Format: dataset.CSVDataFormat,
-			Schema: &dataset.Schema{
-				Fields: []*dataset.Field{},
-			},
-		},
-		Abstract: &dataset.Dataset{
-			Structure: &dataset.Structure{
-				Format: dataset.CSVDataFormat,
-				Schema: &dataset.Schema{
-					Fields: []*dataset.Field{},
-				},
-			},
-		},
-		Transform: &dataset.Transform{
-			Syntax: "dunno",
-			Structure: &dataset.Structure{
-				Format: dataset.CSVDataFormat,
-				Schema: &dataset.Schema{
-					Fields: []*dataset.Field{},
-				},
-			},
-			Resources: map[string]*dataset.Dataset{
-				"test": resource,
-			},
-		},
-		AbstractTransform: &dataset.Transform{
-			Syntax: "dunno",
-			Structure: &dataset.Structure{
-				Format: dataset.CSVDataFormat,
-				Schema: &dataset.Schema{
-					Fields: []*dataset.Field{},
-				},
-			},
-			Resources: map[string]*dataset.Dataset{
-				"test": resource,
-			},
-		},
-		Data: datapath.String(),
+	cases := []struct {
+		ds  *dataset.Dataset
+		err string
+	}{
+		{dataset.NewDatasetRef(datastore.NewKey("/bad/path")),
+			"error loading dataset: error getting file bytes: datastore: key not found"},
+		{&dataset.Dataset{
+			Title:     "bad structure",
+			Structure: dataset.NewStructureRef(datastore.NewKey("/bad/path")),
+		}, "error loading dataset structure: error loading structure file: datastore: key not found"},
+		{&dataset.Dataset{
+			Title:     "bad structure",
+			Transform: dataset.NewTransformRef(datastore.NewKey("/bad/path")),
+		}, "error loading dataset transform: error loading transform raw data: datastore: key not found"},
+		{&dataset.Dataset{
+			Title:  "bad structure",
+			Commit: dataset.NewCommitMsgRef(datastore.NewKey("/bad/path")),
+		}, "error loading dataset commit: error loading commit file: datastore: key not found"},
 	}
 
-	key, err := SaveDataset(store, ds, true)
-	if err != nil {
-		t.Error(err.Error())
-		return
-	}
+	for i, c := range cases {
+		path := c.ds.Path()
+		if !c.ds.IsEmpty() {
+			dsf, err := jsonFile(PackageFileDataset.String(), c.ds)
+			if err != nil {
+				t.Errorf("case %d error generating json file: %s", i, err.Error())
+				continue
+			}
+			path, err = store.Put(dsf, true)
+			if err != nil {
+				t.Errorf("case %d error putting file in store", i, err.Error())
+				continue
+			}
+		}
 
-	hash := "/map/QmRg51ZWmaZm8iTZUWAZZw2tmfkWaRqrQMvrqtHHgdHVc3"
-	if hash != key.String() {
-		t.Errorf("key mismatch: %s != %s", hash, key.String())
-		return
-	}
-
-	expectedEntries := 7
-	if len(store.(memfs.MapStore)) != expectedEntries {
-		t.Errorf("invalid number of entries added to store: %d != %d", expectedEntries, len(store.(memfs.MapStore)))
-		return
-	}
-
-	f, err := store.Get(datastore.NewKey(hash))
-	if err != nil {
-		t.Errorf("error getting dataset file: %s", err.Error())
-		return
-	}
-
-	result := &dataset.Dataset{}
-	if err := json.NewDecoder(f).Decode(result); err != nil {
-		t.Errorf("error decoding dataset json: %s", err.Error())
-		return
-	}
-
-	if !result.Transform.IsEmpty() {
-		t.Errorf("expected stored dataset.Transform to be a reference")
-	}
-	if !result.AbstractTransform.IsEmpty() {
-		t.Errorf("expected stored dataset.AbstractTransform to be a reference")
-	}
-	if !result.Structure.IsEmpty() {
-		t.Errorf("expected stored dataset.Structure to be a reference")
-	}
-	if !result.Abstract.IsEmpty() {
-		t.Errorf("expected stored dataset.Abstract to be a reference")
-	}
-
-	qf, err := store.Get(result.Transform.Path())
-	if err != nil {
-		t.Errorf("error getting transform file: %s", err.Error())
-		return
-	}
-
-	q := &dataset.Transform{}
-	if err := json.NewDecoder(qf).Decode(q); err != nil {
-		t.Errorf("error decoding transform json: %s", err.Error())
-		return
-	}
-
-	for name, ref := range q.Resources {
-		if !ref.IsEmpty() {
-			t.Errorf("expected stored transform reference '%s' to be empty", name)
+		_, err = LoadDataset(store, path)
+		if !(err != nil && c.err == "" || err != nil && err.Error() == c.err) {
+			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
+			continue
 		}
 	}
 
-	atf, err := store.Get(result.AbstractTransform.Path())
-	if err != nil {
-		t.Errorf("error getting abstract transform file: %s", err.Error())
-		return
+}
+
+func TestSaveDataset(t *testing.T) {
+	store := memfs.NewMapstore()
+
+	cases := []struct {
+		infile      string
+		path        datastore.Key
+		repoEntries int
+		err         string
+	}{
+		{"testdata/cities.json", datastore.NewKey("/map/QmQDJiMKBXGJTXDJm4KQ6ddzggQhYi4PPHj2F6bqJCKwvv"), 2, ""},
+		{"testdata/complete.json", datastore.NewKey("/map/Qmdp2mMbLqhZCAdtHtVqA8GjRaxgdvPWyUEjVU1yCqcgyw"), 8, ""},
 	}
 
-	at := &dataset.Transform{}
-	if err := json.NewDecoder(atf).Decode(at); err != nil {
-		t.Errorf("error decoding transform json: %s", err.Error())
-		return
-	}
+	for i, c := range cases {
+		indata, err := ioutil.ReadFile(c.infile)
+		if err != nil {
+			t.Errorf("case %d error opening test infile: %s", i, err.Error())
+			continue
+		}
 
+		ds := &dataset.Dataset{}
+		if err := ds.UnmarshalJSON(indata); err != nil {
+			t.Errorf("case %d error unmarhshalling test file: %s ", i, err.Error())
+			continue
+		}
+
+		got, err := SaveDataset(store, ds, true)
+		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
+			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
+			continue
+		}
+
+		if !c.path.Equal(got) {
+			t.Errorf("case %d path mismatch. expected: '%s', got: '%s'", i, c.path, got)
+			continue
+		}
+
+		if len(store.(memfs.MapStore)) != c.repoEntries {
+			t.Errorf("case %d invalid number of entries in store: %d != %d", i, c.repoEntries, len(store.(memfs.MapStore)))
+			str, err := store.(memfs.MapStore).Print()
+			if err != nil {
+				panic(err)
+			}
+			t.Log(str)
+			continue
+		}
+
+		f, err := store.Get(got)
+		if err != nil {
+			t.Errorf("error getting dataset file: %s", err.Error())
+			continue
+		}
+
+		ref := &dataset.Dataset{}
+		if err := json.NewDecoder(f).Decode(ref); err != nil {
+			t.Errorf("error decoding dataset json: %s", err.Error())
+			continue
+		}
+
+		if ref.Abstract != nil {
+			if !ref.Abstract.IsEmpty() {
+				t.Errorf("expected stored dataset.Abstract to be a reference")
+			}
+			// Abstract paths shouldnt' be loaded
+			ds.Abstract = dataset.NewDatasetRef(ref.Abstract.Path())
+		}
+
+		if ref.Transform != nil {
+			if !ref.Transform.IsEmpty() {
+				t.Errorf("expected stored dataset.Transform to be a reference")
+			}
+			ds.Transform.Assign(dataset.NewTransformRef(ref.Transform.Path()))
+		}
+		if ref.AbstractTransform != nil {
+			if !ref.AbstractTransform.IsEmpty() {
+				t.Errorf("expected stored dataset.AbstractTransform to be a reference")
+			}
+			// Abstract transforms aren't loaded
+			ds.AbstractTransform = dataset.NewTransformRef(ref.AbstractTransform.Path())
+		}
+		if ref.Structure != nil {
+			if !ref.Structure.IsEmpty() {
+				t.Errorf("expected stored dataset.Structure to be a reference")
+			}
+			ds.Structure.Assign(dataset.NewStructureRef(ref.Structure.Path()))
+		}
+
+		ds.Assign(dataset.NewDatasetRef(got))
+		result, err := LoadDataset(store, got)
+		if err != nil {
+			t.Errorf("case %d unexpected error loading dataset: %s", i, err)
+			continue
+		}
+
+		if err := dataset.CompareDatasets(ds, result); err != nil {
+			t.Errorf("case %d comparison mismatch: %s", i, err.Error())
+
+			d1, _ := ds.MarshalJSON()
+			t.Log(string(d1))
+
+			d, _ := result.MarshalJSON()
+			t.Log(string(d))
+			continue
+		}
+	}
 }
