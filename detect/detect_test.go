@@ -69,29 +69,6 @@ func TestFromFile(t *testing.T) {
 	}
 }
 
-func TestCamelize(t *testing.T) {
-	cases := []struct {
-		in, out string
-	}{
-		{"one two three", "one_two_three"},
-		{"users/brendan/stuff/and/such.ext", "such"},
-		{"users/brendan/stuff/and/such***.ext", "such"},
-		{"users/brendan/stuff/and/separated-by-dashes.ext", "separated_by_dashes"},
-		{"CamelCase", "camelcase"},
-	}
-
-	for i, c := range cases {
-		if c.out == "" {
-			c.out = c.in
-		}
-
-		got := Camelize(c.in)
-		if got != c.out {
-			t.Errorf("case %d mismatch got: '%s', expected: '%s'", i, got, c.out)
-		}
-	}
-}
-
 func TestReplaceSoloCarriageReturns(t *testing.T) {
 	input := []byte("foo\r\rbar\r\nbaz\r\r")
 	expect := []byte("foo\r\n\r\nbar\r\nbaz\r\n\r\n")

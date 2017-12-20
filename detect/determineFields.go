@@ -10,6 +10,7 @@ import (
 
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/datatypes"
+	"github.com/qri-io/varName"
 )
 
 var (
@@ -53,7 +54,7 @@ func CSVFields(resource *dataset.Structure, data io.Reader) (fields []*dataset.F
 
 	if possibleCsvHeaderRow(header) {
 		for i, f := range fields {
-			f.Name = Camelize(header[i])
+			f.Name = varName.CreateVarNameFromString(header[i])
 			f.Type = datatypes.Any
 		}
 		resource.FormatConfig = &dataset.CSVOptions{

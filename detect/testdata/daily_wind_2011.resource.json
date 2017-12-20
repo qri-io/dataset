@@ -72,11 +72,11 @@
         "type": "float"
       },
       {
-        "name": "_1st_max_value",
+        "name": "st_max_value",
         "type": "float"
       },
       {
-        "name": "_1st_max_hour",
+        "name": "st_max_hour",
         "type": "integer"
       },
       {

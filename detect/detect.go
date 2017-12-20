@@ -55,19 +55,6 @@ func Structure(format dataset.DataFormat, data io.Reader) (r *dataset.Structure,
 	return
 }
 
-// Camelize creates a valid address name (using underscores in place of any spaces)
-func Camelize(path string) (name string) {
-	name = strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
-	name = spaces.ReplaceAllString(name, "_")
-	name = nonAlpha.ReplaceAllString(name, "")
-	name = strings.Trim(name, "_")
-	name = strings.ToLower(name)
-	if startsWithNumberRegex.MatchString(name) {
-		name = "_" + name
-	}
-	return
-}
-
 // ReplaceSoloCarriageReturns looks for instances of lonely \r replacing them with \r\n
 // lots of files in the wild will come without "proper" line breaks, which irritates go's
 // native csv package.
