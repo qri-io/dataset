@@ -20,7 +20,7 @@ var AirportCodes = &Dataset{
 			},
 		},
 	},
-	Commit:    &CommitMsg{Title: "initial commit"},
+	Commit:    &Commit{Title: "initial commit"},
 	Structure: AirportCodesStructure,
 }
 

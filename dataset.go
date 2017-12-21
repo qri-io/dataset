@@ -32,7 +32,7 @@ type Dataset struct {
 	// that resulted in this dataset
 	AbstractTransform *Transform `json:"abstractTransform,omitempty"`
 	// Commit contains author & change message information
-	Commit *CommitMsg `json:"commit,omitempty"`
+	Commit *Commit `json:"commit,omitempty"`
 	// DataPath is the path to the hash of raw data as it resolves on the network.
 	DataPath string `json:"dataPath,omitempty"`
 	// Kind is required, must be qri:ds:[version]

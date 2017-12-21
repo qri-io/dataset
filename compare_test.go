@@ -22,7 +22,7 @@ func TestCompareDatasets(t *testing.T) {
 		{&Dataset{}, &Dataset{Structure: &Structure{}}, "Structure: nil: <nil> != <not nil>"},
 		{&Dataset{}, &Dataset{Transform: &Transform{}}, "Transform: nil: <nil> != <not nil>"},
 		{&Dataset{}, &Dataset{AbstractTransform: &Transform{}}, "AbstractTransform: nil: <nil> != <not nil>"},
-		{&Dataset{}, &Dataset{Commit: &CommitMsg{}}, "Commit: nil: <nil> != <not nil>"},
+		{&Dataset{}, &Dataset{Commit: &Commit{}}, "Commit: nil: <nil> != <not nil>"},
 	}
 
 	for i, c := range cases {
@@ -143,36 +143,36 @@ func TestCompareFields(t *testing.T) {
 	}
 }
 
-func TestCompareCommitMsgs(t *testing.T) {
-	c1 := &CommitMsg{
+func TestCompareCommits(t *testing.T) {
+	c1 := &Commit{
 		path:    datastore.NewKey("/foo"),
 		Title:   "foo",
 		Message: "message",
-		Kind:    KindCommitMsg,
+		Kind:    KindCommit,
 		Author:  &User{ID: "foo"},
 	}
 
 	cases := []struct {
-		a, b *CommitMsg
+		a, b *Commit
 		err  string
 	}{
 		{nil, nil, ""},
 		{c1, c1, ""},
 		{c1, nil, "nil: <not nil> != <nil>"},
 		{nil, c1, "nil: <nil> != <not nil>"},
-		{&CommitMsg{}, &CommitMsg{}, ""},
+		{&Commit{}, &Commit{}, ""},
 		{
-			&CommitMsg{Timestamp: time.Date(2001, 01, 01, 01, 0, 0, 0, time.UTC)},
-			&CommitMsg{Timestamp: time.Date(2002, 01, 01, 01, 0, 0, 0, time.UTC)},
+			&Commit{Timestamp: time.Date(2001, 01, 01, 01, 0, 0, 0, time.UTC)},
+			&Commit{Timestamp: time.Date(2002, 01, 01, 01, 0, 0, 0, time.UTC)},
 			"Timestamp: 2001-01-01 01:00:00 +0000 UTC != 2002-01-01 01:00:00 +0000 UTC",
 		},
-		{&CommitMsg{Title: "a"}, &CommitMsg{Title: "b"}, "Title: a != b"},
-		{&CommitMsg{Message: "a"}, &CommitMsg{Message: "b"}, "Message: a != b"},
-		{&CommitMsg{Kind: "a"}, &CommitMsg{Kind: "b"}, "Kind: a != b"},
+		{&Commit{Title: "a"}, &Commit{Title: "b"}, "Title: a != b"},
+		{&Commit{Message: "a"}, &Commit{Message: "b"}, "Message: a != b"},
+		{&Commit{Kind: "a"}, &Commit{Kind: "b"}, "Kind: a != b"},
 	}
 
 	for i, c := range cases {
-		err := CompareCommitMsgs(c.a, c.b)
+		err := CompareCommits(c.a, c.b)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("case %d error: expected: '%s', got: '%s'", i, c.err, err)
 		}

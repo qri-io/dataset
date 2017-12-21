@@ -9,8 +9,8 @@ import (
 	"github.com/ipfs/go-datastore"
 )
 
-func TestCommitMsg(t *testing.T) {
-	ref := NewCommitMsgRef(datastore.NewKey("a"))
+func TestCommit(t *testing.T) {
+	ref := NewCommitRef(datastore.NewKey("a"))
 	if !ref.IsEmpty() {
 		t.Errorf("expected reference to be empty")
 	}
@@ -20,58 +20,58 @@ func TestCommitMsg(t *testing.T) {
 	}
 }
 
-func TestCommitMsgAssign(t *testing.T) {
+func TestCommitAssign(t *testing.T) {
 	t1 := time.Now()
 	doug := &User{ID: "doug_id", Email: "doug@example.com"}
-	expect := &CommitMsg{
+	expect := &Commit{
 		path:      datastore.NewKey("a"),
-		Kind:      KindCommitMsg,
+		Kind:      KindCommit,
 		Author:    doug,
 		Timestamp: t1,
 		Title:     "expect title",
 		Message:   "expect message",
 	}
-	got := &CommitMsg{
+	got := &Commit{
 		Author:  &User{ID: "maha_id", Email: "maha@example.com"},
 		Title:   "title",
 		Message: "message",
 	}
 
-	got.Assign(&CommitMsg{
+	got.Assign(&Commit{
 		Author: doug,
-		Kind:   KindCommitMsg,
+		Kind:   KindCommit,
 		Title:  "expect title",
-	}, &CommitMsg{
+	}, &Commit{
 		path:      datastore.NewKey("a"),
 		Timestamp: t1,
 		Message:   "expect message",
 	})
 
-	if err := CompareCommitMsgs(expect, got); err != nil {
+	if err := CompareCommits(expect, got); err != nil {
 		t.Error(err)
 	}
 
 	got.Assign(nil, nil)
-	if err := CompareCommitMsgs(expect, got); err != nil {
+	if err := CompareCommits(expect, got); err != nil {
 		t.Error(err)
 	}
 
-	emptyMsg := &CommitMsg{}
+	emptyMsg := &Commit{}
 	emptyMsg.Assign(expect)
-	if err := CompareCommitMsgs(expect, emptyMsg); err != nil {
+	if err := CompareCommits(expect, emptyMsg); err != nil {
 		t.Error(err)
 	}
 }
 
-func TestCommitMsgMarshalJSON(t *testing.T) {
+func TestCommitMarshalJSON(t *testing.T) {
 	ts := time.Date(2001, 01, 01, 01, 01, 01, 0, time.UTC)
 	cases := []struct {
-		in  *CommitMsg
+		in  *Commit
 		out []byte
 		err error
 	}{
-		{&CommitMsg{Title: "title", Timestamp: ts}, []byte(`{"kind":"qri:cm:0","timestamp":"2001-01-01T01:01:01Z","title":"title"}`), nil},
-		{&CommitMsg{Author: &User{ID: "foo"}, Timestamp: ts}, []byte(`{"author":{"id":"foo"},"kind":"qri:cm:0","timestamp":"2001-01-01T01:01:01Z","title":""}`), nil},
+		{&Commit{Title: "title", Timestamp: ts}, []byte(`{"kind":"qri:cm:0","timestamp":"2001-01-01T01:01:01Z","title":"title"}`), nil},
+		{&Commit{Author: &User{ID: "foo"}, Timestamp: ts}, []byte(`{"author":{"id":"foo"},"kind":"qri:cm:0","timestamp":"2001-01-01T01:01:01Z","title":""}`), nil},
 	}
 
 	for i, c := range cases {
@@ -87,7 +87,7 @@ func TestCommitMsgMarshalJSON(t *testing.T) {
 		}
 	}
 
-	strbytes, err := json.Marshal(&CommitMsg{path: datastore.NewKey("/path/to/dataset")})
+	strbytes, err := json.Marshal(&Commit{path: datastore.NewKey("/path/to/dataset")})
 	if err != nil {
 		t.Errorf("unexpected string marshal error: %s", err.Error())
 		return
@@ -98,31 +98,31 @@ func TestCommitMsgMarshalJSON(t *testing.T) {
 	}
 }
 
-func TestCommitMsgUnmarshalJSON(t *testing.T) {
+func TestCommitUnmarshalJSON(t *testing.T) {
 	cases := []struct {
 		data   string
-		result *CommitMsg
+		result *Commit
 		err    error
 	}{
-		{`{}`, &CommitMsg{}, nil},
-		{`{ "title": "title", "message": "message"}`, &CommitMsg{Title: "title", Message: "message"}, nil},
-		{`{ "author" : { "id": "id", "email": "email@email.com"} }`, &CommitMsg{Author: &User{ID: "id", Email: "email@email.com"}}, nil},
+		{`{}`, &Commit{}, nil},
+		{`{ "title": "title", "message": "message"}`, &Commit{Title: "title", Message: "message"}, nil},
+		{`{ "author" : { "id": "id", "email": "email@email.com"} }`, &Commit{Author: &User{ID: "id", Email: "email@email.com"}}, nil},
 	}
 
 	for i, c := range cases {
-		cm := &CommitMsg{}
+		cm := &Commit{}
 		if err := json.Unmarshal([]byte(c.data), cm); err != c.err {
 			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
 			continue
 		}
 
-		if err := CompareCommitMsgs(cm, c.result); err != nil {
+		if err := CompareCommits(cm, c.result); err != nil {
 			t.Errorf("case %d comparison error: %s", i, err)
 			continue
 		}
 	}
 
-	strq := &CommitMsg{}
+	strq := &Commit{}
 	path := "/path/to/msg"
 	if err := json.Unmarshal([]byte(`"`+path+`"`), strq); err != nil {
 		t.Errorf("unmarshal string path error: %s", err.Error())
@@ -135,26 +135,26 @@ func TestCommitMsgUnmarshalJSON(t *testing.T) {
 	}
 }
 
-func TestUnmarshalCommitMsg(t *testing.T) {
-	cma := CommitMsg{Kind: KindCommitMsg, Message: "foo"}
+func TestUnmarshalCommit(t *testing.T) {
+	cma := Commit{Kind: KindCommit, Message: "foo"}
 	cases := []struct {
 		value interface{}
-		out   *CommitMsg
+		out   *Commit
 		err   string
 	}{
 		{cma, &cma, ""},
 		{&cma, &cma, ""},
-		{[]byte("{\"kind\":\"qri:cm:0\"}"), &CommitMsg{Kind: KindCommitMsg}, ""},
+		{[]byte("{\"kind\":\"qri:cm:0\"}"), &Commit{Kind: KindCommit}, ""},
 		{5, nil, "couldn't parse commitMsg, value is invalid type"},
 	}
 
 	for i, c := range cases {
-		got, err := UnmarshalCommitMsg(c.value)
+		got, err := UnmarshalCommit(c.value)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
 			continue
 		}
-		if err := CompareCommitMsgs(c.out, got); err != nil {
+		if err := CompareCommits(c.out, got); err != nil {
 			t.Errorf("case %d dataset mismatch: %s", i, err.Error())
 			continue
 		}

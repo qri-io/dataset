@@ -21,8 +21,8 @@ const (
 	KindStructure = Kind("qri:st:0")
 	// KindTransform is the current kind for dataset transforms
 	KindTransform = Kind("qri:tf:0")
-	// KindCommitMsg is the current kind for dataset transforms
-	KindCommitMsg = Kind("qri:cm:0")
+	// KindCommit is the current kind for dataset transforms
+	KindCommit = Kind("qri:cm:0")
 )
 
 // Kind is a short identifier for all types of qri dataset objects

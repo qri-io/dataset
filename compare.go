@@ -45,7 +45,7 @@ func CompareDatasets(a, b *Dataset) error {
 	if err := CompareTransforms(a.AbstractTransform, b.AbstractTransform); err != nil {
 		return fmt.Errorf("AbstractTransform: %s", err.Error())
 	}
-	if err := CompareCommitMsgs(a.Commit, b.Commit); err != nil {
+	if err := CompareCommits(a.Commit, b.Commit); err != nil {
 		return fmt.Errorf("Commit: %s", err.Error())
 	}
 
@@ -219,9 +219,9 @@ func CompareFields(a, b *Field) error {
 	return nil
 }
 
-// CompareCommitMsgs checks if all fields of a CommitMsg are equal,
+// CompareCommits checks if all fields of a Commit are equal,
 // returning an error on the first, nil if equal
-func CompareCommitMsgs(a, b *CommitMsg) error {
+func CompareCommits(a, b *Commit) error {
 	if a == nil && b == nil {
 		return nil
 	} else if a == nil && b != nil {

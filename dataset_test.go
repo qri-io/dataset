@@ -19,7 +19,7 @@ func TestDatasetAssign(t *testing.T) {
 		// {&Dataset{Abstract: &Dataset{Title: "I'm an abstract dataset"}}},
 		{&Dataset{Transform: &Transform{Data: "I'm transform data!"}}},
 		{&Dataset{AbstractTransform: &Transform{Data: "I'm abstract transform data?"}}},
-		{&Dataset{Commit: &CommitMsg{Title: "foo"}}},
+		{&Dataset{Commit: &Commit{Title: "foo"}}},
 		{&Dataset{DataPath: "foo"}},
 		{&Dataset{PreviousPath: "stuff"}},
 	}
@@ -39,14 +39,14 @@ func TestDatasetAssign(t *testing.T) {
 		Transform:         &Transform{},
 		AbstractTransform: &Transform{},
 		Structure:         &Structure{},
-		Commit:            &CommitMsg{},
+		Commit:            &Commit{},
 	}
 	madsa := &Dataset{
 		Abstract:          &Dataset{Structure: &Structure{}},
 		Transform:         &Transform{Data: "I'm transform data!"},
 		AbstractTransform: &Transform{Data: "I'm abstract transform data?"},
 		Structure:         &Structure{Format: CSVDataFormat},
-		Commit:            &CommitMsg{Title: "dy.no.mite."},
+		Commit:            &Commit{Title: "dy.no.mite."},
 	}
 	mads.Assign(madsa)
 
