@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"testing"
+	"time"
 
 	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/dataset/datatypes"
@@ -12,6 +13,71 @@ import (
 
 func TestDatasetAssign(t *testing.T) {
 	// TODO - expand test to check all fields
+	cases := []struct {
+		in *Dataset
+	}{
+		{&Dataset{path: datastore.NewKey("/a")}},
+		{&Dataset{Timestamp: time.Now()}},
+		{&Dataset{Structure: &Structure{Format: CSVDataFormat}}},
+		{&Dataset{Abstract: &Dataset{Title: "I'm an abstract dataset"}}},
+		{&Dataset{Transform: &Transform{Data: "I'm transform data!"}}},
+		{&Dataset{AbstractTransform: &Transform{Data: "I'm abstract transform data?"}}},
+		{&Dataset{Commit: &CommitMsg{Title: "foo"}}},
+		{&Dataset{Data: "foo"}},
+		{&Dataset{Length: 2503}},
+		{&Dataset{AccessURL: "foo"}},
+		{&Dataset{DownloadURL: "foo"}},
+		{&Dataset{Readme: "foo"}},
+		{&Dataset{Author: &User{Email: "foo"}}},
+		{&Dataset{AccrualPeriodicity: "1W"}},
+		{&Dataset{Citations: []*Citation{&Citation{Email: "foo"}}}},
+		{&Dataset{Image: "foo"}},
+		{&Dataset{Description: "foo"}},
+		{&Dataset{Homepage: "foo"}},
+		{&Dataset{IconImage: "foo"}},
+		{&Dataset{Identifier: "foo"}},
+		{&Dataset{License: &License{Type: "foo"}}},
+		{&Dataset{Version: "foo"}},
+		{&Dataset{Keywords: []string{"foo"}}},
+		{&Dataset{Contributors: []*User{&User{Email: "foo"}}}},
+		{&Dataset{Language: []string{"stuff"}}},
+		{&Dataset{Theme: []string{"stuff"}}},
+		{&Dataset{QueryString: "stuff"}},
+		{&Dataset{Previous: datastore.NewKey("stuff")}},
+		{&Dataset{meta: map[string]interface{}{"foo": "bar"}}},
+	}
+
+	for i, c := range cases {
+		got := &Dataset{}
+		got.Assign(c.in)
+		if err := CompareDatasets(c.in, got); err != nil {
+			t.Errorf("case %d error: %s", i, err.Error())
+			continue
+		}
+	}
+
+	// test model assignment
+	mads := &Dataset{
+		Abstract:          &Dataset{},
+		Transform:         &Transform{},
+		AbstractTransform: &Transform{},
+		Structure:         &Structure{},
+		Commit:            &CommitMsg{},
+	}
+	madsa := &Dataset{
+		Abstract:          &Dataset{Title: "I'm an abstract dataset"},
+		Transform:         &Transform{Data: "I'm transform data!"},
+		AbstractTransform: &Transform{Data: "I'm abstract transform data?"},
+		Structure:         &Structure{Format: CSVDataFormat},
+		Commit:            &CommitMsg{Title: "dy.no.mite."},
+	}
+	mads.Assign(madsa)
+
+	if err := CompareDatasets(mads, madsa); err != nil {
+		t.Errorf("error testing assigning to existing substructs: %s", err.Error())
+		return
+	}
+
 	expect := &Dataset{
 		Title:       "Final Title",
 		Description: "Final Description",
@@ -91,6 +157,21 @@ func TestDatasetMarshalJSON(t *testing.T) {
 			t.Errorf("case %d error mismatch. %s != %s", i, string(c.out), string(got))
 			continue
 		}
+	}
+
+	data, err := ioutil.ReadFile("testdata/datasets/complete.json")
+	if err != nil {
+		t.Errorf("error reading dataset file: %s", err.Error())
+		return
+	}
+	ds := &Dataset{}
+	if err := json.Unmarshal(data, &ds); err != nil {
+		t.Errorf("error unmarshaling json: %s", err.Error())
+		return
+	}
+	if _, err := ds.MarshalJSON(); err != nil {
+		t.Errorf("error marshaling back to json: %s", err.Error())
+		return
 	}
 
 	strbytes, err := json.Marshal(&Dataset{path: datastore.NewKey("/path/to/dataset")})

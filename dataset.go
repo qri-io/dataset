@@ -157,6 +157,12 @@ func (ds *Dataset) Assign(datasets ...*Dataset) {
 			ds.Abstract.Assign(d.Abstract)
 		}
 
+		if ds.Transform == nil && d.Transform != nil {
+			ds.Transform = d.Transform
+		} else if ds.Transform != nil {
+			ds.Transform.Assign(d.Transform)
+		}
+
 		if ds.AbstractTransform == nil && d.AbstractTransform != nil {
 			ds.AbstractTransform = d.AbstractTransform
 		} else if ds.AbstractTransform != nil {
@@ -235,9 +241,6 @@ func (ds *Dataset) Assign(datasets ...*Dataset) {
 		}
 		if d.QueryString != "" {
 			ds.QueryString = d.QueryString
-		}
-		if d.Transform != nil {
-			ds.Transform = d.Transform
 		}
 		if d.meta != nil {
 			ds.meta = d.meta

@@ -1,0 +1,121 @@
+{
+  "title": "dataset with all submodels example",
+  "description" : "foo",
+  "accessUrl" : "foo",
+  "downloadUrl" : "foo",
+  "accrualPeriodicity" : "1W",
+  "version" : "0",
+  "readme" : "foo",
+  "queryString" : "foo",
+  "previous" : "foo",
+  "kind": "qri:ds:0",
+  "identifier" : "foo",
+  "iconImage" : "foo",
+  "length" : 2503,
+  "image" : "foo",
+  "keywords" : ["a","b", "foo"],
+  "language" : ["english"],
+  "theme" : ["foo"],
+  "author" : {"email" : "foo"},
+  "data" : "foo",
+  "contributors" : [{"email" : "foo"}],
+  "timestamp" : "2017-12-21T04:13:22.534Z",
+  "commit" : {
+    "kind" : "qri:cm:0",
+    "message" : "I'm a commit"
+  },
+  "transform": {
+    "kind": "qri:tf:0",
+    "syntax": "sql",
+    "data": "select * from foo",
+    "structure": {
+      "kind": "qri:st:0",
+      "format": "csv",
+      "formatConfig": {
+        "headerRow": true
+      },
+      "schema": {
+        "fields": [
+          {
+            "name": "title",
+            "type": "string"
+          },
+          {
+            "name": "duration",
+            "type": "integer"
+          }
+        ]
+      }
+    },
+    "resources": {
+      "foo": "/not/a/real/path"
+    }
+  },
+  "abstractTransform": {
+    "kind": "qri:tf:0",
+    "data" : "select * from a",
+    "structure": {
+      "kind": "qri:st:0",
+      "format": "csv",
+      "formatConfig": {
+        "headerRow": true
+      },
+      "schema": {
+        "fields": [
+          {
+            "name": "a",
+            "type": "string"
+          },
+          {
+            "name": "b",
+            "type": "integer"
+          }
+        ]
+      }
+    },
+    "resources" : {
+      "a" : "/fake/path/to/abstract/dataset/"
+    }
+  },
+  "abstract": {
+    "kind": "qri:ds:0",
+    "structure": {
+      "kind": "qri:st:0",
+      "format": "csv",
+      "formatConfig": {
+        "headerRow": true
+      },
+      "schema": {
+        "fields": [
+          {
+            "name": "a",
+            "type": "string"
+          },
+          {
+            "name": "b",
+            "type": "integer"
+          }
+        ]
+      }
+    }
+  },
+  "structure": {
+    "kind": "qri:st:0",
+    "format": "csv",
+    "formatConfig": {
+      "headerRow": true
+    },
+    "schema": {
+      "fields": [
+        {
+          "name": "title",
+          "type": "string"
+        },
+        {
+          "name": "duration",
+          "type": "integer"
+        }
+      ]
+    }
+  }
+}
