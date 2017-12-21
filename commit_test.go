@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/ipfs/go-datastore"
 )
@@ -20,13 +21,15 @@ func TestCommitMsg(t *testing.T) {
 }
 
 func TestCommitMsgAssign(t *testing.T) {
+	t1 := time.Now()
 	doug := &User{ID: "doug_id", Email: "doug@example.com"}
 	expect := &CommitMsg{
-		path:    datastore.NewKey("a"),
-		Kind:    KindCommitMsg,
-		Author:  doug,
-		Title:   "expect title",
-		Message: "expect message",
+		path:      datastore.NewKey("a"),
+		Kind:      KindCommitMsg,
+		Author:    doug,
+		Timestamp: t1,
+		Title:     "expect title",
+		Message:   "expect message",
 	}
 	got := &CommitMsg{
 		Author:  &User{ID: "maha_id", Email: "maha@example.com"},
@@ -39,8 +42,9 @@ func TestCommitMsgAssign(t *testing.T) {
 		Kind:   KindCommitMsg,
 		Title:  "expect title",
 	}, &CommitMsg{
-		path:    datastore.NewKey("a"),
-		Message: "expect message",
+		path:      datastore.NewKey("a"),
+		Timestamp: t1,
+		Message:   "expect message",
 	})
 
 	if err := CompareCommitMsgs(expect, got); err != nil {
@@ -60,13 +64,14 @@ func TestCommitMsgAssign(t *testing.T) {
 }
 
 func TestCommitMsgMarshalJSON(t *testing.T) {
+	ts := time.Date(2001, 01, 01, 01, 01, 01, 0, time.UTC)
 	cases := []struct {
 		in  *CommitMsg
 		out []byte
 		err error
 	}{
-		{&CommitMsg{Title: "title"}, []byte(`{"kind":"qri:cm:0","title":"title"}`), nil},
-		{&CommitMsg{Author: &User{ID: "foo"}}, []byte(`{"author":{"id":"foo"},"kind":"qri:cm:0","title":""}`), nil},
+		{&CommitMsg{Title: "title", Timestamp: ts}, []byte(`{"kind":"qri:cm:0","timestamp":"2001-01-01T01:01:01Z","title":"title"}`), nil},
+		{&CommitMsg{Author: &User{ID: "foo"}, Timestamp: ts}, []byte(`{"author":{"id":"foo"},"kind":"qri:cm:0","timestamp":"2001-01-01T01:01:01Z","title":""}`), nil},
 	}
 
 	for i, c := range cases {

@@ -5,42 +5,11 @@ import (
 	"fmt"
 
 	"github.com/ipfs/go-datastore"
+	"github.com/libp2p/go-libp2p-crypto"
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/cafs/memfs"
 	"github.com/qri-io/dataset"
 )
-
-// PrepareDataset modifies a dataset in preparation for adding to a dsfs
-// assumes the given dataset is valid
-// func PrepareDataset(store cafs.Filestore, ds *dataset.Dataset) error {
-
-// 	// generate abstract form of dataset
-// 	ds.Abstract = dataset.Abstract(ds)
-
-// 	if ds.AbstractTransform != nil {
-// 		// convert abstract transform to abstract references
-// 		for name, ref := range ds.AbstractTransform.Resources {
-// 			// data, _ := ref.MarshalJSON()
-// 			// fmt.Println(string(data))
-// 			if ref.Abstract != nil {
-// 				ds.AbstractTransform.Resources[name] = ref.Abstract
-// 			} else {
-
-// 				absf, err := JSONFile(PackageFileAbstract.String(), dataset.Abstract(ref))
-// 				if err != nil {
-// 					return err
-// 				}
-// 				path, err := store.Put(absf, true)
-// 				if err != nil {
-// 					return err
-// 				}
-// 				ds.AbstractTransform.Resources[name] = dataset.NewDatasetRef(path)
-// 			}
-// 		}
-// 	}
-
-// 	return nil
-// }
 
 // LoadDataset reads a dataset from a cafs and dereferences structure, transform, and commitMsg if they exist,
 // returning a fully-hydrated dataset
@@ -139,6 +108,108 @@ func DerefDatasetCommitMsg(store cafs.Filestore, ds *dataset.Dataset) error {
 	}
 	return nil
 }
+
+// CreateDatasetParams defines parmeters for the CreateDataset function
+type CreateDatasetParams struct {
+	// Store is where we're going to
+	Store cafs.Filestore
+	//
+	Dataset  *dataset.Dataset
+	DataFile cafs.File
+	PrivKey  crypto.PrivKey
+}
+
+// CreateDataset is the canonical method for getting a dataset pointer & it's data into a store
+// func CreateDataset(p *CreateDatasetParams) (path datastore.Key, err error) {
+// 	// TODO - need a better strategy for huge files
+// 	data, err := ioutil.ReadAll(rdr)
+// 	if err != nil {
+// 		return fmt.Errorf("error reading file: %s", err.Error())
+// 	}
+
+// 	if err = PrepareDataset(p.Store, p.Dataset, p.DataFile); err != nil {
+// 		return
+// 	}
+
+// 	// Ensure that dataset is well-formed
+// 	// format, err := detect.ExtensionDataFormat(filename)
+// 	// if err != nil {
+// 	// 	return fmt.Errorf("error detecting format extension: %s", err.Error())
+// 	// }
+// 	// if err = validate.DataFormat(format, bytes.NewReader(data)); err != nil {
+// 	// 	return fmt.Errorf("invalid data format: %s", err.Error())
+// 	// }
+
+// 	// TODO - check for errors in dataset and warn user if errors exist
+
+// 	datakey, err := store.Put(memfs.NewMemfileBytes("data."+st.Format.String(), data), false)
+// 	if err != nil {
+// 		return fmt.Errorf("error putting data file in store: %s", err.Error())
+// 	}
+
+// 	ds.Timestamp = time.Now().In(time.UTC)
+// 	if ds.Title == "" {
+// 		ds.Title = name
+// 	}
+// 	ds.Data = datakey.String()
+
+// 	if err := validate.Dataset(ds); err != nil {
+// 		return err
+// 	}
+
+// 	dskey, err := SaveDataset(store, ds, true)
+// 	if err != nil {
+// 		return fmt.Errorf("error saving dataset: %s", err.Error())
+// 	}
+// }
+
+// prepareDataset modifies a dataset in preparation for adding to a dsfs
+// func PrepareDataset(store cafs.Filestore, ds *dataset.Dataset, data cafs.File) error {
+
+// 	st, err := detect.FromReader(data.FileName(), data)
+// 	if err != nil {
+// 		return fmt.Errorf("error determining dataset schema: %s", err.Error())
+// 	}
+// 	if ds.Structure == nil {
+// 		ds.Structure = &dataset.Structure{}
+// 	}
+// 	ds.Structure.Assign(st, ds.Structure)
+
+// 	// Ensure that dataset contains valid field names
+// 	if err = validate.Structure(st); err != nil {
+// 		return fmt.Errorf("invalid structure: %s", err.Error())
+// 	}
+// 	if err := validate.DataFormat(st.Format, bytes.NewReader(data)); err != nil {
+// 		return fmt.Errorf("invalid data format: %s", err.Error())
+// 	}
+
+// 	// generate abstract form of dataset
+// 	ds.Abstract = dataset.Abstract(ds)
+
+// 	if ds.AbstractTransform != nil {
+// 		// convert abstract transform to abstract references
+// 		for name, ref := range ds.AbstractTransform.Resources {
+// 			// data, _ := ref.MarshalJSON()
+// 			// fmt.Println(string(data))
+// 			if ref.Abstract != nil {
+// 				ds.AbstractTransform.Resources[name] = ref.Abstract
+// 			} else {
+
+// 				absf, err := JSONFile(PackageFileAbstract.String(), dataset.Abstract(ref))
+// 				if err != nil {
+// 					return err
+// 				}
+// 				path, err := store.Put(absf, true)
+// 				if err != nil {
+// 					return err
+// 				}
+// 				ds.AbstractTransform.Resources[name] = dataset.NewDatasetRef(path)
+// 			}
+// 		}
+// 	}
+
+// 	return nil
+// }
 
 // SaveDataset writes a dataset to a cafs, replacing subcomponents of a dataset with hash references
 // during the write process. Directory structure is according to PackageFile naming conventions

@@ -3,6 +3,7 @@ package dataset
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/ipfs/go-datastore"
 )
@@ -16,7 +17,9 @@ type CommitMsg struct {
 	Author  *User  `json:"author,omitempty"`
 	Kind    Kind   `json:"kind,omitempty"`
 	Message string `json:"message,omitempty"`
-	Title   string `json:"title"`
+	// Time this dataset was created. Required. Datasets are immutable, so no "updated"
+	Timestamp time.Time `json:"timestamp,omitempty"`
+	Title     string    `json:"title"`
 }
 
 // NewCommitMsgRef creates an empty struct with it's
@@ -52,6 +55,9 @@ func (cm *CommitMsg) Assign(msgs ...*CommitMsg) {
 		if m.Title != "" {
 			cm.Title = m.Title
 		}
+		if !m.Timestamp.IsZero() {
+			cm.Timestamp = m.Timestamp
+		}
 		if m.Message != "" {
 			cm.Message = m.Message
 		}
@@ -75,10 +81,11 @@ func (cm *CommitMsg) MarshalJSON() ([]byte, error) {
 	}
 
 	m := &_commitMsg{
-		Author:  cm.Author,
-		Kind:    kind,
-		Message: cm.Message,
-		Title:   cm.Title,
+		Author:    cm.Author,
+		Kind:      kind,
+		Message:   cm.Message,
+		Timestamp: cm.Timestamp,
+		Title:     cm.Title,
 	}
 	return json.Marshal(m)
 }

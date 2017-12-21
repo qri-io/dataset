@@ -17,41 +17,49 @@ func TestCompareDatasets(t *testing.T) {
 		{AirportCodes, AirportCodes, ""},
 		{NewDatasetRef(datastore.NewKey("a")), NewDatasetRef(datastore.NewKey("b")), "Path: /a != /b"},
 		{&Dataset{Kind: "a"}, &Dataset{Kind: "b"}, "Kind: a != b"},
-		{
-			&Dataset{Timestamp: time.Date(2001, 01, 01, 01, 0, 0, 0, time.UTC)},
-			&Dataset{Timestamp: time.Date(2002, 01, 01, 01, 0, 0, 0, time.UTC)},
-			"Timestamp: 2001-01-01 01:00:00 +0000 UTC != 2002-01-01 01:00:00 +0000 UTC",
-		},
-		{&Dataset{Length: 0}, &Dataset{Length: 1}, "Length: 0 != 1"},
-		{&Dataset{Rows: 0}, &Dataset{Rows: 1}, "Rows: 0 != 1"},
-		{&Dataset{Title: "a"}, &Dataset{Title: "b"}, "Title: a != b"},
-		{&Dataset{AccessURL: "a"}, &Dataset{AccessURL: "b"}, "AccessURL: a != b"},
-		{&Dataset{DownloadURL: "a"}, &Dataset{DownloadURL: "b"}, "DownloadURL: a != b"},
-		{&Dataset{AccrualPeriodicity: "a"}, &Dataset{AccrualPeriodicity: "b"}, "AccrualPeriodicity: a != b"},
-		{&Dataset{Readme: "a"}, &Dataset{Readme: "b"}, "Readme: a != b"},
-		{&Dataset{Author: nil}, &Dataset{Author: &User{}}, "Author: %!s(*dataset.User=<nil>) != &{  }"},
-		{&Dataset{Image: "a"}, &Dataset{Image: "b"}, "Image: a != b"},
-		{&Dataset{Description: "a"}, &Dataset{Description: "b"}, "Description: a != b"},
-		{&Dataset{Homepage: "a"}, &Dataset{Homepage: "b"}, "Homepage: a != b"},
-		{&Dataset{IconImage: "a"}, &Dataset{IconImage: "b"}, "IconImage: a != b"},
-		{&Dataset{Identifier: "a"}, &Dataset{Identifier: "b"}, "Identifier: a != b"},
-		// TODO
-		// {&Dataset{License: &License{}}, &Dataset{Version: "b"}, "Version: a != b"},
-		{&Dataset{Version: "a"}, &Dataset{Version: "b"}, "Version: a != b"},
-		{&Dataset{Keywords: []string{"a"}}, &Dataset{Keywords: []string{"b"}}, "Keywords: element 0: a != b"},
-		{&Dataset{Language: []string{"a"}}, &Dataset{Language: []string{"b"}}, "Language: element 0: a != b"},
-		{&Dataset{Theme: []string{"a"}}, &Dataset{Theme: []string{"b"}}, "Theme: element 0: a != b"},
-		{&Dataset{QueryString: "a"}, &Dataset{QueryString: "b"}, "QueryString: a != b"},
-		{&Dataset{Previous: datastore.NewKey("a")}, &Dataset{Previous: datastore.NewKey("b")}, "Previous: /a != /b"},
-		{&Dataset{Data: "a"}, &Dataset{Data: "b"}, "Data: a != b"},
+		{&Dataset{PreviousPath: "a"}, &Dataset{PreviousPath: "b"}, "PreviousPath: a != b"},
+		{&Dataset{DataPath: "a"}, &Dataset{DataPath: "b"}, "DataPath: a != b"},
 		{&Dataset{}, &Dataset{Structure: &Structure{}}, "Structure: nil: <nil> != <not nil>"},
 		{&Dataset{}, &Dataset{Transform: &Transform{}}, "Transform: nil: <nil> != <not nil>"},
 		{&Dataset{}, &Dataset{AbstractTransform: &Transform{}}, "AbstractTransform: nil: <nil> != <not nil>"},
-		{&Dataset{}, &Dataset{Commit: &CommitMsg{}}, "Commit: nil: %!s(*dataset.CommitMsg=<nil>) != &{{} %!s(*dataset.User=<nil>)   }"},
+		{&Dataset{}, &Dataset{Commit: &CommitMsg{}}, "Commit: nil: <nil> != <not nil>"},
 	}
 
 	for i, c := range cases {
 		err := CompareDatasets(c.a, c.b)
+		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
+			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
+		}
+	}
+}
+
+func TestCompareMetadatas(t *testing.T) {
+	cases := []struct {
+		a, b *Metadata
+		err  string
+	}{
+		{nil, nil, ""},
+		{AirportCodes.Metadata, AirportCodes.Metadata, ""},
+		{NewMetadataRef(datastore.NewKey("a")), NewMetadataRef(datastore.NewKey("b")), "Path: /a != /b"},
+		{&Metadata{Kind: "a"}, &Metadata{Kind: "b"}, "Kind: a != b"},
+		{&Metadata{Title: "a"}, &Metadata{Title: "b"}, "Title: a != b"},
+		{&Metadata{AccessPath: "a"}, &Metadata{AccessPath: "b"}, "AccessPath: a != b"},
+		{&Metadata{DownloadPath: "a"}, &Metadata{DownloadPath: "b"}, "DownloadPath: a != b"},
+		{&Metadata{AccrualPeriodicity: "a"}, &Metadata{AccrualPeriodicity: "b"}, "AccrualPeriodicity: a != b"},
+		{&Metadata{ReadmePath: "a"}, &Metadata{ReadmePath: "b"}, "ReadmePath: a != b"},
+		{&Metadata{Description: "a"}, &Metadata{Description: "b"}, "Description: a != b"},
+		{&Metadata{HomePath: "a"}, &Metadata{HomePath: "b"}, "HomePath: a != b"},
+		{&Metadata{Identifier: "a"}, &Metadata{Identifier: "b"}, "Identifier: a != b"},
+		// TODO
+		// {&Metadata{License: &License{}}, &Metadata{Version: "b"}, "Version: a != b"},
+		{&Metadata{Version: "a"}, &Metadata{Version: "b"}, "Version: a != b"},
+		{&Metadata{Keywords: []string{"a"}}, &Metadata{Keywords: []string{"b"}}, "Keywords: element 0: a != b"},
+		{&Metadata{Language: []string{"a"}}, &Metadata{Language: []string{"b"}}, "Language: element 0: a != b"},
+		{&Metadata{Theme: []string{"a"}}, &Metadata{Theme: []string{"b"}}, "Theme: element 0: a != b"},
+	}
+
+	for i, c := range cases {
+		err := CompareMetadatas(c.a, c.b)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
 		}
@@ -68,10 +76,12 @@ func TestCompareStructures(t *testing.T) {
 		{nil, AirportCodes.Structure, "nil: <nil> != <not nil>"},
 		{AirportCodes.Structure, nil, "nil: <not nil> != <nil>"},
 		{&Structure{Kind: "a"}, &Structure{Kind: "b"}, "Kind: a != b"},
+		{&Structure{Length: 0}, &Structure{Length: 1}, "Length: 0 != 1"},
+		{&Structure{Rows: 0}, &Structure{Rows: 1}, "Rows: 0 != 1"},
 		{&Structure{Format: CSVDataFormat}, &Structure{Format: UnknownDataFormat}, "Format: csv != "},
 		{&Structure{Encoding: "a"}, &Structure{Encoding: "b"}, "Encoding: a != b"},
 		{&Structure{Compression: compression.None}, &Structure{Compression: compression.Tar}, "Compression:  != tar"},
-		{&Structure{}, &Structure{Schema: &Schema{}}, "Schema: nil: %!s(*dataset.Schema=<nil>) != &{[] []}"},
+		{&Structure{}, &Structure{Schema: &Schema{}}, "Schema: nil: <nil> != <not nil>"},
 	}
 
 	for i, c := range cases {
@@ -89,7 +99,8 @@ func TestCompareSchemas(t *testing.T) {
 	}{
 		{nil, nil, ""},
 		{AirportCodes.Structure.Schema, AirportCodes.Structure.Schema, ""},
-		{nil, &Schema{}, "nil: %!s(*dataset.Schema=<nil>) != &{[] []}"},
+		{&Schema{}, nil, "nil: <not nil> != <nil>"},
+		{nil, &Schema{}, "nil: <nil> != <not nil>"},
 		{&Schema{PrimaryKey: FieldKey{"a"}}, &Schema{PrimaryKey: FieldKey{"b"}}, "PrimaryKey: element 0: a != b"},
 		{&Schema{}, &Schema{Fields: []*Field{}}, "Fields: [] != []"},
 		{&Schema{}, &Schema{Fields: []*Field{&Field{Name: "a"}}}, "Fields: [] != [%!s(*dataset.Field=&{a 0 <nil>  <nil>  })]"},
@@ -120,7 +131,8 @@ func TestCompareFields(t *testing.T) {
 	}{
 		{nil, nil, ""},
 		{f, f, ""},
-		{nil, f, "nil: %!s(*dataset.Field=<nil>) != &{a string foo fmt %!s(*dataset.FieldConstraints=<nil>) a a}"},
+		{nil, f, "nil: <nil> != <not nil>"},
+		{f, nil, "nil: <not nil> != <nil>"},
 	}
 
 	for i, c := range cases {
@@ -146,8 +158,14 @@ func TestCompareCommitMsgs(t *testing.T) {
 	}{
 		{nil, nil, ""},
 		{c1, c1, ""},
+		{c1, nil, "nil: <not nil> != <nil>"},
+		{nil, c1, "nil: <nil> != <not nil>"},
 		{&CommitMsg{}, &CommitMsg{}, ""},
-		{nil, c1, "nil: %!s(*dataset.CommitMsg=<nil>) != &{{/foo} %!s(*dataset.User=&{foo  }) qri:cm:0 message foo}"},
+		{
+			&CommitMsg{Timestamp: time.Date(2001, 01, 01, 01, 0, 0, 0, time.UTC)},
+			&CommitMsg{Timestamp: time.Date(2002, 01, 01, 01, 0, 0, 0, time.UTC)},
+			"Timestamp: 2001-01-01 01:00:00 +0000 UTC != 2002-01-01 01:00:00 +0000 UTC",
+		},
 		{&CommitMsg{Title: "a"}, &CommitMsg{Title: "b"}, "Title: a != b"},
 		{&CommitMsg{Message: "a"}, &CommitMsg{Message: "b"}, "Message: a != b"},
 		{&CommitMsg{Kind: "a"}, &CommitMsg{Kind: "b"}, "Kind: a != b"},

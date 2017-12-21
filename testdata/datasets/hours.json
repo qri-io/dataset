@@ -1,7 +1,11 @@
 {
-  "title" : "hours",
   "kind": "qri:ds:0",
-  "length": 0,
-  "data": "/ipfs/QmS1dVa1xemo7gQzJgjimj1WwnVBF3TwRTGsyKa1uEBWbJ",
-  "transformEngineConfig": null
+  "metadata": {
+    "kind": "qri:md:0",
+    "title": "hours",
+    "accessPath": "https://example.com/not/a/url",
+    "downloadPath": "https://example.com/not/a/url",
+    "readmePath": "/ipfs/notahash"
+  },
+  "dataPath": "/ipfs/QmS1dVa1xemo7gQzJgjimj1WwnVBF3TwRTGsyKa1uEBWbJ"
 }

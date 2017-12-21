@@ -19,6 +19,12 @@ type Structure struct {
 	path datastore.Key
 	// Kind should always be KindStructure
 	Kind `json:"kind"`
+	// Length is the length of the data object in bytes.
+	// must always match & be present
+	Length int `json:"length,omitempty"`
+	// number of rows in the dataset.
+	// required and must match underlying dataset.
+	Rows int `json:"rows"`
 	// Format specifies the format of the raw data MIME type
 	Format DataFormat `json:"format"`
 	// FormatConfig removes as much ambiguity as possible about how
@@ -146,13 +152,6 @@ func (s *Structure) UnmarshalJSON(data []byte) (err error) {
 		Kind:         _s.Kind,
 		Schema:       _s.Schema,
 	}
-
-	// TODO - question of weather we should not accept
-	// invalid structure defs at parse time. For now we'll take 'em.
-	// if err := d.Valid(); err != nil {
-	//   return err
-	// }
-
 	return nil
 }
 
@@ -171,6 +170,12 @@ func (s *Structure) Assign(structures ...*Structure) {
 
 		if st.path.String() != "" {
 			s.path = st.path
+		}
+		if st.Length != 0 {
+			s.Length = st.Length
+		}
+		if st.Rows != 0 {
+			s.Rows = st.Rows
 		}
 		if st.Format != UnknownDataFormat {
 			s.Format = st.Format
