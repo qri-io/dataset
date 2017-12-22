@@ -8,25 +8,25 @@ import (
 	"github.com/qri-io/cafs/memfs"
 )
 
-func TestSaveCommitMsg(t *testing.T) {
+func TestSaveCommit(t *testing.T) {
 	store := memfs.NewMapstore()
-	path, err := SaveCommitMsg(store, AirportCodesCommitMsg, true)
+	path, err := SaveCommit(store, AirportCodesCommit, true)
 	if err != nil {
 		t.Errorf(err.Error())
 		return
 	}
-	cmt, err := LoadCommitMsg(store, path)
+	cmt, err := LoadCommit(store, path)
 	if err != nil {
 		t.Errorf("error loading saved commit message: %s", err.Error())
 		return
 	}
 
-	if err := dataset.CompareCommitMsgs(AirportCodesCommitMsg, cmt); err != nil {
+	if err := dataset.CompareCommits(AirportCodesCommit, cmt); err != nil {
 		t.Errorf("saved message mismatch: %s", err.Error())
 		return
 	}
 
-	// _, err = SaveCommitMsg(store, &dataset.Dataset{}, false)
+	// _, err = SaveCommit(store, &dataset.Dataset{}, false)
 	// if err == nil {
 	// 	t.Errorf("expected saving nil message to error")
 	// 	return
@@ -38,18 +38,18 @@ func TestSaveCommitMsg(t *testing.T) {
 	// }
 }
 
-func TestLoadCommitMsg(t *testing.T) {
+func TestLoadCommit(t *testing.T) {
 	store := memfs.NewMapstore()
-	a, err := SaveCommitMsg(store, AirportCodesCommitMsg, true)
+	a, err := SaveCommit(store, AirportCodesCommit, true)
 	if err != nil {
 		t.Errorf(err.Error())
 		return
 	}
-	if _, err := LoadCommitMsg(store, a); err != nil {
+	if _, err := LoadCommit(store, a); err != nil {
 		t.Errorf(err.Error())
 	}
 
-	_, err = LoadCommitMsg(store, datastore.NewKey("/bad/path"))
+	_, err = LoadCommit(store, datastore.NewKey("/bad/path"))
 	if err == nil {
 		t.Errorf("expected loading a bad path to error. got nil")
 		return

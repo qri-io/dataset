@@ -106,7 +106,7 @@ func testStore() (cafs.Filestore, map[string]datastore.Key, error) {
 				},
 			},
 		},
-		Data: datakey.String(),
+		DataPath: datakey.String(),
 	}
 
 	dskey, err := dsfs.SaveDataset(fs, ds, true)

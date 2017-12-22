@@ -5,23 +5,23 @@ import (
 )
 
 var AirportCodes = &Dataset{
-	Kind:     KindDataset,
-	Title:    "Airport Codes",
-	Homepage: "http://www.ourairports.com/",
-	License: &License{
-		Type: "PDDL-1.0",
-	},
-	Citations: []*Citation{
-		{
-			Name: "Our Airports",
-			URL:  "http://ourairports.com/data/",
+	Kind: KindDataset,
+	Metadata: &Metadata{
+		Kind:     KindMetadata,
+		Title:    "Airport Codes",
+		HomePath: "http://www.ourairports.com/",
+		License: &License{
+			Type: "PDDL-1.0",
+		},
+		Citations: []*Citation{
+			{
+				Name: "Our Airports",
+				URL:  "http://ourairports.com/data/",
+			},
 		},
 	},
-	Commit:    &CommitMsg{Title: "initial commit"},
+	Commit:    &Commit{Title: "initial commit"},
 	Structure: AirportCodesStructure,
-	// File:   "data/airport-codes.csv",
-	// Readme: "readme.md",
-	// Format: "text/csv",
 }
 
 var AirportCodesAbstract = &Dataset{
@@ -29,7 +29,7 @@ var AirportCodesAbstract = &Dataset{
 	Structure: AirportCodesStructureAbstract,
 }
 
-const AirportCodesJSON = `{"citations":[{"name":"Our Airports","url":"http://ourairports.com/data/"}],"commit":{"kind":"qri:cm:0","title":"initial commit"},"homepage":"http://www.ourairports.com/","kind":"qri:ds:0","license":"PDDL-1.0","structure":{"format":"csv","formatConfig":{"headerRow":true},"kind":"qri:st:0","schema":{"fields":[{"name":"ident","type":"string"},{"name":"type","type":"string"},{"name":"name","type":"string"},{"name":"latitude_deg","type":"float"},{"name":"longitude_deg","type":"float"},{"name":"elevation_ft","type":"integer"},{"name":"continent","type":"string"},{"name":"iso_country","type":"string"},{"name":"iso_region","type":"string"},{"name":"municipality","type":"string"},{"name":"gps_code","type":"string"},{"name":"iata_code","type":"string"},{"name":"local_code","type":"string"}]}},"title":"Airport Codes"}`
+const AirportCodesJSON = `{"commit":{"kind":"qri:cm:0","timestamp":"0001-01-01T00:00:00Z","title":"initial commit"},"kind":"qri:ds:0","metadata":{"citations":[{"name":"Our Airports","url":"http://ourairports.com/data/"}],"homePath":"http://www.ourairports.com/","kind":"qri:md:0","license":"PDDL-1.0","title":"Airport Codes"},"structure":{"format":"csv","formatConfig":{"headerRow":true},"kind":"qri:st:0","schema":{"fields":[{"name":"ident","type":"string"},{"name":"type","type":"string"},{"name":"name","type":"string"},{"name":"latitude_deg","type":"float"},{"name":"longitude_deg","type":"float"},{"name":"elevation_ft","type":"integer"},{"name":"continent","type":"string"},{"name":"iso_country","type":"string"},{"name":"iso_region","type":"string"},{"name":"municipality","type":"string"},{"name":"gps_code","type":"string"},{"name":"iata_code","type":"string"},{"name":"local_code","type":"string"}]}}}`
 
 var AirportCodesStructure = &Structure{
 	Format: CSVDataFormat,
@@ -157,18 +157,21 @@ var AirportCodesStructureAbstract = &Structure{
 }
 
 var ContinentCodes = &Dataset{
-	Title:       "Continent Codes",
-	Kind:        KindDataset,
-	Description: "list of continents with corresponding two letter codes",
-	License: &License{
-		Type: "odc-pddl",
-		URL:  "http://opendatacommons.org/licenses/pddl/",
-	},
-	Keywords: []string{
-		"Continents",
-		"Two letter code",
-		"Continent codes",
-		"Continent code list",
+	Kind: KindDataset,
+	Metadata: &Metadata{
+		Title:       "Continent Codes",
+		Kind:        KindMetadata,
+		Description: "list of continents with corresponding two letter codes",
+		License: &License{
+			Type: "odc-pddl",
+			URL:  "http://opendatacommons.org/licenses/pddl/",
+		},
+		Keywords: []string{
+			"Continents",
+			"Two letter code",
+			"Continent codes",
+			"Continent code list",
+		},
 	},
 }
 
@@ -189,9 +192,15 @@ var ContinentCodesStructure = &Structure{
 }
 
 var Hours = &Dataset{
-	Title: "hours",
-	Kind:  KindDataset,
-	Data:  "/ipfs/QmS1dVa1xemo7gQzJgjimj1WwnVBF3TwRTGsyKa1uEBWbJ",
+	Kind: KindDataset,
+	Metadata: &Metadata{
+		Title:        "hours",
+		Kind:         KindMetadata,
+		AccessPath:   "https://example.com/not/a/url",
+		DownloadPath: "https://example.com/not/a/url",
+		ReadmePath:   "/ipfs/notahash",
+	},
+	DataPath: "/ipfs/QmS1dVa1xemo7gQzJgjimj1WwnVBF3TwRTGsyKa1uEBWbJ",
 }
 
 var HoursStructure = &Structure{

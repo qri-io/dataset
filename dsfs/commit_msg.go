@@ -8,20 +8,20 @@ import (
 	"github.com/qri-io/dataset"
 )
 
-// SaveCommitMsg writes a commit message to a cafs
-func SaveCommitMsg(store cafs.Filestore, s *dataset.CommitMsg, pin bool) (path datastore.Key, err error) {
-	file, err := JSONFile(PackageFileCommitMsg.String(), s)
+// SaveCommit writes a commit message to a cafs
+func SaveCommit(store cafs.Filestore, s *dataset.Commit, pin bool) (path datastore.Key, err error) {
+	file, err := JSONFile(PackageFileCommit.String(), s)
 	if err != nil {
 		return datastore.NewKey(""), fmt.Errorf("error saving json commit file: %s", err.Error())
 	}
 	return store.Put(file, pin)
 }
 
-// LoadCommitMsg loads a commit from a given path in a store
-func LoadCommitMsg(store cafs.Filestore, path datastore.Key) (st *dataset.CommitMsg, err error) {
+// LoadCommit loads a commit from a given path in a store
+func LoadCommit(store cafs.Filestore, path datastore.Key) (st *dataset.Commit, err error) {
 	data, err := fileBytes(store.Get(path))
 	if err != nil {
 		return nil, fmt.Errorf("error loading commit file: %s", err.Error())
 	}
-	return dataset.UnmarshalCommitMsg(data)
+	return dataset.UnmarshalCommit(data)
 }

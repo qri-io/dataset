@@ -64,6 +64,7 @@ func TestStructureAbstract(t *testing.T) {
 func TestStructureAssign(t *testing.T) {
 	expect := &Structure{
 		Format: CSVDataFormat,
+		Length: 2503,
 		Schema: &Schema{
 			Fields: []*Field{
 				{Type: datatypes.String, Name: "foo"},
@@ -83,6 +84,7 @@ func TestStructureAssign(t *testing.T) {
 	}
 
 	got.Assign(&Structure{
+		Length: 2503,
 		Schema: &Schema{
 			Fields: []*Field{
 				{Name: "foo"},

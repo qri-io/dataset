@@ -1,0 +1,7 @@
+{
+  "kind": "qri:md:0",
+  "title": "hours",
+  "accessPath": "https://example.com/not/a/url",
+  "downloadPath": "https://example.com/not/a/url",
+  "readmePath": "/ipfs/notahash"
+}

@@ -1,5 +1,8 @@
 {
-  "title": "example city data",
+  "metadata": {
+    "kind" : "qri:md:0",
+    "title": "example city data"
+  },
   "kind": "qri:ds:0",
   "structure": {
     "kind": "qri:st:0",

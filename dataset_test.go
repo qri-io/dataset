@@ -5,10 +5,8 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"testing"
-	"time"
 
 	"github.com/ipfs/go-datastore"
-	"github.com/qri-io/dataset/datatypes"
 )
 
 func TestDatasetAssign(t *testing.T) {
@@ -17,34 +15,14 @@ func TestDatasetAssign(t *testing.T) {
 		in *Dataset
 	}{
 		{&Dataset{path: datastore.NewKey("/a")}},
-		{&Dataset{Timestamp: time.Now()}},
 		{&Dataset{Structure: &Structure{Format: CSVDataFormat}}},
-		{&Dataset{Abstract: &Dataset{Title: "I'm an abstract dataset"}}},
+		// {&Dataset{Abstract: &Dataset{Title: "I'm an abstract dataset"}}},
 		{&Dataset{Transform: &Transform{Data: "I'm transform data!"}}},
 		{&Dataset{AbstractTransform: &Transform{Data: "I'm abstract transform data?"}}},
-		{&Dataset{Commit: &CommitMsg{Title: "foo"}}},
-		{&Dataset{Data: "foo"}},
-		{&Dataset{Length: 2503}},
-		{&Dataset{AccessURL: "foo"}},
-		{&Dataset{DownloadURL: "foo"}},
-		{&Dataset{Readme: "foo"}},
-		{&Dataset{Author: &User{Email: "foo"}}},
-		{&Dataset{AccrualPeriodicity: "1W"}},
-		{&Dataset{Citations: []*Citation{&Citation{Email: "foo"}}}},
-		{&Dataset{Image: "foo"}},
-		{&Dataset{Description: "foo"}},
-		{&Dataset{Homepage: "foo"}},
-		{&Dataset{IconImage: "foo"}},
-		{&Dataset{Identifier: "foo"}},
-		{&Dataset{License: &License{Type: "foo"}}},
-		{&Dataset{Version: "foo"}},
-		{&Dataset{Keywords: []string{"foo"}}},
-		{&Dataset{Contributors: []*User{&User{Email: "foo"}}}},
-		{&Dataset{Language: []string{"stuff"}}},
-		{&Dataset{Theme: []string{"stuff"}}},
-		{&Dataset{QueryString: "stuff"}},
-		{&Dataset{Previous: datastore.NewKey("stuff")}},
-		{&Dataset{meta: map[string]interface{}{"foo": "bar"}}},
+		{&Dataset{Commit: &Commit{Title: "foo"}}},
+		{&Dataset{DataPath: "foo"}},
+		{&Dataset{PreviousPath: "stuff"}},
+		{&Dataset{Metadata: &Metadata{Title: "foo"}}},
 	}
 
 	for i, c := range cases {
@@ -62,77 +40,20 @@ func TestDatasetAssign(t *testing.T) {
 		Transform:         &Transform{},
 		AbstractTransform: &Transform{},
 		Structure:         &Structure{},
-		Commit:            &CommitMsg{},
+		Commit:            &Commit{},
 	}
 	madsa := &Dataset{
-		Abstract:          &Dataset{Title: "I'm an abstract dataset"},
+		Abstract:          &Dataset{Structure: &Structure{}},
 		Transform:         &Transform{Data: "I'm transform data!"},
 		AbstractTransform: &Transform{Data: "I'm abstract transform data?"},
 		Structure:         &Structure{Format: CSVDataFormat},
-		Commit:            &CommitMsg{Title: "dy.no.mite."},
+		Commit:            &Commit{Title: "dy.no.mite."},
 	}
 	mads.Assign(madsa)
 
 	if err := CompareDatasets(mads, madsa); err != nil {
 		t.Errorf("error testing assigning to existing substructs: %s", err.Error())
 		return
-	}
-
-	expect := &Dataset{
-		Title:       "Final Title",
-		Description: "Final Description",
-		AccessURL:   "AccessURL",
-		Structure: &Structure{
-			Schema: &Schema{
-				Fields: []*Field{
-					{Type: datatypes.String, Name: "foo"},
-					{Type: datatypes.Integer, Name: "bar"},
-					{Description: "bat"},
-				},
-			},
-		},
-	}
-	got := &Dataset{
-		Title:       "Overwrite Me",
-		Description: "Nope",
-		Structure: &Structure{
-			Schema: &Schema{
-				Fields: []*Field{
-					{Type: datatypes.String},
-					{Type: datatypes.Integer},
-				},
-			},
-		},
-	}
-
-	got.Assign(&Dataset{
-		Title:       "Final Title",
-		Description: "Final Description",
-		AccessURL:   "AccessURL",
-		Structure: &Structure{
-			Schema: &Schema{
-				Fields: []*Field{
-					{Name: "foo"},
-					{Name: "bar"},
-					{Description: "bat"},
-				},
-			},
-		},
-	})
-
-	if err := CompareDatasets(expect, got); err != nil {
-		t.Error(err)
-	}
-
-	got.Assign(nil, nil)
-	if err := CompareDatasets(expect, got); err != nil {
-		t.Error(err)
-	}
-
-	emptyDs := &Dataset{}
-	emptyDs.Assign(expect)
-	if err := CompareDatasets(expect, emptyDs); err != nil {
-		t.Error(err)
 	}
 }
 
@@ -227,6 +148,28 @@ func TestDatasetUnmarshalJSON(t *testing.T) {
 	}
 }
 
+func TestDatasetIsEmpty(t *testing.T) {
+	cases := []struct {
+		ds *Dataset
+	}{
+		{&Dataset{Abstract: &Dataset{}}},
+		{&Dataset{AbstractTransform: &Transform{}}},
+		{&Dataset{Commit: &Commit{}}},
+		{&Dataset{DataPath: "foo"}},
+		{&Dataset{Metadata: &Metadata{}}},
+		{&Dataset{PreviousPath: "nope"}},
+		{&Dataset{Structure: &Structure{}}},
+		{&Dataset{Transform: &Transform{}}},
+	}
+
+	for i, c := range cases {
+		if c.ds.IsEmpty() == true {
+			t.Errorf("case %d improperly reported dataset as empty", i)
+			continue
+		}
+	}
+}
+
 func TestAbstract(t *testing.T) {
 	cases := []struct {
 		FileName string
@@ -259,7 +202,7 @@ func TestAbstract(t *testing.T) {
 }
 
 func TestUnmarshalDataset(t *testing.T) {
-	dsa := Dataset{Kind: KindDataset, Title: "foo"}
+	dsa := Dataset{Kind: KindDataset}
 	cases := []struct {
 		value interface{}
 		out   *Dataset

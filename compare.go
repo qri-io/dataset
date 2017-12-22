@@ -22,44 +22,74 @@ func CompareDatasets(a, b *Dataset) error {
 	if a.Kind.String() != b.Kind.String() {
 		return fmt.Errorf("Kind: %s != %s", a.Kind, b.Kind)
 	}
-	if !a.Timestamp.Equal(b.Timestamp) {
-		return fmt.Errorf("Timestamp: %s != %s", a.Timestamp, b.Timestamp)
+
+	if a.PreviousPath != b.PreviousPath {
+		return fmt.Errorf("PreviousPath: %s != %s", a.PreviousPath, b.PreviousPath)
 	}
-	if a.Length != b.Length {
-		return fmt.Errorf("Length: %d != %d", a.Length, b.Length)
+	if a.DataPath != b.DataPath {
+		return fmt.Errorf("DataPath: %s != %s", a.DataPath, b.DataPath)
 	}
-	if a.Rows != b.Rows {
-		return fmt.Errorf("Rows: %d != %d", a.Rows, b.Rows)
+
+	if err := CompareMetadatas(a.Metadata, b.Metadata); err != nil {
+		return fmt.Errorf("Metadata: %s", err.Error())
+	}
+	if err := CompareStructures(a.Structure, b.Structure); err != nil {
+		return fmt.Errorf("Structure: %s", err.Error())
+	}
+	if err := CompareDatasets(a.Abstract, b.Abstract); err != nil {
+		return fmt.Errorf("Abstract: %s", err.Error())
+	}
+	if err := CompareTransforms(a.Transform, b.Transform); err != nil {
+		return fmt.Errorf("Transform: %s", err.Error())
+	}
+	if err := CompareTransforms(a.AbstractTransform, b.AbstractTransform); err != nil {
+		return fmt.Errorf("AbstractTransform: %s", err.Error())
+	}
+	if err := CompareCommits(a.Commit, b.Commit); err != nil {
+		return fmt.Errorf("Commit: %s", err.Error())
+	}
+
+	return nil
+}
+
+// CompareMetadatas checks if all fields of a metadata struct are equal,
+// returning an error on the first, nil if equal
+func CompareMetadatas(a, b *Metadata) error {
+	if a == nil && b == nil {
+		return nil
+	}
+	if a == nil && b != nil {
+		return fmt.Errorf("nil: <nil> != <not nil>")
+	} else if a != nil && b == nil {
+		return fmt.Errorf("nil: <not nil> != <nil>")
+	}
+
+	if !a.Path().Equal(b.Path()) {
+		return fmt.Errorf("Path: %s != %s", a.Path(), b.Path())
+	}
+	if a.Kind.String() != b.Kind.String() {
+		return fmt.Errorf("Kind: %s != %s", a.Kind, b.Kind)
 	}
 	if a.Title != b.Title {
 		return fmt.Errorf("Title: %s != %s", a.Title, b.Title)
 	}
-	if a.AccessURL != b.AccessURL {
-		return fmt.Errorf("AccessURL: %s != %s", a.AccessURL, b.AccessURL)
+	if a.AccessPath != b.AccessPath {
+		return fmt.Errorf("AccessPath: %s != %s", a.AccessPath, b.AccessPath)
 	}
-	if a.DownloadURL != b.DownloadURL {
-		return fmt.Errorf("DownloadURL: %s != %s", a.DownloadURL, b.DownloadURL)
+	if a.DownloadPath != b.DownloadPath {
+		return fmt.Errorf("DownloadPath: %s != %s", a.DownloadPath, b.DownloadPath)
 	}
 	if a.AccrualPeriodicity != b.AccrualPeriodicity {
 		return fmt.Errorf("AccrualPeriodicity: %s != %s", a.AccrualPeriodicity, b.AccrualPeriodicity)
 	}
-	if a.Readme != b.Readme {
-		return fmt.Errorf("Readme: %s != %s", a.Readme, b.Readme)
-	}
-	if a.Author != b.Author {
-		return fmt.Errorf("Author: %s != %s", a.Author, b.Author)
-	}
-	if a.Image != b.Image {
-		return fmt.Errorf("Image: %s != %s", a.Image, b.Image)
+	if a.ReadmePath != b.ReadmePath {
+		return fmt.Errorf("ReadmePath: %s != %s", a.ReadmePath, b.ReadmePath)
 	}
 	if a.Description != b.Description {
 		return fmt.Errorf("Description: %s != %s", a.Description, b.Description)
 	}
-	if a.Homepage != b.Homepage {
-		return fmt.Errorf("Homepage: %s != %s", a.Homepage, b.Homepage)
-	}
-	if a.IconImage != b.IconImage {
-		return fmt.Errorf("IconImage: %s != %s", a.IconImage, b.IconImage)
+	if a.HomePath != b.HomePath {
+		return fmt.Errorf("HomePath: %s != %s", a.HomePath, b.HomePath)
 	}
 	if a.Identifier != b.Identifier {
 		return fmt.Errorf("Identifier: %s != %s", a.Identifier, b.Identifier)
@@ -82,38 +112,11 @@ func CompareDatasets(a, b *Dataset) error {
 	if err := CompareStringSlices(a.Theme, b.Theme); err != nil {
 		return fmt.Errorf("Theme: %s", err.Error())
 	}
-	if a.QueryString != b.QueryString {
-		return fmt.Errorf("QueryString: %s != %s", a.QueryString, b.QueryString)
-	}
 
 	// TODO - currently we're ignoring abitrary metadata differences
 	// if err := compare.MapStringInterface(a.Meta(), b.Meta()); err != nil {
 	// 	return fmt.Errorf("meta: %s", err.Error())
 	// }
-
-	if !a.Previous.Equal(b.Previous) {
-		return fmt.Errorf("Previous: %s != %s", a.Previous, b.Previous)
-	}
-	if a.Data != b.Data {
-		return fmt.Errorf("Data: %s != %s", a.Data, b.Data)
-	}
-
-	if err := CompareStructures(a.Structure, b.Structure); err != nil {
-		return fmt.Errorf("Structure: %s", err.Error())
-	}
-	if err := CompareDatasets(a.Abstract, b.Abstract); err != nil {
-		return fmt.Errorf("Abstract: %s", err.Error())
-	}
-	if err := CompareTransforms(a.Transform, b.Transform); err != nil {
-		return fmt.Errorf("Transform: %s", err.Error())
-	}
-	if err := CompareTransforms(a.AbstractTransform, b.AbstractTransform); err != nil {
-		return fmt.Errorf("AbstractTransform: %s", err.Error())
-	}
-	if err := CompareCommitMsgs(a.Commit, b.Commit); err != nil {
-		return fmt.Errorf("Commit: %s", err.Error())
-	}
-
 	return nil
 }
 
@@ -134,6 +137,12 @@ func CompareStructures(a, b *Structure) error {
 	if a.Format != b.Format {
 		return fmt.Errorf("Format: %s != %s", a.Format, b.Format)
 	}
+	if a.Length != b.Length {
+		return fmt.Errorf("Length: %d != %d", a.Length, b.Length)
+	}
+	if a.Rows != b.Rows {
+		return fmt.Errorf("Rows: %d != %d", a.Rows, b.Rows)
+	}
 	if a.Encoding != b.Encoding {
 		return fmt.Errorf("Encoding: %s != %s", a.Encoding, b.Encoding)
 	}
@@ -153,9 +162,10 @@ func CompareStructures(a, b *Structure) error {
 func CompareSchemas(a, b *Schema) error {
 	if a == nil && b == nil {
 		return nil
-	}
-	if a != nil && b == nil || a == nil && b != nil {
-		return fmt.Errorf("nil: %s != %s", a, b)
+	} else if a == nil && b != nil {
+		return fmt.Errorf("nil: <nil> != <not nil>")
+	} else if a != nil && b == nil {
+		return fmt.Errorf("nil: <not nil> != <nil>")
 	}
 
 	if err := CompareStringSlices(a.PrimaryKey, b.PrimaryKey); err != nil {
@@ -186,8 +196,10 @@ func CompareSchemas(a, b *Schema) error {
 func CompareFields(a, b *Field) error {
 	if a == nil && b == nil {
 		return nil
-	} else if a == nil && b != nil || a != nil && b == nil {
-		return fmt.Errorf("nil: %s != %s", a, b)
+	} else if a == nil && b != nil {
+		return fmt.Errorf("nil: <nil> != <not nil>")
+	} else if a != nil && b == nil {
+		return fmt.Errorf("nil: <not nil> != <nil>")
 	}
 
 	if a.Name != b.Name {
@@ -207,21 +219,26 @@ func CompareFields(a, b *Field) error {
 	return nil
 }
 
-// CompareCommitMsgs checks if all fields of a CommitMsg are equal,
+// CompareCommits checks if all fields of a Commit are equal,
 // returning an error on the first, nil if equal
-func CompareCommitMsgs(a, b *CommitMsg) error {
+func CompareCommits(a, b *Commit) error {
 	if a == nil && b == nil {
 		return nil
-	} else if a == nil && b != nil || a != nil && b == nil {
-		return fmt.Errorf("nil: %s != %s", a, b)
+	} else if a == nil && b != nil {
+		return fmt.Errorf("nil: <nil> != <not nil>")
+	} else if a != nil && b == nil {
+		return fmt.Errorf("nil: <not nil> != <nil>")
 	}
+
 	if a.Kind != b.Kind {
 		return fmt.Errorf("Kind: %s != %s", a.Kind, b.Kind)
 	}
 	if a.Title != b.Title {
 		return fmt.Errorf("Title: %s != %s", a.Title, b.Title)
 	}
-
+	if !a.Timestamp.Equal(b.Timestamp) {
+		return fmt.Errorf("Timestamp: %s != %s", a.Timestamp, b.Timestamp)
+	}
 	if a.Message != b.Message {
 		return fmt.Errorf("Message: %s != %s", a.Message, b.Message)
 	}

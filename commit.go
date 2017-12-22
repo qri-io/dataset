@@ -3,41 +3,44 @@ package dataset
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/ipfs/go-datastore"
 )
 
-// CommitMsg encapsulates information about changes to a dataset in
-// relation to other entries in a given history. CommitMsg is intended
+// Commit encapsulates information about changes to a dataset in
+// relation to other entries in a given history. Commit is intended
 // to be directly analogous to the concept of a Commit Message in the
 // git version control system
-type CommitMsg struct {
+type Commit struct {
 	path    datastore.Key
 	Author  *User  `json:"author,omitempty"`
 	Kind    Kind   `json:"kind,omitempty"`
 	Message string `json:"message,omitempty"`
-	Title   string `json:"title"`
+	// Time this dataset was created. Required. Datasets are immutable, so no "updated"
+	Timestamp time.Time `json:"timestamp,omitempty"`
+	Title     string    `json:"title"`
 }
 
-// NewCommitMsgRef creates an empty struct with it's
+// NewCommitRef creates an empty struct with it's
 // internal path set
-func NewCommitMsgRef(path datastore.Key) *CommitMsg {
-	return &CommitMsg{path: path}
+func NewCommitRef(path datastore.Key) *Commit {
+	return &Commit{path: path}
 }
 
 // IsEmpty checks to see if any fields are filled out
-func (cm *CommitMsg) IsEmpty() bool {
+func (cm *Commit) IsEmpty() bool {
 	return cm.Message == "" && cm.Author == nil
 }
 
 // Path returns the internal path of this commitMsg
-func (cm *CommitMsg) Path() datastore.Key {
+func (cm *Commit) Path() datastore.Key {
 	return cm.path
 }
 
-// Assign collapses all properties of a set of CommitMsg onto one.
+// Assign collapses all properties of a set of Commit onto one.
 // this is directly inspired by Javascript's Object.assign
-func (cm *CommitMsg) Assign(msgs ...*CommitMsg) {
+func (cm *Commit) Assign(msgs ...*Commit) {
 	for _, m := range msgs {
 		if m == nil {
 			continue
@@ -52,6 +55,9 @@ func (cm *CommitMsg) Assign(msgs ...*CommitMsg) {
 		if m.Title != "" {
 			cm.Title = m.Title
 		}
+		if !m.Timestamp.IsZero() {
+			cm.Timestamp = m.Timestamp
+		}
 		if m.Message != "" {
 			cm.Message = m.Message
 		}
@@ -61,37 +67,38 @@ func (cm *CommitMsg) Assign(msgs ...*CommitMsg) {
 	}
 }
 
-// MarshalJSON implements the json.Marshaler interface for CommitMsg
-// Empty CommitMsg instances with a non-empty path marshal to their path value
-// otherwise, CommitMsg marshals to an object
-func (cm *CommitMsg) MarshalJSON() ([]byte, error) {
+// MarshalJSON implements the json.Marshaler interface for Commit
+// Empty Commit instances with a non-empty path marshal to their path value
+// otherwise, Commit marshals to an object
+func (cm *Commit) MarshalJSON() ([]byte, error) {
 	if cm.path.String() != "" && cm.IsEmpty() {
 		return cm.path.MarshalJSON()
 	}
 
 	kind := cm.Kind
 	if kind == "" {
-		kind = KindCommitMsg
+		kind = KindCommit
 	}
 
 	m := &_commitMsg{
-		Author:  cm.Author,
-		Kind:    kind,
-		Message: cm.Message,
-		Title:   cm.Title,
+		Author:    cm.Author,
+		Kind:      kind,
+		Message:   cm.Message,
+		Timestamp: cm.Timestamp,
+		Title:     cm.Title,
 	}
 	return json.Marshal(m)
 }
 
 // internal struct for json unmarshaling
-type _commitMsg CommitMsg
+type _commitMsg Commit
 
-// UnmarshalJSON implements json.Unmarshaller for CommitMsg
-func (cm *CommitMsg) UnmarshalJSON(data []byte) error {
+// UnmarshalJSON implements json.Unmarshaller for Commit
+func (cm *Commit) UnmarshalJSON(data []byte) error {
 	// first check to see if this is a valid path ref
 	var path string
 	if err := json.Unmarshal(data, &path); err == nil {
-		*cm = CommitMsg{path: datastore.NewKey(path)}
+		*cm = Commit{path: datastore.NewKey(path)}
 		return nil
 	}
 
@@ -100,20 +107,20 @@ func (cm *CommitMsg) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("error unmarshling dataset: %s", err.Error())
 	}
 
-	*cm = CommitMsg(m)
+	*cm = Commit(m)
 	return nil
 }
 
-// UnmarshalCommitMsg tries to extract a dataset type from an empty
+// UnmarshalCommit tries to extract a dataset type from an empty
 // interface. Pairs nicely with datastore.Get() from github.com/ipfs/go-datastore
-func UnmarshalCommitMsg(v interface{}) (*CommitMsg, error) {
+func UnmarshalCommit(v interface{}) (*Commit, error) {
 	switch r := v.(type) {
-	case *CommitMsg:
+	case *Commit:
 		return r, nil
-	case CommitMsg:
+	case Commit:
 		return &r, nil
 	case []byte:
-		cm := &CommitMsg{}
+		cm := &Commit{}
 		err := json.Unmarshal(r, cm)
 		return cm, err
 	default:

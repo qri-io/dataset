@@ -13,9 +13,9 @@ func TestDataset(t *testing.T) {
 		err string
 	}{
 		{nil, ""},
-		{&dataset.Dataset{Commit: &dataset.CommitMsg{}}, "commit: title is required"},
+		{&dataset.Dataset{Commit: &dataset.Commit{}}, "commit: title is required"},
 		{&dataset.Dataset{Structure: &dataset.Structure{}}, "structure: dataFormat is required"},
-		{&dataset.Dataset{Abstract: &dataset.Dataset{Title: "foo"}}, "abstract field is not an abstract dataset. Title: foo != "},
+		{&dataset.Dataset{Abstract: &dataset.Dataset{Metadata: &dataset.Metadata{}}}, "abstract field is not an abstract dataset. Metadata: nil: <not nil> != <nil>"},
 		{&dataset.Dataset{}, ""},
 	}
 
@@ -30,13 +30,13 @@ func TestDataset(t *testing.T) {
 
 func TestCommit(t *testing.T) {
 	cases := []struct {
-		cm  *dataset.CommitMsg
+		cm  *dataset.Commit
 		err string
 	}{
 		{nil, ""},
-		{&dataset.CommitMsg{}, "title is required"},
-		{&dataset.CommitMsg{Title: strings.Repeat("f", 150)}, "title is too long. 150 length exceeds 100 character limit"},
-		{&dataset.CommitMsg{Title: "message"}, ""},
+		{&dataset.Commit{}, "title is required"},
+		{&dataset.Commit{Title: strings.Repeat("f", 150)}, "title is too long. 150 length exceeds 100 character limit"},
+		{&dataset.Commit{Title: "message"}, ""},
 	}
 
 	for i, c := range cases {
