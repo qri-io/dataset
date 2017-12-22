@@ -92,6 +92,23 @@ func (md *Metadata) Meta() map[string]interface{} {
 	return md.meta
 }
 
+// UnmarshalMetadata tries to extract a metadata type from an empty
+// interface. Pairs nicely with datastore.Get() from github.com/ipfs/go-datastore
+func UnmarshalMetadata(v interface{}) (*Metadata, error) {
+	switch r := v.(type) {
+	case *Metadata:
+		return r, nil
+	case Metadata:
+		return &r, nil
+	case []byte:
+		metadata := &Metadata{}
+		err := json.Unmarshal(r, metadata)
+		return metadata, err
+	default:
+		return nil, fmt.Errorf("couldn't parse metadata, value is invalid type")
+	}
+}
+
 // Assign collapses all properties of a group of metadata structs onto one.
 // this is directly inspired by Javascript's Object.assign
 func (md *Metadata) Assign(metas ...*Metadata) {
@@ -102,6 +119,9 @@ func (md *Metadata) Assign(metas ...*Metadata) {
 
 		if m.path.String() != "" {
 			md.path = m.path
+		}
+		if m.Kind != "" {
+			md.Kind = m.Kind
 		}
 		if m.Title != "" {
 			md.Title = m.Title
@@ -242,14 +262,12 @@ func (md *Metadata) UnmarshalJSON(data []byte) error {
 	for _, f := range []string{
 		"accessPath",
 		"accrualPeriodicity",
-		"author",
 		"citations",
 		"contributors",
 		"data",
 		"description",
 		"downloadPath",
 		"homePath",
-		"iconImage",
 		"identifier",
 		"image",
 		"keyword",

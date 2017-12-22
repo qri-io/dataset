@@ -40,21 +40,25 @@ func TestLoadDataset(t *testing.T) {
 		{dataset.NewDatasetRef(datastore.NewKey("/bad/path")),
 			"error loading dataset: error getting file bytes: datastore: key not found"},
 		{&dataset.Dataset{
-			Title:     "bad structure",
+			Metadata: dataset.NewMetadataRef(datastore.NewKey("/bad/path")),
+		}, "error loading dataset metadata: error loading metadata file: datastore: key not found"},
+		{&dataset.Dataset{
 			Structure: dataset.NewStructureRef(datastore.NewKey("/bad/path")),
 		}, "error loading dataset structure: error loading structure file: datastore: key not found"},
 		{&dataset.Dataset{
-			Title:     "bad structure",
+			Structure: dataset.NewStructureRef(datastore.NewKey("/bad/path")),
+		}, "error loading dataset structure: error loading structure file: datastore: key not found"},
+		{&dataset.Dataset{
 			Transform: dataset.NewTransformRef(datastore.NewKey("/bad/path")),
 		}, "error loading dataset transform: error loading transform raw data: datastore: key not found"},
 		{&dataset.Dataset{
-			Title:  "bad structure",
-			Commit: dataset.NewCommitMsgRef(datastore.NewKey("/bad/path")),
+			Commit: dataset.NewCommitRef(datastore.NewKey("/bad/path")),
 		}, "error loading dataset commit: error loading commit file: datastore: key not found"},
 	}
 
 	for i, c := range cases {
 		path := c.ds.Path()
+		t.Log(i, c.ds.IsEmpty())
 		if !c.ds.IsEmpty() {
 			dsf, err := JSONFile(PackageFileDataset.String(), c.ds)
 			if err != nil {
@@ -93,8 +97,8 @@ func TestSaveDataset(t *testing.T) {
 		repoEntries int
 		err         string
 	}{
-		{"testdata/cities.json", datastore.NewKey("/map/QmQDJiMKBXGJTXDJm4KQ6ddzggQhYi4PPHj2F6bqJCKwvv"), 2, ""},
-		{"testdata/complete.json", datastore.NewKey("/map/Qmdp2mMbLqhZCAdtHtVqA8GjRaxgdvPWyUEjVU1yCqcgyw"), 8, ""},
+		{"testdata/cities.json", datastore.NewKey("/map/QmVMxEijcYvGFofARruPV4Du5cYWUfsCquiEkQA18aeE1n"), 3, ""},
+		{"testdata/complete.json", datastore.NewKey("/map/QmcYUtYGu6mobvoarbxgs7opaXgtMsNbbAFXbWEpuZNKqv"), 10, ""},
 	}
 
 	for i, c := range cases {
@@ -163,6 +167,13 @@ func TestSaveDataset(t *testing.T) {
 			}
 			// Abstract transforms aren't loaded
 			ds.AbstractTransform = dataset.NewTransformRef(ref.AbstractTransform.Path())
+		}
+		if ref.Metadata != nil {
+			if !ref.Metadata.IsEmpty() {
+				t.Errorf("expected stored dataset.Metadata to be a reference")
+			}
+			// Abstract transforms aren't loaded
+			ds.Metadata.Assign(dataset.NewMetadataRef(ref.Metadata.Path()))
 		}
 		if ref.Structure != nil {
 			if !ref.Structure.IsEmpty() {

@@ -27,9 +27,9 @@ func Dataset(ds *dataset.Dataset) error {
 	return nil
 }
 
-// Commit checks that a dataset CommitMsg is valid for use
+// Commit checks that a dataset Commit is valid for use
 // returning the first error encountered, nil if valid
-func Commit(cm *dataset.CommitMsg) error {
+func Commit(cm *dataset.Commit) error {
 	if cm == nil {
 		return nil
 	}

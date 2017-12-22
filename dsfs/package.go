@@ -23,15 +23,17 @@ const (
 	// that went into creating a dataset
 	// TODO - I think this can be removed now that Transform exists
 	PackageFileResources
-	// PackageFileCommitMsg is isolates the user-entered
+	// PackageFileCommit isolates the user-entered
 	// documentation of the changes to this dataset's history
-	PackageFileCommitMsg
+	PackageFileCommit
 	// PackageFileTransform isloates the concrete transform that
 	// generated this dataset
 	PackageFileTransform
 	// PackageFileAbstractTransform is the abstract version of
 	// the operation performed to create this dataset
 	PackageFileAbstractTransform
+	// PackageFileMetadata encapsulates human-readable metadata
+	PackageFileMetadata
 )
 
 // filenames maps PackageFile to their filename counterparts
@@ -42,8 +44,9 @@ var filenames = map[PackageFile]string{
 	PackageFileAbstract:          "abstract.json",
 	PackageFileAbstractTransform: "abstract_transform.json",
 	PackageFileResources:         "resources",
-	PackageFileCommitMsg:         "commit.json",
+	PackageFileCommit:            "commit.json",
 	PackageFileTransform:         "transform.json",
+	PackageFileMetadata:          "metadata.json",
 }
 
 // String implements the io.Stringer interface for PackageFile

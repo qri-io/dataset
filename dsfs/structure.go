@@ -10,7 +10,6 @@ import (
 
 // SaveStructure saves a query's structure to a given store
 func SaveStructure(store cafs.Filestore, s *dataset.Structure, pin bool) (path datastore.Key, err error) {
-	s.Kind = dataset.KindStructure
 	file, err := JSONFile(PackageFileStructure.String(), s)
 	if err != nil {
 		return datastore.NewKey(""), fmt.Errorf("error saving json structure file: %s", err.Error())

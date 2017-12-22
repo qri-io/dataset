@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/ipfs/go-datastore"
-	"github.com/libp2p/go-libp2p-crypto"
+	// "github.com/libp2p/go-libp2p-crypto"
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/cafs/memfs"
 	"github.com/qri-io/dataset"
@@ -19,15 +19,16 @@ func LoadDataset(store cafs.Filestore, path datastore.Key) (*dataset.Dataset, er
 		return nil, fmt.Errorf("error loading dataset: %s", err.Error())
 	}
 
+	if err := DerefDatasetMetadata(store, ds); err != nil {
+		return nil, err
+	}
 	if err := DerefDatasetStructure(store, ds); err != nil {
 		return nil, err
 	}
-
 	if err := DerefDatasetTransform(store, ds); err != nil {
 		return nil, err
 	}
-
-	if err := DerefDatasetCommitMsg(store, ds); err != nil {
+	if err := DerefDatasetCommit(store, ds); err != nil {
 		return nil, err
 	}
 
@@ -94,30 +95,45 @@ func DerefDatasetTransform(store cafs.Filestore, ds *dataset.Dataset) error {
 	return nil
 }
 
-// DerefDatasetCommitMsg derferences a dataset's Commit element if required
+// DerefDatasetMetadata derferences a dataset's transform element if required
 // should be a no-op if ds.Structure is nil or isn't a reference
-func DerefDatasetCommitMsg(store cafs.Filestore, ds *dataset.Dataset) error {
+func DerefDatasetMetadata(store cafs.Filestore, ds *dataset.Dataset) error {
+	if ds.Metadata != nil && ds.Metadata.IsEmpty() && ds.Metadata.Path().String() != "" {
+		md, err := LoadMetadata(store, ds.Metadata.Path())
+		if err != nil {
+			return fmt.Errorf("error loading dataset metadata: %s", err.Error())
+		}
+		// assign path to retain internal reference to path
+		md.Assign(dataset.NewMetadataRef(ds.Metadata.Path()))
+		ds.Metadata = md
+	}
+	return nil
+}
+
+// DerefDatasetCommit derferences a dataset's Commit element if required
+// should be a no-op if ds.Structure is nil or isn't a reference
+func DerefDatasetCommit(store cafs.Filestore, ds *dataset.Dataset) error {
 	if ds.Commit != nil && ds.Commit.IsEmpty() && ds.Commit.Path().String() != "" {
-		cm, err := LoadCommitMsg(store, ds.Commit.Path())
+		cm, err := LoadCommit(store, ds.Commit.Path())
 		if err != nil {
 			return fmt.Errorf("error loading dataset commit: %s", err.Error())
 		}
 		// assign path to retain internal reference to path
-		cm.Assign(dataset.NewCommitMsgRef(ds.Commit.Path()))
+		cm.Assign(dataset.NewCommitRef(ds.Commit.Path()))
 		ds.Commit = cm
 	}
 	return nil
 }
 
 // CreateDatasetParams defines parmeters for the CreateDataset function
-type CreateDatasetParams struct {
-	// Store is where we're going to
-	Store cafs.Filestore
-	//
-	Dataset  *dataset.Dataset
-	DataFile cafs.File
-	PrivKey  crypto.PrivKey
-}
+// type CreateDatasetParams struct {
+// 	// Store is where we're going to
+// 	Store cafs.Filestore
+// 	//
+// 	Dataset  *dataset.Dataset
+// 	DataFile cafs.File
+// 	PrivKey  crypto.PrivKey
+// }
 
 // CreateDataset is the canonical method for getting a dataset pointer & it's data into a store
 // func CreateDataset(p *CreateDatasetParams) (path datastore.Key, err error) {
@@ -246,19 +262,28 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 		adder.AddFile(abstff)
 	}
 
+	if ds.Metadata != nil {
+		mdf, err := JSONFile(PackageFileMetadata.String(), ds.Metadata)
+		if err != nil {
+			return datastore.NewKey(""), fmt.Errorf("error marshaling metadata to json: %s", err.Error())
+		}
+		fileTasks++
+		adder.AddFile(mdf)
+	}
+
 	// if dataset contains no references, place directly in.
 	// TODO - this might not constitute a valid dataset. should we be
 	// validating datasets in here?
-	if ds.Transform == nil && ds.Structure == nil {
-		dsf, err := JSONFile(PackageFileDataset.String(), ds)
-		if err != nil {
-			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset to json: %s", err.Error())
-		}
+	// if ds.Transform == nil && ds.Structure == nil {
+	// 	dsf, err := JSONFile(PackageFileDataset.String(), ds)
+	// 	if err != nil {
+	// 		return datastore.NewKey(""), fmt.Errorf("error marshaling dataset to json: %s", err.Error())
+	// 	}
 
-		fileTasks++
-		adder.AddFile(dsf)
-		addedDataset = true
-	}
+	// 	fileTasks++
+	// 	adder.AddFile(dsf)
+	// 	addedDataset = true
+	// }
 
 	if ds.Transform != nil {
 		// all resources must be references
@@ -279,7 +304,7 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 	}
 
 	if ds.Commit != nil {
-		cmf, err := JSONFile(PackageFileCommitMsg.String(), ds.Commit)
+		cmf, err := JSONFile(PackageFileCommit.String(), ds.Commit)
 		if err != nil {
 			return datastore.NewKey(""), fmt.Errorf("error marshilng dataset commit message to json: %s", err.Error())
 		}
@@ -319,8 +344,10 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 				ds.Transform = dataset.NewTransformRef(ao.Path)
 			case PackageFileAbstractTransform.String():
 				ds.AbstractTransform = dataset.NewTransformRef(ao.Path)
-			case PackageFileCommitMsg.String():
-				ds.Commit = dataset.NewCommitMsgRef(ao.Path)
+			case PackageFileMetadata.String():
+				ds.Metadata = dataset.NewMetadataRef(ao.Path)
+			case PackageFileCommit.String():
+				ds.Commit = dataset.NewCommitRef(ao.Path)
 			}
 
 			fileTasks--

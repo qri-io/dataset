@@ -12,7 +12,7 @@ import (
 
 // LoadData loads the data this dataset points to from the store
 func LoadData(store cafs.Filestore, ds *dataset.Dataset) (cafs.File, error) {
-	return store.Get(datastore.NewKey(ds.Data))
+	return store.Get(datastore.NewKey(ds.DataPath))
 }
 
 // LoadRows loads a slice of raw bytes inside a limit/offset row range

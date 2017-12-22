@@ -22,6 +22,7 @@ func TestDatasetAssign(t *testing.T) {
 		{&Dataset{Commit: &Commit{Title: "foo"}}},
 		{&Dataset{DataPath: "foo"}},
 		{&Dataset{PreviousPath: "stuff"}},
+		{&Dataset{Metadata: &Metadata{Title: "foo"}}},
 	}
 
 	for i, c := range cases {
@@ -144,6 +145,28 @@ func TestDatasetUnmarshalJSON(t *testing.T) {
 	if strds.path.String() != path {
 		t.Errorf("unmarshal didn't set proper path: %s != %s", path, strds.path)
 		return
+	}
+}
+
+func TestDatasetIsEmpty(t *testing.T) {
+	cases := []struct {
+		ds *Dataset
+	}{
+		{&Dataset{Abstract: &Dataset{}}},
+		{&Dataset{AbstractTransform: &Transform{}}},
+		{&Dataset{Commit: &Commit{}}},
+		{&Dataset{DataPath: "foo"}},
+		{&Dataset{Metadata: &Metadata{}}},
+		{&Dataset{PreviousPath: "nope"}},
+		{&Dataset{Structure: &Structure{}}},
+		{&Dataset{Transform: &Transform{}}},
+	}
+
+	for i, c := range cases {
+		if c.ds.IsEmpty() == true {
+			t.Errorf("case %d improperly reported dataset as empty", i)
+			continue
+		}
 	}
 }
 

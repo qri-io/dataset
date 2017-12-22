@@ -1,9 +1,12 @@
 {
-  "title": "dataset with all submodels example",
   "kind": "qri:ds:0",
-  "commit" : {
-    "kind" : "qri:cm:0",
-    "message" : "I'm a commit"
+  "commit": {
+    "kind": "qri:cm:0",
+    "message": "I'm a commit"
+  },
+  "metadata": {
+    "kind": "qri:md:0",
+    "title": "dataset with all submodels example"
   },
   "transform": {
     "kind": "qri:tf:0",
@@ -34,7 +37,7 @@
   },
   "abstractTransform": {
     "kind": "qri:tf:0",
-    "data" : "select * from a",
+    "data": "select * from a",
     "structure": {
       "kind": "qri:st:0",
       "format": "csv",
@@ -54,8 +57,8 @@
         ]
       }
     },
-    "resources" : {
-      "a" : "/fake/path/to/abstract/dataset/"
+    "resources": {
+      "a": "/fake/path/to/abstract/dataset/"
     }
   },
   "abstract": {

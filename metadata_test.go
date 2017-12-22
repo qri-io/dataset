@@ -166,6 +166,32 @@ func TestMetadataUnmarshalJSON(t *testing.T) {
 	}
 }
 
+func TestUnmarshalMetadata(t *testing.T) {
+	dsa := Metadata{Kind: KindMetadata}
+	cases := []struct {
+		value interface{}
+		out   *Metadata
+		err   string
+	}{
+		{dsa, &dsa, ""},
+		{&dsa, &dsa, ""},
+		{[]byte("{\"kind\":\"qri:md:0\"}"), &Metadata{Kind: KindMetadata}, ""},
+		{5, nil, "couldn't parse metadata, value is invalid type"},
+	}
+
+	for i, c := range cases {
+		got, err := UnmarshalMetadata(c.value)
+		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
+			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
+			continue
+		}
+		if err := CompareMetadatas(c.out, got); err != nil {
+			t.Errorf("case %d metadata mismatch: %s", i, err.Error())
+			continue
+		}
+	}
+}
+
 func TestLicense(t *testing.T) {
 
 }

@@ -13,15 +13,17 @@ import (
 )
 
 var AirportCodes = &dataset.Dataset{
-	Title:    "Airport Codes",
-	Homepage: "http://www.ourairports.com/",
-	License: &dataset.License{
-		Type: "PDDL-1.0",
-	},
-	Citations: []*dataset.Citation{
-		{
-			Name: "Our Airports",
-			URL:  "http://ourairports.com/data/",
+	Metadata: &dataset.Metadata{
+		Title:    "Airport Codes",
+		HomePath: "http://www.ourairports.com/",
+		License: &dataset.License{
+			Type: "PDDL-1.0",
+		},
+		Citations: []*dataset.Citation{
+			{
+				Name: "Our Airports",
+				URL:  "http://ourairports.com/data/",
+			},
 		},
 	},
 	// File:   "data/airport-codes.csv",
@@ -29,8 +31,8 @@ var AirportCodes = &dataset.Dataset{
 	// Format: "text/csv",
 }
 
-var AirportCodesCommitMsg = &dataset.CommitMsg{
-	Kind:    dataset.KindCommitMsg,
+var AirportCodesCommit = &dataset.Commit{
+	Kind:    dataset.KindCommit,
 	Message: "initial commit",
 }
 
@@ -159,17 +161,21 @@ var AirportCodesStructureAgebraic = &dataset.Structure{
 }
 
 var ContinentCodes = &dataset.Dataset{
-	Title:       "Continent Codes",
-	Description: "list of continents with corresponding two letter codes",
-	License: &dataset.License{
-		Type: "odc-pddl",
-		URL:  "http://opendatacommons.org/licenses/pddl/",
-	},
-	Keywords: []string{
-		"Continents",
-		"Two letter code",
-		"Continent codes",
-		"Continent code list",
+	Kind: dataset.KindDataset,
+	Metadata: &dataset.Metadata{
+		Kind:        dataset.KindMetadata,
+		Title:       "Continent Codes",
+		Description: "list of continents with corresponding two letter codes",
+		License: &dataset.License{
+			Type: "odc-pddl",
+			URL:  "http://opendatacommons.org/licenses/pddl/",
+		},
+		Keywords: []string{
+			"Continents",
+			"Two letter code",
+			"Continent codes",
+			"Continent code list",
+		},
 	},
 }
 
@@ -190,7 +196,9 @@ var ContinentCodesStructure = &dataset.Structure{
 }
 
 var Hours = &dataset.Dataset{
-	Title: "hours",
+	Metadata: &dataset.Metadata{
+		Title: "hours",
+	},
 	// Data:   datastore.NewKey("/ipfs/QmS1dVa1xemo7gQzJgjimj1WwnVBF3TwRTGsyKa1uEBWbJ"),
 }
 
@@ -236,7 +244,7 @@ func makeFilestore() (map[string]datastore.Key, cafs.Filestore, error) {
 			return datasets, nil, err
 		}
 
-		ds.Data = datakey.String()
+		ds.DataPath = datakey.String()
 		dskey, err := SaveDataset(fs, ds, true)
 		if err != nil {
 			return datasets, nil, err

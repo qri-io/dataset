@@ -52,6 +52,7 @@ func (ds *Dataset) IsEmpty() bool {
 	return ds.Abstract == nil &&
 		ds.AbstractTransform == nil &&
 		ds.Commit == nil &&
+		ds.Structure == nil &&
 		ds.DataPath == "" &&
 		ds.Metadata == nil &&
 		ds.PreviousPath == "" &&
@@ -97,25 +98,26 @@ func (ds *Dataset) Assign(datasets ...*Dataset) {
 		} else if ds.Structure != nil {
 			ds.Structure.Assign(d.Structure)
 		}
-
+		if ds.Metadata == nil && d.Metadata != nil {
+			ds.Metadata = d.Metadata
+		} else if ds.Metadata != nil {
+			ds.Metadata.Assign(d.Metadata)
+		}
 		if ds.Abstract == nil && d.Abstract != nil {
 			ds.Abstract = d.Abstract
 		} else if ds.Abstract != nil {
 			ds.Abstract.Assign(d.Abstract)
 		}
-
 		if ds.Transform == nil && d.Transform != nil {
 			ds.Transform = d.Transform
 		} else if ds.Transform != nil {
 			ds.Transform.Assign(d.Transform)
 		}
-
 		if ds.AbstractTransform == nil && d.AbstractTransform != nil {
 			ds.AbstractTransform = d.AbstractTransform
 		} else if ds.AbstractTransform != nil {
 			ds.AbstractTransform.Assign(d.AbstractTransform)
 		}
-
 		if ds.Commit == nil && d.Commit != nil {
 			ds.Commit = d.Commit
 		} else if ds.Commit != nil {
