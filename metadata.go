@@ -8,7 +8,7 @@ import (
 	"github.com/ipfs/go-datastore"
 )
 
-// Meta contains all human-readable metadata about a dataset
+// Metadata contains all human-readable metadata about a dataset
 type Metadata struct {
 	// private storage for reference to this object
 	path datastore.Key

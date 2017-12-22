@@ -2,7 +2,7 @@
   "kind": "qri:ds:0",
   "commit": {
     "kind": "qri:cm:0",
-    "message": "I'm a commit"
+    "title": "I'm a commit"
   },
   "metadata": {
     "kind": "qri:md:0",

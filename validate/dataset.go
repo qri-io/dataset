@@ -12,12 +12,15 @@ func Dataset(ds *dataset.Dataset) error {
 		return nil
 	}
 
-	if ds.Abstract != nil {
-		if err := dataset.CompareDatasets(ds.Abstract, dataset.Abstract(ds)); err != nil {
-			return fmt.Errorf("abstract field is not an abstract dataset. %s", err.Error())
-		}
-	}
-	if err := Commit(ds.Commit); err != nil {
+	// if ds.Abstract != nil {
+	// 	if err := dataset.CompareDatasets(ds.Abstract, dataset.Abstract(ds)); err != nil {
+	// 		return fmt.Errorf("abstract field is not an abstract dataset. %s", err.Error())
+	// 	}
+	// }
+
+	if ds.Commit == nil {
+		return fmt.Errorf("commit is required")
+	} else if err := Commit(ds.Commit); err != nil {
 		return fmt.Errorf("commit: %s", err.Error())
 	}
 	if err := Structure(ds.Structure); err != nil {

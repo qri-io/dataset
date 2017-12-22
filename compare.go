@@ -239,6 +239,9 @@ func CompareCommits(a, b *Commit) error {
 	if !a.Timestamp.Equal(b.Timestamp) {
 		return fmt.Errorf("Timestamp: %s != %s", a.Timestamp, b.Timestamp)
 	}
+	if a.Signature != b.Signature {
+		return fmt.Errorf("Signature: %s != %s", a.Signature, b.Signature)
+	}
 	if a.Message != b.Message {
 		return fmt.Errorf("Message: %s != %s", a.Message, b.Message)
 	}

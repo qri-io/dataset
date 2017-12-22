@@ -92,10 +92,7 @@ func testStore() (cafs.Filestore, map[string]datastore.Key, error) {
 		"movies": datastore.NewKey(""),
 	}
 
-	datakey, err := fs.Put(memfs.NewMemfileBytes("testdata/movies.csv", []byte("movie\nup\nthe incredibles")), true)
-	if err != nil {
-		return fs, ns, err
-	}
+	dataf := memfs.NewMemfileBytes("movies.csv", []byte("movie\nup\nthe incredibles"))
 
 	ds := &dataset.Dataset{
 		Structure: &dataset.Structure{
@@ -106,10 +103,9 @@ func testStore() (cafs.Filestore, map[string]datastore.Key, error) {
 				},
 			},
 		},
-		DataPath: datakey.String(),
 	}
 
-	dskey, err := dsfs.SaveDataset(fs, ds, true)
+	dskey, err := dsfs.WriteDataset(fs, ds, dataf, true)
 	if err != nil {
 		return fs, ns, err
 	}

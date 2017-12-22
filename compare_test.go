@@ -169,6 +169,7 @@ func TestCompareCommits(t *testing.T) {
 		{&Commit{Title: "a"}, &Commit{Title: "b"}, "Title: a != b"},
 		{&Commit{Message: "a"}, &Commit{Message: "b"}, "Message: a != b"},
 		{&Commit{Kind: "a"}, &Commit{Kind: "b"}, "Kind: a != b"},
+		{&Commit{Signature: "a"}, &Commit{Signature: "b"}, "Signature: a != b"},
 	}
 
 	for i, c := range cases {
