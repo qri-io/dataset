@@ -23,7 +23,9 @@ func Dataset(ds *dataset.Dataset) error {
 	} else if err := Commit(ds.Commit); err != nil {
 		return fmt.Errorf("commit: %s", err.Error())
 	}
-	if err := Structure(ds.Structure); err != nil {
+	if ds.Structure == nil {
+		return fmt.Errorf("structure is required")
+	} else if err := Structure(ds.Structure); err != nil {
 		return fmt.Errorf("structure: %s", err.Error())
 	}
 

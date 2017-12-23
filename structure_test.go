@@ -3,6 +3,7 @@ package dataset
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/qri-io/dataset/compression"
 	"io/ioutil"
 	"testing"
 
@@ -56,6 +57,28 @@ func TestStructureAbstract(t *testing.T) {
 	for i, c := range cases {
 		if err := CompareStructures(c.in.Abstract(), c.out); err != nil {
 			t.Errorf("case %d error: %s", i, err.Error())
+			continue
+		}
+	}
+}
+
+func TestStructureIsEmpty(t *testing.T) {
+	cases := []struct {
+		st *Structure
+	}{
+		{&Structure{Checksum: "a"}},
+		{&Structure{Compression: compression.Tar}},
+		{&Structure{Encoding: "a"}},
+		{&Structure{Entries: 1}},
+		{&Structure{Format: CSVDataFormat}},
+		{&Structure{FormatConfig: &CSVOptions{}}},
+		{&Structure{Length: 1}},
+		{&Structure{Schema: &Schema{}}},
+	}
+
+	for i, c := range cases {
+		if c.st.IsEmpty() == true {
+			t.Errorf("case %d improperly reported dataset as empty", i)
 			continue
 		}
 	}

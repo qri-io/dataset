@@ -3,15 +3,17 @@ package dsfs
 import (
 	"encoding/json"
 	"fmt"
-	// "io/ioutil"
+	"io/ioutil"
 	"time"
 
 	"github.com/ipfs/go-datastore"
 	"github.com/libp2p/go-libp2p-crypto"
 	"github.com/mr-tron/base58/base58"
+	"github.com/multiformats/go-multihash"
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/cafs/memfs"
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/dataset/dsio"
 	"github.com/qri-io/dataset/validate"
 )
 
@@ -165,25 +167,41 @@ var timestamp = func() time.Time {
 
 // prepareDataset modifies a dataset in preparation for adding to a dsfs
 func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, privKey crypto.PrivKey) error {
-	if df == nil {
-		return fmt.Errorf("data file is required")
-	}
-
 	// TODO - need a better strategy for huge files. I think that strategy is to split
 	// the reader into multiple consumers that are all performing their task on a stream
 	// of byte slices
-	// data, err := ioutil.ReadAll(df)
-	// if err != nil {
-	// 	return fmt.Errorf("error reading file: %s", err.Error())
-	// }
+	data, err := ioutil.ReadAll(df)
+	if err != nil {
+		return fmt.Errorf("error reading file: %s", err.Error())
+	}
+	ds.Structure.Length = len(data)
+
+	// TODO - add a dsio.RowCount function that avoids actually arranging data into rows
+	rr, err := dsio.NewRowReader(ds.Structure, memfs.NewMemfileBytes("data", data))
+	if err != nil {
+		return fmt.Errorf("error reading data rows: %s", err.Error())
+	}
+
+	entries := 0
+	for err == nil {
+		entries++
+		_, err = rr.ReadRow()
+	}
+	if err.Error() != "EOF" {
+		return fmt.Errorf("error reading rows: %s", err.Error())
+	}
+
+	ds.Structure.Entries = entries
+
+	// TODO - set hash
+	shasum, err := multihash.Sum(data, multihash.SHA2_256, -1)
+	if err != nil {
+		return fmt.Errorf("error calculating hash: %s", err.Error())
+	}
+	ds.Structure.Checksum = shasum.B58String()
 
 	// generate abstract form of dataset
 	ds.Abstract = dataset.Abstract(ds)
-
-	// datakey, err := store.Put(memfs.NewMemfileBytes("data."+ds.Structure.Format.String(), data), false)
-	// if err != nil {
-	// 	return fmt.Errorf("error putting data file in store: %s", err.Error())
-	// }
 
 	ds.Commit.Timestamp = timestamp()
 	signedBytes, err := privKey.Sign(ds.Commit.SignableBytes())
@@ -193,7 +211,7 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 	ds.Commit.Signature = base58.Encode(signedBytes)
 
 	// TODO - make sure file ending matches
-	// "data."+ds.Structure.Format.String()
+	df = memfs.NewMemfileBytes("data."+ds.Structure.Format.String(), data)
 	return nil
 }
 
@@ -245,23 +263,6 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File,
 		fileTasks++
 		adder.AddFile(mdf)
 	}
-
-	// if dataset contains no references, place directly in.
-	// TODO - this might not constitute a valid dataset. should we be
-	// validating datasets in here?
-	// if ds.Transform == nil && ds.Structure == nil {
-	// 	dsf, err := JSONFile(PackageFileDataset.String(), ds)
-	// 	if err != nil {
-	// 		return datastore.NewKey(""), fmt.Errorf("error marshaling dataset to json: %s", err.Error())
-	// 	}
-	// 	fileTasks++
-	// 	adder.AddFile(dsf)
-	// 	addedDataset = true
-	// }
-	// data, err := store.Get(datastore.NewKey(ds.Data))
-	// if err != nil {
-	// 	return datastore.NewKey(""), fmt.Errorf("error getting dataset raw data: %s", err.Error())
-	// }
 
 	fileTasks++
 	adder.AddFile(dataFile)

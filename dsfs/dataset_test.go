@@ -106,7 +106,11 @@ func TestLoadDataset(t *testing.T) {
 }
 
 func TestCreateDataset(t *testing.T) {
+	store := memfs.NewMapstore()
 	prev := timestamp
+	// shameless call to timestamp to get the coverge points
+	timestamp()
+
 	defer func() { timestamp = prev }()
 	timestamp = func() time.Time { return time.Date(2001, 01, 01, 01, 01, 01, 01, time.UTC) }
 
@@ -116,7 +120,6 @@ func TestCreateDataset(t *testing.T) {
 		return
 	}
 
-	store := memfs.NewMapstore()
 	cases := []struct {
 		dsPath       string
 		dataPath     string
@@ -125,8 +128,10 @@ func TestCreateDataset(t *testing.T) {
 		repoFiles    int // expected total count of files in repo after test execution
 		err          string
 	}{
-		{"testdata/cities.json", "testdata/cities.csv", "cities.csv", "/map/QmRfsgayfZjVXbFxVoSFK7jge9vZz8jnyUuZ2cr5BbFtHm", 6, ""},
-		{"testdata/complete.json", "testdata/complete.csv", "complete.csv", "/map/QmPyjvEi4p6xzUX5H9NMjV9mYVoZiuRnzXVnV2c9AfenRK", 14, ""},
+		{"testdata/bad/invalid_reference.json", "testdata/cities.csv", "", "", 0, "error loading dataset commit: error loading commit file: datastore: key not found"},
+		{"testdata/bad/invalid.json", "testdata/cities.csv", "", "", 0, "commit is required"},
+		{"testdata/cities.json", "testdata/cities.csv", "cities.csv", "/map/Qmdk391WmyQM1YDiw1ywbXiza93NKrqaVXWd3c8QDXBze8", 6, ""},
+		{"testdata/complete.json", "testdata/complete.csv", "complete.csv", "/map/QmTmv8RBb2JweQkPY9R6uYfQ3aeHDKwNBGdNMFjpWjRRNW", 14, ""},
 	}
 
 	for i, c := range cases {
@@ -169,6 +174,13 @@ func TestCreateDataset(t *testing.T) {
 				t.Log(str)
 				continue
 			}
+
+			// TODO - check that Stored datasets are what we expect!
+			// str, err := store.(memfs.MapStore).Print()
+			// if err != nil {
+			// 	panic(err)
+			// }
+			// t.Error(str)
 		}
 	}
 }

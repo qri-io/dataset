@@ -9,6 +9,7 @@ import (
 
 func TestDataset(t *testing.T) {
 	cm := &dataset.Commit{Title: "initial commit"}
+	st := &dataset.Structure{Format: dataset.JSONDataFormat}
 
 	cases := []struct {
 		ds  *dataset.Dataset
@@ -17,9 +18,10 @@ func TestDataset(t *testing.T) {
 		{nil, ""},
 		{&dataset.Dataset{}, "commit is required"},
 		{&dataset.Dataset{Commit: &dataset.Commit{}}, "commit: title is required"},
+		{&dataset.Dataset{Commit: cm}, "structure is required"},
 		{&dataset.Dataset{Commit: cm, Structure: &dataset.Structure{}}, "structure: dataFormat is required"},
 		// {&dataset.Dataset{Commit: cm, Abstract: &dataset.Dataset{Metadata: &dataset.Metadata{}}}, "abstract field is not an abstract dataset. Metadata: nil: <not nil> != <nil>"},
-		{&dataset.Dataset{Commit: cm}, ""},
+		{&dataset.Dataset{Commit: cm, Structure: st}, ""},
 	}
 
 	for i, c := range cases {
