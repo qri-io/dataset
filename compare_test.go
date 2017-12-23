@@ -77,7 +77,8 @@ func TestCompareStructures(t *testing.T) {
 		{AirportCodes.Structure, nil, "nil: <not nil> != <nil>"},
 		{&Structure{Kind: "a"}, &Structure{Kind: "b"}, "Kind: a != b"},
 		{&Structure{Length: 0}, &Structure{Length: 1}, "Length: 0 != 1"},
-		{&Structure{Rows: 0}, &Structure{Rows: 1}, "Rows: 0 != 1"},
+		{&Structure{Entries: 0}, &Structure{Entries: 1}, "Entries: 0 != 1"},
+		{&Structure{Checksum: "a"}, &Structure{Checksum: "b"}, "Checksum: a != b"},
 		{&Structure{Format: CSVDataFormat}, &Structure{Format: UnknownDataFormat}, "Format: csv != "},
 		{&Structure{Encoding: "a"}, &Structure{Encoding: "b"}, "Encoding: a != b"},
 		{&Structure{Compression: compression.None}, &Structure{Compression: compression.Tar}, "Compression:  != tar"},
@@ -169,6 +170,7 @@ func TestCompareCommits(t *testing.T) {
 		{&Commit{Title: "a"}, &Commit{Title: "b"}, "Title: a != b"},
 		{&Commit{Message: "a"}, &Commit{Message: "b"}, "Message: a != b"},
 		{&Commit{Kind: "a"}, &Commit{Kind: "b"}, "Kind: a != b"},
+		{&Commit{Signature: "a"}, &Commit{Signature: "b"}, "Signature: a != b"},
 	}
 
 	for i, c := range cases {

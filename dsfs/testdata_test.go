@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"path/filepath"
 
 	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/cafs"
@@ -234,18 +235,15 @@ func makeFilestore() (map[string]datastore.Key, cafs.Filestore, error) {
 			return datasets, nil, err
 		}
 
-		rawdata, err := ioutil.ReadFile(fmt.Sprintf("testdata/%s.%s", k, ds.Structure.Format.String()))
+		dataPath := fmt.Sprintf("testdata/%s.%s", k, ds.Structure.Format.String())
+		data, err := ioutil.ReadFile(dataPath)
 		if err != nil {
 			return datasets, nil, err
 		}
 
-		datakey, err := fs.Put(memfs.NewMemfileBytes(k, rawdata), true)
-		if err != nil {
-			return datasets, nil, err
-		}
+		df := memfs.NewMemfileBytes(filepath.Base(dataPath), data)
 
-		ds.DataPath = datakey.String()
-		dskey, err := SaveDataset(fs, ds, true)
+		dskey, err := WriteDataset(fs, ds, df, true)
 		if err != nil {
 			return datasets, nil, err
 		}

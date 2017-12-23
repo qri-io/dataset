@@ -3,12 +3,18 @@ package dsfs
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"time"
 
 	"github.com/ipfs/go-datastore"
-	// "github.com/libp2p/go-libp2p-crypto"
+	"github.com/libp2p/go-libp2p-crypto"
+	"github.com/mr-tron/base58/base58"
+	"github.com/multiformats/go-multihash"
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/cafs/memfs"
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/dataset/dsio"
+	"github.com/qri-io/dataset/validate"
 )
 
 // LoadDataset reads a dataset from a cafs and dereferences structure, transform, and commitMsg if they exist,
@@ -18,17 +24,7 @@ func LoadDataset(store cafs.Filestore, path datastore.Key) (*dataset.Dataset, er
 	if err != nil {
 		return nil, fmt.Errorf("error loading dataset: %s", err.Error())
 	}
-
-	if err := DerefDatasetMetadata(store, ds); err != nil {
-		return nil, err
-	}
-	if err := DerefDatasetStructure(store, ds); err != nil {
-		return nil, err
-	}
-	if err := DerefDatasetTransform(store, ds); err != nil {
-		return nil, err
-	}
-	if err := DerefDatasetCommit(store, ds); err != nil {
+	if err := DerefDataset(store, ds); err != nil {
 		return nil, err
 	}
 
@@ -63,6 +59,23 @@ func LoadDatasetRefs(store cafs.Filestore, path datastore.Key) (*dataset.Dataset
 	ds.Assign(dataset.NewDatasetRef(path))
 
 	return ds, nil
+}
+
+// DerefDataset attempts to fully dereference a dataset
+func DerefDataset(store cafs.Filestore, ds *dataset.Dataset) error {
+	if err := DerefDatasetMetadata(store, ds); err != nil {
+		return err
+	}
+	if err := DerefDatasetStructure(store, ds); err != nil {
+		return err
+	}
+	if err := DerefDatasetTransform(store, ds); err != nil {
+		return err
+	}
+	if err := DerefDatasetCommit(store, ds); err != nil {
+		return err
+	}
+	return nil
 }
 
 // DerefDatasetStructure derferences a dataset's structure element if required
@@ -125,111 +138,88 @@ func DerefDatasetCommit(store cafs.Filestore, ds *dataset.Dataset) error {
 	return nil
 }
 
-// CreateDatasetParams defines parmeters for the CreateDataset function
-// type CreateDatasetParams struct {
-// 	// Store is where we're going to
-// 	Store cafs.Filestore
-// 	//
-// 	Dataset  *dataset.Dataset
-// 	DataFile cafs.File
-// 	PrivKey  crypto.PrivKey
-// }
+// CreateDataset places a new dataset in the store. Admittedly, this isn't a simple process.
+// Store is where we're going to
+// Dataset to be saved
+// Pin the dataset if the underlying store supports the pinning interface
+func CreateDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pk crypto.PrivKey, pin bool) (path datastore.Key, err error) {
+	if err = DerefDataset(store, ds); err != nil {
+		return
+	}
+	if err = validate.Dataset(ds); err != nil {
+		return
+	}
+	if err = prepareDataset(store, ds, df, pk); err != nil {
+		return
+	}
+	path, err = WriteDataset(store, ds, df, pin)
+	if err != nil {
+		err = fmt.Errorf("error writing dataset: %s", err.Error())
+	}
+	return
+}
 
-// CreateDataset is the canonical method for getting a dataset pointer & it's data into a store
-// func CreateDataset(p *CreateDatasetParams) (path datastore.Key, err error) {
-// 	// TODO - need a better strategy for huge files
-// 	data, err := ioutil.ReadAll(rdr)
-// 	if err != nil {
-// 		return fmt.Errorf("error reading file: %s", err.Error())
-// 	}
-
-// 	if err = PrepareDataset(p.Store, p.Dataset, p.DataFile); err != nil {
-// 		return
-// 	}
-
-// 	// Ensure that dataset is well-formed
-// 	// format, err := detect.ExtensionDataFormat(filename)
-// 	// if err != nil {
-// 	// 	return fmt.Errorf("error detecting format extension: %s", err.Error())
-// 	// }
-// 	// if err = validate.DataFormat(format, bytes.NewReader(data)); err != nil {
-// 	// 	return fmt.Errorf("invalid data format: %s", err.Error())
-// 	// }
-
-// 	// TODO - check for errors in dataset and warn user if errors exist
-
-// 	datakey, err := store.Put(memfs.NewMemfileBytes("data."+st.Format.String(), data), false)
-// 	if err != nil {
-// 		return fmt.Errorf("error putting data file in store: %s", err.Error())
-// 	}
-
-// 	ds.Timestamp = time.Now().In(time.UTC)
-// 	if ds.Title == "" {
-// 		ds.Title = name
-// 	}
-// 	ds.Data = datakey.String()
-
-// 	if err := validate.Dataset(ds); err != nil {
-// 		return err
-// 	}
-
-// 	dskey, err := SaveDataset(store, ds, true)
-// 	if err != nil {
-// 		return fmt.Errorf("error saving dataset: %s", err.Error())
-// 	}
-// }
+// timestamp is a function for getting commit timestamps
+// we replace this with a static function for testing purposes
+var timestamp = func() time.Time {
+	return time.Now()
+}
 
 // prepareDataset modifies a dataset in preparation for adding to a dsfs
-// func PrepareDataset(store cafs.Filestore, ds *dataset.Dataset, data cafs.File) error {
+func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, privKey crypto.PrivKey) error {
+	// TODO - need a better strategy for huge files. I think that strategy is to split
+	// the reader into multiple consumers that are all performing their task on a stream
+	// of byte slices
+	data, err := ioutil.ReadAll(df)
+	if err != nil {
+		return fmt.Errorf("error reading file: %s", err.Error())
+	}
+	ds.Structure.Length = len(data)
 
-// 	st, err := detect.FromReader(data.FileName(), data)
-// 	if err != nil {
-// 		return fmt.Errorf("error determining dataset schema: %s", err.Error())
-// 	}
-// 	if ds.Structure == nil {
-// 		ds.Structure = &dataset.Structure{}
-// 	}
-// 	ds.Structure.Assign(st, ds.Structure)
+	// TODO - add a dsio.RowCount function that avoids actually arranging data into rows
+	rr, err := dsio.NewRowReader(ds.Structure, memfs.NewMemfileBytes("data", data))
+	if err != nil {
+		return fmt.Errorf("error reading data rows: %s", err.Error())
+	}
 
-// 	// Ensure that dataset contains valid field names
-// 	if err = validate.Structure(st); err != nil {
-// 		return fmt.Errorf("invalid structure: %s", err.Error())
-// 	}
-// 	if err := validate.DataFormat(st.Format, bytes.NewReader(data)); err != nil {
-// 		return fmt.Errorf("invalid data format: %s", err.Error())
-// 	}
+	entries := 0
+	for err == nil {
+		entries++
+		_, err = rr.ReadRow()
+	}
+	if err.Error() != "EOF" {
+		return fmt.Errorf("error reading rows: %s", err.Error())
+	}
 
-// 	// generate abstract form of dataset
-// 	ds.Abstract = dataset.Abstract(ds)
+	ds.Structure.Entries = entries
 
-// 	if ds.AbstractTransform != nil {
-// 		// convert abstract transform to abstract references
-// 		for name, ref := range ds.AbstractTransform.Resources {
-// 			// data, _ := ref.MarshalJSON()
-// 			// fmt.Println(string(data))
-// 			if ref.Abstract != nil {
-// 				ds.AbstractTransform.Resources[name] = ref.Abstract
-// 			} else {
+	// TODO - set hash
+	shasum, err := multihash.Sum(data, multihash.SHA2_256, -1)
+	if err != nil {
+		return fmt.Errorf("error calculating hash: %s", err.Error())
+	}
+	ds.Structure.Checksum = shasum.B58String()
 
-// 				absf, err := JSONFile(PackageFileAbstract.String(), dataset.Abstract(ref))
-// 				if err != nil {
-// 					return err
-// 				}
-// 				path, err := store.Put(absf, true)
-// 				if err != nil {
-// 					return err
-// 				}
-// 				ds.AbstractTransform.Resources[name] = dataset.NewDatasetRef(path)
-// 			}
-// 		}
-// 	}
+	// generate abstract form of dataset
+	ds.Abstract = dataset.Abstract(ds)
 
-// 	return nil
-// }
+	ds.Commit.Timestamp = timestamp()
+	signedBytes, err := privKey.Sign(ds.Commit.SignableBytes())
+	if err != nil {
+		return fmt.Errorf("error signing commit title: %s", err.Error())
+	}
+	ds.Commit.Signature = base58.Encode(signedBytes)
 
-// SaveDataset writes a dataset to a cafs, replacing subcomponents of a dataset with hash references
-// during the write process. Directory structure is according to PackageFile naming conventions
-func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore.Key, error) {
+	// TODO - make sure file ending matches
+	df = memfs.NewMemfileBytes("data."+ds.Structure.Format.String(), data)
+	return nil
+}
+
+// WriteDataset writes a dataset to a cafs, replacing subcomponents of a dataset with path references
+// during the write process. Directory structure is according to PackageFile naming conventions.
+// This method is currently exported, but 99% of use cases should use CreateDataset instead of this
+// lower-level function
+func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File, pin bool) (datastore.Key, error) {
 	// assign to a new dataset instance to avoid clobbering input dataset
 	cp := &dataset.Dataset{}
 	cp.Assign(ds)
@@ -247,11 +237,14 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 	}
 
 	if ds.AbstractTransform != nil {
-		// ensure all dataset references are abstract
-		for key, r := range ds.AbstractTransform.Resources {
-			if !r.IsEmpty() {
-				return datastore.NewKey(""), fmt.Errorf("abstract transform resource '%s' is not a reference", key)
+		// convert abstract transform to abstract references
+		for name, ref := range ds.AbstractTransform.Resources {
+			absrf, err := JSONFile(fmt.Sprintf("ref_%s.json", name), dataset.Abstract(ref))
+			if err != nil {
+				return datastore.NewKey(""), fmt.Errorf("error marshaling dataset resource '%s' to json: %s", name, err.Error())
 			}
+			fileTasks++
+			adder.AddFile(absrf)
 		}
 		abstff, err := JSONFile(PackageFileAbstractTransform.String(), ds.AbstractTransform)
 		if err != nil {
@@ -271,19 +264,8 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 		adder.AddFile(mdf)
 	}
 
-	// if dataset contains no references, place directly in.
-	// TODO - this might not constitute a valid dataset. should we be
-	// validating datasets in here?
-	// if ds.Transform == nil && ds.Structure == nil {
-	// 	dsf, err := JSONFile(PackageFileDataset.String(), ds)
-	// 	if err != nil {
-	// 		return datastore.NewKey(""), fmt.Errorf("error marshaling dataset to json: %s", err.Error())
-	// 	}
-
-	// 	fileTasks++
-	// 	adder.AddFile(dsf)
-	// 	addedDataset = true
-	// }
+	fileTasks++
+	adder.AddFile(dataFile)
 
 	if ds.Transform != nil {
 		// all resources must be references
@@ -348,6 +330,16 @@ func SaveDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (datastore
 				ds.Metadata = dataset.NewMetadataRef(ao.Path)
 			case PackageFileCommit.String():
 				ds.Commit = dataset.NewCommitRef(ao.Path)
+			case dataFile.FileName():
+				ds.DataPath = ao.Path.String()
+			default:
+				if ds.AbstractTransform != nil {
+					for name := range ds.AbstractTransform.Resources {
+						if ao.Name == fmt.Sprintf("ref_%s.json", name) {
+							ds.AbstractTransform.Resources[name] = dataset.NewDatasetRef(ao.Path)
+						}
+					}
+				}
 			}
 
 			fileTasks--

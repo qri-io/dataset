@@ -13,13 +13,17 @@ import (
 // to be directly analogous to the concept of a Commit Message in the
 // git version control system
 type Commit struct {
-	path    datastore.Key
-	Author  *User  `json:"author,omitempty"`
-	Kind    Kind   `json:"kind,omitempty"`
+	path   datastore.Key
+	Author *User `json:"author,omitempty"`
+	Kind   Kind  `json:"kind,omitempty"`
+	// Message is an optional
 	Message string `json:"message,omitempty"`
-	// Time this dataset was created. Required. Datasets are immutable, so no "updated"
-	Timestamp time.Time `json:"timestamp,omitempty"`
-	Title     string    `json:"title"`
+	// Signature is a base58 encoded privateKey signing of Title
+	Signature string `json:"signature,omitempty"`
+	// Time this dataset was created. Required.
+	Timestamp time.Time `json:"timestamp"`
+	// Title of the commit. Required.
+	Title string `json:"title"`
 }
 
 // NewCommitRef creates an empty struct with it's
@@ -36,6 +40,11 @@ func (cm *Commit) IsEmpty() bool {
 // Path returns the internal path of this commitMsg
 func (cm *Commit) Path() datastore.Key {
 	return cm.path
+}
+
+// SignableBytes produces the portion of a commit message used for signing
+func (cm *Commit) SignableBytes() []byte {
+	return []byte(fmt.Sprintf("%s\n%s", cm.Timestamp.Format(time.RFC3339), cm.Title))
 }
 
 // Assign collapses all properties of a set of Commit onto one.
@@ -61,6 +70,9 @@ func (cm *Commit) Assign(msgs ...*Commit) {
 		if m.Message != "" {
 			cm.Message = m.Message
 		}
+		if m.Signature != "" {
+			cm.Signature = m.Signature
+		}
 		if m.Kind.String() != "" {
 			cm.Kind = m.Kind
 		}
@@ -84,6 +96,7 @@ func (cm *Commit) MarshalJSON() ([]byte, error) {
 		Author:    cm.Author,
 		Kind:      kind,
 		Message:   cm.Message,
+		Signature: cm.Signature,
 		Timestamp: cm.Timestamp,
 		Title:     cm.Title,
 	}

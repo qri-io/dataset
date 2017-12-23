@@ -30,6 +30,7 @@ func TestCommitAssign(t *testing.T) {
 		Timestamp: t1,
 		Title:     "expect title",
 		Message:   "expect message",
+		Signature: "sig",
 	}
 	got := &Commit{
 		Author:  &User{ID: "maha_id", Email: "maha@example.com"},
@@ -45,6 +46,7 @@ func TestCommitAssign(t *testing.T) {
 		path:      datastore.NewKey("a"),
 		Timestamp: t1,
 		Message:   "expect message",
+		Signature: "sig",
 	})
 
 	if err := CompareCommits(expect, got); err != nil {
@@ -60,6 +62,19 @@ func TestCommitAssign(t *testing.T) {
 	emptyMsg.Assign(expect)
 	if err := CompareCommits(expect, emptyMsg); err != nil {
 		t.Error(err)
+	}
+}
+
+func TestCommitSignableBytes(t *testing.T) {
+	expect := []byte("2001-01-01T01:01:01Z\nI'm a commit message")
+	cm := &Commit{
+		Timestamp: time.Date(2001, 01, 01, 01, 01, 01, 0, time.UTC),
+		Title:     "I'm a commit message",
+	}
+	got := cm.SignableBytes()
+
+	if !bytes.Equal(expect, got) {
+		t.Errorf("mismatch. expected:\n'%s',got:\n'%s'", string(expect), string(got))
 	}
 }
 

@@ -140,8 +140,11 @@ func CompareStructures(a, b *Structure) error {
 	if a.Length != b.Length {
 		return fmt.Errorf("Length: %d != %d", a.Length, b.Length)
 	}
-	if a.Rows != b.Rows {
-		return fmt.Errorf("Rows: %d != %d", a.Rows, b.Rows)
+	if a.Checksum != b.Checksum {
+		return fmt.Errorf("Checksum: %s != %s", a.Checksum, b.Checksum)
+	}
+	if a.Entries != b.Entries {
+		return fmt.Errorf("Entries: %d != %d", a.Entries, b.Entries)
 	}
 	if a.Encoding != b.Encoding {
 		return fmt.Errorf("Encoding: %s != %s", a.Encoding, b.Encoding)
@@ -238,6 +241,9 @@ func CompareCommits(a, b *Commit) error {
 	}
 	if !a.Timestamp.Equal(b.Timestamp) {
 		return fmt.Errorf("Timestamp: %s != %s", a.Timestamp, b.Timestamp)
+	}
+	if a.Signature != b.Signature {
+		return fmt.Errorf("Signature: %s != %s", a.Signature, b.Signature)
 	}
 	if a.Message != b.Message {
 		return fmt.Errorf("Message: %s != %s", a.Message, b.Message)

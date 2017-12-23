@@ -17,27 +17,32 @@ import (
 type Structure struct {
 	// private storage for reference to this object
 	path datastore.Key
-	// Kind should always be KindStructure
-	Kind `json:"kind"`
-	// Length is the length of the data object in bytes.
-	// must always match & be present
-	Length int `json:"length,omitempty"`
-	// number of rows in the dataset.
-	// required and must match underlying dataset.
-	Rows int `json:"rows"`
+	// Checksum is a bas58-encoded multihash checksum of the data
+	// file this structure points to. This is different from IPFS
+	// hashes, which are calculated after breaking the file into blocks
+	Checksum string `json:"checksum,omitempty"`
+	// Compression specifies any compression on the source data,
+	// if empty assume no compression
+	Compression compression.Type `json:"compression,omitempty"`
+	// Encoding specifics character encoding
+	// should assume utf-8 if not specified
+	Encoding string `json:"encoding,omitempty"`
+	// Entries is number of top-level entries in the dataset. With tablular data
+	// this is the same as the number of rows
+	// required when structure is concrete, and must match underlying dataset.
+	Entries int `json:"entries,omitempty"`
 	// Format specifies the format of the raw data MIME type
 	Format DataFormat `json:"format"`
 	// FormatConfig removes as much ambiguity as possible about how
 	// to interpret the speficied format.
 	FormatConfig FormatConfig `json:"formatConfig,omitempty"`
-	// Encoding specifics character encoding
-	// should assume utf-8 if not specified
-	Encoding string `json:"encoding,omitempty"`
-	// Compression specifies any compression on the source data,
-	// if empty assume no compression
-	Compression compression.Type `json:"compression,omitempty"`
+	// Kind should always be KindStructure
+	Kind Kind `json:"kind"`
+	// Length is the length of the data object in bytes.
+	// must always match & be present
+	Length int `json:"length,omitempty"`
 	// Schema contains the schema definition for the underlying data
-	Schema *Schema `json:"schema"`
+	Schema *Schema `json:"schema,omitempty"`
 }
 
 // Path gives the internal path reference for this structure
@@ -86,11 +91,14 @@ func (s *Structure) Hash() (string, error) {
 // separate type for marshalling into & out of
 // most importantly, struct names must be sorted lexographically
 type _structure struct {
+	Checksum     string                 `json:"checksum,omitempty"`
 	Compression  compression.Type       `json:"compression,omitempty"`
 	Encoding     string                 `json:"encoding,omitempty"`
-	Format       DataFormat             `json:"format,omitempty"`
+	Entries      int                    `json:"entries,omitempty"`
+	Format       DataFormat             `json:"format"`
 	FormatConfig map[string]interface{} `json:"formatConfig,omitempty"`
 	Kind         Kind                   `json:"kind"`
+	Length       int                    `json:"length,omitempty"`
 	Schema       *Schema                `json:"schema,omitempty"`
 }
 
@@ -111,11 +119,14 @@ func (s Structure) MarshalJSON() (data []byte, err error) {
 	}
 
 	return json.Marshal(&_structure{
+		Checksum:     s.Checksum,
 		Compression:  s.Compression,
 		Encoding:     s.Encoding,
+		Entries:      s.Entries,
 		Format:       s.Format,
 		FormatConfig: opt,
 		Kind:         kind,
+		Length:       s.Length,
 		Schema:       s.Schema,
 	})
 }
@@ -145,11 +156,14 @@ func (s *Structure) UnmarshalJSON(data []byte) (err error) {
 	}
 
 	*s = Structure{
+		Checksum:     _s.Checksum,
 		Compression:  _s.Compression,
 		Encoding:     _s.Encoding,
+		Entries:      _s.Entries,
 		Format:       _s.Format,
 		FormatConfig: fmtCfg,
 		Kind:         _s.Kind,
+		Length:       _s.Length,
 		Schema:       _s.Schema,
 	}
 	return nil
@@ -157,7 +171,14 @@ func (s *Structure) UnmarshalJSON(data []byte) (err error) {
 
 // IsEmpty checks to see if structure has any fields other than the internal path
 func (s *Structure) IsEmpty() bool {
-	return s.Format == UnknownDataFormat && s.FormatConfig == nil && s.Encoding == "" && s.Schema == nil
+	return s.Checksum == "" &&
+		s.Compression == compression.None &&
+		s.Encoding == "" &&
+		s.Entries == 0 &&
+		s.Format == UnknownDataFormat &&
+		s.FormatConfig == nil &&
+		s.Length == 0 &&
+		s.Schema == nil
 }
 
 // Assign collapses all properties of a group of structures on to one
@@ -171,11 +192,17 @@ func (s *Structure) Assign(structures ...*Structure) {
 		if st.path.String() != "" {
 			s.path = st.path
 		}
-		if st.Length != 0 {
-			s.Length = st.Length
+		if st.Checksum != "" {
+			s.Checksum = st.Checksum
 		}
-		if st.Rows != 0 {
-			s.Rows = st.Rows
+		if st.Compression != compression.None {
+			s.Compression = st.Compression
+		}
+		if st.Encoding != "" {
+			s.Encoding = st.Encoding
+		}
+		if st.Entries != 0 {
+			s.Entries = st.Entries
 		}
 		if st.Format != UnknownDataFormat {
 			s.Format = st.Format
@@ -183,13 +210,12 @@ func (s *Structure) Assign(structures ...*Structure) {
 		if st.FormatConfig != nil {
 			s.FormatConfig = st.FormatConfig
 		}
-		if st.Encoding != "" {
-			s.Encoding = st.Encoding
+		if st.Kind != "" {
+			s.Kind = st.Kind
 		}
-		if st.Compression != compression.None {
-			s.Compression = st.Compression
+		if st.Length != 0 {
+			s.Length = st.Length
 		}
-
 		if st.Schema != nil {
 			if s.Schema == nil {
 				s.Schema = &Schema{}
