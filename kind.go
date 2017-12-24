@@ -15,8 +15,8 @@ const KindPrefix = "qri:"
 const (
 	// KindDataset is the current kind for datasets
 	KindDataset = Kind("qri:ds:0")
-	// KindMetadata is the current kind for metadata
-	KindMetadata = Kind("qri:md:0")
+	// KindMeta is the current kind for metadata
+	KindMeta = Kind("qri:md:0")
 	// KindStructure is the current kind for dataset structures
 	KindStructure = Kind("qri:st:0")
 	// KindTransform is the current kind for dataset transforms

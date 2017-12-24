@@ -6,8 +6,8 @@ import (
 
 var AirportCodes = &Dataset{
 	Kind: KindDataset,
-	Metadata: &Metadata{
-		Kind:     KindMetadata,
+	Meta: &Meta{
+		Kind:     KindMeta,
 		Title:    "Airport Codes",
 		HomePath: "http://www.ourairports.com/",
 		License: &License{
@@ -29,7 +29,7 @@ var AirportCodesAbstract = &Dataset{
 	Structure: AirportCodesStructureAbstract,
 }
 
-const AirportCodesJSON = `{"commit":{"kind":"qri:cm:0","timestamp":"0001-01-01T00:00:00Z","title":"initial commit"},"kind":"qri:ds:0","metadata":{"citations":[{"name":"Our Airports","url":"http://ourairports.com/data/"}],"homePath":"http://www.ourairports.com/","kind":"qri:md:0","license":"PDDL-1.0","title":"Airport Codes"},"structure":{"format":"csv","formatConfig":{"headerRow":true},"kind":"qri:st:0","schema":{"fields":[{"name":"ident","type":"string"},{"name":"type","type":"string"},{"name":"name","type":"string"},{"name":"latitude_deg","type":"float"},{"name":"longitude_deg","type":"float"},{"name":"elevation_ft","type":"integer"},{"name":"continent","type":"string"},{"name":"iso_country","type":"string"},{"name":"iso_region","type":"string"},{"name":"municipality","type":"string"},{"name":"gps_code","type":"string"},{"name":"iata_code","type":"string"},{"name":"local_code","type":"string"}]}}}`
+const AirportCodesJSON = `{"commit":{"kind":"qri:cm:0","timestamp":"0001-01-01T00:00:00Z","title":"initial commit"},"kind":"qri:ds:0","meta":{"citations":[{"name":"Our Airports","url":"http://ourairports.com/data/"}],"homePath":"http://www.ourairports.com/","kind":"qri:md:0","license":"PDDL-1.0","title":"Airport Codes"},"structure":{"format":"csv","formatConfig":{"headerRow":true},"kind":"qri:st:0","schema":{"fields":[{"name":"ident","type":"string"},{"name":"type","type":"string"},{"name":"name","type":"string"},{"name":"latitude_deg","type":"float"},{"name":"longitude_deg","type":"float"},{"name":"elevation_ft","type":"integer"},{"name":"continent","type":"string"},{"name":"iso_country","type":"string"},{"name":"iso_region","type":"string"},{"name":"municipality","type":"string"},{"name":"gps_code","type":"string"},{"name":"iata_code","type":"string"},{"name":"local_code","type":"string"}]}}}`
 
 var AirportCodesStructure = &Structure{
 	Format: CSVDataFormat,
@@ -158,9 +158,9 @@ var AirportCodesStructureAbstract = &Structure{
 
 var ContinentCodes = &Dataset{
 	Kind: KindDataset,
-	Metadata: &Metadata{
+	Meta: &Meta{
 		Title:       "Continent Codes",
-		Kind:        KindMetadata,
+		Kind:        KindMeta,
 		Description: "list of continents with corresponding two letter codes",
 		License: &License{
 			Type: "odc-pddl",
@@ -193,9 +193,9 @@ var ContinentCodesStructure = &Structure{
 
 var Hours = &Dataset{
 	Kind: KindDataset,
-	Metadata: &Metadata{
+	Meta: &Meta{
 		Title:        "hours",
-		Kind:         KindMetadata,
+		Kind:         KindMeta,
 		AccessPath:   "https://example.com/not/a/url",
 		DownloadPath: "https://example.com/not/a/url",
 		ReadmePath:   "/ipfs/notahash",

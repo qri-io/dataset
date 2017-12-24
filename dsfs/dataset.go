@@ -63,7 +63,7 @@ func LoadDatasetRefs(store cafs.Filestore, path datastore.Key) (*dataset.Dataset
 
 // DerefDataset attempts to fully dereference a dataset
 func DerefDataset(store cafs.Filestore, ds *dataset.Dataset) error {
-	if err := DerefDatasetMetadata(store, ds); err != nil {
+	if err := DerefDatasetMeta(store, ds); err != nil {
 		return err
 	}
 	if err := DerefDatasetStructure(store, ds); err != nil {
@@ -108,17 +108,17 @@ func DerefDatasetTransform(store cafs.Filestore, ds *dataset.Dataset) error {
 	return nil
 }
 
-// DerefDatasetMetadata derferences a dataset's transform element if required
+// DerefDatasetMeta derferences a dataset's transform element if required
 // should be a no-op if ds.Structure is nil or isn't a reference
-func DerefDatasetMetadata(store cafs.Filestore, ds *dataset.Dataset) error {
-	if ds.Metadata != nil && ds.Metadata.IsEmpty() && ds.Metadata.Path().String() != "" {
-		md, err := LoadMetadata(store, ds.Metadata.Path())
+func DerefDatasetMeta(store cafs.Filestore, ds *dataset.Dataset) error {
+	if ds.Meta != nil && ds.Meta.IsEmpty() && ds.Meta.Path().String() != "" {
+		md, err := LoadMeta(store, ds.Meta.Path())
 		if err != nil {
 			return fmt.Errorf("error loading dataset metadata: %s", err.Error())
 		}
 		// assign path to retain internal reference to path
-		md.Assign(dataset.NewMetadataRef(ds.Metadata.Path()))
-		ds.Metadata = md
+		md.Assign(dataset.NewMetaRef(ds.Meta.Path()))
+		ds.Meta = md
 	}
 	return nil
 }
@@ -255,8 +255,8 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File,
 		adder.AddFile(abstff)
 	}
 
-	if ds.Metadata != nil {
-		mdf, err := JSONFile(PackageFileMetadata.String(), ds.Metadata)
+	if ds.Meta != nil {
+		mdf, err := JSONFile(PackageFileMeta.String(), ds.Meta)
 		if err != nil {
 			return datastore.NewKey(""), fmt.Errorf("error marshaling metadata to json: %s", err.Error())
 		}
@@ -326,8 +326,8 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File,
 				ds.Transform = dataset.NewTransformRef(ao.Path)
 			case PackageFileAbstractTransform.String():
 				ds.AbstractTransform = dataset.NewTransformRef(ao.Path)
-			case PackageFileMetadata.String():
-				ds.Metadata = dataset.NewMetadataRef(ao.Path)
+			case PackageFileMeta.String():
+				ds.Meta = dataset.NewMetaRef(ao.Path)
 			case PackageFileCommit.String():
 				ds.Commit = dataset.NewCommitRef(ao.Path)
 			case dataFile.FileName():

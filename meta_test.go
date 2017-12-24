@@ -10,79 +10,79 @@ import (
 	"github.com/ipfs/go-datastore"
 )
 
-func TestMetadataAssign(t *testing.T) {
+func TestMetaAssign(t *testing.T) {
 	// TODO - expand test to check all fields
 	cases := []struct {
-		in *Metadata
+		in *Meta
 	}{
-		{&Metadata{path: datastore.NewKey("/a")}},
-		{&Metadata{AccessPath: "foo"}},
-		{&Metadata{DownloadPath: "foo"}},
-		{&Metadata{ReadmePath: "foo"}},
-		{&Metadata{AccrualPeriodicity: "1W"}},
-		{&Metadata{Citations: []*Citation{&Citation{Email: "foo"}}}},
-		{&Metadata{Description: "foo"}},
-		{&Metadata{HomePath: "foo"}},
-		{&Metadata{Identifier: "foo"}},
-		{&Metadata{License: &License{Type: "foo"}}},
-		{&Metadata{Version: "foo"}},
-		{&Metadata{Keywords: []string{"foo"}}},
-		{&Metadata{Contributors: []*User{&User{Email: "foo"}}}},
-		{&Metadata{Language: []string{"stuff"}}},
-		{&Metadata{Theme: []string{"stuff"}}},
-		{&Metadata{meta: map[string]interface{}{"foo": "bar"}}},
+		{&Meta{path: datastore.NewKey("/a")}},
+		{&Meta{AccessPath: "foo"}},
+		{&Meta{DownloadPath: "foo"}},
+		{&Meta{ReadmePath: "foo"}},
+		{&Meta{AccrualPeriodicity: "1W"}},
+		{&Meta{Citations: []*Citation{&Citation{Email: "foo"}}}},
+		{&Meta{Description: "foo"}},
+		{&Meta{HomePath: "foo"}},
+		{&Meta{Identifier: "foo"}},
+		{&Meta{License: &License{Type: "foo"}}},
+		{&Meta{Version: "foo"}},
+		{&Meta{Keywords: []string{"foo"}}},
+		{&Meta{Contributors: []*User{&User{Email: "foo"}}}},
+		{&Meta{Language: []string{"stuff"}}},
+		{&Meta{Theme: []string{"stuff"}}},
+		{&Meta{meta: map[string]interface{}{"foo": "bar"}}},
 	}
 
 	for i, c := range cases {
-		got := &Metadata{}
+		got := &Meta{}
 		got.Assign(c.in)
-		if err := CompareMetadatas(c.in, got); err != nil {
+		if err := CompareMetas(c.in, got); err != nil {
 			t.Errorf("case %d error: %s", i, err.Error())
 			continue
 		}
 	}
 
-	expect := &Metadata{
+	expect := &Meta{
 		Title:       "Final Title",
 		Description: "Final Description",
 		AccessPath:  "AccessPath",
 	}
-	got := &Metadata{
+	got := &Meta{
 		Title:       "Overwrite Me",
 		Description: "Nope",
 	}
 
-	got.Assign(&Metadata{
+	got.Assign(&Meta{
 		Title:       "Final Title",
 		Description: "Final Description",
 		AccessPath:  "AccessPath",
 	})
 
-	if err := CompareMetadatas(expect, got); err != nil {
+	if err := CompareMetas(expect, got); err != nil {
 		t.Error(err)
 	}
 
 	got.Assign(nil, nil)
-	if err := CompareMetadatas(expect, got); err != nil {
+	if err := CompareMetas(expect, got); err != nil {
 		t.Error(err)
 	}
 
-	emptyDs := &Metadata{}
+	emptyDs := &Meta{}
 	emptyDs.Assign(expect)
-	if err := CompareMetadatas(expect, emptyDs); err != nil {
+	if err := CompareMetas(expect, emptyDs); err != nil {
 		t.Error(err)
 	}
 }
 
-func TestMetadataMarshalJSON(t *testing.T) {
+func TestMetaMarshalJSON(t *testing.T) {
 	cases := []struct {
-		in  *Metadata
+		in  *Meta
 		out []byte
 		err error
 	}{
-		{&Metadata{}, []byte(`{"kind":"qri:md:0"}`), nil},
-		{AirportCodes.Metadata, []byte(`{"citations":[{"name":"Our Airports","url":"http://ourairports.com/data/"}],"homePath":"http://www.ourairports.com/","kind":"qri:md:0","license":"PDDL-1.0","title":"Airport Codes"}`), nil},
-		{Hours.Metadata, []byte(`{"accessPath":"https://example.com/not/a/url","downloadPath":"https://example.com/not/a/url","kind":"qri:md:0","readmePath":"/ipfs/notahash","title":"hours"}`), nil},
+		{&Meta{}, []byte(`{"kind":"qri:md:0"}`), nil},
+		{AirportCodes.Meta, []byte(`{"citations":[{"name":"Our Airports","url":"http://ourairports.com/data/"}],"homePath":"http://www.ourairports.com/","kind":"qri:md:0","license":"PDDL-1.0","title":"Airport Codes"}`), nil},
+		{Hours.Meta, []byte(`{"accessPath":"https://example.com/not/a/url","downloadPath":"https://example.com/not/a/url","kind":"qri:md:0","readmePath":"/ipfs/notahash","title":"hours"}`), nil},
 	}
 
 	for i, c := range cases {
@@ -103,7 +103,7 @@ func TestMetadataMarshalJSON(t *testing.T) {
 		t.Errorf("error reading dataset file: %s", err.Error())
 		return
 	}
-	ds := &Metadata{}
+	ds := &Meta{}
 	if err := json.Unmarshal(data, &ds); err != nil {
 		t.Errorf("error unmarshaling json: %s", err.Error())
 		return
@@ -113,7 +113,7 @@ func TestMetadataMarshalJSON(t *testing.T) {
 		return
 	}
 
-	strbytes, err := json.Marshal(&Metadata{path: datastore.NewKey("/path/to/dataset")})
+	strbytes, err := json.Marshal(&Meta{path: datastore.NewKey("/path/to/dataset")})
 	if err != nil {
 		t.Errorf("unexpected string marshal error: %s", err.Error())
 		return
@@ -124,15 +124,15 @@ func TestMetadataMarshalJSON(t *testing.T) {
 	}
 }
 
-func TestMetadataUnmarshalJSON(t *testing.T) {
+func TestMetaUnmarshalJSON(t *testing.T) {
 	cases := []struct {
 		FileName string
-		result   *Metadata
+		result   *Meta
 		err      error
 	}{
-		{"testdata/metadata/airport-codes.json", AirportCodes.Metadata, nil},
-		{"testdata/metadata/continent-codes.json", ContinentCodes.Metadata, nil},
-		{"testdata/metadata/hours.json", Hours.Metadata, nil},
+		{"testdata/metadata/airport-codes.json", AirportCodes.Meta, nil},
+		{"testdata/metadata/continent-codes.json", ContinentCodes.Meta, nil},
+		{"testdata/metadata/hours.json", Hours.Meta, nil},
 	}
 
 	for i, c := range cases {
@@ -141,19 +141,19 @@ func TestMetadataUnmarshalJSON(t *testing.T) {
 			t.Errorf("case %d couldn't read file: %s", i, err.Error())
 		}
 
-		ds := &Metadata{}
+		ds := &Meta{}
 		if err := json.Unmarshal(data, ds); err != c.err {
 			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
 			continue
 		}
 
-		if err = CompareMetadatas(ds, c.result); err != nil {
+		if err = CompareMetas(ds, c.result); err != nil {
 			t.Errorf("case %d resource comparison error: %s", i, err)
 			continue
 		}
 	}
 
-	strds := &Metadata{}
+	strds := &Meta{}
 	path := "/path/to/dataset"
 	if err := json.Unmarshal([]byte(`"`+path+`"`), strds); err != nil {
 		t.Errorf("unmarshal string path error: %s", err.Error())
@@ -166,26 +166,26 @@ func TestMetadataUnmarshalJSON(t *testing.T) {
 	}
 }
 
-func TestUnmarshalMetadata(t *testing.T) {
-	dsa := Metadata{Kind: KindMetadata}
+func TestUnmarshalMeta(t *testing.T) {
+	dsa := Meta{Kind: KindMeta}
 	cases := []struct {
 		value interface{}
-		out   *Metadata
+		out   *Meta
 		err   string
 	}{
 		{dsa, &dsa, ""},
 		{&dsa, &dsa, ""},
-		{[]byte("{\"kind\":\"qri:md:0\"}"), &Metadata{Kind: KindMetadata}, ""},
+		{[]byte("{\"kind\":\"qri:md:0\"}"), &Meta{Kind: KindMeta}, ""},
 		{5, nil, "couldn't parse metadata, value is invalid type"},
 	}
 
 	for i, c := range cases {
-		got, err := UnmarshalMetadata(c.value)
+		got, err := UnmarshalMeta(c.value)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
 			continue
 		}
-		if err := CompareMetadatas(c.out, got); err != nil {
+		if err := CompareMetas(c.out, got); err != nil {
 			t.Errorf("case %d metadata mismatch: %s", i, err.Error())
 			continue
 		}

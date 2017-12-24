@@ -8,8 +8,8 @@ import (
 	"github.com/ipfs/go-datastore"
 )
 
-// Metadata contains all human-readable metadata about a dataset
-type Metadata struct {
+// Meta contains all human-readable metadata about a dataset
+type Meta struct {
 	// private storage for reference to this object
 	path datastore.Key
 	// meta holds additional arbitrarty metadata not covered by the spec
@@ -54,7 +54,7 @@ type Metadata struct {
 }
 
 // IsEmpty checks to see if dataset has any fields other than the internal path
-func (md *Metadata) IsEmpty() bool {
+func (md *Meta) IsEmpty() bool {
 	return md.Title == "" &&
 		md.Description == "" &&
 		md.AccessPath == "" &&
@@ -74,34 +74,34 @@ func (md *Metadata) IsEmpty() bool {
 }
 
 // Path gives the internal path reference for this dataset
-func (md *Metadata) Path() datastore.Key {
+func (md *Meta) Path() datastore.Key {
 	return md.path
 }
 
-// NewMetadataRef creates a Metadata pointer with the internal
+// NewMetaRef creates a Meta pointer with the internal
 // path property specified, and no other fields.
-func NewMetadataRef(path datastore.Key) *Metadata {
-	return &Metadata{path: path}
+func NewMetaRef(path datastore.Key) *Meta {
+	return &Meta{path: path}
 }
 
 // Meta gives access to additional metadata not covered by dataset metadata
-func (md *Metadata) Meta() map[string]interface{} {
+func (md *Meta) Meta() map[string]interface{} {
 	if md.meta == nil {
 		md.meta = map[string]interface{}{}
 	}
 	return md.meta
 }
 
-// UnmarshalMetadata tries to extract a metadata type from an empty
+// UnmarshalMeta tries to extract a metadata type from an empty
 // interface. Pairs nicely with datastore.Get() from github.com/ipfs/go-datastore
-func UnmarshalMetadata(v interface{}) (*Metadata, error) {
+func UnmarshalMeta(v interface{}) (*Meta, error) {
 	switch r := v.(type) {
-	case *Metadata:
+	case *Meta:
 		return r, nil
-	case Metadata:
+	case Meta:
 		return &r, nil
 	case []byte:
-		metadata := &Metadata{}
+		metadata := &Meta{}
 		err := json.Unmarshal(r, metadata)
 		return metadata, err
 	default:
@@ -111,7 +111,7 @@ func UnmarshalMetadata(v interface{}) (*Metadata, error) {
 
 // Assign collapses all properties of a group of metadata structs onto one.
 // this is directly inspired by Javascript's Object.assign
-func (md *Metadata) Assign(metas ...*Metadata) {
+func (md *Meta) Assign(metas ...*Meta) {
 	for _, m := range metas {
 		if m == nil {
 			continue
@@ -176,7 +176,7 @@ func (md *Metadata) Assign(metas ...*Metadata) {
 
 // MarshalJSON uses a map to combine meta & standard fields.
 // Marshalling a map[string]interface{} automatically alpha-sorts the keys.
-func (md *Metadata) MarshalJSON() ([]byte, error) {
+func (md *Meta) MarshalJSON() ([]byte, error) {
 	// if we're dealing with an empty object that has a path specified, marshal to a string instead
 	// TODO - check all fielmd
 	if md.path.String() != "" && md.IsEmpty() {
@@ -185,7 +185,7 @@ func (md *Metadata) MarshalJSON() ([]byte, error) {
 
 	data := md.Meta()
 
-	data["kind"] = KindMetadata
+	data["kind"] = KindMeta
 
 	if md.AccessPath != "" {
 		data["accessPath"] = md.AccessPath
@@ -237,14 +237,14 @@ func (md *Metadata) MarshalJSON() ([]byte, error) {
 }
 
 // internal struct for json unmarshaling
-type _metadata Metadata
+type _metadata Meta
 
 // UnmarshalJSON implements json.Unmarshaller
-func (md *Metadata) UnmarshalJSON(data []byte) error {
+func (md *Meta) UnmarshalJSON(data []byte) error {
 	// first check to see if this is a valid path ref
 	var path string
 	if err := json.Unmarshal(data, &path); err == nil {
-		*md = Metadata{path: datastore.NewKey(path)}
+		*md = Meta{path: datastore.NewKey(path)}
 		return nil
 	}
 
@@ -285,7 +285,7 @@ func (md *Metadata) UnmarshalJSON(data []byte) error {
 	}
 
 	d.meta = meta
-	*md = Metadata(d)
+	*md = Meta(d)
 	return nil
 }
 

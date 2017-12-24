@@ -14,7 +14,7 @@ import (
 )
 
 var AirportCodes = &dataset.Dataset{
-	Metadata: &dataset.Metadata{
+	Meta: &dataset.Meta{
 		Title:    "Airport Codes",
 		HomePath: "http://www.ourairports.com/",
 		License: &dataset.License{
@@ -163,8 +163,8 @@ var AirportCodesStructureAgebraic = &dataset.Structure{
 
 var ContinentCodes = &dataset.Dataset{
 	Kind: dataset.KindDataset,
-	Metadata: &dataset.Metadata{
-		Kind:        dataset.KindMetadata,
+	Meta: &dataset.Meta{
+		Kind:        dataset.KindMeta,
 		Title:       "Continent Codes",
 		Description: "list of continents with corresponding two letter codes",
 		License: &dataset.License{
@@ -197,7 +197,7 @@ var ContinentCodesStructure = &dataset.Structure{
 }
 
 var Hours = &dataset.Dataset{
-	Metadata: &dataset.Metadata{
+	Meta: &dataset.Meta{
 		Title: "hours",
 	},
 	// Data:   datastore.NewKey("/ipfs/QmS1dVa1xemo7gQzJgjimj1WwnVBF3TwRTGsyKa1uEBWbJ"),

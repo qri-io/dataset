@@ -1,6 +1,6 @@
 {
   "kind": "qri:ds:0",
-  "metadata": {
+  "meta": {
     "title": "dataset with all submodels example",
     "description": "foo",
     "accessUrl": "foo",

@@ -4,7 +4,7 @@
     "kind": "qri:cm:0",
     "title": "I'm a commit"
   },
-  "metadata": {
+  "meta": {
     "kind": "qri:md:0",
     "title": "dataset with all submodels example"
   },

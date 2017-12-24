@@ -37,8 +37,8 @@ type Dataset struct {
 	DataPath string `json:"dataPath,omitempty"`
 	// Kind is required, must be qri:ds:[version]
 	Kind Kind `json:"kind"`
-	// Meta contains all human-readable metadata about this dataset
-	Metadata *Metadata `json:"metadata,omitempty"`
+	// Meta contains all human-readable meta about this dataset
+	Meta *Meta `json:"meta,omitempty"`
 	// PreviousPath connects datasets to form a historical DAG
 	PreviousPath string `json:"previousPath,omitempty"`
 	// Structure of this dataset
@@ -54,7 +54,7 @@ func (ds *Dataset) IsEmpty() bool {
 		ds.Commit == nil &&
 		ds.Structure == nil &&
 		ds.DataPath == "" &&
-		ds.Metadata == nil &&
+		ds.Meta == nil &&
 		ds.PreviousPath == "" &&
 		ds.Transform == nil
 }
@@ -98,10 +98,10 @@ func (ds *Dataset) Assign(datasets ...*Dataset) {
 		} else if ds.Structure != nil {
 			ds.Structure.Assign(d.Structure)
 		}
-		if ds.Metadata == nil && d.Metadata != nil {
-			ds.Metadata = d.Metadata
-		} else if ds.Metadata != nil {
-			ds.Metadata.Assign(d.Metadata)
+		if ds.Meta == nil && d.Meta != nil {
+			ds.Meta = d.Meta
+		} else if ds.Meta != nil {
+			ds.Meta.Assign(d.Meta)
 		}
 		if ds.Abstract == nil && d.Abstract != nil {
 			ds.Abstract = d.Abstract
@@ -173,7 +173,7 @@ func (ds *Dataset) UnmarshalJSON(data []byte) error {
 		Commit:            d.Commit,
 		DataPath:          d.DataPath,
 		Kind:              d.Kind,
-		Metadata:          d.Metadata,
+		Meta:              d.Meta,
 		PreviousPath:      d.PreviousPath,
 		Structure:         d.Structure,
 		Transform:         d.Transform,

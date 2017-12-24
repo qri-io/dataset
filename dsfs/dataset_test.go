@@ -65,7 +65,7 @@ func TestLoadDataset(t *testing.T) {
 		{dataset.NewDatasetRef(datastore.NewKey("/bad/path")),
 			"error loading dataset: error getting file bytes: datastore: key not found"},
 		{&dataset.Dataset{
-			Metadata: dataset.NewMetadataRef(datastore.NewKey("/bad/path")),
+			Meta: dataset.NewMetaRef(datastore.NewKey("/bad/path")),
 		}, "error loading dataset metadata: error loading metadata file: datastore: key not found"},
 		{&dataset.Dataset{
 			Structure: dataset.NewStructureRef(datastore.NewKey("/bad/path")),
@@ -130,8 +130,8 @@ func TestCreateDataset(t *testing.T) {
 	}{
 		{"testdata/bad/invalid_reference.json", "testdata/cities.csv", "", "", 0, "error loading dataset commit: error loading commit file: datastore: key not found"},
 		{"testdata/bad/invalid.json", "testdata/cities.csv", "", "", 0, "commit is required"},
-		{"testdata/cities.json", "testdata/cities.csv", "cities.csv", "/map/Qmdk391WmyQM1YDiw1ywbXiza93NKrqaVXWd3c8QDXBze8", 6, ""},
-		{"testdata/complete.json", "testdata/complete.csv", "complete.csv", "/map/QmTmv8RBb2JweQkPY9R6uYfQ3aeHDKwNBGdNMFjpWjRRNW", 14, ""},
+		{"testdata/cities.json", "testdata/cities.csv", "cities.csv", "/map/QmPTSV5hyt2BAtviuNAj5F4H4kNsQrPhp9z8SywCMzDgPh", 6, ""},
+		{"testdata/complete.json", "testdata/complete.csv", "complete.csv", "/map/QmQA4cUsrGHXWsCTSLcBz3hqPnc13RN4TyPSzmT1JxMKHE", 14, ""},
 	}
 
 	for i, c := range cases {
@@ -285,12 +285,12 @@ func TestWriteDataset(t *testing.T) {
 			// Abstract transforms aren't loaded
 			ds.AbstractTransform = dataset.NewTransformRef(ref.AbstractTransform.Path())
 		}
-		if ref.Metadata != nil {
-			if !ref.Metadata.IsEmpty() {
-				t.Errorf("expected stored dataset.Metadata to be a reference")
+		if ref.Meta != nil {
+			if !ref.Meta.IsEmpty() {
+				t.Errorf("expected stored dataset.Meta to be a reference")
 			}
 			// Abstract transforms aren't loaded
-			ds.Metadata.Assign(dataset.NewMetadataRef(ref.Metadata.Path()))
+			ds.Meta.Assign(dataset.NewMetaRef(ref.Meta.Path()))
 		}
 		if ref.Structure != nil {
 			if !ref.Structure.IsEmpty() {
