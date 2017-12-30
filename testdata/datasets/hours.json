@@ -1,6 +1,6 @@
 {
   "kind": "qri:ds:0",
-  "metadata": {
+  "meta": {
     "kind": "qri:md:0",
     "title": "hours",
     "accessPath": "https://example.com/not/a/url",

@@ -30,8 +30,8 @@ func CompareDatasets(a, b *Dataset) error {
 		return fmt.Errorf("DataPath: %s != %s", a.DataPath, b.DataPath)
 	}
 
-	if err := CompareMetadatas(a.Metadata, b.Metadata); err != nil {
-		return fmt.Errorf("Metadata: %s", err.Error())
+	if err := CompareMetas(a.Meta, b.Meta); err != nil {
+		return fmt.Errorf("Meta: %s", err.Error())
 	}
 	if err := CompareStructures(a.Structure, b.Structure); err != nil {
 		return fmt.Errorf("Structure: %s", err.Error())
@@ -52,9 +52,9 @@ func CompareDatasets(a, b *Dataset) error {
 	return nil
 }
 
-// CompareMetadatas checks if all fields of a metadata struct are equal,
+// CompareMetas checks if all fields of a metadata struct are equal,
 // returning an error on the first, nil if equal
-func CompareMetadatas(a, b *Metadata) error {
+func CompareMetas(a, b *Meta) error {
 	if a == nil && b == nil {
 		return nil
 	}

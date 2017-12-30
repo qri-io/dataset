@@ -33,33 +33,33 @@ func TestCompareDatasets(t *testing.T) {
 	}
 }
 
-func TestCompareMetadatas(t *testing.T) {
+func TestCompareMetas(t *testing.T) {
 	cases := []struct {
-		a, b *Metadata
+		a, b *Meta
 		err  string
 	}{
 		{nil, nil, ""},
-		{AirportCodes.Metadata, AirportCodes.Metadata, ""},
-		{NewMetadataRef(datastore.NewKey("a")), NewMetadataRef(datastore.NewKey("b")), "Path: /a != /b"},
-		{&Metadata{Kind: "a"}, &Metadata{Kind: "b"}, "Kind: a != b"},
-		{&Metadata{Title: "a"}, &Metadata{Title: "b"}, "Title: a != b"},
-		{&Metadata{AccessPath: "a"}, &Metadata{AccessPath: "b"}, "AccessPath: a != b"},
-		{&Metadata{DownloadPath: "a"}, &Metadata{DownloadPath: "b"}, "DownloadPath: a != b"},
-		{&Metadata{AccrualPeriodicity: "a"}, &Metadata{AccrualPeriodicity: "b"}, "AccrualPeriodicity: a != b"},
-		{&Metadata{ReadmePath: "a"}, &Metadata{ReadmePath: "b"}, "ReadmePath: a != b"},
-		{&Metadata{Description: "a"}, &Metadata{Description: "b"}, "Description: a != b"},
-		{&Metadata{HomePath: "a"}, &Metadata{HomePath: "b"}, "HomePath: a != b"},
-		{&Metadata{Identifier: "a"}, &Metadata{Identifier: "b"}, "Identifier: a != b"},
+		{AirportCodes.Meta, AirportCodes.Meta, ""},
+		{NewMetaRef(datastore.NewKey("a")), NewMetaRef(datastore.NewKey("b")), "Path: /a != /b"},
+		{&Meta{Kind: "a"}, &Meta{Kind: "b"}, "Kind: a != b"},
+		{&Meta{Title: "a"}, &Meta{Title: "b"}, "Title: a != b"},
+		{&Meta{AccessPath: "a"}, &Meta{AccessPath: "b"}, "AccessPath: a != b"},
+		{&Meta{DownloadPath: "a"}, &Meta{DownloadPath: "b"}, "DownloadPath: a != b"},
+		{&Meta{AccrualPeriodicity: "a"}, &Meta{AccrualPeriodicity: "b"}, "AccrualPeriodicity: a != b"},
+		{&Meta{ReadmePath: "a"}, &Meta{ReadmePath: "b"}, "ReadmePath: a != b"},
+		{&Meta{Description: "a"}, &Meta{Description: "b"}, "Description: a != b"},
+		{&Meta{HomePath: "a"}, &Meta{HomePath: "b"}, "HomePath: a != b"},
+		{&Meta{Identifier: "a"}, &Meta{Identifier: "b"}, "Identifier: a != b"},
 		// TODO
-		// {&Metadata{License: &License{}}, &Metadata{Version: "b"}, "Version: a != b"},
-		{&Metadata{Version: "a"}, &Metadata{Version: "b"}, "Version: a != b"},
-		{&Metadata{Keywords: []string{"a"}}, &Metadata{Keywords: []string{"b"}}, "Keywords: element 0: a != b"},
-		{&Metadata{Language: []string{"a"}}, &Metadata{Language: []string{"b"}}, "Language: element 0: a != b"},
-		{&Metadata{Theme: []string{"a"}}, &Metadata{Theme: []string{"b"}}, "Theme: element 0: a != b"},
+		// {&Meta{License: &License{}}, &Meta{Version: "b"}, "Version: a != b"},
+		{&Meta{Version: "a"}, &Meta{Version: "b"}, "Version: a != b"},
+		{&Meta{Keywords: []string{"a"}}, &Meta{Keywords: []string{"b"}}, "Keywords: element 0: a != b"},
+		{&Meta{Language: []string{"a"}}, &Meta{Language: []string{"b"}}, "Language: element 0: a != b"},
+		{&Meta{Theme: []string{"a"}}, &Meta{Theme: []string{"b"}}, "Theme: element 0: a != b"},
 	}
 
 	for i, c := range cases {
-		err := CompareMetadatas(c.a, c.b)
+		err := CompareMetas(c.a, c.b)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
 		}

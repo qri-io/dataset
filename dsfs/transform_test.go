@@ -32,7 +32,7 @@ func TestTransformLoadAbstract(t *testing.T) {
 
 func TestSaveTransform(t *testing.T) {
 	dsa := dataset.NewDatasetRef(datastore.NewKey("/path/to/dataset/a"))
-	dsa.Assign(&dataset.Dataset{Metadata: &dataset.Metadata{Title: "now dataset isn't empty"}})
+	dsa.Assign(&dataset.Dataset{Meta: &dataset.Meta{Title: "now dataset isn't empty"}})
 
 	store := memfs.NewMapstore()
 	q := &dataset.Transform{
@@ -90,7 +90,7 @@ func TestSaveTransform(t *testing.T) {
 
 func TestSaveAbstractTransform(t *testing.T) {
 	dsa := dataset.NewDatasetRef(datastore.NewKey("/path/to/dataset/a"))
-	dsa.Assign(&dataset.Dataset{Metadata: &dataset.Metadata{Title: "now dataset isn't empty "}})
+	dsa.Assign(&dataset.Dataset{Meta: &dataset.Meta{Title: "now dataset isn't empty "}})
 	dsa.Structure = &dataset.Structure{
 		Format: dataset.CSVDataFormat,
 		Schema: &dataset.Schema{

@@ -32,8 +32,8 @@ const (
 	// PackageFileAbstractTransform is the abstract version of
 	// the operation performed to create this dataset
 	PackageFileAbstractTransform
-	// PackageFileMetadata encapsulates human-readable metadata
-	PackageFileMetadata
+	// PackageFileMeta encapsulates human-readable metadata
+	PackageFileMeta
 )
 
 // filenames maps PackageFile to their filename counterparts
@@ -46,7 +46,7 @@ var filenames = map[PackageFile]string{
 	PackageFileResources:         "resources",
 	PackageFileCommit:            "commit.json",
 	PackageFileTransform:         "transform.json",
-	PackageFileMetadata:          "metadata.json",
+	PackageFileMeta:              "meta.json",
 }
 
 // String implements the io.Stringer interface for PackageFile

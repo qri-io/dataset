@@ -22,7 +22,7 @@ func TestDatasetAssign(t *testing.T) {
 		{&Dataset{Commit: &Commit{Title: "foo"}}},
 		{&Dataset{DataPath: "foo"}},
 		{&Dataset{PreviousPath: "stuff"}},
-		{&Dataset{Metadata: &Metadata{Title: "foo"}}},
+		{&Dataset{Meta: &Meta{Title: "foo"}}},
 	}
 
 	for i, c := range cases {
@@ -156,7 +156,7 @@ func TestDatasetIsEmpty(t *testing.T) {
 		{&Dataset{AbstractTransform: &Transform{}}},
 		{&Dataset{Commit: &Commit{}}},
 		{&Dataset{DataPath: "foo"}},
-		{&Dataset{Metadata: &Metadata{}}},
+		{&Dataset{Meta: &Meta{}}},
 		{&Dataset{PreviousPath: "nope"}},
 		{&Dataset{Structure: &Structure{}}},
 		{&Dataset{Transform: &Transform{}}},

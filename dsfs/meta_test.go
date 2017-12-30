@@ -6,15 +6,15 @@ import (
 	"github.com/qri-io/cafs/memfs"
 )
 
-func TestLoadMetadata(t *testing.T) {
+func TestLoadMeta(t *testing.T) {
 	store := memfs.NewMapstore()
-	a, err := SaveMetadata(store, AirportCodes.Metadata, true)
+	a, err := SaveMeta(store, AirportCodes.Meta, true)
 	if err != nil {
 		t.Errorf(err.Error())
 		return
 	}
 
-	if _, err := LoadMetadata(store, a); err != nil {
+	if _, err := LoadMeta(store, a); err != nil {
 		t.Errorf(err.Error())
 	}
 	// TODO - other tests & stuff
