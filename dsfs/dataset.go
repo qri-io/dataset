@@ -149,7 +149,7 @@ func CreateDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pk c
 	if err = validate.Dataset(ds); err != nil {
 		return
 	}
-	if err = prepareDataset(store, ds, df, pk); err != nil {
+	if df, err = prepareDataset(store, ds, df, pk); err != nil {
 		return
 	}
 	path, err = WriteDataset(store, ds, df, pin)
@@ -166,20 +166,21 @@ var timestamp = func() time.Time {
 }
 
 // prepareDataset modifies a dataset in preparation for adding to a dsfs
-func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, privKey crypto.PrivKey) error {
+// it returns a new data file for use in WriteDataset
+func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, privKey crypto.PrivKey) (cafs.File, error) {
 	// TODO - need a better strategy for huge files. I think that strategy is to split
 	// the reader into multiple consumers that are all performing their task on a stream
 	// of byte slices
 	data, err := ioutil.ReadAll(df)
 	if err != nil {
-		return fmt.Errorf("error reading file: %s", err.Error())
+		return nil, fmt.Errorf("error reading file: %s", err.Error())
 	}
 	ds.Structure.Length = len(data)
 
 	// TODO - add a dsio.RowCount function that avoids actually arranging data into rows
 	rr, err := dsio.NewRowReader(ds.Structure, memfs.NewMemfileBytes("data", data))
 	if err != nil {
-		return fmt.Errorf("error reading data rows: %s", err.Error())
+		return nil, fmt.Errorf("error reading data rows: %s", err.Error())
 	}
 
 	entries := 0
@@ -188,7 +189,7 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 		_, err = rr.ReadRow()
 	}
 	if err.Error() != "EOF" {
-		return fmt.Errorf("error reading rows: %s", err.Error())
+		return nil, fmt.Errorf("error reading rows: %s", err.Error())
 	}
 
 	ds.Structure.Entries = entries
@@ -196,7 +197,7 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 	// TODO - set hash
 	shasum, err := multihash.Sum(data, multihash.SHA2_256, -1)
 	if err != nil {
-		return fmt.Errorf("error calculating hash: %s", err.Error())
+		return nil, fmt.Errorf("error calculating hash: %s", err.Error())
 	}
 	ds.Structure.Checksum = shasum.B58String()
 
@@ -206,13 +207,11 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 	ds.Commit.Timestamp = timestamp()
 	signedBytes, err := privKey.Sign(ds.Commit.SignableBytes())
 	if err != nil {
-		return fmt.Errorf("error signing commit title: %s", err.Error())
+		return nil, fmt.Errorf("error signing commit title: %s", err.Error())
 	}
 	ds.Commit.Signature = base58.Encode(signedBytes)
 
-	// TODO - make sure file ending matches
-	df = memfs.NewMemfileBytes("data."+ds.Structure.Format.String(), data)
-	return nil
+	return memfs.NewMemfileBytes("data."+ds.Structure.Format.String(), data), nil
 }
 
 // WriteDataset writes a dataset to a cafs, replacing subcomponents of a dataset with path references
