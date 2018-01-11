@@ -120,6 +120,17 @@ func TestCreateDataset(t *testing.T) {
 		return
 	}
 
+	_, err = CreateDataset(store, nil, nil, nil, false)
+	if err == nil {
+		t.Errorf("expected call without prvate key to error")
+		return
+	}
+	pkReqErrMsg := "private key is required to create a dataset"
+	if err.Error() != pkReqErrMsg {
+		t.Errorf("error mismatch. '%s' != '%s'", pkReqErrMsg, err.Error())
+		return
+	}
+
 	cases := []struct {
 		dsPath       string
 		dataPath     string

@@ -143,6 +143,10 @@ func DerefDatasetCommit(store cafs.Filestore, ds *dataset.Dataset) error {
 // Dataset to be saved
 // Pin the dataset if the underlying store supports the pinning interface
 func CreateDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pk crypto.PrivKey, pin bool) (path datastore.Key, err error) {
+	if pk == nil {
+		err = fmt.Errorf("private key is required to create a dataset")
+		return
+	}
 	if err = DerefDataset(store, ds); err != nil {
 		return
 	}
