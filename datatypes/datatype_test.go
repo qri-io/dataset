@@ -203,14 +203,20 @@ func TestParseFloat(t *testing.T) {
 		{[]byte("1234567890"), float64(1234567890), nil},
 		{[]byte("12345.67890"), float64(12345.67890), nil},
 		{[]byte("-12345.67890"), float64(-12345.67890), nil},
+		{[]byte("1.797693134862315708145274237317043567981e+308"), math.MaxFloat64, nil},
+		{[]byte("2e+308"), math.Inf(0), errors.New(`strconv.ParseFloat: parsing "2e+308": value out of range`)},
+		{[]byte("4.940656458412465441765687928682213723651e-324"), math.SmallestNonzeroFloat64, nil},
+		{[]byte("1.940e-324"), float64(0), nil},
 	}
 	for i, c := range cases {
 		value, got := ParseFloat(c.input)
 		if value != c.expect {
-			t.Errorf("case %d value mismatch. expected: %s, got: %s", i, c.expect, value)
+			t.Errorf("case %d value mismatch. expected: %e, got: %e", i, c.expect, value)
 		}
-		if c.err != got {
-			t.Errorf("case %d error mismatch. expected: %s, got: %s", i, c.err, got)
+		if got != nil {
+			if c.err != nil && got.Error() != c.err.Error() {
+				t.Errorf("case %d error mismatch. expected: %s, got: %s", i, c.err, got)
+			}
 		}
 	}
 }
@@ -224,6 +230,8 @@ func TestParseInteger(t *testing.T) {
 		{[]byte(""), 0, errors.New(`strconv.ParseInt: parsing "": invalid syntax`)},
 		{[]byte("9223372036854775807"), math.MaxInt64, nil},
 		{[]byte("9223372036854775808"), math.MaxInt64, errors.New(`strconv.ParseInt: parsing "9223372036854775808": value out of range`)},
+		{[]byte("-9223372036854775808"), math.MinInt64, nil},
+		{[]byte("-9223372036854775809"), math.MinInt64, errors.New(`strconv.ParseInt: parsing "-9223372036854775809": value out of range`)},
 		{[]byte("1234567890"), int64(1234567890), nil},
 		{[]byte("12345.67890"), 0, errors.New(`strconv.ParseInt: parsing "12345.67890": invalid syntax`)},
 		{[]byte("-12345.67890"), 0, errors.New(`strconv.ParseInt: parsing "-12345.67890": invalid syntax`)},
@@ -231,7 +239,7 @@ func TestParseInteger(t *testing.T) {
 	for i, c := range cases {
 		value, got := ParseInteger(c.input)
 		if value != c.expect {
-			t.Errorf("case %d value mismatch. expected: %s, got: %s", i, c.expect, value)
+			t.Errorf("case %d value mismatch. expected: %d, got: %d", i, c.expect, value)
 		}
 		if got != nil {
 			if c.err != nil && got.Error() != c.err.Error() {
