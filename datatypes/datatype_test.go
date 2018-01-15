@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"github.com/qri-io/compare"
+	"math"
 	"testing"
 	"time"
 )
@@ -59,12 +60,31 @@ func TestTypeFromString(t *testing.T) {
 }
 
 func TestTypeMarshalJSON(t *testing.T) {
-	data, err := String.MarshalJSON()
-	if err != nil {
-		t.Errorf(err.Error())
+	cases := []struct {
+		ty     Type
+		s      string
+		expect []byte
+		err    error
+	}{
+		{Unknown, "Unknown", []byte(`""`), nil},
+		{Type(-1), "Type(-1)", []byte(`""`), nil},
+		{Any, "Any", []byte(`"any"`), nil},
+		{String, "String", []byte(`"string"`), nil},
+		{Integer, "Integer", []byte(`"integer"`), nil},
+		{Float, "Float", []byte(`"float"`), nil},
+		{Boolean, "Boolean", []byte(`"boolean"`), nil},
+		{Date, "Data", []byte(`"date"`), nil},
+		{URL, "URL", []byte(`"url"`), nil},
+		{JSON, "JSON", []byte(`"json"`), nil},
 	}
-	if !bytes.Equal(data, []byte(`"string"`)) {
-		t.Errorf("expected String.MarshalJSON to equal \"string\"")
+	for i, c := range cases {
+		data, err := c.ty.MarshalJSON()
+		if err != c.err {
+			t.Errorf("case %d error mistmatch. expected: %s, got: %s", i, c.err, err)
+		}
+		if !bytes.Equal(data, c.expect) {
+			t.Errorf("expected %s.MarshalJSON to equal %s, got %s", c.s, c.expect, data)
+		}
 	}
 }
 
@@ -125,6 +145,8 @@ func TestParseDatatype(t *testing.T) {
 		{"true", Boolean},
 		{"2015-09-03T13:27:52Z", Date},
 		{"", String},
+		// {"https://golang.org", URL},
+		{"Go to https://golang.org for more information", String},
 	}
 	for i, c := range cases {
 		got := ParseDatatype([]byte(c.value))
@@ -199,6 +221,9 @@ func TestParseInteger(t *testing.T) {
 		expect int64
 		err    error
 	}{
+		{[]byte(""), 0, errors.New(`strconv.ParseInt: parsing "": invalid syntax`)},
+		{[]byte("9223372036854775807"), math.MaxInt64, nil},
+		{[]byte("9223372036854775808"), math.MaxInt64, errors.New(`strconv.ParseInt: parsing "9223372036854775808": value out of range`)},
 		{[]byte("1234567890"), int64(1234567890), nil},
 		{[]byte("12345.67890"), 0, errors.New(`strconv.ParseInt: parsing "12345.67890": invalid syntax`)},
 		{[]byte("-12345.67890"), 0, errors.New(`strconv.ParseInt: parsing "-12345.67890": invalid syntax`)},
@@ -401,4 +426,87 @@ func TestValueToBytes(t *testing.T) {
 			continue
 		}
 	}
+}
+
+func TestIsInteger(t *testing.T) {
+	cases := []struct {
+		b      []byte
+		expect bool
+	}{
+		{[]byte(""), false},
+		{[]byte("1"), true},
+		{[]byte("367890"), true},
+		{[]byte("1.2"), false},
+		{[]byte("foo"), false},
+		{[]byte("9223372036854775808"), true},
+		{[]byte("890oasdfg dfgh89"), false},
+		{[]byte("[123]"), false},
+	}
+	for _, c := range cases {
+		got := IsInteger(c.b)
+		if got != c.expect {
+			t.Errorf("case IsInteger: %s - expected: '%t', got: '%t'", c.b, c.expect, got)
+		}
+	}
+}
+
+var result bool
+var resultType Type
+var resultInterface interface{}
+
+func benchmarkParseDatatype(value []byte, b *testing.B) {
+	var t Type
+	for n := 0; n < b.N; n++ {
+		t = ParseDatatype(value)
+	}
+	resultType = t
+}
+
+// best case would be an empty slice of bytes
+func BenchmarkParseDatatypeBestCase(b *testing.B) {
+	benchmarkParseDatatype([]byte(""), b)
+}
+
+// worst case is getting datatype from JSON, because in order to validate that it is JSON, you have to parse the entire slice of bytes
+func BenchmarkParseDatatypeWorstCase(b *testing.B) {
+	json := "{'id': '0001','type': 'donut','name': 'Cake','ppu': 0.55,'batters':{'batter':[{ 'id': '1001', 'type': 'Regular' },{ 'id': '1002', 'type': 'Chocolate' },{ 'id': '1003', 'type': 'Blueberry' },{ 'id': '1004', 'type': 'Devil's Food' }]},'topping':[{ 'id': '5001', 'type': 'None' },{ 'id': '5002', 'type': 'Glazed' },{ 'id': '5005', 'type': 'Sugar' },{ 'id': '5007', 'type': 'Powdered Sugar' },{ 'id': '5006', 'type': 'Chocolate with Sprinkles' },{ 'id': '5003', 'type': 'Chocolate' },{ 'id': '5004', 'type': 'Maple' }]}"
+	benchmarkParseDatatype([]byte(json), b)
+}
+
+func benchmarkParse(value []byte, t Type, b *testing.B) {
+	var i interface{}
+	for n := 0; n < b.N; n++ {
+		i, _ = t.Parse(value)
+	}
+	resultInterface = i
+}
+
+func BenchmarkParseBestCase(b *testing.B) {
+	var t Type = String
+	benchmarkParse([]byte(""), t, b)
+}
+
+func BenchmarkParseWorstCase(b *testing.B) {
+	var t Type = JSON
+	json := "{'id': '0001','type': 'donut','name': 'Cake','ppu': 0.55,'batters':{'batter':[{ 'id': '1001', 'type': 'Regular' },{ 'id': '1002', 'type': 'Chocolate' },{ 'id': '1003', 'type': 'Blueberry' },{ 'id': '1004', 'type': 'Devil's Food' }]},'topping':[{ 'id': '5001', 'type': 'None' },{ 'id': '5002', 'type': 'Glazed' },{ 'id': '5005', 'type': 'Sugar' },{ 'id': '5007', 'type': 'Powdered Sugar' },{ 'id': '5006', 'type': 'Chocolate with Sprinkles' },{ 'id': '5003', 'type': 'Chocolate' },{ 'id': '5004', 'type': 'Maple' }]}"
+	benchmarkParse([]byte(json), t, b)
+}
+
+func benchmarkIsInteger(x []byte, b *testing.B) {
+	var r bool
+	for n := 0; n < b.N; n++ {
+		r = IsInteger(x)
+	}
+	result = r
+}
+
+// IsInteger best case: empty slice of bytes
+func BenchmarkIsIntegerBestCase(b *testing.B) {
+	var x []byte
+	benchmarkIsInteger(x, b)
+}
+
+// IsInteger worse case: float
+func BenchmarkIsIntegerWorstCase(b *testing.B) {
+	benchmarkIsInteger([]byte("12.34"), b)
 }

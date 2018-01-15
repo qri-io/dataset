@@ -65,14 +65,18 @@ func TypeFromString(t string) Type {
 // TODO - should write a version of MUCH faster funcs with "Is" prefix (IsObject, etc)
 // that just return t/f. these funcs should aim to bail ASAP when proven false
 func ParseDatatype(value []byte) Type {
+	if len(value) == 0 {
+		return String
+	}
+	var ok bool
 	var err error
-	if _, err = ParseInteger(value); err == nil {
+	if ok = IsInteger(value); ok {
 		return Integer
 	}
 	if _, err = ParseFloat(value); err == nil {
 		return Float
 	}
-	if _, err = ParseBoolean(value); err == nil {
+	if ok = IsBoolean(value); ok {
 		return Boolean
 	}
 	if _, err = ParseJSON(value); err == nil {
@@ -84,10 +88,7 @@ func ParseDatatype(value []byte) Type {
 	// if _, err = ParseURL(value); err == nil {
 	// 	return URL
 	// }
-	if _, err = ParseString(value); err == nil {
-		return String
-	}
-	return Any
+	return String
 }
 
 // String satsfies the stringer interface
@@ -286,6 +287,32 @@ func ParseURL(value []byte) (*url.URL, error) {
 		return nil, fmt.Errorf("invalid url: %s", string(value))
 	}
 	return url.Parse(string(value))
+}
+
+func IsString(value []byte) bool {
+	return true
+}
+
+func IsInteger(value []byte) bool {
+	if len(value) == 0 {
+		return false
+	}
+	if value[0] == '[' || value[0] == '{' || !bytes.ContainsAny(value[0:1], "-+0123456789") {
+		return false
+	}
+	if _, err := ParseInteger(value); err == nil || err.(*strconv.NumError).Err == strconv.ErrRange {
+		return true
+	}
+	return false
+}
+
+func IsBoolean(value []byte) bool {
+	switch string(value) {
+	case "1", "0", "t", "f", "T", "F", "true", "false", "TRUE", "FALSE", "True", "False":
+		return true
+	default:
+		return false
+	}
 }
 
 // JSONArrayOrObject examines bytes checking if the outermost
