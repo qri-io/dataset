@@ -2,6 +2,7 @@ package detect
 
 import (
 	"encoding/csv"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/datatypes"
+	"github.com/qri-io/jsonschema"
 	"github.com/qri-io/varName"
 )
 
@@ -17,22 +19,27 @@ var (
 	startsWithNumberRegex = regexp.MustCompile(`^[0-9]`)
 )
 
-// Fields determines the fields of a given reader, for a given structure
-func Fields(r *dataset.Structure, data io.Reader) (fields []*dataset.Field, err error) {
+// Schema determines the schema of a given reader for a given structure
+func Schema(r *dataset.Structure, data io.Reader) (schema *jsonschema.RootSchema, err error) {
 	if r.Format == dataset.UnknownDataFormat {
-		return nil, errors.New("dataset format must be specified to determine fields")
+		return nil, errors.New("dataset format must be specified to determine schema")
 	}
 
 	switch r.Format {
 	case dataset.CSVDataFormat:
-		return CSVFields(r, data)
+		return CSVSchema(r, data)
 	default:
 		return nil, fmt.Errorf("'%s' is not supported for field detection", r.Format.String())
 	}
 }
 
-// CSVFields determines the field names and types of an io.Reader of CSV-formatted data
-func CSVFields(resource *dataset.Structure, data io.Reader) (fields []*dataset.Field, err error) {
+type field struct {
+	Title string         `json:"title,omitempty"`
+	Type  datatypes.Type `json:"type,omitempty"`
+}
+
+// CSVSchema determines the field names and types of an io.Reader of CSV-formatted data, returning a json schema
+func CSVSchema(resource *dataset.Structure, data io.Reader) (schema *jsonschema.RootSchema, err error) {
 	r := csv.NewReader(data)
 	r.FieldsPerRecord = -1
 	r.TrimLeadingSpace = true
@@ -41,20 +48,20 @@ func CSVFields(resource *dataset.Structure, data io.Reader) (fields []*dataset.F
 		return nil, err
 	}
 
-	fields = make([]*dataset.Field, len(header))
+	fields := make([]*field, len(header))
 	types := make([]map[datatypes.Type]int, len(header))
 
 	for i := range fields {
-		fields[i] = &dataset.Field{
-			Name: fmt.Sprintf("field_%d", i+1),
-			Type: datatypes.Any,
+		fields[i] = &field{
+			Title: fmt.Sprintf("field_%d", i+1),
+			Type:  datatypes.Any,
 		}
 		types[i] = map[datatypes.Type]int{}
 	}
 
 	if possibleCsvHeaderRow(header) {
 		for i, f := range fields {
-			f.Name = varName.CreateVarNameFromString(header[i])
+			f.Title = varName.CreateVarNameFromString(header[i])
 			f.Type = datatypes.Any
 		}
 		resource.FormatConfig = &dataset.CSVOptions{
@@ -70,7 +77,7 @@ func CSVFields(resource *dataset.Structure, data io.Reader) (fields []*dataset.F
 	count := 0
 	for {
 		rec, err := r.Read()
-		// fmt.Println(rec)
+		// max out at 2000 reads
 		if count > 2000 {
 			break
 		}
@@ -78,7 +85,7 @@ func CSVFields(resource *dataset.Structure, data io.Reader) (fields []*dataset.F
 			if err.Error() == "EOF" {
 				break
 			}
-			return fields, err
+			return nil, fmt.Errorf("error reading csv file: %s", err.Error())
 		}
 
 		for i, cell := range rec {
@@ -91,12 +98,28 @@ func CSVFields(resource *dataset.Structure, data io.Reader) (fields []*dataset.F
 	for i, tally := range types {
 		for typ, count := range tally {
 			if count > tally[fields[i].Type] {
+				// TODO - jsonschema doesn't support dates. need to reconcile
+				if typ == datatypes.Date {
+					typ = datatypes.String
+				}
 				fields[i].Type = typ
 			}
 		}
 	}
 
-	return fields, nil
+	// TODO - lol what a hack. fix everything, put it in jsonschema.
+	items, err := json.Marshal(fields)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling csv fields to json: %s", err.Error())
+	}
+	schstr := fmt.Sprintf(`{"type":"array","items":{"type":"array","items":%s}}`, string(items))
+
+	rs := &jsonschema.RootSchema{}
+	if err := rs.UnmarshalJSON([]byte(schstr)); err != nil {
+		return nil, err
+	}
+
+	return rs, nil
 }
 
 // PossibleHeaderRow makes an educated guess about weather or not this csv file has a header row.
@@ -112,7 +135,7 @@ func possibleCsvHeaderRow(header []string) bool {
 		if _, err := datatypes.ParseInteger([]byte(col)); err == nil {
 			// if the row contains valid numeric data, we out.
 			return false
-		} else if _, err := datatypes.ParseFloat([]byte(col)); err == nil {
+		} else if _, err := datatypes.ParseNumber([]byte(col)); err == nil {
 			return false
 		} else if col == "" {
 			// empty columns can't be headers

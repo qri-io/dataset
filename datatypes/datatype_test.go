@@ -19,7 +19,7 @@ func TestTypeString(t *testing.T) {
 		{Any, "any"},
 		{String, "string"},
 		{Integer, "integer"},
-		{Float, "float"},
+		{Number, "number"},
 		{Boolean, "boolean"},
 		{Date, "date"},
 		{URL, "url"},
@@ -44,7 +44,7 @@ func TestTypeFromString(t *testing.T) {
 		{"any", Any},
 		{"string", String},
 		{"integer", Integer},
-		{"float", Float},
+		{"number", Number},
 		{"boolean", Boolean},
 		{"date", Date},
 		{"url", URL},
@@ -112,7 +112,7 @@ func TestTypeParse(t *testing.T) {
 		// {Any, "any", nil, ""},
 		{String, "hey", "hey", ""},
 		{Integer, "1337", 1337, ""},
-		{Float, "101.5", 101.5, ""},
+		{Number, "101.5", 101.5, ""},
 		{Boolean, "false", false, ""},
 		// {Date, "date", nil, ""},
 		// {URL, "url", nil, ""},
@@ -140,7 +140,7 @@ func TestParseDatatype(t *testing.T) {
 		{"{}", JSON},
 		{"[]", JSON},
 		{"1", Integer},
-		{"1.5", Float},
+		{"1.5", Number},
 		{"false", Boolean},
 		{"true", Boolean},
 		{"2015-09-03T13:27:52Z", Date},
@@ -194,7 +194,7 @@ func TestParseString(t *testing.T) {
 	}
 }
 
-func TestParseFloat(t *testing.T) {
+func TestParseNumber(t *testing.T) {
 	cases := []struct {
 		input  []byte
 		expect float64
@@ -209,7 +209,7 @@ func TestParseFloat(t *testing.T) {
 		{[]byte("1.940e-324"), float64(0), nil},
 	}
 	for i, c := range cases {
-		value, got := ParseFloat(c.input)
+		value, got := ParseNumber(c.input)
 		if value != c.expect {
 			t.Errorf("case %d value mismatch. expected: %e, got: %e", i, c.expect, value)
 		}
@@ -372,9 +372,9 @@ func TestValueToString(t *testing.T) {
 		{Unknown, "", "", "cannot get string value of unknown datatype"},
 		{Integer, 234, "234", ""},
 		{Integer, "234", "", "234 is not an integer value"},
-		{Float, float32(234.0), "234", ""},
-		{Float, float32(234.12339782714844), "234.12339782714844", ""},
-		{Float, "234", "", "234 is not a float value"},
+		{Number, float64(234.0), "234", ""},
+		{Number, float64(234.12339782714844), "234.12339782714844", ""},
+		{Number, "234", "", "234 is not a number value"},
 		{Boolean, false, "false", ""},
 		{Boolean, true, "true", ""},
 		{Boolean, "234", "", "234 is not a boolean value"},
@@ -409,9 +409,9 @@ func TestValueToBytes(t *testing.T) {
 		{Unknown, "", "", "cannot get string value of unknown datatype"},
 		{Integer, 234, "234", ""},
 		{Integer, "234", "", "234 is not an integer value"},
-		{Float, float32(234.0), "234", ""},
-		{Float, float32(234.12339782714844), "234.12339782714844", ""},
-		{Float, "234", "", "234 is not a float value"},
+		{Number, float64(234.0), "234", ""},
+		{Number, float64(234.12339782714844), "234.12339782714844", ""},
+		{Number, "234", "", "234 is not a number value"},
 		{Boolean, false, "false", ""},
 		{Boolean, true, "true", ""},
 		{Boolean, "234", "", "234 is not a boolean value"},

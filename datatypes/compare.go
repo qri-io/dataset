@@ -22,8 +22,8 @@ func CompareTypeBytes(a, b []byte, t Type) (int, error) {
 		return bytes.Compare(a, b), nil
 	case Integer:
 		return CompareIntegerBytes(a, b)
-	case Float:
-		return CompareFloatBytes(a, b)
+	case Number:
+		return CompareNumberBytes(a, b)
 	default:
 		// TODO - other types
 		return 0, fmt.Errorf("invalid type comparison")
@@ -48,13 +48,13 @@ func CompareIntegerBytes(a, b []byte) (int, error) {
 	return -1, nil
 }
 
-// CompareFloatBytes compares two byte slices of float data
-func CompareFloatBytes(a, b []byte) (int, error) {
-	at, err := ParseFloat(a)
+// CompareNumberBytes compares two byte slices of float data
+func CompareNumberBytes(a, b []byte) (int, error) {
+	at, err := ParseNumber(a)
 	if err != nil {
 		return 0, err
 	}
-	bt, err := ParseFloat(b)
+	bt, err := ParseNumber(b)
 	if err != nil {
 		return 0, err
 	}

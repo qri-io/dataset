@@ -31,12 +31,12 @@ func TestFromFile(t *testing.T) {
 		if c.dspath != "" {
 			data, err := ioutil.ReadFile(c.dspath)
 			if err != nil {
-				t.Error(err)
+				t.Error("case %d: %s", i, err)
 				continue
 			}
 			expect := &dataset.Structure{}
 			if err := json.Unmarshal(data, expect); err != nil {
-				t.Error(err)
+				t.Errorf("case %d: %s", i, err)
 				continue
 			}
 
@@ -52,19 +52,35 @@ func TestFromFile(t *testing.T) {
 			// 	t.Errorf("case %d file mismatch. expected '%s', got '%s'", i, expect.File, ds.File)
 			// }
 
-			if len(expect.Schema.Fields) != len(ds.Schema.Fields) {
-				t.Errorf("case %d field length mismatch. expected: %d, got: %d", i, len(expect.Schema.Fields), len(ds.Schema.Fields))
+			ej, err := json.Marshal(expect.Schema)
+			if err != nil {
+				t.Errorf("case %d error marshaling expected schema to json: %s", i, err.Error())
 				continue
 			}
 
-			for j, f := range expect.Schema.Fields {
-				if f.Type != ds.Schema.Fields[j].Type {
-					t.Errorf("case %d field %d:%s type mismatch. expected: %s, got: %s", i, j, f.Name, f.Type, ds.Schema.Fields[j].Type)
-				}
-				if f.Name != ds.Schema.Fields[j].Name {
-					t.Errorf("case %d field %d name mismatch. expected: %s, got: %s", i, j, f.Name, ds.Schema.Fields[j].Name)
-				}
+			dsj, err := json.Marshal(ds.Schema)
+			if err != nil {
+				t.Errorf("case %d error marshaling expected schema to json: %s", i, err.Error())
+				continue
 			}
+
+			if !bytes.Equal(ej, dsj) {
+				t.Errorf("case %d schema mismatch: %s != %s", i, string(ej), string(dsj))
+				continue
+			}
+			// if len(expect.Schema.Fields) != len(ds.Schema.Fields) {
+			// 	t.Errorf("case %d field length mismatch. expected: %d, got: %d", i, len(expect.Schema.Fields), len(ds.Schema.Fields))
+			// 	continue
+			// }
+
+			// for j, f := range expect.Schema.Fields {
+			// 	if f.Type != ds.Schema.Fields[j].Type {
+			// 		t.Errorf("case %d field %d:%s type mismatch. expected: %s, got: %s", i, j, f.Name, f.Type, ds.Schema.Fields[j].Type)
+			// 	}
+			// 	if f.Name != ds.Schema.Fields[j].Name {
+			// 		t.Errorf("case %d field %d name mismatch. expected: %s, got: %s", i, j, f.Name, ds.Schema.Fields[j].Name)
+			// 	}
+			// }
 		}
 	}
 }

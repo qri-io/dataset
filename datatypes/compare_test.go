@@ -17,7 +17,7 @@ func TestCompareTypeBytes(t *testing.T) {
 		{"foo", "", String, 1, ""},
 		{"foo", "bar", String, 1, ""},
 		{"bar", "foo", String, -1, ""},
-		{"0", "0", Float, 0, ""},
+		{"0", "0", Number, 0, ""},
 		{"0", "0", Integer, 0, ""},
 	}
 
@@ -60,7 +60,7 @@ func TestCompareIntegerBytes(t *testing.T) {
 	}
 }
 
-func TestCompareFloatBytes(t *testing.T) {
+func TestCompareNumberBytes(t *testing.T) {
 	cases := []struct {
 		a, b   string
 		expect int
@@ -74,7 +74,7 @@ func TestCompareFloatBytes(t *testing.T) {
 	}
 
 	for i, c := range cases {
-		got, err := CompareFloatBytes([]byte(c.a), []byte(c.b))
+		got, err := CompareNumberBytes([]byte(c.a), []byte(c.b))
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("case %d error mismatch. expected: %d, got: %s", i, c.err, err)
 			continue

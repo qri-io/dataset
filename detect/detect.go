@@ -24,7 +24,6 @@ func FromFile(path string) (ds *dataset.Structure, err error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return FromReader(path, f)
 }
 
@@ -37,21 +36,13 @@ func FromReader(path string, data io.Reader) (ds *dataset.Structure, err error) 
 	return Structure(format, data)
 }
 
-// Structure attemptes to extract a reader based on a given format and data reader
+// Structure attemptes to extract a structure based on a given format and data reader
 func Structure(format dataset.DataFormat, data io.Reader) (r *dataset.Structure, err error) {
-
 	r = &dataset.Structure{
 		Format: format,
 	}
-
 	// ds.Data = ReplaceSoloCarriageReturns(ds.Data)
-	r.Schema = &dataset.Schema{}
-
-	r.Schema.Fields, err = Fields(r, data)
-	if err != nil {
-		return
-	}
-
+	r.Schema, err = Schema(r, data)
 	return
 }
 

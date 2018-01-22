@@ -24,8 +24,8 @@ const (
 	String
 	// Integer specifies whole numbers
 	Integer
-	// Float specifies numbers with decimal value
-	Float
+	// Number specifies numbers with decimal value
+	Number
 	// Boolean species true/false values
 	Boolean
 	// Date specifies point-in-time values
@@ -46,7 +46,7 @@ func TypeFromString(t string) Type {
 		"any":     Any,
 		"string":  String,
 		"integer": Integer,
-		"float":   Float,
+		"number":  Number,
 		"boolean": Boolean,
 		"date":    Date,
 		"url":     URL,
@@ -72,8 +72,8 @@ func ParseDatatype(value []byte) Type {
 	if ok = IsInteger(value); ok {
 		return Integer
 	}
-	if ok = IsFloat(value); ok {
-		return Float
+	if _, err = ParseNumber(value); err == nil {
+		return Number
 	}
 	if ok = IsBoolean(value); ok {
 		return Boolean
@@ -97,7 +97,7 @@ func (dt Type) String() string {
 		Any:     "any",
 		String:  "string",
 		Integer: "integer",
-		Float:   "float",
+		Number:  "number",
 		Boolean: "boolean",
 		Date:    "date",
 		URL:     "url",
@@ -140,8 +140,8 @@ func (dt Type) Parse(value []byte) (parsed interface{}, err error) {
 		parsed, err = ParseAny(value)
 	case String:
 		parsed, err = ParseString(value)
-	case Float:
-		parsed, err = ParseFloat(value)
+	case Number:
+		parsed, err = ParseNumber(value)
 	case Integer:
 		parsed, err = ParseInteger(value)
 	case Boolean:
@@ -178,8 +178,8 @@ func (dt Type) ValueToString(value interface{}) (str string, err error) {
 			return
 		}
 		str = strconv.FormatInt(int64(num), 10)
-	case Float:
-		num, ok := value.(float32)
+	case Number:
+		num, ok := value.(float64)
 		if !ok {
 			err = fmt.Errorf("%v is not a %s value", value, dt.String())
 			return
@@ -243,8 +243,8 @@ func ParseString(value []byte) (string, error) {
 	return string(value), nil
 }
 
-// ParseFloat converts raw bytes to a float64 value
-func ParseFloat(value []byte) (float64, error) {
+// ParseNumber converts raw bytes to a float64 value
+func ParseNumber(value []byte) (float64, error) {
 	return strconv.ParseFloat(string(value), 64)
 }
 
