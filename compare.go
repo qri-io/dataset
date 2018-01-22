@@ -2,6 +2,7 @@ package dataset
 
 import (
 	"fmt"
+	"github.com/qri-io/jsonschema"
 )
 
 // CompareDatasets checks if all fields of a dataset are equal,
@@ -162,7 +163,7 @@ func CompareStructures(a, b *Structure) error {
 
 // CompareSchemas checks if all fields of two Schema pointers are equal,
 // returning an error on the first, nil if equal
-func CompareSchemas(a, b *Schema) error {
+func CompareSchemas(a, b *jsonschema.RootSchema) error {
 	if a == nil && b == nil {
 		return nil
 	} else if a == nil && b != nil {
@@ -171,54 +172,26 @@ func CompareSchemas(a, b *Schema) error {
 		return fmt.Errorf("nil: <not nil> != <nil>")
 	}
 
-	if err := CompareStringSlices(a.PrimaryKey, b.PrimaryKey); err != nil {
-		return fmt.Errorf("PrimaryKey: %s", err.Error())
-	}
+	// if err := CompareStringSlices(a.PrimaryKey, b.PrimaryKey); err != nil {
+	// 	return fmt.Errorf("PrimaryKey: %s", err.Error())
+	// }
 
-	if a.Fields == nil && b.Fields != nil || a.Fields != nil && b.Fields == nil {
-		return fmt.Errorf("Fields: %s != %s", a.Fields, b.Fields)
-	}
-	if a.Fields == nil && b.Fields == nil {
-		return nil
-	}
-	if len(a.Fields) != len(b.Fields) {
-		return fmt.Errorf("Fields: %d != %d", len(a.Fields), len(b.Fields))
-	}
-	for i, af := range a.Fields {
-		bf := b.Fields[i]
-		if err := CompareFields(af, bf); err != nil {
-			return fmt.Errorf("Fields: element %d: %s", i, err.Error())
-		}
-	}
+	// if a.Fields == nil && b.Fields != nil || a.Fields != nil && b.Fields == nil {
+	// 	return fmt.Errorf("Fields: %s != %s", a.Fields, b.Fields)
+	// }
+	// if a.Fields == nil && b.Fields == nil {
+	// 	return nil
+	// }
+	// if len(a.Fields) != len(b.Fields) {
+	// 	return fmt.Errorf("Fields: %d != %d", len(a.Fields), len(b.Fields))
+	// }
+	// for i, af := range a.Fields {
+	// 	bf := b.Fields[i]
+	// 	if err := CompareFields(af, bf); err != nil {
+	// 		return fmt.Errorf("Fields: element %d: %s", i, err.Error())
+	// 	}
+	// }
 
-	return nil
-}
-
-// CompareFields checks if all fields of two Field pointers are equal,
-// returning an error on the first, nil if equal
-func CompareFields(a, b *Field) error {
-	if a == nil && b == nil {
-		return nil
-	} else if a == nil && b != nil {
-		return fmt.Errorf("nil: <nil> != <not nil>")
-	} else if a != nil && b == nil {
-		return fmt.Errorf("nil: <not nil> != <nil>")
-	}
-
-	if a.Name != b.Name {
-		return fmt.Errorf("name: %s != %s", a.Name, b.Name)
-	}
-	if a.Type != b.Type {
-		return fmt.Errorf("field type: %s != %s", a.Type.String(), b.Type.String())
-	}
-	if a.Title != b.Title {
-		return fmt.Errorf("title: %s != %s", a.Title, b.Title)
-	}
-	if a.Description != b.Description {
-		return fmt.Errorf("description: %s != %s", a.Description, b.Description)
-	}
-
-	// TODO - finish comparison of field constraints, primary keys, format, etc.
 	return nil
 }
 

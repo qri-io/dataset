@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/qri-io/dataset/compression"
+	"github.com/qri-io/jsonschema"
 	"io/ioutil"
 	"testing"
 
 	"github.com/ipfs/go-datastore"
-	"github.com/qri-io/dataset/datatypes"
+	// "github.com/qri-io/dataset/datatypes"
 )
 
 func TestStrucureHash(t *testing.T) {
@@ -73,7 +74,7 @@ func TestStructureIsEmpty(t *testing.T) {
 		{&Structure{Format: CSVDataFormat}},
 		{&Structure{FormatConfig: &CSVOptions{}}},
 		{&Structure{Length: 1}},
-		{&Structure{Schema: &Schema{}}},
+		{&Structure{Schema: &jsonschema.RootSchema{}}},
 	}
 
 	for i, c := range cases {
@@ -88,33 +89,34 @@ func TestStructureAssign(t *testing.T) {
 	expect := &Structure{
 		Format: CSVDataFormat,
 		Length: 2503,
-		Schema: &Schema{
-			Fields: []*Field{
-				{Type: datatypes.String, Name: "foo"},
-				{Type: datatypes.Integer, Name: "bar"},
-				{Description: "bat"},
-			},
-		},
+		// TODO - restore
+		// Schema: &Schema{
+		// 	Fields: []*Field{
+		// 		{Type: datatypes.String, Name: "foo"},
+		// 		{Type: datatypes.Integer, Name: "bar"},
+		// 		{Description: "bat"},
+		// 	},
+		// },
 	}
 	got := &Structure{
 		Format: CSVDataFormat,
-		Schema: &Schema{
-			Fields: []*Field{
-				{Type: datatypes.String},
-				{Type: datatypes.Integer},
-			},
-		},
+		// Schema: &Schema{
+		// 	Fields: []*Field{
+		// 		{Type: datatypes.String},
+		// 		{Type: datatypes.Integer},
+		// 	},
+		// },
 	}
 
 	got.Assign(&Structure{
 		Length: 2503,
-		Schema: &Schema{
-			Fields: []*Field{
-				{Name: "foo"},
-				{Name: "bar"},
-				{Description: "bat"},
-			},
-		},
+		// Schema: &Schema{
+		// 	Fields: []*Field{
+		// 		{Name: "foo"},
+		// 		{Name: "bar"},
+		// 		{Description: "bat"},
+		// 	},
+		// },
 	})
 
 	if err := CompareStructures(expect, got); err != nil {
@@ -150,13 +152,13 @@ func TestStructureUnmarshalJSON(t *testing.T) {
 			t.Errorf("case %d couldn't read file: %s", i, err.Error())
 		}
 
-		ds := &Structure{}
-		if err := json.Unmarshal(data, ds); err != c.err {
+		st := &Structure{}
+		if err := json.Unmarshal(data, st); err != c.err {
 			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
 			continue
 		}
 
-		if err = CompareStructures(ds, c.result); err != nil {
+		if err = CompareStructures(st, c.result); err != nil {
 			t.Errorf("case %d resource comparison error: %s", i, err)
 			continue
 		}
@@ -183,7 +185,7 @@ func TestStructureMarshalJSON(t *testing.T) {
 	}{
 		{&Structure{Format: CSVDataFormat}, []byte(`{"format":"csv","kind":"qri:st:0"}`), nil},
 		{&Structure{Format: CSVDataFormat, Kind: KindStructure}, []byte(`{"format":"csv","kind":"qri:st:0"}`), nil},
-		{AirportCodesStructure, []byte(`{"format":"csv","formatConfig":{"headerRow":true},"kind":"qri:st:0","schema":{"fields":[{"name":"ident","type":"string"},{"name":"type","type":"string"},{"name":"name","type":"string"},{"name":"latitude_deg","type":"float"},{"name":"longitude_deg","type":"float"},{"name":"elevation_ft","type":"integer"},{"name":"continent","type":"string"},{"name":"iso_country","type":"string"},{"name":"iso_region","type":"string"},{"name":"municipality","type":"string"},{"name":"gps_code","type":"string"},{"name":"iata_code","type":"string"},{"name":"local_code","type":"string"}]}}`), nil},
+		{AirportCodesStructure, []byte(`{"format":"csv","formatConfig":{"headerRow":true},"kind":"qri:st:0","schema":{"items":{"items":[{"title":"ident","type":"string"},{"title":"type","type":"string"},{"title":"name","type":"string"},{"title":"latitude_deg","type":"string"},{"title":"longitude_deg","type":"string"},{"title":"elevation_ft","type":"string"},{"title":"continent","type":"string"},{"title":"iso_country","type":"string"},{"title":"iso_region","type":"string"},{"title":"municipality","type":"string"},{"title":"gps_code","type":"string"},{"title":"iata_code","type":"string"},{"title":"local_code","type":"string"}],"type":"array"},"type":"array"}}`), nil},
 	}
 
 	for i, c := range cases {

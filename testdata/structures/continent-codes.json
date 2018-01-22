@@ -1,15 +1,19 @@
 {
   "format": "csv",
   "schema": {
-    "fields": [
-      {
-        "name": "Code",
-        "type": "string"
-      },
-      {
-        "name": "Name",
-        "type": "string"
-      }
-    ]
+    "type": "array",
+    "items": {
+      "type": "array",
+      "items": [
+        {
+          "title": "Code",
+          "type": "string"
+        },
+        {
+          "title": "Name",
+          "type": "string"
+        }
+      ]
+    }
   }
 }

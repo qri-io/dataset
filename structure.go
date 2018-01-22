@@ -6,6 +6,7 @@ import (
 
 	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/dataset/compression"
+	"github.com/qri-io/jsonschema"
 )
 
 // Structure designates a deterministic definition for working with a discrete dataset.
@@ -42,7 +43,7 @@ type Structure struct {
 	// must always match & be present
 	Length int `json:"length,omitempty"`
 	// Schema contains the schema definition for the underlying data
-	Schema *Schema `json:"schema,omitempty"`
+	Schema *jsonschema.RootSchema `json:"schema,omitempty"`
 }
 
 // Path gives the internal path reference for this structure
@@ -66,19 +67,20 @@ func (s *Structure) Abstract() *Structure {
 		Encoding:     s.Encoding,
 	}
 	if s.Schema != nil {
-		a.Schema = &Schema{
-			PrimaryKey: s.Schema.PrimaryKey,
-			Fields:     make([]*Field, len(s.Schema.Fields)),
-		}
-		for i, f := range s.Schema.Fields {
-			a.Schema.Fields[i] = &Field{
-				Name:         AbstractColumnName(i),
-				Type:         f.Type,
-				MissingValue: f.MissingValue,
-				Format:       f.Format,
-				Constraints:  f.Constraints,
-			}
-		}
+		// TODO - Fix meeeeeeee
+		// a.Schema = &Schema{
+		// 	PrimaryKey: s.Schema.PrimaryKey,
+		// 	Fields:     make([]*Field, len(s.Schema.Fields)),
+		// }
+		// for i, f := range s.Schema.Fields {
+		// 	a.Schema.Fields[i] = &Field{
+		// 		Name:         AbstractColumnName(i),
+		// 		Type:         f.Type,
+		// 		MissingValue: f.MissingValue,
+		// 		Format:       f.Format,
+		// 		Constraints:  f.Constraints,
+		// 	}
+		// }
 	}
 	return a
 }
@@ -99,7 +101,7 @@ type _structure struct {
 	FormatConfig map[string]interface{} `json:"formatConfig,omitempty"`
 	Kind         Kind                   `json:"kind"`
 	Length       int                    `json:"length,omitempty"`
-	Schema       *Schema                `json:"schema,omitempty"`
+	Schema       *jsonschema.RootSchema `json:"schema,omitempty"`
 }
 
 // MarshalJSON satisfies the json.Marshaler interface
@@ -216,27 +218,15 @@ func (s *Structure) Assign(structures ...*Structure) {
 		if st.Length != 0 {
 			s.Length = st.Length
 		}
+		// TODO - fix me
 		if st.Schema != nil {
-			if s.Schema == nil {
-				s.Schema = &Schema{}
-			}
-			s.Schema.Assign(st.Schema)
+			// if s.Schema == nil {
+			// 	s.Schema = &RootSchema{}
+			// }
+			// s.Schema.Assign(st.Schema)
+			s.Schema = st.Schema
 		}
 	}
-}
-
-// StringFieldIndex gives the index of a field who's name matches s
-// it returns -1 if no match is found
-func (s *Structure) StringFieldIndex(str string) int {
-	if s.Schema == nil {
-		return -1
-	}
-	for i, f := range s.Schema.Fields {
-		if f.Name == str {
-			return i
-		}
-	}
-	return -1
 }
 
 // UnmarshalStructure tries to extract a structure type from an empty
