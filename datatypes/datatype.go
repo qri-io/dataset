@@ -65,29 +65,29 @@ func TypeFromString(t string) Type {
 // TODO - should write a version of MUCH faster funcs with "Is" prefix (IsObject, etc)
 // that just return t/f. these funcs should aim to bail ASAP when proven false
 func ParseDatatype(value []byte) Type {
-	var err error
-	if _, err = ParseInteger(value); err == nil {
+	if len(value) == 0 {
+		return String
+	}
+	var ok bool
+	if ok = IsInteger(value); ok {
 		return Integer
 	}
-	if _, err = ParseFloat(value); err == nil {
+	if ok = IsFloat(value); ok {
 		return Float
 	}
-	if _, err = ParseBoolean(value); err == nil {
+	if ok = IsBoolean(value); ok {
 		return Boolean
 	}
-	if _, err = ParseJSON(value); err == nil {
+	if ok = IsJSON(value); ok {
 		return JSON
 	}
-	if _, err = ParseDate(value); err == nil {
+	if ok = IsDate(value); ok {
 		return Date
 	}
 	// if _, err = ParseURL(value); err == nil {
 	// 	return URL
 	// }
-	if _, err = ParseString(value); err == nil {
-		return String
-	}
-	return Any
+	return String
 }
 
 // String satsfies the stringer interface
@@ -318,4 +318,53 @@ func ParseJSON(value []byte) (interface{}, error) {
 	p := []interface{}{}
 	err = json.Unmarshal(value, &p)
 	return p, err
+}
+
+func IsInteger(value []byte) bool {
+	if len(value) == 0 {
+		return false
+	}
+	if value[0] == '[' || value[0] == '{' || !bytes.ContainsAny(value[0:1], "-+0123456789") {
+		return false
+	}
+	if _, err := ParseInteger(value); err == nil || err.(*strconv.NumError).Err == strconv.ErrRange {
+		return true
+	}
+	return false
+}
+
+func IsBoolean(value []byte) bool {
+	switch string(value) {
+	case "1", "0", "t", "f", "T", "F", "true", "false", "TRUE", "FALSE", "True", "False":
+		return true
+	default:
+		return false
+	}
+}
+
+func IsFloat(value []byte) bool {
+	if len(value) == 0 {
+		return false
+	}
+	if value[0] == '[' || value[0] == '{' || !bytes.ContainsAny(value[0:1], "-+0123456789") {
+		return false
+	}
+	if _, err := ParseFloat(value); err == nil || err.(*strconv.NumError).Err == strconv.ErrRange {
+		return true
+	}
+	return false
+}
+
+func IsJSON(value []byte) bool {
+	if _, err := ParseJSON(value); err != nil {
+		return false
+	}
+	return true
+}
+
+func IsDate(value []byte) bool {
+	if _, err := ParseDate(value); err != nil {
+		return false
+	}
+	return true
 }
