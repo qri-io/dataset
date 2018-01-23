@@ -24,6 +24,7 @@ jobs:
             github.com/datatogether/cdxj
             github.com/sergi/go-diff/diffmatchpatch
             github.com/qri-io/varName
+            github.com/qri-io/jsonschema
       - run: 
           name: Run Lint Tests
           command: golint -set_exit_status ./...
