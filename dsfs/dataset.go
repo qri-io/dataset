@@ -15,6 +15,7 @@ import (
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsio"
 	"github.com/qri-io/dataset/validate"
+	"github.com/qri-io/datasetDiffer"
 )
 
 // LoadDataset reads a dataset from a cafs and dereferences structure, transform, and commitMsg if they exist,
@@ -173,6 +174,24 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 	// TODO - need a better strategy for huge files. I think that strategy is to split
 	// the reader into multiple consumers that are all performing their task on a stream
 	// of byte slices
+	// check for user-supplied dataset
+	if ds.Commit.Title == "" {
+		prevKey := datastore.NewKey(ds.PreviousPath)
+		var prev *dataset.Dataset
+		prev, err := LoadDataset(store, prevKey)
+		if err != nil {
+			err = fmt.Errorf("error loading previous dataset: %s", err.Error())
+			return nil, err
+		}
+		// var diffList datasetDiffer.DiffList
+		diffList, err := datasetDiffer.DiffDatasets(ds, prev)
+		if err != nil {
+			err = fmt.Errorf("error diffing datasets: %s", err.Error())
+			return nil, err
+		}
+		diffDescription := diffList.String()
+		ds.Commit.Title = diffDescription
+	}
 	data, err := ioutil.ReadAll(df)
 	if err != nil {
 		return nil, fmt.Errorf("error reading file: %s", err.Error())
