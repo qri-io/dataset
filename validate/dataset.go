@@ -40,7 +40,8 @@ func Commit(cm *dataset.Commit) error {
 	}
 
 	if cm.Title == "" {
-		return fmt.Errorf("title is required")
+		// return fmt.Errorf("title is required")
+
 	} else if len(cm.Title) > 100 {
 		return fmt.Errorf("title is too long. %d length exceeds 100 character limit", len(cm.Title))
 	}

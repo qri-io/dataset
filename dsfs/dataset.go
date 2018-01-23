@@ -170,30 +170,51 @@ var timestamp = func() time.Time {
 	return time.Now()
 }
 
+func getAutoCommitTitleIfBlank(store cafs.Filestore, ds *dataset.Dataset) error {
+	// check for user-supplied commit message
+	fmt.Printf("ds.Commit.Title = '%s'\n", ds.Commit.Title)
+	if ds.Commit.Title == "" {
+		var prev *dataset.Dataset
+		if ds.PreviousPath != "" {
+			prevKey := datastore.NewKey(ds.PreviousPath)
+			var err error
+			prev, err = LoadDataset(store, prevKey)
+			if err != nil {
+				err = fmt.Errorf("error loading previous dataset: %s", err.Error())
+				return err
+			}
+		} else {
+			prev = &dataset.Dataset{
+				Commit: &dataset.Commit{},
+				Structure: &dataset.Structure{
+					Checksum: base58.Encode([]byte(`abc`)),
+				},
+				DataPath: "abc",
+			}
+		}
+
+		// var diffList datasetDiffer.DiffList
+		fmt.Printf("structure checksum: '%s'\n", ds.Structure.Checksum)
+		diffList, err := datasetDiffer.DiffDatasets(prev, ds)
+		if err != nil {
+			err = fmt.Errorf("error diffing datasets: %s", err.Error())
+			return err
+		}
+		diffDescription := diffList.String()
+		ds.Commit.Title = diffDescription
+		fmt.Println("---------")
+		fmt.Println(diffDescription)
+		fmt.Println("---------")
+	}
+	return nil
+}
+
 // prepareDataset modifies a dataset in preparation for adding to a dsfs
 // it returns a new data file for use in WriteDataset
 func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, privKey crypto.PrivKey) (cafs.File, error) {
 	// TODO - need a better strategy for huge files. I think that strategy is to split
 	// the reader into multiple consumers that are all performing their task on a stream
 	// of byte slices
-	// check for user-supplied dataset
-	if ds.Commit.Title == "" {
-		prevKey := datastore.NewKey(ds.PreviousPath)
-		var prev *dataset.Dataset
-		prev, err := LoadDataset(store, prevKey)
-		if err != nil {
-			err = fmt.Errorf("error loading previous dataset: %s", err.Error())
-			return nil, err
-		}
-		// var diffList datasetDiffer.DiffList
-		diffList, err := datasetDiffer.DiffDatasets(ds, prev)
-		if err != nil {
-			err = fmt.Errorf("error diffing datasets: %s", err.Error())
-			return nil, err
-		}
-		diffDescription := diffList.String()
-		ds.Commit.Title = diffDescription
-	}
 	data, err := ioutil.ReadAll(df)
 	if err != nil {
 		return nil, fmt.Errorf("error reading file: %s", err.Error())
@@ -226,7 +247,11 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 
 	// generate abstract form of dataset
 	ds.Abstract = dataset.Abstract(ds)
-
+	//get auto commit message if necessary
+	err = getAutoCommitTitleIfBlank(store, ds)
+	if err != nil {
+		return nil, fmt.Errorf("%s", err.Error())
+	}
 	ds.Commit.Timestamp = timestamp()
 	signedBytes, err := privKey.Sign(ds.Commit.SignableBytes())
 	if err != nil {
