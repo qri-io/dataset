@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/qri-io/dataset"
-	"github.com/qri-io/dataset/datatypes"
+	"github.com/qri-io/dataset/vals"
 	"github.com/qri-io/jsonschema"
 	"github.com/qri-io/varName"
 )
@@ -34,8 +34,8 @@ func Schema(r *dataset.Structure, data io.Reader) (schema *jsonschema.RootSchema
 }
 
 type field struct {
-	Title string         `json:"title,omitempty"`
-	Type  datatypes.Type `json:"type,omitempty"`
+	Title string    `json:"title,omitempty"`
+	Type  vals.Type `json:"type,omitempty"`
 }
 
 // CSVSchema determines the field names and types of an io.Reader of CSV-formatted data, returning a json schema
@@ -49,20 +49,20 @@ func CSVSchema(resource *dataset.Structure, data io.Reader) (schema *jsonschema.
 	}
 
 	fields := make([]*field, len(header))
-	types := make([]map[datatypes.Type]int, len(header))
+	types := make([]map[vals.Type]int, len(header))
 
 	for i := range fields {
 		fields[i] = &field{
 			Title: fmt.Sprintf("field_%d", i+1),
-			Type:  datatypes.Any,
+			Type:  vals.TypeUnknown,
 		}
-		types[i] = map[datatypes.Type]int{}
+		types[i] = map[vals.Type]int{}
 	}
 
 	if possibleCsvHeaderRow(header) {
 		for i, f := range fields {
 			f.Title = varName.CreateVarNameFromString(header[i])
-			f.Type = datatypes.Any
+			f.Type = vals.TypeUnknown
 		}
 		resource.FormatConfig = &dataset.CSVOptions{
 			HeaderRow: true,
@@ -70,7 +70,7 @@ func CSVSchema(resource *dataset.Structure, data io.Reader) (schema *jsonschema.
 		// ds.HeaderRow = true
 	} else {
 		for i, cell := range header {
-			types[i][datatypes.ParseDatatype([]byte(cell))]++
+			types[i][vals.ParseType([]byte(cell))]++
 		}
 	}
 
@@ -89,7 +89,7 @@ func CSVSchema(resource *dataset.Structure, data io.Reader) (schema *jsonschema.
 		}
 
 		for i, cell := range rec {
-			types[i][datatypes.ParseDatatype([]byte(cell))]++
+			types[i][vals.ParseType([]byte(cell))]++
 		}
 
 		count++
@@ -98,10 +98,6 @@ func CSVSchema(resource *dataset.Structure, data io.Reader) (schema *jsonschema.
 	for i, tally := range types {
 		for typ, count := range tally {
 			if count > tally[fields[i].Type] {
-				// TODO - jsonschema doesn't support dates. need to reconcile
-				if typ == datatypes.Date {
-					typ = datatypes.String
-				}
 				fields[i].Type = typ
 			}
 		}
@@ -132,10 +128,10 @@ func CSVSchema(resource *dataset.Structure, data io.Reader) (schema *jsonschema.
 func possibleCsvHeaderRow(header []string) bool {
 	for _, rawCol := range header {
 		col := strings.TrimSpace(rawCol)
-		if _, err := datatypes.ParseInteger([]byte(col)); err == nil {
+		if _, err := vals.ParseInteger([]byte(col)); err == nil {
 			// if the row contains valid numeric data, we out.
 			return false
-		} else if _, err := datatypes.ParseNumber([]byte(col)); err == nil {
+		} else if _, err := vals.ParseNumber([]byte(col)); err == nil {
 			return false
 		} else if col == "" {
 			// empty columns can't be headers

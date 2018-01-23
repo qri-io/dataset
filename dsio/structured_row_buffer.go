@@ -6,7 +6,6 @@ import (
 	"sort"
 
 	"github.com/qri-io/dataset"
-	"github.com/qri-io/dataset/datatypes"
 )
 
 // StructuredRowBuffer is the full-featured version of StructuredBuffer
@@ -23,10 +22,12 @@ type StructuredRowBuffer struct {
 
 // StructuredRowBufferCfg encapsulates configuration for StructuredRowBuffer
 type StructuredRowBufferCfg struct {
+	// TODO - restore
 	// OrderBy gives a list of orders
-	OrderBy []*dataset.Field
+	// OrderBy []*dataset.Field
 	// OrderByDesc reverses the order given
-	OrderByDesc bool
+	// OrderByDesc bool
+
 	// Unique silently rejects writing rows
 	// already present in the buffer
 	Unique bool
@@ -45,7 +46,7 @@ func NewStructuredRowBuffer(st *dataset.Structure, configs ...func(o *Structured
 		st:     st,
 		unique: cfg.Unique,
 	}
-	rb.less, rb.err = rb.makeLessFunc(st, cfg)
+	// rb.less, rb.err = rb.makeLessFunc(st, cfg)
 
 	return rb, nil
 }
@@ -133,61 +134,61 @@ func (rb *StructuredRowBuffer) Swap(i, j int) {
 	rb.rows[i], rb.rows[j] = rb.rows[j], rb.rows[i]
 }
 
-func (rb *StructuredRowBuffer) makeLessFunc(st *dataset.Structure, cfg *StructuredRowBufferCfg) (*func(i, j int) bool, error) {
-	if len(cfg.OrderBy) == 0 {
-		return nil, nil
-	}
+// func (rb *StructuredRowBuffer) makeLessFunc(st *dataset.Structure, cfg *StructuredRowBufferCfg) (*func(i, j int) bool, error) {
+// 	if len(cfg.OrderBy) == 0 {
+// 		return nil, nil
+// 	}
 
-	type order struct {
-		idx  int
-		desc bool
-		dt   datatypes.Type
-	}
+// 	type order struct {
+// 		idx  int
+// 		desc bool
+// 		dt   datatypes.Type
+// 	}
 
-	if st.Schema == nil {
-		return nil, fmt.Errorf("structure has no schema")
-	}
+// 	if st.Schema == nil {
+// 		return nil, fmt.Errorf("structure has no schema")
+// 	}
 
-	orders := []order{}
-	for _, o := range cfg.OrderBy {
-		idx := -1
-		for i, f := range st.Schema.Fields {
-			if f == o || f.Name == o.Name {
-				idx = i
-				break
-			}
-		}
+// 	orders := []order{}
+// 	for _, o := range cfg.OrderBy {
+// 		idx := -1
+// 		for i, f := range st.Schema.Fields {
+// 			if f == o || f.Name == o.Name {
+// 				idx = i
+// 				break
+// 			}
+// 		}
 
-		if idx < 0 {
-			return nil, fmt.Errorf("couldn't find sort field: %s", o.Name)
-		}
+// 		if idx < 0 {
+// 			return nil, fmt.Errorf("couldn't find sort field: %s", o.Name)
+// 		}
 
-		orders = append(orders, order{
-			idx:  idx,
-			desc: cfg.OrderByDesc,
-			dt:   st.Schema.Fields[idx].Type,
-		})
-	}
+// 		orders = append(orders, order{
+// 			idx:  idx,
+// 			desc: cfg.OrderByDesc,
+// 			dt:   st.Schema.Fields[idx].Type,
+// 		})
+// 	}
 
-	less := func(i, j int) bool {
-		for _, o := range orders {
-			l, err := datatypes.CompareTypeBytes(rb.rows[i][o.idx], rb.rows[j][o.idx], o.dt)
-			if err != nil {
-				// TODO - wut
-				continue
-			}
-			if l == 0 {
-				continue
-			}
-			return l < 0
-		}
-		return false
-	}
+// 	less := func(i, j int) bool {
+// 		for _, o := range orders {
+// 			l, err := datatypes.CompareTypeBytes(rb.rows[i][o.idx], rb.rows[j][o.idx], o.dt)
+// 			if err != nil {
+// 				// TODO - wut
+// 				continue
+// 			}
+// 			if l == 0 {
+// 				continue
+// 			}
+// 			return l < 0
+// 		}
+// 		return false
+// 	}
 
-	if cfg.OrderByDesc {
-		opposite := func(i, j int) bool { return !less(i, j) }
-		return &opposite, nil
-	}
+// 	if cfg.OrderByDesc {
+// 		opposite := func(i, j int) bool { return !less(i, j) }
+// 		return &opposite, nil
+// 	}
 
-	return &less, nil
-}
+// 	return &less, nil
+// }

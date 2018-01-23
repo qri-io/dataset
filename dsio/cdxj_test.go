@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/qri-io/dataset"
-	"github.com/qri-io/dataset/datatypes"
+	"github.com/qri-io/jsonschema"
 )
 
 // TODO - vary up test input
@@ -18,15 +18,27 @@ const cdxjData = `!OpenWayback-CDXJ 1.0
 
 var cdxjStruct = &dataset.Structure{
 	Format: dataset.CDXJDataFormat,
-	Schema: &dataset.Schema{
-		Fields: []*dataset.Field{
-			{Name: "surt_uri", Type: datatypes.String},
-			// TODO - currently using string b/c date interface isn't fully implemented
-			{Name: "timestamp", Type: datatypes.String},
-			{Name: "record_type", Type: datatypes.String},
-			{Name: "metadata", Type: datatypes.JSON},
-		},
-	},
+	Schema: jsonschema.Must(`{
+		"type": "array",
+		"items":{
+			"type":"array",
+			"items: [
+				{"title": "surt_uri","type": "string"},
+				{"title": "timestamp","type": "string"},
+				{"title": "record_type","type": "string"},
+				{"title": "record_type","type": "object"}
+			]
+		}
+	}`),
+	// Schema: &dataset.Schema{
+	// 	Fields: []*dataset.Field{
+	// 		{Name: "surt_uri", Type: datatypes.String},
+	// 		// TODO - currently using string b/c date interface isn't fully implemented
+	// 		{Name: "timestamp", Type: datatypes.String},
+	// 		{Name: "record_type", Type: datatypes.String},
+	// 		{Name: "metadata", Type: datatypes.JSON},
+	// 	},
+	// },
 }
 
 func TestCDXJReader(t *testing.T) {

@@ -26,7 +26,7 @@ jobs:
             github.com/qri-io/varName
       - run: 
           name: Run Lint Tests
-          command: golint ./...
+          command: golint -set_exit_status ./...
       - restore_cache:
           key: dependency-cache-{{ checksum "package.json" }}
       - run: 

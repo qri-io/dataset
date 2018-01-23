@@ -1,9 +1,31 @@
-package datatypes
+package vals
 
 import (
 	"bytes"
 	"fmt"
+	"reflect"
 )
+
+func Equal(a, b Value) bool {
+	if a.Type() != b.Type() {
+		return false
+	}
+	switch a.Type() {
+	case TypeObject, TypeArray:
+		return reflect.DeepEqual(a, b)
+	case TypeNumber:
+		return a.Number() == b.Number()
+	case TypeInteger:
+		return a.Integer() == b.Integer()
+	case TypeBoolean:
+		return a.Boolean() == b.Boolean()
+	case TypeNull:
+		return a.IsNull() == b.IsNull()
+	case TypeString:
+		return a.String() == b.String()
+	}
+	return false
+}
 
 // CompareTypeBytes compares two byte slices with a known type
 // real on the real, this is a bit of a work in progress
@@ -18,11 +40,11 @@ func CompareTypeBytes(a, b []byte, t Type) (int, error) {
 	}
 
 	switch t {
-	case String:
+	case TypeString:
 		return bytes.Compare(a, b), nil
-	case Integer:
+	case TypeInteger:
 		return CompareIntegerBytes(a, b)
-	case Number:
+	case TypeNumber:
 		return CompareNumberBytes(a, b)
 	default:
 		// TODO - other types

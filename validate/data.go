@@ -7,8 +7,8 @@ import (
 
 	"github.com/datatogether/cdxj"
 	"github.com/qri-io/dataset"
-	"github.com/qri-io/dataset/datatypes"
 	"github.com/qri-io/dataset/dsio"
+	"github.com/qri-io/dataset/vals"
 )
 
 // DataFormat ensures that for each accepted dataset.DataFormat,
@@ -70,12 +70,12 @@ func DataErrors(r dsio.RowReader, options ...func(*DataErrorsCfg)) (errors dsio.
 		Format: dataset.CSVDataFormat,
 		Schema: &dataset.Schema{
 			Fields: []*dataset.Field{
-				{Name: "row_index", Type: datatypes.Integer},
+				{Name: "row_index", Type: vals.Integer},
 			},
 		},
 	}
 	for _, f := range r.Structure().Schema.Fields {
-		vst.Schema.Fields = append(vst.Schema.Fields, &dataset.Field{Name: f.Name + "_error", Type: datatypes.String})
+		vst.Schema.Fields = append(vst.Schema.Fields, &dataset.Field{Name: f.Name + "_error", Type: vals.String})
 	}
 
 	buf, err := dsio.NewStructuredBuffer(vst)

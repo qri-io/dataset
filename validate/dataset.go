@@ -3,6 +3,7 @@ package validate
 import (
 	"fmt"
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/jsonschema"
 )
 
 // Dataset checks that a dataset is valid for use
@@ -69,6 +70,40 @@ func Structure(s *dataset.Structure) error {
 
 	return nil
 }
+
+// csvMetaSchema is a jsonschema for validating CSV schema definitions
+var csvMetaSchema = jsonschema.Must(`{
+  "type": "object",
+  "properties": {
+    "type": {
+      "const": "array"
+    },
+    "items": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "array"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "minItems": 1,
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "type": true
+            }
+          }
+        }
+      }
+    }
+  }
+}`)
+
+// jsonMetaSchema is a jsonschema for validating JSON schema definitions
+// var jsonMetaSchema = jsonschema.Must(``)
 
 // Schema checks that a dataset schema is valid for use
 // returning the first error encountered, nil if valid

@@ -5,10 +5,9 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"strconv"
 
 	"github.com/qri-io/dataset"
-	"github.com/qri-io/dataset/datatypes"
+	"github.com/qri-io/dataset/vals"
 )
 
 // JSONReader implements the RowReader interface for the JSON data format
@@ -49,8 +48,8 @@ func (r *JSONReader) ReadRow() ([][]byte, error) {
 // initialIndex sets the scanner up to read data, advancing until the first
 // entry in the top level array & setting the scanner split func to scan objects
 func initialIndex(data []byte) (skip int, err error) {
-	typ, err := datatypes.JSONArrayOrObject(data)
-	if err != nil {
+	typ := vals.JSONArrayOrObject(data)
+	if typ == "" {
 		// might not have initial closure, request more data
 		return -1, err
 	}
@@ -166,37 +165,38 @@ func (w *JSONWriter) writeObjectRow(row [][]byte) error {
 	if w.rowsWritten == 0 {
 		enc = enc[1:]
 	}
-	for i, c := range row {
-		f := w.st.Schema.Fields[i]
-		ent := []byte(",\"" + f.Name + "\":")
-		if i == 0 {
-			ent = ent[1:]
-		}
-		if c == nil || len(c) == 0 {
-			ent = append(ent, []byte("null")...)
-		} else {
-			switch f.Type {
-			case datatypes.String:
-				ent = append(ent, []byte(strconv.Quote(string(c)))...)
-			case datatypes.Float, datatypes.Integer:
-				// if len(c) == 0 {
-				// 	ent = append(ent, []byte("null")...)
-				// } else {
-				// 	ent = append(ent, c...)
-				// }
-				ent = append(ent, c...)
-			case datatypes.Boolean:
-				// TODO - coerce to true & false specifically
-				ent = append(ent, c...)
-			case datatypes.JSON:
-				ent = append(ent, c...)
-			default:
-				ent = append(ent, []byte(strconv.Quote(string(c)))...)
-			}
-		}
+	// TODO - restore
+	// for i, c := range row {
+	// 	f := w.st.Schema.Fields[i]
+	// 	ent := []byte(",\"" + f.Name + "\":")
+	// 	if i == 0 {
+	// 		ent = ent[1:]
+	// 	}
+	// 	if c == nil || len(c) == 0 {
+	// 		ent = append(ent, []byte("null")...)
+	// 	} else {
+	// 		switch f.Type {
+	// 		case vals.String:
+	// 			ent = append(ent, []byte(strconv.Quote(string(c)))...)
+	// 		case vals.Float, vals.Integer:
+	// 			// if len(c) == 0 {
+	// 			// 	ent = append(ent, []byte("null")...)
+	// 			// } else {
+	// 			// 	ent = append(ent, c...)
+	// 			// }
+	// 			ent = append(ent, c...)
+	// 		case vals.Boolean:
+	// 			// TODO - coerce to true & false specifically
+	// 			ent = append(ent, c...)
+	// 		case vals.JSON:
+	// 			ent = append(ent, c...)
+	// 		default:
+	// 			ent = append(ent, []byte(strconv.Quote(string(c)))...)
+	// 		}
+	// 	}
 
-		enc = append(enc, ent...)
-	}
+	// 	enc = append(enc, ent...)
+	// }
 
 	enc = append(enc, '}')
 	if _, err := w.wr.Write(enc); err != nil {
@@ -212,40 +212,41 @@ func (w *JSONWriter) writeArrayRow(row [][]byte) error {
 	if w.rowsWritten == 0 {
 		enc = enc[1:]
 	}
-	for i, c := range row {
-		f := w.st.Schema.Fields[i]
-		ent := []byte(",")
-		if i == 0 {
-			ent = ent[1:]
-		}
-		if c == nil || len(c) == 0 {
-			ent = append(ent, []byte("null")...)
-		} else {
-			switch f.Type {
-			case datatypes.String:
-				ent = append(ent, []byte(strconv.Quote(string(c)))...)
-			case datatypes.Float, datatypes.Integer:
-				// TODO - decide on weather or not to supply default values
-				// if len(c) == 0 {
-				// ent = append(ent, []byte("0")...)
-				// } else {
-				ent = append(ent, c...)
-				// }
-			case datatypes.Boolean:
-				// TODO - coerce to true & false specifically
-				// if len(c) == 0 {
-				// ent = append(ent, []byte("false")...)
-				// }
-				ent = append(ent, c...)
-			case datatypes.JSON:
-				ent = append(ent, c...)
-			default:
-				ent = append(ent, []byte(strconv.Quote(string(c)))...)
-			}
-		}
+	// TODO - restore
+	// for i, c := range row {
+	// 	f := w.st.Schema.Fields[i]
+	// 	ent := []byte(",")
+	// 	if i == 0 {
+	// 		ent = ent[1:]
+	// 	}
+	// 	if c == nil || len(c) == 0 {
+	// 		ent = append(ent, []byte("null")...)
+	// 	} else {
+	// 		switch f.Type {
+	// 		case vals.String:
+	// 			ent = append(ent, []byte(strconv.Quote(string(c)))...)
+	// 		case vals.Float, vals.Integer:
+	// 			// TODO - decide on weather or not to supply default values
+	// 			// if len(c) == 0 {
+	// 			// ent = append(ent, []byte("0")...)
+	// 			// } else {
+	// 			ent = append(ent, c...)
+	// 			// }
+	// 		case vals.Boolean:
+	// 			// TODO - coerce to true & false specifically
+	// 			// if len(c) == 0 {
+	// 			// ent = append(ent, []byte("false")...)
+	// 			// }
+	// 			ent = append(ent, c...)
+	// 		case vals.JSON:
+	// 			ent = append(ent, c...)
+	// 		default:
+	// 			ent = append(ent, []byte(strconv.Quote(string(c)))...)
+	// 		}
+	// 	}
 
-		enc = append(enc, ent...)
-	}
+	// 	enc = append(enc, ent...)
+	// }
 
 	enc = append(enc, ']')
 	if _, err := w.wr.Write(enc); err != nil {

@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/qri-io/dataset"
-	"github.com/qri-io/dataset/datatypes"
+	"github.com/qri-io/jsonschema"
 )
 
 const csvData = `col_a,col_b,col_c,col_d
@@ -20,14 +20,18 @@ var csvStruct = &dataset.Structure{
 	FormatConfig: &dataset.CSVOptions{
 		HeaderRow: true,
 	},
-	Schema: &dataset.Schema{
-		Fields: []*dataset.Field{
-			{Name: "col_a", Type: datatypes.String},
-			{Name: "col_b", Type: datatypes.String},
-			{Name: "col_c", Type: datatypes.String},
-			{Name: "col_d", Type: datatypes.String},
-		},
-	},
+	Schema: jsonschema.Must(`{
+		"type": "array",
+		"items": {
+			"type":"array",
+			"items": [
+				{"title":"col_a","type":"string"},
+				{"title":"col_b","type":"string"},
+				{"title":"col_c","type":"string"},
+				{"title":"col_d","type":"string"}
+			]
+		}
+	}`),
 }
 
 func TestCSVReader(t *testing.T) {

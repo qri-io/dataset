@@ -1,8 +1,35 @@
-package datatypes
+package vals
 
 import (
 	"testing"
 )
+
+func TestEqual(t *testing.T) {
+	cases := []struct {
+		a, b   Value
+		expect bool
+	}{
+		{Array{Number(1)}, Array{Number(1)}, true},
+		{Array{Number(1)}, Array{Number(2)}, false},
+		{Object{"a": String("a")}, Object{"a": String("a")}, true},
+		{Object{"a": String("a")}, Object{"a": String("b")}, false},
+		{String("a"), String("a"), true},
+		{String("a"), String("b"), false},
+		{Boolean(true), Boolean(true), true},
+		{Boolean(true), Boolean(false), false},
+		{Integer(1), Integer(1), true},
+		{Integer(1), Integer(2), false},
+		{Number(1.1), Number(1.1), true},
+		{Number(1.1), Number(1.11), false},
+	}
+
+	for i, c := range cases {
+		got := Equal(c.a, c.b)
+		if got != c.expect {
+			t.Errorf("case: %d. %v == %v != %t", i, c.a, c.b, c.expect)
+		}
+	}
+}
 
 func TestCompareTypeBytes(t *testing.T) {
 	cases := []struct {
@@ -11,14 +38,14 @@ func TestCompareTypeBytes(t *testing.T) {
 		expect int
 		err    string
 	}{
-		{"0", "0", Unknown, 0, "invalid type comparison"},
-		{"", "", String, 0, ""},
-		{"", "foo", String, -1, ""},
-		{"foo", "", String, 1, ""},
-		{"foo", "bar", String, 1, ""},
-		{"bar", "foo", String, -1, ""},
-		{"0", "0", Number, 0, ""},
-		{"0", "0", Integer, 0, ""},
+		{"0", "0", TypeUnknown, 0, "invalid type comparison"},
+		{"", "", TypeString, 0, ""},
+		{"", "foo", TypeString, -1, ""},
+		{"foo", "", TypeString, 1, ""},
+		{"foo", "bar", TypeString, 1, ""},
+		{"bar", "foo", TypeString, -1, ""},
+		{"0", "0", TypeNumber, 0, ""},
+		{"0", "0", TypeInteger, 0, ""},
 	}
 
 	for i, c := range cases {

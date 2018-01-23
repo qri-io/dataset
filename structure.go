@@ -283,3 +283,9 @@ func base26(d int) (s string) {
 	}
 	return s
 }
+
+// func SchemaFieldNames(rs *jsonschema.RootSchema) (fn []string) {
+// if itemsch, ok := rs.Validators["items"].(*jsonschema.Schema); ok {
+// 	itemsch.Validators["items"]
+// }
+// }

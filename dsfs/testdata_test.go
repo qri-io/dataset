@@ -10,7 +10,8 @@ import (
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/cafs/memfs"
 	"github.com/qri-io/dataset"
-	"github.com/qri-io/dataset/datatypes"
+	"github.com/qri-io/dataset/vals"
+	"github.com/qri-io/jsonschema"
 )
 
 var AirportCodes = &dataset.Dataset{
@@ -42,123 +43,53 @@ var AirportCodesStructure = &dataset.Structure{
 	FormatConfig: &dataset.CSVOptions{
 		HeaderRow: true,
 	},
-	Schema: &dataset.Schema{
-		Fields: []*dataset.Field{
-			{
-				Name: "ident",
-				Type: datatypes.String,
-			},
-			{
-				Name: "type",
-				Type: datatypes.String,
-			},
-			{
-				Name: "name",
-				Type: datatypes.String,
-			},
-			{
-				Name: "latitude_deg",
-				Type: datatypes.Float,
-			},
-			{
-				Name: "longitude_deg",
-				Type: datatypes.Float,
-			},
-			{
-				Name: "elevation_ft",
-				Type: datatypes.Integer,
-			},
-			{
-				Name: "continent",
-				Type: datatypes.String,
-			},
-			{
-				Name: "iso_country",
-				Type: datatypes.String,
-			},
-			{
-				Name: "iso_region",
-				Type: datatypes.String,
-			},
-			{
-				Name: "municipality",
-				Type: datatypes.String,
-			},
-			{
-				Name: "gps_code",
-				Type: datatypes.String,
-			},
-			{
-				Name: "iata_code",
-				Type: datatypes.String,
-			},
-			{
-				Name: "local_code",
-				Type: datatypes.String,
-			},
-		},
-	},
+	Schema: jsonschema.Must(`{
+		"type": "array",
+		"items": {
+			"type" : "array",
+			"items" : [
+				{"title": "ident", "type": "string" },
+				{"title": "type", "type": "string" },
+				{"title": "name", "type": "string" },
+				{"title": "latitude_deg", "type": "number" },
+				{"title": "longitude_deg", "type": "number" },
+				{"title": "elevation_ft", "type": "integer" },
+				{"title": "continent", "type": "string" },
+				{"title": "iso_country", "type": "string" },
+				{"title": "iso_region", "type": "string" },
+				{"title": "municipality", "type": "string" },
+				{"title": "gps_code", "type": "string" },
+				{"title": "iata_code", "type": "string" },
+				{"title": "local_code", "type": "string" }
+			]
+		}
+	}`),
 }
 
 var AirportCodesStructureAgebraic = &dataset.Structure{
 	Format:       dataset.CSVDataFormat,
 	FormatConfig: &dataset.CSVOptions{HeaderRow: true},
-	Schema: &dataset.Schema{
-		Fields: []*dataset.Field{
-			{
-				Name: "col_0",
-				Type: datatypes.String,
-			},
-			{
-				Name: "col_1",
-				Type: datatypes.String,
-			},
-			{
-				Name: "col_2",
-				Type: datatypes.String,
-			},
-			{
-				Name: "col_3",
-				Type: datatypes.Float,
-			},
-			{
-				Name: "col_4",
-				Type: datatypes.Float,
-			},
-			{
-				Name: "col_5",
-				Type: datatypes.Integer,
-			},
-			{
-				Name: "col_6",
-				Type: datatypes.String,
-			},
-			{
-				Name: "col_7",
-				Type: datatypes.String,
-			},
-			{
-				Name: "col_8",
-				Type: datatypes.String,
-			},
-			{
-				Name: "col_9",
-				Type: datatypes.String,
-			},
-			{
-				Name: "col_10",
-				Type: datatypes.String,
-			},
-			{
-				Name: "col_11",
-				Type: datatypes.String,
-			},
-			{
-				Name: "col_12",
-				Type: datatypes.String,
-			},
-		},
-	},
+	Schema: jsonschema.Must(`{
+		"type": "array",
+		"items": {
+			"type": "array",
+			"items": [
+				{"title": "col_0", "type": "string" },
+				{"title": "col_1", "type": "string" },
+				{"title": "col_2", "type": "string" },
+				{"title": "col_3", "type": "number" },
+				{"title": "col_4", "type": "number" },
+				{"title": "col_5", "type": "integer" },
+				{"title": "col_6", "type": "string" },
+				{"title": "col_7", "type": "string" },
+				{"title": "col_8", "type": "string" },
+				{"title": "col_9", "type": "string" },
+				{"title": "col_10", "type": "string" },
+				{"title": "col_11", "type": "string" },
+				{"title": "col_12", "type": "string" }
+			]
+		}
+		}`),
 }
 
 var ContinentCodes = &dataset.Dataset{
@@ -186,11 +117,11 @@ var ContinentCodesStructure = &dataset.Structure{
 		Fields: []*dataset.Field{
 			{
 				Name: "Code",
-				Type: datatypes.String,
+				Type: vals.String,
 			},
 			{
 				Name: "Name",
-				Type: datatypes.String,
+				Type: vals.String,
 			},
 		},
 	},
@@ -205,14 +136,18 @@ var Hours = &dataset.Dataset{
 
 var HoursStructure = &dataset.Structure{
 	Format: dataset.CSVDataFormat,
-	Schema: &dataset.Schema{
-		Fields: []*dataset.Field{
-			{Name: "field_1", Type: datatypes.Date},
-			{Name: "field_2", Type: datatypes.Float},
-			{Name: "field_3", Type: datatypes.String},
-			{Name: "field_4", Type: datatypes.String},
-		},
-	},
+	Schema: jsonschema.Must(`{
+		"type":"array",
+		"items": {
+			"type": "array",
+			"items": [
+				{"title": "field_1", "type": "string" },
+				{"title": "field_2", "type": "number" },
+				{"title": "field_3", "type": "string" },
+				{"title": "field_4", "type": "string" }
+			]
+		}
+	}`),
 }
 
 func makeFilestore() (map[string]datastore.Key, cafs.Filestore, error) {

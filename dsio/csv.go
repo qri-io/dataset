@@ -80,7 +80,8 @@ func NewCSVWriter(st *dataset.Structure, w io.Writer) *CSVWriter {
 	if CSVOpts, ok := st.FormatConfig.(*dataset.CSVOptions); ok {
 		if CSVOpts.HeaderRow {
 			// TODO - capture error
-			writer.Write(st.Schema.FieldNames())
+			// TODO - restore
+			// writer.Write(st.Schema.FieldNames())
 		}
 	}
 
