@@ -2,6 +2,7 @@ package dsio
 
 import (
 	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"io"
 
@@ -83,12 +84,39 @@ func NewCSVWriter(st *dataset.Structure, w io.Writer) *CSVWriter {
 	if CSVOpts, ok := st.FormatConfig.(*dataset.CSVOptions); ok {
 		if CSVOpts.HeaderRow {
 			// TODO - capture error
-			// TODO - restore
-			// writer.Write(st.Schema.FieldNames())
+			if titles, err := terribleHackToGetHeaderRow(st); err == nil {
+				writer.Write(titles)
+			}
 		}
 	}
 
 	return wr
+}
+
+// TODO - holy shit dis so bad. fix
+func terribleHackToGetHeaderRow(st *dataset.Structure) ([]string, error) {
+	data, err := st.Schema.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	sch := map[string]interface{}{}
+	if err := json.Unmarshal(data, &sch); err != nil {
+		return nil, err
+	}
+	if itemObj, ok := sch["items"].(map[string]interface{}); ok {
+		if itemArr, ok := itemObj["items"].([]interface{}); ok {
+			titles := make([]string, len(itemArr))
+			for i, f := range itemArr {
+				if field, ok := f.(map[string]interface{}); ok {
+					if title, ok := field["title"].(string); ok {
+						titles[i] = title
+					}
+				}
+			}
+			return titles, nil
+		}
+	}
+	return nil, fmt.Errorf("nope")
 }
 
 // Structure gives this writer's structure

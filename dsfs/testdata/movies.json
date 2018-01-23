@@ -8,16 +8,20 @@
       "headerRow": true
     },
     "schema": {
-      "fields": [
-        {
-          "name": "title",
-          "type": "string"
-        },
-        {
-          "name": "duration",
-          "type": "integer"
-        }
-      ]
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": [
+          {
+            "title": "title",
+            "type": "string"
+          },
+          {
+            "title": "duration",
+            "type": "integer"
+          }
+        ]
+      }
     }
   }
 }

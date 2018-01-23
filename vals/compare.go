@@ -6,6 +6,7 @@ import (
 	"reflect"
 )
 
+// Equal checks if two Values are the same
 func Equal(a, b Value) bool {
 	if a.Type() != b.Type() {
 		return false

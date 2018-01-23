@@ -19,16 +19,20 @@
         "headerRow": true
       },
       "schema": {
-        "fields": [
-          {
-            "name": "title",
-            "type": "string"
-          },
-          {
-            "name": "duration",
-            "type": "integer"
-          }
-        ]
+        "type": "array",
+        "items": {
+          "type": "array",
+          "items": [
+            {
+              "title": "title",
+              "type": "string"
+            },
+            {
+              "title": "duration",
+              "type": "integer"
+            }
+          ]
+        }
       }
     },
     "resources": {
@@ -45,16 +49,20 @@
         "headerRow": true
       },
       "schema": {
-        "fields": [
-          {
-            "name": "a",
-            "type": "string"
-          },
-          {
-            "name": "b",
-            "type": "integer"
-          }
-        ]
+        "type": "array",
+        "items": {
+          "type": "array",
+          "items": [
+            {
+              "title": "a",
+              "type": "string"
+            },
+            {
+              "title": "b",
+              "type": "integer"
+            }
+          ]
+        }
       }
     },
     "resources": {
@@ -70,16 +78,20 @@
         "headerRow": true
       },
       "schema": {
-        "fields": [
-          {
-            "name": "a",
-            "type": "string"
-          },
-          {
-            "name": "b",
-            "type": "integer"
-          }
-        ]
+        "type": "array",
+        "items": {
+          "type": "array",
+          "items": [
+            {
+              "title": "a",
+              "type": "string"
+            },
+            {
+              "title": "b",
+              "type": "integer"
+            }
+          ]
+        }
       }
     }
   },
@@ -90,16 +102,20 @@
       "headerRow": true
     },
     "schema": {
-      "fields": [
-        {
-          "name": "title",
-          "type": "string"
-        },
-        {
-          "name": "duration",
-          "type": "integer"
-        }
-      ]
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": [
+          {
+            "title": "title",
+            "type": "string"
+          },
+          {
+            "title": "duration",
+            "type": "integer"
+          }
+        ]
+      }
     }
   }
 }

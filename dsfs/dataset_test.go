@@ -83,7 +83,6 @@ func TestLoadDataset(t *testing.T) {
 
 	for i, c := range cases {
 		path := c.ds.Path()
-		t.Log(i, c.ds.IsEmpty())
 		if !c.ds.IsEmpty() {
 			dsf, err := JSONFile(PackageFileDataset.String(), c.ds)
 			if err != nil {
@@ -141,8 +140,8 @@ func TestCreateDataset(t *testing.T) {
 	}{
 		{"testdata/bad/invalid_reference.json", "testdata/cities.csv", "", "", 0, "error loading dataset commit: error loading commit file: datastore: key not found"},
 		{"testdata/bad/invalid.json", "testdata/cities.csv", "", "", 0, "commit is required"},
-		{"testdata/cities.json", "testdata/cities.csv", "cities.csv", "/map/QmbFNMwowAsSQKQGuHpShVPc6bsyg9sokrF63zoP4k59g5", 6, ""},
-		{"testdata/complete.json", "testdata/complete.csv", "complete.csv", "/map/QmP78ojrQQzFyVqxEoAc5XurPbEYnLiCoQcoR6nyDHfQ6c", 14, ""},
+		{"testdata/cities.json", "testdata/cities.csv", "cities.csv", "/map/QmPQTHtqa759DwXFGeuAr6euhfVqTP93cugC9r7JxAfP2q", 6, ""},
+		{"testdata/complete.json", "testdata/complete.csv", "complete.csv", "/map/QmTiL676gcpc6yQkumRDkxKGBYdRtaraZ6q5k58B3QgSjq", 13, ""},
 	}
 
 	for i, c := range cases {
@@ -178,11 +177,10 @@ func TestCreateDataset(t *testing.T) {
 
 			if len(store.(memfs.MapStore)) != c.repoFiles {
 				t.Errorf("case expected %d invalid number of entries: %d != %d", i, c.repoFiles, len(store.(memfs.MapStore)))
-				str, err := store.(memfs.MapStore).Print()
+				_, err := store.(memfs.MapStore).Print()
 				if err != nil {
 					panic(err)
 				}
-				t.Log(str)
 				continue
 			}
 

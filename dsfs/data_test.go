@@ -60,11 +60,11 @@ func TestLoadRows(t *testing.T) {
 chicago,300000,44.4,true
 chatham,35000,65.25,true
 `, ""},
-		{"archive", 10, 0, `!OpenWayback-CDXJ 1.0
-(com,cnn,)/world> 2015-09-03T13:27:52Z response {"a":0,"b":"b","c":false}
-(uk,ac,rpms,)/> 2015-09-03T13:27:52Z request {"frequency":241,"spread":3}
-(uk,co,bbc,)/images> 2015-09-03T13:27:52Z response {"frequency":725,"spread":1}
-`, ""},
+		// 		{"archive", 10, 0, `!OpenWayback-CDXJ 1.0
+		// (com,cnn,)/world> 2015-09-03T13:27:52Z response {"a":0,"b":"b","c":false}
+		// (uk,ac,rpms,)/> 2015-09-03T13:27:52Z request {"frequency":241,"spread":3}
+		// (uk,co,bbc,)/images> 2015-09-03T13:27:52Z response {"frequency":725,"spread":1}
+		// `, ""},
 	}
 
 	for i, c := range cases {

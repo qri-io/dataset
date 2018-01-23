@@ -42,25 +42,25 @@ func unmarshalObject(data []byte) (Value, error) {
 
 	obj := make(Object, len(do))
 	for key, rm := range do {
-		if val, err := UnmarshalJSON([]byte(rm)); err != nil {
+		val, err := UnmarshalJSON([]byte(rm))
+		if err != nil {
 			return nil, err
-		} else {
-			switch t := val.(type) {
-			case *String:
-				obj[key] = *t
-			case *Number:
-				obj[key] = *t
-			case *Integer:
-				obj[key] = *t
-			case *Null:
-				obj[key] = *t
-			case *Object:
-				obj[key] = *t
-			case *Array:
-				obj[key] = *t
-			case *Boolean:
-				obj[key] = *t
-			}
+		}
+		switch t := val.(type) {
+		case *String:
+			obj[key] = *t
+		case *Number:
+			obj[key] = *t
+		case *Integer:
+			obj[key] = *t
+		case *Null:
+			obj[key] = *t
+		case *Object:
+			obj[key] = *t
+		case *Array:
+			obj[key] = *t
+		case *Boolean:
+			obj[key] = *t
 		}
 	}
 
@@ -77,25 +77,25 @@ func unmarshalArray(data []byte) (Value, error) {
 
 	arr := make(Array, len(da))
 	for i, rm := range da {
-		if val, err := UnmarshalJSON([]byte(rm)); err != nil {
+		val, err := UnmarshalJSON([]byte(rm))
+		if err != nil {
 			return nil, err
-		} else {
-			switch t := val.(type) {
-			case *String:
-				arr[i] = *t
-			case *Number:
-				arr[i] = *t
-			case *Integer:
-				arr[i] = *t
-			case *Null:
-				arr[i] = *t
-			case *Object:
-				arr[i] = *t
-			case *Array:
-				arr[i] = *t
-			case *Boolean:
-				arr[i] = *t
-			}
+		}
+		switch t := val.(type) {
+		case *String:
+			arr[i] = *t
+		case *Number:
+			arr[i] = *t
+		case *Integer:
+			arr[i] = *t
+		case *Null:
+			arr[i] = *t
+		case *Object:
+			arr[i] = *t
+		case *Array:
+			arr[i] = *t
+		case *Boolean:
+			arr[i] = *t
 		}
 	}
 

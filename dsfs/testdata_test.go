@@ -10,7 +10,6 @@ import (
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/cafs/memfs"
 	"github.com/qri-io/dataset"
-	"github.com/qri-io/dataset/vals"
 	"github.com/qri-io/jsonschema"
 )
 
@@ -113,18 +112,16 @@ var ContinentCodes = &dataset.Dataset{
 
 var ContinentCodesStructure = &dataset.Structure{
 	Format: dataset.CSVDataFormat,
-	Schema: &dataset.Schema{
-		Fields: []*dataset.Field{
-			{
-				Name: "Code",
-				Type: vals.String,
-			},
-			{
-				Name: "Name",
-				Type: vals.String,
-			},
-		},
-	},
+	Schema: jsonschema.Must(`{
+		"type": "array",
+		"items" : {
+			"type": "array",
+			"items" : [
+				{"title": "code", "type": "string"},
+				{"title": "name", "type": "string"}
+			]
+		} 
+	}`),
 }
 
 var Hours = &dataset.Dataset{
@@ -180,7 +177,7 @@ func makeFilestore() (map[string]datastore.Key, cafs.Filestore, error) {
 
 		dskey, err := WriteDataset(fs, ds, df, true)
 		if err != nil {
-			return datasets, nil, err
+			return datasets, nil, fmt.Errorf("dataset: %s write error: %s", k, err.Error())
 		}
 		datasets[k] = dskey
 	}

@@ -13,7 +13,6 @@ import (
 	"github.com/qri-io/cafs/memfs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsfs"
-	"github.com/qri-io/dataset/vals"
 )
 
 func TestWriteZipArchive(t *testing.T) {

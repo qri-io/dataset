@@ -6,24 +6,28 @@
     "format": "cdxj",
     "kind": "qri:st:0",
     "schema": {
-      "fields": [
-        {
-          "name": "url",
-          "type": "string"
-        },
-        {
-          "name": "timestamp",
-          "type": "string"
-        },
-        {
-          "name": "record_type",
-          "type": "string"
-        },
-        {
-          "name": "metadata",
-          "type": "json"
-        }
-      ]
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": [
+          {
+            "title": "url",
+            "type": "string"
+          },
+          {
+            "title": "timestamp",
+            "type": "string"
+          },
+          {
+            "title": "record_type",
+            "type": "string"
+          },
+          {
+            "title": "metadata",
+            "type": "object"
+          }
+        ]
+      }
     }
   }
 }

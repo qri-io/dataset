@@ -35,7 +35,7 @@ func (r *JSONReader) Structure() *dataset.Structure {
 	return r.st
 }
 
-// ReadRow reads one JSON record from the reader
+// ReadValue reads one JSON record from the reader
 func (r *JSONReader) ReadValue() (vals.Value, error) {
 	more := r.sc.Scan()
 	if !more {
