@@ -17,7 +17,7 @@ func TestCompareDatasets(t *testing.T) {
 		{nil, nil, ""},
 		{AirportCodes, AirportCodes, ""},
 		{NewDatasetRef(datastore.NewKey("a")), NewDatasetRef(datastore.NewKey("b")), "Path: /a != /b"},
-		{&Dataset{Kind: "a"}, &Dataset{Kind: "b"}, "Kind: a != b"},
+		{&Dataset{Qri: "a"}, &Dataset{Qri: "b"}, "Qri: a != b"},
 		{&Dataset{PreviousPath: "a"}, &Dataset{PreviousPath: "b"}, "PreviousPath: a != b"},
 		{&Dataset{DataPath: "a"}, &Dataset{DataPath: "b"}, "DataPath: a != b"},
 		{&Dataset{}, &Dataset{Structure: &Structure{}}, "Structure: nil: <nil> != <not nil>"},
@@ -42,7 +42,7 @@ func TestCompareMetas(t *testing.T) {
 		{nil, nil, ""},
 		{AirportCodes.Meta, AirportCodes.Meta, ""},
 		{NewMetaRef(datastore.NewKey("a")), NewMetaRef(datastore.NewKey("b")), "Path: /a != /b"},
-		{&Meta{Kind: "a"}, &Meta{Kind: "b"}, "Kind: a != b"},
+		{&Meta{Qri: "a"}, &Meta{Qri: "b"}, "Qri: a != b"},
 		{&Meta{Title: "a"}, &Meta{Title: "b"}, "Title: a != b"},
 		{&Meta{AccessPath: "a"}, &Meta{AccessPath: "b"}, "AccessPath: a != b"},
 		{&Meta{DownloadPath: "a"}, &Meta{DownloadPath: "b"}, "DownloadPath: a != b"},
@@ -76,7 +76,7 @@ func TestCompareStructures(t *testing.T) {
 		{AirportCodes.Structure, AirportCodes.Structure, ""},
 		{nil, AirportCodes.Structure, "nil: <nil> != <not nil>"},
 		{AirportCodes.Structure, nil, "nil: <not nil> != <nil>"},
-		{&Structure{Kind: "a"}, &Structure{Kind: "b"}, "Kind: a != b"},
+		{&Structure{Qri: "a"}, &Structure{Qri: "b"}, "Qri: a != b"},
 		{&Structure{Length: 0}, &Structure{Length: 1}, "Length: 0 != 1"},
 		{&Structure{Entries: 0}, &Structure{Entries: 1}, "Entries: 0 != 1"},
 		{&Structure{Checksum: "a"}, &Structure{Checksum: "b"}, "Checksum: a != b"},
@@ -151,7 +151,7 @@ func TestCompareCommits(t *testing.T) {
 		path:    datastore.NewKey("/foo"),
 		Title:   "foo",
 		Message: "message",
-		Kind:    KindCommit,
+		Qri:     KindCommit,
 		Author:  &User{ID: "foo"},
 	}
 
@@ -171,7 +171,7 @@ func TestCompareCommits(t *testing.T) {
 		},
 		{&Commit{Title: "a"}, &Commit{Title: "b"}, "Title: a != b"},
 		{&Commit{Message: "a"}, &Commit{Message: "b"}, "Message: a != b"},
-		{&Commit{Kind: "a"}, &Commit{Kind: "b"}, "Kind: a != b"},
+		{&Commit{Qri: "a"}, &Commit{Qri: "b"}, "Qri: a != b"},
 		{&Commit{Signature: "a"}, &Commit{Signature: "b"}, "Signature: a != b"},
 	}
 
@@ -185,7 +185,7 @@ func TestCompareCommits(t *testing.T) {
 
 func TestCompareTransforms(t *testing.T) {
 	t1 := &Transform{
-		Kind:       KindTransform,
+		Qri:        KindTransform,
 		Syntax:     "sql",
 		AppVersion: "1000.0.0",
 		Data:       "select * from airports limit 10",
@@ -204,7 +204,7 @@ func TestCompareTransforms(t *testing.T) {
 		{nil, t1, "nil: <nil> != <not nil>"},
 		{&Transform{}, &Transform{}, ""},
 		{NewTransformRef(datastore.NewKey("a")), NewTransformRef(datastore.NewKey("b")), "path: /a != /b"},
-		{&Transform{Kind: "a"}, &Transform{Kind: "b"}, "Kind: a != b"},
+		{&Transform{Qri: "a"}, &Transform{Qri: "b"}, "Qri: a != b"},
 		{&Transform{Syntax: "a"}, &Transform{Syntax: "b"}, "Syntax: a != b"},
 		{&Transform{AppVersion: "a"}, &Transform{AppVersion: "b"}, "AppVersion: a != b"},
 		{&Transform{Data: "a"}, &Transform{Data: "b"}, "Data: a != b"},

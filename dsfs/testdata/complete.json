@@ -1,19 +1,19 @@
 {
-  "kind": "qri:ds:0",
+  "qri": "ds:0",
   "commit": {
-    "kind": "qri:cm:0",
+    "qri": "cm:0",
     "title": "I'm a commit"
   },
   "meta": {
-    "kind": "qri:md:0",
+    "qri": "md:0",
     "title": "dataset with all submodels example"
   },
   "transform": {
-    "kind": "qri:tf:0",
+    "qri": "tf:0",
     "syntax": "sql",
     "data": "select * from foo",
     "structure": {
-      "kind": "qri:st:0",
+      "qri": "st:0",
       "format": "csv",
       "formatConfig": {
         "headerRow": true
@@ -40,10 +40,10 @@
     }
   },
   "abstractTransform": {
-    "kind": "qri:tf:0",
+    "qri": "tf:0",
     "data": "select * from a",
     "structure": {
-      "kind": "qri:st:0",
+      "qri": "st:0",
       "format": "csv",
       "formatConfig": {
         "headerRow": true
@@ -70,9 +70,9 @@
     }
   },
   "abstract": {
-    "kind": "qri:ds:0",
+    "qri": "ds:0",
     "structure": {
-      "kind": "qri:st:0",
+      "qri": "st:0",
       "format": "csv",
       "formatConfig": {
         "headerRow": true
@@ -96,7 +96,7 @@
     }
   },
   "structure": {
-    "kind": "qri:st:0",
+    "qri": "st:0",
     "format": "csv",
     "formatConfig": {
       "headerRow": true

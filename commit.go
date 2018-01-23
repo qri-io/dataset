@@ -15,9 +15,10 @@ import (
 type Commit struct {
 	path   datastore.Key
 	Author *User `json:"author,omitempty"`
-	Kind   Kind  `json:"kind,omitempty"`
 	// Message is an optional
 	Message string `json:"message,omitempty"`
+	// Qri is this commit's qri kind
+	Qri Kind `json:"qri,omitempty"`
 	// Signature is a base58 encoded privateKey signing of Title
 	Signature string `json:"signature,omitempty"`
 	// Time this dataset was created. Required.
@@ -73,8 +74,8 @@ func (cm *Commit) Assign(msgs ...*Commit) {
 		if m.Signature != "" {
 			cm.Signature = m.Signature
 		}
-		if m.Kind.String() != "" {
-			cm.Kind = m.Kind
+		if m.Qri.String() != "" {
+			cm.Qri = m.Qri
 		}
 	}
 }
@@ -87,15 +88,15 @@ func (cm *Commit) MarshalJSON() ([]byte, error) {
 		return cm.path.MarshalJSON()
 	}
 
-	kind := cm.Kind
+	kind := cm.Qri
 	if kind == "" {
 		kind = KindCommit
 	}
 
 	m := &_commitMsg{
 		Author:    cm.Author,
-		Kind:      kind,
 		Message:   cm.Message,
+		Qri:       kind,
 		Signature: cm.Signature,
 		Timestamp: cm.Timestamp,
 		Title:     cm.Title,

@@ -110,8 +110,8 @@ func TestTransformMarshalJSON(t *testing.T) {
 		out string
 		err error
 	}{
-		{&Transform{}, `{"kind":"qri:tf:0"}`, nil},
-		{&Transform{Syntax: "sql", Data: "select a from b"}, `{"data":"select a from b","kind":"qri:tf:0","syntax":"sql"}`, nil},
+		{&Transform{}, `{"qri":"tf:0"}`, nil},
+		{&Transform{Syntax: "sql", Data: "select a from b"}, `{"data":"select a from b","qri":"tf:0","syntax":"sql"}`, nil},
 	}
 
 	for i, c := range cases {

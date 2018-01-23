@@ -20,8 +20,8 @@ func CompareDatasets(a, b *Dataset) error {
 	if !a.Path().Equal(b.Path()) {
 		return fmt.Errorf("Path: %s != %s", a.Path(), b.Path())
 	}
-	if a.Kind.String() != b.Kind.String() {
-		return fmt.Errorf("Kind: %s != %s", a.Kind, b.Kind)
+	if a.Qri.String() != b.Qri.String() {
+		return fmt.Errorf("Qri: %s != %s", a.Qri, b.Qri)
 	}
 
 	if a.PreviousPath != b.PreviousPath {
@@ -68,8 +68,8 @@ func CompareMetas(a, b *Meta) error {
 	if !a.Path().Equal(b.Path()) {
 		return fmt.Errorf("Path: %s != %s", a.Path(), b.Path())
 	}
-	if a.Kind.String() != b.Kind.String() {
-		return fmt.Errorf("Kind: %s != %s", a.Kind, b.Kind)
+	if a.Qri.String() != b.Qri.String() {
+		return fmt.Errorf("Qri: %s != %s", a.Qri, b.Qri)
 	}
 	if a.Title != b.Title {
 		return fmt.Errorf("Title: %s != %s", a.Title, b.Title)
@@ -132,8 +132,8 @@ func CompareStructures(a, b *Structure) error {
 		return fmt.Errorf("nil: <not nil> != <nil>")
 	}
 
-	if a.Kind != b.Kind {
-		return fmt.Errorf("Kind: %s != %s", a.Kind, b.Kind)
+	if a.Qri != b.Qri {
+		return fmt.Errorf("Qri: %s != %s", a.Qri, b.Qri)
 	}
 	if a.Format != b.Format {
 		return fmt.Errorf("Format: %s != %s", a.Format, b.Format)
@@ -206,8 +206,8 @@ func CompareCommits(a, b *Commit) error {
 		return fmt.Errorf("nil: <not nil> != <nil>")
 	}
 
-	if a.Kind != b.Kind {
-		return fmt.Errorf("Kind: %s != %s", a.Kind, b.Kind)
+	if a.Qri != b.Qri {
+		return fmt.Errorf("Qri: %s != %s", a.Qri, b.Qri)
 	}
 	if a.Title != b.Title {
 		return fmt.Errorf("Title: %s != %s", a.Title, b.Title)
@@ -239,8 +239,8 @@ func CompareTransforms(a, b *Transform) error {
 	if !a.Path().Equal(b.Path()) {
 		return fmt.Errorf("path: %s != %s", a.Path(), b.Path())
 	}
-	if a.Kind.String() != b.Kind.String() {
-		return fmt.Errorf("Kind: %s != %s", a.Kind, b.Kind)
+	if a.Qri.String() != b.Qri.String() {
+		return fmt.Errorf("Qri: %s != %s", a.Qri, b.Qri)
 	}
 	if a.Syntax != b.Syntax {
 		return fmt.Errorf("Syntax: %s != %s", a.Syntax, b.Syntax)

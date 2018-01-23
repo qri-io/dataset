@@ -63,7 +63,7 @@ func TestDatasetMarshalJSON(t *testing.T) {
 		out []byte
 		err error
 	}{
-		{&Dataset{}, []byte(`{"kind":"qri:ds:0","structure":null}`), nil},
+		{&Dataset{}, []byte(`{"qri":"ds:0","structure":null}`), nil},
 		{AirportCodes, []byte(AirportCodesJSON), nil},
 	}
 
@@ -202,7 +202,7 @@ func TestAbstract(t *testing.T) {
 }
 
 func TestUnmarshalDataset(t *testing.T) {
-	dsa := Dataset{Kind: KindDataset}
+	dsa := Dataset{Qri: KindDataset}
 	cases := []struct {
 		value interface{}
 		out   *Dataset
@@ -210,7 +210,7 @@ func TestUnmarshalDataset(t *testing.T) {
 	}{
 		{dsa, &dsa, ""},
 		{&dsa, &dsa, ""},
-		{[]byte("{\"kind\":\"qri:ds:0\"}"), &Dataset{Kind: KindDataset}, ""},
+		{[]byte("{\"qri\":\"ds:0\"}"), &Dataset{Qri: KindDataset}, ""},
 		{5, nil, "couldn't parse dataset, value is invalid type"},
 	}
 

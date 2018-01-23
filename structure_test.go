@@ -18,7 +18,7 @@ func TestStrucureHash(t *testing.T) {
 		hash string
 		err  error
 	}{
-		{&Structure{Kind: KindStructure, Format: CSVDataFormat}, "QmfJRjmdxpZKrWvJeVzFwrB5UTK45xs9FB4Uv7EJYfNwyW", nil},
+		{&Structure{Qri: KindStructure, Format: CSVDataFormat}, "QmXKrm8qWRuY5HeU12Y6Ld83L9SGCxWfi4BW87a9yGpwfj", nil},
 	}
 
 	for i, c := range cases {
@@ -183,9 +183,9 @@ func TestStructureMarshalJSON(t *testing.T) {
 		out []byte
 		err error
 	}{
-		{&Structure{Format: CSVDataFormat}, []byte(`{"format":"csv","kind":"qri:st:0"}`), nil},
-		{&Structure{Format: CSVDataFormat, Kind: KindStructure}, []byte(`{"format":"csv","kind":"qri:st:0"}`), nil},
-		{AirportCodesStructure, []byte(`{"format":"csv","formatConfig":{"headerRow":true},"kind":"qri:st:0","schema":{"items":{"items":[{"title":"ident","type":"string"},{"title":"type","type":"string"},{"title":"name","type":"string"},{"title":"latitude_deg","type":"string"},{"title":"longitude_deg","type":"string"},{"title":"elevation_ft","type":"string"},{"title":"continent","type":"string"},{"title":"iso_country","type":"string"},{"title":"iso_region","type":"string"},{"title":"municipality","type":"string"},{"title":"gps_code","type":"string"},{"title":"iata_code","type":"string"},{"title":"local_code","type":"string"}],"type":"array"},"type":"array"}}`), nil},
+		{&Structure{Format: CSVDataFormat}, []byte(`{"format":"csv","qri":"st:0"}`), nil},
+		{&Structure{Format: CSVDataFormat, Qri: KindStructure}, []byte(`{"format":"csv","qri":"st:0"}`), nil},
+		{AirportCodesStructure, []byte(`{"format":"csv","formatConfig":{"headerRow":true},"qri":"st:0","schema":{"items":{"items":[{"title":"ident","type":"string"},{"title":"type","type":"string"},{"title":"name","type":"string"},{"title":"latitude_deg","type":"string"},{"title":"longitude_deg","type":"string"},{"title":"elevation_ft","type":"string"},{"title":"continent","type":"string"},{"title":"iso_country","type":"string"},{"title":"iso_region","type":"string"},{"title":"municipality","type":"string"},{"title":"gps_code","type":"string"},{"title":"iata_code","type":"string"},{"title":"local_code","type":"string"}],"type":"array"},"type":"array"}}`), nil},
 	}
 
 	for i, c := range cases {
@@ -213,7 +213,7 @@ func TestStructureMarshalJSON(t *testing.T) {
 }
 
 func TestUnmarshalStructure(t *testing.T) {
-	sta := Structure{Kind: KindStructure, Format: CSVDataFormat}
+	sta := Structure{Qri: KindStructure, Format: CSVDataFormat}
 	cases := []struct {
 		value interface{}
 		out   *Structure
@@ -221,7 +221,7 @@ func TestUnmarshalStructure(t *testing.T) {
 	}{
 		{sta, &sta, ""},
 		{&sta, &sta, ""},
-		{[]byte("{\"kind\":\"qri:st:0\"}"), &Structure{Kind: KindStructure}, ""},
+		{[]byte("{\"qri\":\"st:0\"}"), &Structure{Qri: KindStructure}, ""},
 		{5, nil, "couldn't parse structure, value is invalid type"},
 	}
 

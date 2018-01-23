@@ -1,8 +1,8 @@
 {
   "title": "example movie data",
-  "kind": "qri:ds:0",
+  "qri": "ds:0",
   "structure": {
-    "kind": "qri:st:0",
+    "qri": "st:0",
     "format": "csv",
     "formatConfig": {
       "headerRow": true

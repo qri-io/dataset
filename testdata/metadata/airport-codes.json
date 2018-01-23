@@ -1,5 +1,5 @@
 {
-  "kind": "qri:md:0",
+  "qri": "md:0",
   "homePath": "http://www.ourairports.com/",
   "license": "PDDL-1.0",
   "title": "Airport Codes"

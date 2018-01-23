@@ -25,7 +25,7 @@ func SaveTransform(store cafs.Filestore, q *dataset.Transform, pin bool) (path d
 	// copy transform
 	save := &dataset.Transform{}
 	save.Assign(q)
-	save.Kind = dataset.KindTransform
+	save.Qri = dataset.KindTransform
 
 	if q.Structure != nil && !q.Structure.IsEmpty() {
 		path, err := SaveStructure(store, q.Structure, pin)
@@ -57,7 +57,7 @@ func SaveAbstractTransform(store cafs.Filestore, t *dataset.Transform, pin bool)
 	// copy transform
 	save := &dataset.Transform{}
 	save.Assign(t)
-	save.Kind = dataset.KindTransform
+	save.Qri = dataset.KindTransform
 
 	if save.Structure == nil {
 		return datastore.NewKey(""), fmt.Errorf("structure required to save abstract transform")

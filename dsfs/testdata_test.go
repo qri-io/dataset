@@ -33,7 +33,7 @@ var AirportCodes = &dataset.Dataset{
 }
 
 var AirportCodesCommit = &dataset.Commit{
-	Kind:    dataset.KindCommit,
+	Qri:     dataset.KindCommit,
 	Message: "initial commit",
 }
 
@@ -92,9 +92,9 @@ var AirportCodesStructureAgebraic = &dataset.Structure{
 }
 
 var ContinentCodes = &dataset.Dataset{
-	Kind: dataset.KindDataset,
+	Qri: dataset.KindDataset,
 	Meta: &dataset.Meta{
-		Kind:        dataset.KindMeta,
+		Qri:         dataset.KindMeta,
 		Title:       "Continent Codes",
 		Description: "list of continents with corresponding two letter codes",
 		License: &dataset.License{

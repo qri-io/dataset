@@ -35,12 +35,12 @@ type Dataset struct {
 	Commit *Commit `json:"commit,omitempty"`
 	// DataPath is the path to the hash of raw data as it resolves on the network.
 	DataPath string `json:"dataPath,omitempty"`
-	// Kind is required, must be qri:ds:[version]
-	Kind Kind `json:"kind"`
 	// Meta contains all human-readable meta about this dataset
 	Meta *Meta `json:"meta,omitempty"`
 	// PreviousPath connects datasets to form a historical DAG
 	PreviousPath string `json:"previousPath,omitempty"`
+	// Qri is required, must be ds:[version]
+	Qri Kind `json:"qri"`
 	// Structure of this dataset
 	Structure *Structure `json:"structure"`
 	// Transform is a path to the transformation that generated this resource
@@ -74,7 +74,7 @@ func NewDatasetRef(path datastore.Key) *Dataset {
 // semantically-identifiable and concrete references replaced with
 // uniform values
 func Abstract(ds *Dataset) *Dataset {
-	abs := &Dataset{Kind: ds.Kind}
+	abs := &Dataset{Qri: ds.Qri}
 	if ds.Structure != nil {
 		abs.Structure = &Structure{}
 		abs.Structure.Assign(ds.Structure.Abstract())
@@ -130,6 +130,7 @@ func (ds *Dataset) Assign(datasets ...*Dataset) {
 		if d.PreviousPath != "" {
 			ds.PreviousPath = d.PreviousPath
 		}
+		// TODO - wut dis?
 		ds.Commit.Assign(d.Commit)
 	}
 }
@@ -142,8 +143,8 @@ func (ds *Dataset) MarshalJSON() ([]byte, error) {
 	if ds.path.String() != "" && ds.IsEmpty() {
 		return ds.path.MarshalJSON()
 	}
-	if ds.Kind == "" {
-		ds.Kind = KindDataset
+	if ds.Qri == "" {
+		ds.Qri = KindDataset
 	}
 
 	return json.Marshal(_dataset(*ds))
@@ -167,17 +168,7 @@ func (ds *Dataset) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("error unmarshling dataset: %s", err.Error())
 	}
 
-	*ds = Dataset{
-		Abstract:          d.Abstract,
-		AbstractTransform: d.AbstractTransform,
-		Commit:            d.Commit,
-		DataPath:          d.DataPath,
-		Kind:              d.Kind,
-		Meta:              d.Meta,
-		PreviousPath:      d.PreviousPath,
-		Structure:         d.Structure,
-		Transform:         d.Transform,
-	}
+	*ds = Dataset(d)
 	return nil
 }
 
