@@ -128,6 +128,30 @@ func TestCompareStructures(t *testing.T) {
 // 		Description:  "a",
 // 	}
 
+func TestCompareVisConfig(t *testing.T) {
+	cases := []struct {
+		a, b *VisConfig
+		err  string
+	}{
+		{nil, nil, ""},
+		{&VisConfig{Kind: "a", Format: "b", Visualizations: []interface{}{1, 2, 3}}, &VisConfig{Kind: "a", Format: "b", Visualizations: []interface{}{1, 2, 3}}, ""},
+		{&VisConfig{}, nil, "nil: <not nil> != <nil>"},
+		{nil, &VisConfig{}, "nil: <nil> != <not nil>"},
+		{&VisConfig{Kind: "a"}, &VisConfig{Kind: "b"}, "Kind: a != b"},
+		{&VisConfig{Format: "a"}, &VisConfig{Format: "b"}, "Format: a != b"},
+		// {&VisConfig{DataPath: "a"}, &VisConfig{DataPath: "b"}, "DataPath: a != b"},
+		{&VisConfig{Visualizations: []interface{}{"hey", "sup"}}, &VisConfig{Visualizations: "test"}, "Visualizations not equal"},
+		{&VisConfig{Visualizations: []interface{}{}}, &VisConfig{Visualizations: []interface{}{}}, ""},
+	}
+
+	for i, c := range cases {
+		err := CompareVisConfig(c.a, c.b)
+		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
+			t.Errorf("case %d error: expected: '%s', got: '%s'", i, c.err, err)
+		}
+	}
+}
+
 // 	cases := []struct {
 // 		a, b *Field
 // 		err  string

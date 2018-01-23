@@ -3,6 +3,7 @@ package dataset
 import (
 	"fmt"
 	"github.com/qri-io/jsonschema"
+	"reflect"
 )
 
 // CompareDatasets checks if all fields of a dataset are equal,
@@ -158,6 +159,31 @@ func CompareStructures(a, b *Structure) error {
 		return fmt.Errorf("Schema: %s", err.Error())
 	}
 
+	return nil
+}
+
+// CompareVisConfig checks if all fields of two VisConfig pointers are equal,
+// returning an error on the first, nil if equal
+func CompareVisConfig(a, b *VisConfig) error {
+	if a == nil && b == nil {
+		return nil
+	} else if a == nil && b != nil {
+		return fmt.Errorf("nil: <nil> != <not nil>")
+	} else if a != nil && b == nil {
+		return fmt.Errorf("nil: <not nil> != <nil>")
+	}
+	if a.Kind != b.Kind {
+		return fmt.Errorf("Kind: %s != %s", a.Kind, b.Kind)
+	}
+	if a.Format != b.Format {
+		return fmt.Errorf("Format: %s != %s", a.Format, b.Format)
+	}
+	// if a.DataPath != b.DataPath {
+	// 	return fmt.Errorf("DataPath: %s != %s", a.DataPath, b.DataPath)
+	// }
+	if !reflect.DeepEqual(a.Visualizations, b.Visualizations) {
+		return fmt.Errorf("Visualizations not equal")
+	}
 	return nil
 }
 

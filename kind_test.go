@@ -12,6 +12,7 @@ func TestKindValid(t *testing.T) {
 	}{
 		{"", "invalid kind: ''. kind must be in the form [type]:[version]"},
 		{"ds:0", ""},
+		{"vc:0", ""},
 		{"st:0", ""},
 		{"as:0", ""},
 		{"ps:0", ""},
@@ -33,6 +34,7 @@ func TestKindDatatype(t *testing.T) {
 		expect string
 	}{
 		{"ds:0", "ds"},
+		{"vc:0", "vc"},
 		{"st:0", "st"},
 		{"as:0", "as"},
 		{"ps:0", "ps"},
