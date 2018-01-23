@@ -1,4 +1,4 @@
-package datatypes
+package vals
 
 import (
 	"bytes"
@@ -6,7 +6,6 @@ import (
 	"github.com/qri-io/compare"
 	"math"
 	"testing"
-	"time"
 )
 
 func TestTypeString(t *testing.T) {
@@ -14,16 +13,15 @@ func TestTypeString(t *testing.T) {
 		t      Type
 		expect string
 	}{
-		{Unknown, ""},
-		{Type(-1), ""},
-		{Any, "any"},
-		{String, "string"},
-		{Integer, "integer"},
-		{Float, "float"},
-		{Boolean, "boolean"},
-		{Date, "date"},
-		{URL, "url"},
-		{JSON, "json"},
+		{TypeUnknown, ""},
+		{Type(20), ""},
+		{TypeNull, "null"},
+		{TypeString, "string"},
+		{TypeInteger, "integer"},
+		{TypeNumber, "number"},
+		{TypeBoolean, "boolean"},
+		{TypeObject, "object"},
+		{TypeArray, "array"},
 	}
 
 	for i, c := range cases {
@@ -39,16 +37,14 @@ func TestTypeFromString(t *testing.T) {
 		s      string
 		expect Type
 	}{
-		{"", Unknown},
-		{"foo", Unknown},
-		{"any", Any},
-		{"string", String},
-		{"integer", Integer},
-		{"float", Float},
-		{"boolean", Boolean},
-		{"date", Date},
-		{"url", URL},
-		{"json", JSON},
+		{"", TypeUnknown},
+		{"foo", TypeUnknown},
+		{"string", TypeString},
+		{"integer", TypeInteger},
+		{"number", TypeNumber},
+		{"boolean", TypeBoolean},
+		{"object", TypeObject},
+		{"array", TypeArray},
 	}
 
 	for i, c := range cases {
@@ -66,16 +62,14 @@ func TestTypeMarshalJSON(t *testing.T) {
 		expect []byte
 		err    error
 	}{
-		{Unknown, "Unknown", []byte(`""`), nil},
-		{Type(-1), "Type(-1)", []byte(`""`), nil},
-		{Any, "Any", []byte(`"any"`), nil},
-		{String, "String", []byte(`"string"`), nil},
-		{Integer, "Integer", []byte(`"integer"`), nil},
-		{Float, "Float", []byte(`"float"`), nil},
-		{Boolean, "Boolean", []byte(`"boolean"`), nil},
-		{Date, "Data", []byte(`"date"`), nil},
-		{URL, "URL", []byte(`"url"`), nil},
-		{JSON, "JSON", []byte(`"json"`), nil},
+		{TypeUnknown, "Unknown", []byte(`""`), nil},
+		{Type(20), "Type(20)", []byte(`""`), nil},
+		{TypeString, "String", []byte(`"string"`), nil},
+		{TypeInteger, "Integer", []byte(`"integer"`), nil},
+		{TypeNumber, "Number", []byte(`"number"`), nil},
+		{TypeBoolean, "Boolean", []byte(`"boolean"`), nil},
+		{TypeObject, "Object", []byte(`"object"`), nil},
+		{TypeArray, "Array", []byte(`"array"`), nil},
 	}
 	for i, c := range cases {
 		data, err := c.ty.MarshalJSON()
@@ -95,7 +89,7 @@ func TestTypeUnmarshalJSON(t *testing.T) {
 	if err := typ.UnmarshalJSON([]byte(`"string"`)); err != nil {
 		t.Error(err)
 	}
-	if *typ != String {
+	if *typ != TypeString {
 		t.Errorf("type mismatch. expected: String, got: %s", typ)
 	}
 }
@@ -110,13 +104,12 @@ func TestTypeParse(t *testing.T) {
 		// {Unknown, "", nil, ""},
 		// {Unknown, "foo", nil, ""},
 		// {Any, "any", nil, ""},
-		{String, "hey", "hey", ""},
-		{Integer, "1337", 1337, ""},
-		{Float, "101.5", 101.5, ""},
-		{Boolean, "false", false, ""},
-		// {Date, "date", nil, ""},
-		// {URL, "url", nil, ""},
-		{JSON, "{\"data\":\"json\"}", map[string]interface{}{"data": "json"}, ""},
+		{TypeString, "hey", "hey", ""},
+		{TypeInteger, "1337", 1337, ""},
+		{TypeNumber, "101.5", 101.5, ""},
+		{TypeBoolean, "false", false, ""},
+		{TypeObject, "{\"data\":\"json\"}", map[string]interface{}{"data": "json"}, ""},
+		{TypeArray, "{\"data\":\"json\"}", map[string]interface{}{"data": "json"}, ""},
 	}
 
 	for i, c := range cases {
@@ -132,45 +125,26 @@ func TestTypeParse(t *testing.T) {
 	}
 }
 
-func TestParseDatatype(t *testing.T) {
+func TestParseType(t *testing.T) {
 	cases := []struct {
 		value  string
 		expect Type
 	}{
-		{"{}", JSON},
-		{"[]", JSON},
-		{"1", Integer},
-		{"1.5", Float},
-		{"false", Boolean},
-		{"true", Boolean},
-		{"2015-09-03T13:27:52Z", Date},
-		{"", String},
-		// {"https://golang.org", URL},
-		{"Go to https://golang.org for more information", String},
+		{"{}", TypeObject},
+		{"[]", TypeArray},
+		{"1", TypeInteger},
+		{"1.5", TypeNumber},
+		{"false", TypeBoolean},
+		{"true", TypeBoolean},
+		{"2015-09-03T13:27:52Z", TypeString},
+		{"", TypeString},
+		{"Go to https://golang.org for more information", TypeString},
 	}
 	for i, c := range cases {
-		got := ParseDatatype([]byte(c.value))
+		got := ParseType([]byte(c.value))
 		if c.expect != got {
 			t.Errorf("case %d response mismatch. expected: %s, got: %s", i, c.expect, got)
 			continue
-		}
-	}
-}
-
-// TODO
-func TestParseAny(t *testing.T) {
-	cases := []struct {
-		input  []byte
-		expect interface{}
-		err    error
-	}{}
-	for i, c := range cases {
-		value, got := ParseAny(c.input)
-		if value != c.expect {
-			t.Errorf("case %d value mismatch. expected: %s, got: %s", i, c.expect, value)
-		}
-		if c.err != got {
-			t.Errorf("case %d error mismatch. expected: %s, got: %s", i, c.err, got)
 		}
 	}
 }
@@ -194,7 +168,7 @@ func TestParseString(t *testing.T) {
 	}
 }
 
-func TestParseFloat(t *testing.T) {
+func TestParseNumber(t *testing.T) {
 	cases := []struct {
 		input  []byte
 		expect float64
@@ -209,7 +183,7 @@ func TestParseFloat(t *testing.T) {
 		{[]byte("1.940e-324"), float64(0), nil},
 	}
 	for i, c := range cases {
-		value, got := ParseFloat(c.input)
+		value, got := ParseNumber(c.input)
 		if value != c.expect {
 			t.Errorf("case %d value mismatch. expected: %e, got: %e", i, c.expect, value)
 		}
@@ -268,20 +242,16 @@ func TestParseBoolean(t *testing.T) {
 
 func TestJSONArrayOrObject(t *testing.T) {
 	cases := []struct {
-		data, expect, err string
+		data, expect string
 	}{
-		{"", "", "invalid json data"},
-		{"[", "array", ""},
-		{"[{", "array", ""},
-		{"{", "object", ""},
-		{"{[", "object", ""},
+		{"", ""},
+		{"[", "array"},
+		{"[{", "array"},
+		{"{", "object"},
+		{"{[", "object"},
 	}
 	for i, c := range cases {
-		got, err := JSONArrayOrObject([]byte(c.data))
-		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
-			t.Errorf("case %d error mismatch. expected: %s, got: %s", i, c.err, err.Error())
-			continue
-		}
+		got := JSONArrayOrObject([]byte(c.data))
 		if got != c.expect {
 			t.Errorf("case %d result mismatch. expected: %s, got: %s", i, c.expect, got)
 			continue
@@ -317,51 +287,6 @@ func TestParseJSON(t *testing.T) {
 	}
 }
 
-// TODO
-func TestParseDate(t *testing.T) {
-	cases := []struct {
-		input  []byte
-		expect *time.Time
-		err    error
-	}{}
-	for i, c := range cases {
-		value, got := ParseDate(c.input)
-		if value.String() != c.expect.String() {
-			t.Errorf("case %d value mismatch. expected: %s, got: %s", i, c.expect, value)
-		}
-		if c.err != got {
-			t.Errorf("case %d error mismatch. expected: %s, got: %s", i, c.err, got)
-		}
-	}
-}
-
-func TestParseURL(t *testing.T) {
-	cases := []struct {
-		input  string
-		expect string
-		err    error
-	}{
-		{"apple.com", "apple.com", nil},
-		{"http://qri.io", "http://qri.io", nil},
-		{"https://beastmo.de", "https://beastmo.de", nil},
-		{"https://beastmo.de/this/path", "https://beastmo.de/this/path", nil},
-		{"https://beastmo.de/this/path?input=blah", "https://beastmo.de/this/path?input=blah", nil},
-		{"https://beastmo.de/this/path?input=blah#fragment", "https://beastmo.de/this/path?input=blah#fragment", nil},
-		{"https://beastmo.de/this/path?input=blah#bad fragment", "https://beastmo.de/this/path?input=blah#bad%20fragment", nil},
-	}
-	for i, c := range cases {
-		value, got := ParseURL([]byte(c.input))
-		if value.String() != c.expect {
-			t.Errorf("case %d value mismatch. expected: %s, got: %s", i, c.expect, value.String())
-		}
-		if got != nil {
-			if c.err != nil && got.Error() != c.err.Error() {
-				t.Errorf("case %d error mismatch. expected: %s, got: %s", i, c.err, got)
-			}
-		}
-	}
-}
-
 func TestValueToString(t *testing.T) {
 	cases := []struct {
 		t      Type
@@ -369,21 +294,19 @@ func TestValueToString(t *testing.T) {
 		expect string
 		err    string
 	}{
-		{Unknown, "", "", "cannot get string value of unknown datatype"},
-		{Integer, 234, "234", ""},
-		{Integer, "234", "", "234 is not an integer value"},
-		{Float, float32(234.0), "234", ""},
-		{Float, float32(234.12339782714844), "234.12339782714844", ""},
-		{Float, "234", "", "234 is not a float value"},
-		{Boolean, false, "false", ""},
-		{Boolean, true, "true", ""},
-		{Boolean, "234", "", "234 is not a boolean value"},
-		{JSON, map[string]interface{}{"a": "b"}, `{"a":"b"}`, ""},
-		// {JSON, "234", "", "234 is not a json value"},
-		{Date, time.Date(2001, 1, 1, 0, 0, 0, 0, time.UTC), "2001-01-01T00:00:00Z", ""},
-		{Date, "234", "", "234 is not a date value"},
-		{String, "foo", "foo", ""},
-		{String, 234, "", "234 is not a string value"},
+		{TypeUnknown, "", "", "cannot get string value of unknown datatype"},
+		{TypeInteger, 234, "234", ""},
+		{TypeInteger, "234", "", "234 is not an integer value"},
+		{TypeNumber, float64(234.0), "234", ""},
+		{TypeNumber, float64(234.12339782714844), "234.12339782714844", ""},
+		{TypeNumber, "234", "", "234 is not a number value"},
+		{TypeBoolean, false, "false", ""},
+		{TypeBoolean, true, "true", ""},
+		{TypeBoolean, "234", "", "234 is not a boolean value"},
+		{TypeObject, map[string]interface{}{"a": "b"}, `{"a":"b"}`, ""},
+		{TypeArray, []interface{}{"a", "b"}, `["a","b"]`, ""},
+		{TypeString, "foo", "foo", ""},
+		{TypeString, 234, "", "234 is not a string value"},
 	}
 
 	for i, c := range cases {
@@ -406,21 +329,19 @@ func TestValueToBytes(t *testing.T) {
 		expect string
 		err    string
 	}{
-		{Unknown, "", "", "cannot get string value of unknown datatype"},
-		{Integer, 234, "234", ""},
-		{Integer, "234", "", "234 is not an integer value"},
-		{Float, float32(234.0), "234", ""},
-		{Float, float32(234.12339782714844), "234.12339782714844", ""},
-		{Float, "234", "", "234 is not a float value"},
-		{Boolean, false, "false", ""},
-		{Boolean, true, "true", ""},
-		{Boolean, "234", "", "234 is not a boolean value"},
-		{JSON, map[string]interface{}{"a": "b"}, `{"a":"b"}`, ""},
-		// {JSON, "234", "", "234 is not a json value"},
-		{Date, time.Date(2001, 1, 1, 0, 0, 0, 0, time.UTC), "2001-01-01T00:00:00Z", ""},
-		{Date, "234", "", "234 is not a date value"},
-		{String, "foo", "foo", ""},
-		{String, 234, "", "234 is not a string value"},
+		{TypeUnknown, "", "", "cannot get string value of unknown datatype"},
+		{TypeInteger, 234, "234", ""},
+		{TypeInteger, "234", "", "234 is not an integer value"},
+		{TypeNumber, float64(234.0), "234", ""},
+		{TypeNumber, float64(234.12339782714844), "234.12339782714844", ""},
+		{TypeNumber, "234", "", "234 is not a number value"},
+		{TypeBoolean, false, "false", ""},
+		{TypeBoolean, true, "true", ""},
+		{TypeBoolean, "234", "", "234 is not a boolean value"},
+		{TypeObject, map[string]interface{}{"a": "b"}, `{"a":"b"}`, ""},
+		{TypeArray, []interface{}{"a", "b"}, `["a","b"]`, ""},
+		{TypeString, "foo", "foo", ""},
+		{TypeString, 234, "", "234 is not a string value"},
 	}
 
 	for i, c := range cases {
@@ -462,23 +383,23 @@ var result bool
 var resultType Type
 var resultInterface interface{}
 
-func benchmarkParseDatatype(value []byte, b *testing.B) {
+func benchmarkParseType(value []byte, b *testing.B) {
 	var t Type
 	for n := 0; n < b.N; n++ {
-		t = ParseDatatype(value)
+		t = ParseType(value)
 	}
 	resultType = t
 }
 
 // best case would be an empty slice of bytes
-func BenchmarkParseDatatypeBestCase(b *testing.B) {
-	benchmarkParseDatatype([]byte(""), b)
+func BenchmarkParseTypeBestCase(b *testing.B) {
+	benchmarkParseType([]byte(""), b)
 }
 
 // worst case is getting datatype from JSON, because in order to validate that it is JSON, you have to parse the entire slice of bytes
-func BenchmarkParseDatatypeWorstCase(b *testing.B) {
+func BenchmarkParseTypeWorstCase(b *testing.B) {
 	json := "{'id': '0001','type': 'donut','name': 'Cake','ppu': 0.55,'batters':{'batter':[{ 'id': '1001', 'type': 'Regular' },{ 'id': '1002', 'type': 'Chocolate' },{ 'id': '1003', 'type': 'Blueberry' },{ 'id': '1004', 'type': 'Devil's Food' }]},'topping':[{ 'id': '5001', 'type': 'None' },{ 'id': '5002', 'type': 'Glazed' },{ 'id': '5005', 'type': 'Sugar' },{ 'id': '5007', 'type': 'Powdered Sugar' },{ 'id': '5006', 'type': 'Chocolate with Sprinkles' },{ 'id': '5003', 'type': 'Chocolate' },{ 'id': '5004', 'type': 'Maple' }]}"
-	benchmarkParseDatatype([]byte(json), b)
+	benchmarkParseType([]byte(json), b)
 }
 
 func benchmarkParse(value []byte, t Type, b *testing.B) {
@@ -490,14 +411,12 @@ func benchmarkParse(value []byte, t Type, b *testing.B) {
 }
 
 func BenchmarkParseBestCase(b *testing.B) {
-	var t Type = String
-	benchmarkParse([]byte(""), t, b)
+	benchmarkParse([]byte(""), TypeString, b)
 }
 
 func BenchmarkParseWorstCase(b *testing.B) {
-	var t Type = JSON
 	json := "{'id': '0001','type': 'donut','name': 'Cake','ppu': 0.55,'batters':{'batter':[{ 'id': '1001', 'type': 'Regular' },{ 'id': '1002', 'type': 'Chocolate' },{ 'id': '1003', 'type': 'Blueberry' },{ 'id': '1004', 'type': 'Devil's Food' }]},'topping':[{ 'id': '5001', 'type': 'None' },{ 'id': '5002', 'type': 'Glazed' },{ 'id': '5005', 'type': 'Sugar' },{ 'id': '5007', 'type': 'Powdered Sugar' },{ 'id': '5006', 'type': 'Chocolate with Sprinkles' },{ 'id': '5003', 'type': 'Chocolate' },{ 'id': '5004', 'type': 'Maple' }]}"
-	benchmarkParse([]byte(json), t, b)
+	benchmarkParse([]byte(json), TypeObject, b)
 }
 
 func benchmarkIsInteger(x []byte, b *testing.B) {

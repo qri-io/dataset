@@ -3,63 +3,67 @@
   "format_options": {
     "header_row": true
   },
-  "kind": "qri:st:0",
+  "qri": "st:0",
   "mediatype": "text/csv",
   "readme": "readme.md",
   "schema": {
-    "fields": [
-      {
-        "name": "ident",
-        "type": "string"
-      },
-      {
-        "name": "type",
-        "type": "string"
-      },
-      {
-        "name": "name",
-        "type": "string"
-      },
-      {
-        "name": "latitude_deg",
-        "type": "float"
-      },
-      {
-        "name": "longitude_deg",
-        "type": "float"
-      },
-      {
-        "name": "elevation_ft",
-        "type": "integer"
-      },
-      {
-        "name": "continent",
-        "type": "string"
-      },
-      {
-        "name": "iso_country",
-        "type": "string"
-      },
-      {
-        "name": "iso_region",
-        "type": "string"
-      },
-      {
-        "name": "municipality",
-        "type": "string"
-      },
-      {
-        "name": "gps_code",
-        "type": "string"
-      },
-      {
-        "name": "iata_code",
-        "type": "string"
-      },
-      {
-        "name": "local_code",
-        "type": "string"
-      }
-    ]
+    "type": "array",
+    "items": {
+      "type": "array",
+      "items": [
+        {
+          "title": "ident",
+          "type": "string"
+        },
+        {
+          "title": "type",
+          "type": "string"
+        },
+        {
+          "title": "name",
+          "type": "string"
+        },
+        {
+          "title": "latitude_deg",
+          "type": "number"
+        },
+        {
+          "title": "longitude_deg",
+          "type": "number"
+        },
+        {
+          "title": "elevation_ft",
+          "type": "integer"
+        },
+        {
+          "title": "continent",
+          "type": "string"
+        },
+        {
+          "title": "iso_country",
+          "type": "string"
+        },
+        {
+          "title": "iso_region",
+          "type": "string"
+        },
+        {
+          "title": "municipality",
+          "type": "string"
+        },
+        {
+          "title": "gps_code",
+          "type": "string"
+        },
+        {
+          "title": "iata_code",
+          "type": "string"
+        },
+        {
+          "title": "local_code",
+          "type": "string"
+        }
+      ]
+    }
   }
 }

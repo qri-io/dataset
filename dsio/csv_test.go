@@ -2,10 +2,11 @@ package dsio
 
 import (
 	"bytes"
+	"github.com/qri-io/dataset/vals"
 	"testing"
 
 	"github.com/qri-io/dataset"
-	"github.com/qri-io/dataset/datatypes"
+	"github.com/qri-io/jsonschema"
 )
 
 const csvData = `col_a,col_b,col_c,col_d
@@ -20,26 +21,30 @@ var csvStruct = &dataset.Structure{
 	FormatConfig: &dataset.CSVOptions{
 		HeaderRow: true,
 	},
-	Schema: &dataset.Schema{
-		Fields: []*dataset.Field{
-			{Name: "col_a", Type: datatypes.String},
-			{Name: "col_b", Type: datatypes.String},
-			{Name: "col_c", Type: datatypes.String},
-			{Name: "col_d", Type: datatypes.String},
-		},
-	},
+	Schema: jsonschema.Must(`{
+		"type": "array",
+		"items": {
+			"type":"array",
+			"items": [
+				{"title":"col_a","type":"string"},
+				{"title":"col_b","type":"string"},
+				{"title":"col_c","type":"string"},
+				{"title":"col_d","type":"string"}
+			]
+		}
+	}`),
 }
 
 func TestCSVReader(t *testing.T) {
 	buf := bytes.NewBuffer([]byte(csvData))
-	rdr, err := NewRowReader(csvStruct, buf)
+	rdr, err := NewValueReader(csvStruct, buf)
 	if err != nil {
-		t.Errorf("error allocating RowReader: %s", err.Error())
+		t.Errorf("error allocating ValueReader: %s", err.Error())
 		return
 	}
 	count := 0
 	for {
-		row, err := rdr.ReadRow()
+		row, err := rdr.ReadValue()
 		if err != nil {
 			if err.Error() == "EOF" {
 				break
@@ -48,8 +53,13 @@ func TestCSVReader(t *testing.T) {
 			return
 		}
 
-		if len(row) != 4 {
-			t.Errorf("invalid row length for row %d. expected %d, got %d", count, 4, len(row))
+		if row.Type() != vals.TypeArray {
+			t.Errorf("expected value to be an Array. got: %s", row.Type())
+			continue
+		}
+
+		if row.Len() != 4 {
+			t.Errorf("invalid row length for row %d. expected %d, got %d", count, 4, row.Len())
 		}
 
 		count++
@@ -60,19 +70,19 @@ func TestCSVReader(t *testing.T) {
 }
 
 func TestCSVWriter(t *testing.T) {
-	rows := [][][]byte{
+	rows := []vals.Array{
 		// TODO - vary up test input
-		{[]byte("a"), []byte("b"), []byte("c"), []byte("d")},
-		{[]byte("a"), []byte("b"), []byte("c"), []byte("d")},
-		{[]byte("a"), []byte("b"), []byte("c"), []byte("d")},
-		{[]byte("a"), []byte("b"), []byte("c"), []byte("d")},
-		{[]byte("a"), []byte("b"), []byte("c"), []byte("d")},
+		vals.Array{vals.String("a"), vals.String("b"), vals.String("c"), vals.String("d")},
+		vals.Array{vals.String("a"), vals.String("b"), vals.String("c"), vals.String("d")},
+		vals.Array{vals.String("a"), vals.String("b"), vals.String("c"), vals.String("d")},
+		vals.Array{vals.String("a"), vals.String("b"), vals.String("c"), vals.String("d")},
+		vals.Array{vals.String("a"), vals.String("b"), vals.String("c"), vals.String("d")},
 	}
 
 	buf := &bytes.Buffer{}
-	rw, err := NewRowWriter(csvStruct, buf)
+	rw, err := NewValueWriter(csvStruct, buf)
 	if err != nil {
-		t.Errorf("error allocating RowWriter: %s", err.Error())
+		t.Errorf("error allocating ValueWriter: %s", err.Error())
 		return
 	}
 	st := rw.Structure()
@@ -82,7 +92,7 @@ func TestCSVWriter(t *testing.T) {
 	}
 
 	for i, row := range rows {
-		if err := rw.WriteRow(row); err != nil {
+		if err := rw.WriteValue(row); err != nil {
 			t.Errorf("row %d write error: %s", i, err.Error())
 		}
 	}

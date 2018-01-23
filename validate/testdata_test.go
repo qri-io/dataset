@@ -2,7 +2,7 @@ package validate
 
 import (
 	"github.com/qri-io/dataset"
-	"github.com/qri-io/dataset/datatypes"
+	"github.com/qri-io/jsonschema"
 )
 
 var emptyRawText = ``
@@ -18,14 +18,18 @@ var namesStructure = &dataset.Structure{
 	FormatConfig: &dataset.CSVOptions{
 		HeaderRow: true,
 	},
-	Schema: &dataset.Schema{
-		Fields: []*dataset.Field{
-			{Name: "first_name", Type: datatypes.String},
-			{Name: "last_name", Type: datatypes.String},
-			{Name: "username", Type: datatypes.String},
-			{Name: "age", Type: datatypes.Integer},
-		},
-	},
+	Schema: jsonschema.Must(`{
+		"type": "array",
+		"items": {
+			"type": "array",
+			"items": [
+				{"title": "first_name", "type": "string" },
+				{"title": "last_name", "type": "string" },
+				{"title": "username", "type": "string" },
+				{"title": "age", "type": "integer" }
+			]
+		}
+	}`),
 }
 
 // has nonNumeric quotes and comma inside quotes on last line
@@ -70,14 +74,18 @@ var rawText4 = `<html>
 
 var cdxjStructure = &dataset.Structure{
 	Format: dataset.CDXJDataFormat,
-	Schema: &dataset.Schema{
-		Fields: []*dataset.Field{
-			{Name: "url", Type: datatypes.String},
-			{Name: "date", Type: datatypes.String},
-			{Name: "record_type", Type: datatypes.String},
-			{Name: "meta", Type: datatypes.JSON},
-		},
-	},
+	Schema: jsonschema.Must(`{
+		"type": "array",
+		"items": {
+			"type": "array",
+			"items": [
+				{"title": "url", "type": "string"},
+				{"title": "date", "type": "string"},
+				{"title": "record_type", "type": "string"},
+				{"title": "meta", "type": "object"}
+			]
+		}
+	}`),
 }
 
 const cdxjRawText = `!OpenWayback-CDXJ 1.0

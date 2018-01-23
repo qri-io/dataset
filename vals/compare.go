@@ -1,9 +1,32 @@
-package datatypes
+package vals
 
 import (
 	"bytes"
 	"fmt"
+	"reflect"
 )
+
+// Equal checks if two Values are the same
+func Equal(a, b Value) bool {
+	if a.Type() != b.Type() {
+		return false
+	}
+	switch a.Type() {
+	case TypeObject, TypeArray:
+		return reflect.DeepEqual(a, b)
+	case TypeNumber:
+		return a.Number() == b.Number()
+	case TypeInteger:
+		return a.Integer() == b.Integer()
+	case TypeBoolean:
+		return a.Boolean() == b.Boolean()
+	case TypeNull:
+		return a.IsNull() == b.IsNull()
+	case TypeString:
+		return a.String() == b.String()
+	}
+	return false
+}
 
 // CompareTypeBytes compares two byte slices with a known type
 // real on the real, this is a bit of a work in progress
@@ -18,12 +41,12 @@ func CompareTypeBytes(a, b []byte, t Type) (int, error) {
 	}
 
 	switch t {
-	case String:
+	case TypeString:
 		return bytes.Compare(a, b), nil
-	case Integer:
+	case TypeInteger:
 		return CompareIntegerBytes(a, b)
-	case Float:
-		return CompareFloatBytes(a, b)
+	case TypeNumber:
+		return CompareNumberBytes(a, b)
 	default:
 		// TODO - other types
 		return 0, fmt.Errorf("invalid type comparison")
@@ -48,13 +71,13 @@ func CompareIntegerBytes(a, b []byte) (int, error) {
 	return -1, nil
 }
 
-// CompareFloatBytes compares two byte slices of float data
-func CompareFloatBytes(a, b []byte) (int, error) {
-	at, err := ParseFloat(a)
+// CompareNumberBytes compares two byte slices of float data
+func CompareNumberBytes(a, b []byte) (int, error) {
+	at, err := ParseNumber(a)
 	if err != nil {
 		return 0, err
 	}
-	bt, err := ParseFloat(b)
+	bt, err := ParseNumber(b)
 	if err != nil {
 		return 0, err
 	}

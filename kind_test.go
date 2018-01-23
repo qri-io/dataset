@@ -10,12 +10,12 @@ func TestKindValid(t *testing.T) {
 		Kind Kind
 		err  string
 	}{
-		{"", "invalid kind: ''. kind must be in the form qri:[type]:[version]"},
-		{"qri:ds:0", ""},
-		{"qri:st:0", ""},
-		{"qri:as:0", ""},
-		{"qri:ps:0", ""},
-		{"qri:ps:0", ""},
+		{"", "invalid kind: ''. kind must be in the form [type]:[version]"},
+		{"ds:0", ""},
+		{"st:0", ""},
+		{"as:0", ""},
+		{"ps:0", ""},
+		{"ps:0", ""},
 	}
 
 	for i, c := range cases {
@@ -32,10 +32,10 @@ func TestKindDatatype(t *testing.T) {
 		Kind   Kind
 		expect string
 	}{
-		{"qri:ds:0", "ds"},
-		{"qri:st:0", "st"},
-		{"qri:as:0", "as"},
-		{"qri:ps:0", "ps"},
+		{"ds:0", "ds"},
+		{"st:0", "st"},
+		{"as:0", "as"},
+		{"ps:0", "ps"},
 	}
 
 	for i, c := range cases {
@@ -52,8 +52,8 @@ func TestKindVersion(t *testing.T) {
 		Kind   Kind
 		expect string
 	}{
-		{"qri:st:2", "2"},
-		{"qri:ds:23", "23"},
+		{"st:2", "2"},
+		{"ds:23", "23"},
 	}
 
 	for i, c := range cases {
@@ -71,8 +71,8 @@ func TestKindUnmarshalJSON(t *testing.T) {
 		expect Kind
 		err    string
 	}{
-		{`"qri:st:2"`, Kind("qri:st:2"), ""},
-		{`""`, Kind(""), "invalid kind: ''. kind must be in the form qri:[type]:[version]"},
+		{`"st:2"`, Kind("st:2"), ""},
+		{`""`, Kind(""), "invalid kind: ''. kind must be in the form [type]:[version]"},
 	}
 
 	for i, c := range cases {

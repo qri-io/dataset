@@ -8,29 +8,25 @@ import (
 // CurrentSpecVersion is the current verion of the dataset spec
 const CurrentSpecVersion = "0"
 
-// KindPrefix is the prefix to distinguish the qri dataset
-// definition from other formats
-const KindPrefix = "qri:"
-
 const (
 	// KindDataset is the current kind for datasets
-	KindDataset = Kind("qri:ds:0")
+	KindDataset = Kind("ds:" + CurrentSpecVersion)
 	// KindMeta is the current kind for metadata
-	KindMeta = Kind("qri:md:0")
+	KindMeta = Kind("md:" + CurrentSpecVersion)
 	// KindStructure is the current kind for dataset structures
-	KindStructure = Kind("qri:st:0")
+	KindStructure = Kind("st:" + CurrentSpecVersion)
 	// KindTransform is the current kind for dataset transforms
-	KindTransform = Kind("qri:tf:0")
+	KindTransform = Kind("tf:" + CurrentSpecVersion)
 	// KindCommit is the current kind for dataset transforms
-	KindCommit = Kind("qri:cm:0")
+	KindCommit = Kind("cm:" + CurrentSpecVersion)
 )
 
 // Kind is a short identifier for all types of qri dataset objects
 // Kind does three things:
 // 1. Distinguish qri datasets from other formats
-// 2. Distinguish different types (Dataset/Structure/Transform)
+// 2. Distinguish different types (Dataset/Structure/Transform/etc.)
 // 3. Distinguish between versions of the dataset spec
-// Kind is a string in the format qri:ds:[version]
+// Kind is a string in the format ds:[version]
 type Kind string
 
 // String implements the stringer interface
@@ -40,23 +36,20 @@ func (k Kind) String() string {
 
 // Valid checks to see if a kind string is valid
 func (k Kind) Valid() error {
-	if len(k) < 8 {
-		return fmt.Errorf("invalid kind: '%s'. kind must be in the form qri:[type]:[version]", k.String())
-	}
-	if k[:len(KindPrefix)] != KindPrefix {
-		return fmt.Errorf("invalid kind: '%s'. kind must be in the form qri:[type]:[version]", k.String())
+	if len(k) < 4 {
+		return fmt.Errorf("invalid kind: '%s'. kind must be in the form [type]:[version]", k.String())
 	}
 	return nil
 }
 
 // Type returns the type identifier
 func (k Kind) Type() string {
-	return k.String()[len(KindPrefix) : len(KindPrefix)+2]
+	return k.String()[:2]
 }
 
 // Version returns the version portion of the kind identifier
 func (k Kind) Version() string {
-	return k.String()[len(KindPrefix)+3:]
+	return k.String()[3:]
 }
 
 // UnmarshalJSON implements the JSON.Unmarshaler interface,

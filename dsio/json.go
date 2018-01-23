@@ -3,12 +3,12 @@ package dsio
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
-	"strconv"
 
 	"github.com/qri-io/dataset"
-	"github.com/qri-io/dataset/datatypes"
+	"github.com/qri-io/dataset/vals"
 )
 
 // JSONReader implements the RowReader interface for the JSON data format
@@ -35,22 +35,26 @@ func (r *JSONReader) Structure() *dataset.Structure {
 	return r.st
 }
 
-// ReadRow reads one JSON record from the reader
-func (r *JSONReader) ReadRow() ([][]byte, error) {
+// ReadValue reads one JSON record from the reader
+func (r *JSONReader) ReadValue() (vals.Value, error) {
 	more := r.sc.Scan()
 	if !more {
 		return nil, fmt.Errorf("EOF")
 	}
 	r.rowsRead++
 
-	return [][]byte{r.sc.Bytes()}, r.sc.Err()
+	if r.sc.Err() != nil {
+		return nil, r.sc.Err()
+	}
+
+	return vals.UnmarshalJSON(r.sc.Bytes())
 }
 
 // initialIndex sets the scanner up to read data, advancing until the first
 // entry in the top level array & setting the scanner split func to scan objects
 func initialIndex(data []byte) (skip int, err error) {
-	typ, err := datatypes.JSONArrayOrObject(data)
-	if err != nil {
+	typ := vals.JSONArrayOrObject(data)
+	if typ == "" {
 		// might not have initial closure, request more data
 		return -1, err
 	}
@@ -88,6 +92,21 @@ func (r *JSONReader) scanJSONRow(data []byte, atEOF bool) (advance int, token []
 LOOP:
 	for i, b := range data {
 		switch b {
+		// case '"':
+		// 	if depth == 0 {
+		// 		starti = i
+		// 		depth++
+		// 	} else if depth > 0 {
+		// 		depth--
+		// 		if depth == 0 {
+		// 			stopi = i + 1
+		// 			break LOOP
+		// 		}
+		// 	} else {
+		// 		return len(data), nil, nil
+		// 	}
+		// case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+
 		case '{', '[':
 			if depth == 0 {
 				starti = i
@@ -100,7 +119,7 @@ LOOP:
 				break LOOP
 			} else if depth < 0 {
 				// if we encounter a closing bracket
-				// before any depth, it's the end of the line
+				// before any depth, it's the end of the file
 				return len(data), nil, nil
 			}
 		}
@@ -147,18 +166,33 @@ func (w *JSONWriter) Structure() *dataset.Structure {
 	return w.st
 }
 
-// WriteRow writes one JSON record to the writer
-func (w *JSONWriter) WriteRow(row [][]byte) error {
+// WriteValue writes one JSON record to the writer
+func (w *JSONWriter) WriteValue(val vals.Value) error {
+	defer func() {
+		w.rowsWritten++
+	}()
 	if w.rowsWritten == 0 {
 		if _, err := w.wr.Write([]byte{'['}); err != nil {
 			return fmt.Errorf("error writing initial `[`: %s", err.Error())
 		}
 	}
 
-	if w.writeObjects {
-		return w.writeObjectRow(row)
+	data, err := json.Marshal(val)
+	if err != nil {
+		return err
 	}
-	return w.writeArrayRow(row)
+
+	enc := []byte{',', '\n'}
+	if w.rowsWritten == 0 {
+		enc = enc[1:]
+	}
+
+	// if w.writeObjects {
+	// 	return w.writeObjectRow(val)
+	// }
+	// return w.writeArrayRow(val)
+	_, err = w.wr.Write(append(enc, data...))
+	return err
 }
 
 func (w *JSONWriter) writeObjectRow(row [][]byte) error {
@@ -166,37 +200,38 @@ func (w *JSONWriter) writeObjectRow(row [][]byte) error {
 	if w.rowsWritten == 0 {
 		enc = enc[1:]
 	}
-	for i, c := range row {
-		f := w.st.Schema.Fields[i]
-		ent := []byte(",\"" + f.Name + "\":")
-		if i == 0 {
-			ent = ent[1:]
-		}
-		if c == nil || len(c) == 0 {
-			ent = append(ent, []byte("null")...)
-		} else {
-			switch f.Type {
-			case datatypes.String:
-				ent = append(ent, []byte(strconv.Quote(string(c)))...)
-			case datatypes.Float, datatypes.Integer:
-				// if len(c) == 0 {
-				// 	ent = append(ent, []byte("null")...)
-				// } else {
-				// 	ent = append(ent, c...)
-				// }
-				ent = append(ent, c...)
-			case datatypes.Boolean:
-				// TODO - coerce to true & false specifically
-				ent = append(ent, c...)
-			case datatypes.JSON:
-				ent = append(ent, c...)
-			default:
-				ent = append(ent, []byte(strconv.Quote(string(c)))...)
-			}
-		}
+	// TODO - restore
+	// for i, c := range row {
+	// 	f := w.st.Schema.Fields[i]
+	// 	ent := []byte(",\"" + f.Name + "\":")
+	// 	if i == 0 {
+	// 		ent = ent[1:]
+	// 	}
+	// 	if c == nil || len(c) == 0 {
+	// 		ent = append(ent, []byte("null")...)
+	// 	} else {
+	// 		switch f.Type {
+	// 		case vals.String:
+	// 			ent = append(ent, []byte(strconv.Quote(string(c)))...)
+	// 		case vals.Float, vals.Integer:
+	// 			// if len(c) == 0 {
+	// 			// 	ent = append(ent, []byte("null")...)
+	// 			// } else {
+	// 			// 	ent = append(ent, c...)
+	// 			// }
+	// 			ent = append(ent, c...)
+	// 		case vals.Boolean:
+	// 			// TODO - coerce to true & false specifically
+	// 			ent = append(ent, c...)
+	// 		case vals.JSON:
+	// 			ent = append(ent, c...)
+	// 		default:
+	// 			ent = append(ent, []byte(strconv.Quote(string(c)))...)
+	// 		}
+	// 	}
 
-		enc = append(enc, ent...)
-	}
+	// 	enc = append(enc, ent...)
+	// }
 
 	enc = append(enc, '}')
 	if _, err := w.wr.Write(enc); err != nil {
@@ -212,40 +247,41 @@ func (w *JSONWriter) writeArrayRow(row [][]byte) error {
 	if w.rowsWritten == 0 {
 		enc = enc[1:]
 	}
-	for i, c := range row {
-		f := w.st.Schema.Fields[i]
-		ent := []byte(",")
-		if i == 0 {
-			ent = ent[1:]
-		}
-		if c == nil || len(c) == 0 {
-			ent = append(ent, []byte("null")...)
-		} else {
-			switch f.Type {
-			case datatypes.String:
-				ent = append(ent, []byte(strconv.Quote(string(c)))...)
-			case datatypes.Float, datatypes.Integer:
-				// TODO - decide on weather or not to supply default values
-				// if len(c) == 0 {
-				// ent = append(ent, []byte("0")...)
-				// } else {
-				ent = append(ent, c...)
-				// }
-			case datatypes.Boolean:
-				// TODO - coerce to true & false specifically
-				// if len(c) == 0 {
-				// ent = append(ent, []byte("false")...)
-				// }
-				ent = append(ent, c...)
-			case datatypes.JSON:
-				ent = append(ent, c...)
-			default:
-				ent = append(ent, []byte(strconv.Quote(string(c)))...)
-			}
-		}
+	// TODO - restore
+	// for i, c := range row {
+	// 	f := w.st.Schema.Fields[i]
+	// 	ent := []byte(",")
+	// 	if i == 0 {
+	// 		ent = ent[1:]
+	// 	}
+	// 	if c == nil || len(c) == 0 {
+	// 		ent = append(ent, []byte("null")...)
+	// 	} else {
+	// 		switch f.Type {
+	// 		case vals.String:
+	// 			ent = append(ent, []byte(strconv.Quote(string(c)))...)
+	// 		case vals.Float, vals.Integer:
+	// 			// TODO - decide on weather or not to supply default values
+	// 			// if len(c) == 0 {
+	// 			// ent = append(ent, []byte("0")...)
+	// 			// } else {
+	// 			ent = append(ent, c...)
+	// 			// }
+	// 		case vals.Boolean:
+	// 			// TODO - coerce to true & false specifically
+	// 			// if len(c) == 0 {
+	// 			// ent = append(ent, []byte("false")...)
+	// 			// }
+	// 			ent = append(ent, c...)
+	// 		case vals.JSON:
+	// 			ent = append(ent, c...)
+	// 		default:
+	// 			ent = append(ent, []byte(strconv.Quote(string(c)))...)
+	// 		}
+	// 	}
 
-		enc = append(enc, ent...)
-	}
+	// 	enc = append(enc, ent...)
+	// }
 
 	enc = append(enc, ']')
 	if _, err := w.wr.Write(enc); err != nil {
@@ -259,7 +295,7 @@ func (w *JSONWriter) writeArrayRow(row [][]byte) error {
 // Close finalizes the writer, indicating no more records
 // will be written
 func (w *JSONWriter) Close() error {
-	// if WriteRow is never called, write an empty array
+	// if WriteValue is never called, write an empty array
 	if w.rowsWritten == 0 {
 		if _, err := w.wr.Write([]byte("[]")); err != nil {
 			return fmt.Errorf("error writing initial `[`: %s", err.Error())

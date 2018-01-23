@@ -2,123 +2,127 @@
   "format": "csv",
   "formatConfig": null,
   "schema": {
-    "fields": [
-      {
-        "name": "state_code",
-        "type": "integer"
-      },
-      {
-        "name": "county_code",
-        "type": "integer"
-      },
-      {
-        "name": "site_num",
-        "type": "integer"
-      },
-      {
-        "name": "parameter_code",
-        "type": "integer"
-      },
-      {
-        "name": "poc",
-        "type": "integer"
-      },
-      {
-        "name": "latitude",
-        "type": "float"
-      },
-      {
-        "name": "longitude",
-        "type": "float"
-      },
-      {
-        "name": "datum",
-        "type": "string"
-      },
-      {
-        "name": "parameter_name",
-        "type": "string"
-      },
-      {
-        "name": "sample_duration",
-        "type": "string"
-      },
-      {
-        "name": "pollutant_standard",
-        "type": "string"
-      },
-      {
-        "name": "date_local",
-        "type": "string"
-      },
-      {
-        "name": "units_of_measure",
-        "type": "string"
-      },
-      {
-        "name": "event_type",
-        "type": "string"
-      },
-      {
-        "name": "observation_count",
-        "type": "integer"
-      },
-      {
-        "name": "observation_percent",
-        "type": "float"
-      },
-      {
-        "name": "arithmetic_mean",
-        "type": "float"
-      },
-      {
-        "name": "st_max_value",
-        "type": "float"
-      },
-      {
-        "name": "st_max_hour",
-        "type": "integer"
-      },
-      {
-        "name": "aqi",
-        "type": "string"
-      },
-      {
-        "name": "method_code",
-        "type": "integer"
-      },
-      {
-        "name": "method_name",
-        "type": "string"
-      },
-      {
-        "name": "local_site_name",
-        "type": "string"
-      },
-      {
-        "name": "address",
-        "type": "string"
-      },
-      {
-        "name": "state_name",
-        "type": "string"
-      },
-      {
-        "name": "county_name",
-        "type": "string"
-      },
-      {
-        "name": "city_name",
-        "type": "string"
-      },
-      {
-        "name": "cbsa_name",
-        "type": "string"
-      },
-      {
-        "name": "date_of_last_change",
-        "type": "string"
-      }
-    ]
+    "type": "array",
+    "items": {
+      "type": "array",
+      "items": [
+        {
+          "title": "state_code",
+          "type": "integer"
+        },
+        {
+          "title": "county_code",
+          "type": "integer"
+        },
+        {
+          "title": "site_num",
+          "type": "integer"
+        },
+        {
+          "title": "parameter_code",
+          "type": "integer"
+        },
+        {
+          "title": "poc",
+          "type": "integer"
+        },
+        {
+          "title": "latitude",
+          "type": "number"
+        },
+        {
+          "title": "longitude",
+          "type": "number"
+        },
+        {
+          "title": "datum",
+          "type": "string"
+        },
+        {
+          "title": "parameter_name",
+          "type": "string"
+        },
+        {
+          "title": "sample_duration",
+          "type": "string"
+        },
+        {
+          "title": "pollutant_standard",
+          "type": "string"
+        },
+        {
+          "title": "date_local",
+          "type": "string"
+        },
+        {
+          "title": "units_of_measure",
+          "type": "string"
+        },
+        {
+          "title": "event_type",
+          "type": "string"
+        },
+        {
+          "title": "observation_count",
+          "type": "integer"
+        },
+        {
+          "title": "observation_percent",
+          "type": "number"
+        },
+        {
+          "title": "arithmetic_mean",
+          "type": "number"
+        },
+        {
+          "title": "st_max_value",
+          "type": "number"
+        },
+        {
+          "title": "st_max_hour",
+          "type": "integer"
+        },
+        {
+          "title": "aqi",
+          "type": "string"
+        },
+        {
+          "title": "method_code",
+          "type": "integer"
+        },
+        {
+          "title": "method_name",
+          "type": "string"
+        },
+        {
+          "title": "local_site_name",
+          "type": "string"
+        },
+        {
+          "title": "address",
+          "type": "string"
+        },
+        {
+          "title": "state_name",
+          "type": "string"
+        },
+        {
+          "title": "county_name",
+          "type": "string"
+        },
+        {
+          "title": "city_name",
+          "type": "string"
+        },
+        {
+          "title": "cbsa_name",
+          "type": "string"
+        },
+        {
+          "title": "date_of_last_change",
+          "type": "string"
+        }
+      ]
+    }
   }
 }

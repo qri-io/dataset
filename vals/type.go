@@ -1,39 +1,35 @@
-package datatypes
+package vals
 
 import (
 	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/url"
 	"strconv"
-	"time"
 )
 
-// Type is a type of data
-type Type int
+// Type is a type of data, these types follow JSON type primitives,
+// with an added type for whole numbers (integer)
+type Type uint8
 
 const (
-	// Unknown is the default datatype, making for easier
+	// TypeUnknown is the default datatype, making for easier
 	// errors when a datatype is expected
-	Unknown Type = iota
-	// Any specifies any combindation of other datatypes are
-	// permitted
-	Any
-	// String speficies text values
-	String
-	// Integer specifies whole numbers
-	Integer
-	// Float specifies numbers with decimal value
-	Float
-	// Boolean species true/false values
-	Boolean
-	// Date specifies point-in-time values
-	Date
-	// URL specifies Universal Resource Locations
-	URL
-	// JSON speficies Javascript Object Notation data
-	JSON
+	TypeUnknown Type = iota
+	// TypeNull specifies the null type
+	TypeNull
+	// TypeInteger specifies whole numbers
+	TypeInteger
+	// TypeNumber specifies numbers with decimal value
+	TypeNumber
+	// TypeBoolean species true/false values
+	TypeBoolean
+	// TypeString speficies text values
+	TypeString
+	// TypeObject maps string keys to values
+	TypeObject
+	// TypeArray is an ordered list of values
+	TypeArray
 )
 
 // NumDatatypes is the total count of data types, including unknown type
@@ -43,65 +39,60 @@ const NumDatatypes = 8
 // defaulting to unknown if the type is unrecognized
 func TypeFromString(t string) Type {
 	got, ok := map[string]Type{
-		"any":     Any,
-		"string":  String,
-		"integer": Integer,
-		"float":   Float,
-		"boolean": Boolean,
-		"date":    Date,
-		"url":     URL,
-		"json":    JSON,
+		"string":  TypeString,
+		"integer": TypeInteger,
+		"number":  TypeNumber,
+		"boolean": TypeBoolean,
+		"object":  TypeObject,
+		"array":   TypeArray,
+		"null":    TypeNull,
 	}[t]
 	if !ok {
-		return Unknown
+		return TypeUnknown
 	}
 
 	return got
 }
 
-// ParseDatatype examines a slice of bytes & attempts to determine
+// ParseType examines a slice of bytes & attempts to determine
 // it's type, starting with the more specific possible types, then falling
-// back to more general types. ParseDatatype always returns a type
-// TODO - should write a version of MUCH faster funcs with "Is" prefix (IsObject, etc)
-// that just return t/f. these funcs should aim to bail ASAP when proven false
-func ParseDatatype(value []byte) Type {
+// back to more general types. ParseType always returns a type
+func ParseType(value []byte) Type {
 	if len(value) == 0 {
-		return String
+		return TypeString
 	}
-	var ok bool
-	if ok = IsInteger(value); ok {
-		return Integer
+
+	if bytes.Equal(value, []byte("null")) {
+		return TypeNull
+	} else if IsInteger(value) {
+		return TypeInteger
+	} else if IsFloat(value) {
+		return TypeNumber
+	} else if IsBoolean(value) {
+		return TypeBoolean
 	}
-	if ok = IsFloat(value); ok {
-		return Float
+
+	switch JSONArrayOrObject(value) {
+	case "object":
+		return TypeObject
+	case "array":
+		return TypeArray
+	default:
+		return TypeString
 	}
-	if ok = IsBoolean(value); ok {
-		return Boolean
-	}
-	if ok = IsJSON(value); ok {
-		return JSON
-	}
-	if ok = IsDate(value); ok {
-		return Date
-	}
-	// if _, err = ParseURL(value); err == nil {
-	// 	return URL
-	// }
-	return String
 }
 
 // String satsfies the stringer interface
 func (dt Type) String() string {
 	s, ok := map[Type]string{
-		Unknown: "",
-		Any:     "any",
-		String:  "string",
-		Integer: "integer",
-		Float:   "float",
-		Boolean: "boolean",
-		Date:    "date",
-		URL:     "url",
-		JSON:    "json",
+		TypeUnknown: "",
+		TypeString:  "string",
+		TypeInteger: "integer",
+		TypeNumber:  "number",
+		TypeBoolean: "boolean",
+		TypeObject:  "object",
+		TypeArray:   "array",
+		TypeNull:    "null",
 	}[dt]
 
 	if !ok {
@@ -125,7 +116,7 @@ func (dt *Type) UnmarshalJSON(data []byte) error {
 
 	t := TypeFromString(s)
 
-	if t == Unknown {
+	if t == TypeUnknown {
 		return fmt.Errorf("Unknown datatype '%s'", s)
 	}
 
@@ -136,21 +127,17 @@ func (dt *Type) UnmarshalJSON(data []byte) error {
 // Parse turns raw byte slices into data formatted according to the type receiver
 func (dt Type) Parse(value []byte) (parsed interface{}, err error) {
 	switch dt {
-	case Any:
-		parsed, err = ParseAny(value)
-	case String:
+	case TypeString:
 		parsed, err = ParseString(value)
-	case Float:
-		parsed, err = ParseFloat(value)
-	case Integer:
+	case TypeNumber:
+		parsed, err = ParseNumber(value)
+	case TypeInteger:
 		parsed, err = ParseInteger(value)
-	case Boolean:
+	case TypeBoolean:
 		parsed, err = ParseBoolean(value)
-	case Date:
-		parsed, err = ParseDate(value)
-	case URL:
-		parsed, err = ParseURL(value)
-	case JSON:
+	case TypeArray:
+		parsed, err = ParseJSON(value)
+	case TypeObject:
 		parsed, err = ParseJSON(value)
 	default:
 		return nil, errors.New("cannot parse unknown data type")
@@ -161,58 +148,41 @@ func (dt Type) Parse(value []byte) (parsed interface{}, err error) {
 // ValueToString takes already-parsed values & converts them to a string
 func (dt Type) ValueToString(value interface{}) (str string, err error) {
 	switch dt {
-	case Any:
-		// TODO
-		return "", fmt.Errorf("converting 'any' value to string not yet supported")
-	case String:
+	case TypeString:
 		s, ok := value.(string)
 		if !ok {
 			err = fmt.Errorf("%v is not a %s value", value, dt.String())
 			return
 		}
 		str = s
-	case Integer:
+	case TypeInteger:
 		num, ok := value.(int)
 		if !ok {
 			err = fmt.Errorf("%v is not an %s value", value, dt.String())
 			return
 		}
 		str = strconv.FormatInt(int64(num), 10)
-	case Float:
-		num, ok := value.(float32)
+	case TypeNumber:
+		num, ok := value.(float64)
 		if !ok {
 			err = fmt.Errorf("%v is not a %s value", value, dt.String())
 			return
 		}
 		str = strconv.FormatFloat(float64(num), 'g', -1, 64)
-	case Boolean:
+	case TypeBoolean:
 		val, ok := value.(bool)
 		if !ok {
 			err = fmt.Errorf("%v is not a %s value", value, dt.String())
 			return
 		}
 		str = strconv.FormatBool(val)
-	case JSON:
+	case TypeObject, TypeArray:
 		data, e := json.Marshal(value)
 		if e != nil {
 			err = e
 			return
 		}
 		str = string(data)
-	case Date:
-		val, ok := value.(time.Time)
-		if !ok {
-			err = fmt.Errorf("%v is not a %s value", value, dt.String())
-			return
-		}
-		str = val.Format(time.RFC3339)
-	case URL:
-		val, ok := value.(*url.URL)
-		if !ok {
-			err = fmt.Errorf("%v is not a %s value", value, dt.String())
-			return
-		}
-		str = val.String()
 	default:
 		err = fmt.Errorf("cannot get string value of unknown datatype")
 		return
@@ -232,19 +202,13 @@ func (dt Type) ValueToBytes(value interface{}) (data []byte, err error) {
 	return
 }
 
-// ParseAny is a work in progress :/
-func ParseAny(value []byte) (interface{}, error) {
-	// TODO
-	return nil, nil
-}
-
 // ParseString converts raw bytes to a string value
 func ParseString(value []byte) (string, error) {
 	return string(value), nil
 }
 
-// ParseFloat converts raw bytes to a float64 value
-func ParseFloat(value []byte) (float64, error) {
+// ParseNumber converts raw bytes to a float64 value
+func ParseNumber(value []byte) (float64, error) {
 	return strconv.ParseFloat(string(value), 64)
 }
 
@@ -258,68 +222,39 @@ func ParseBoolean(value []byte) (bool, error) {
 	return strconv.ParseBool(string(value))
 }
 
-// ParseDate converts raw bytes to a time.Time value
-func ParseDate(value []byte) (t time.Time, err error) {
-	str := string(value)
-	for _, format := range []string{
-		time.RFC3339,
-		time.RFC3339Nano,
-		time.ANSIC,
-		time.UnixDate,
-		time.RubyDate,
-		time.RFC822,
-		time.RFC822Z,
-		time.RFC850,
-		time.RFC1123,
-		time.RFC1123Z,
-	} {
-		if t, err = time.Parse(format, str); err == nil {
-			return
-		}
-	}
-	return time.Now(), fmt.Errorf("invalid date: %s", str)
-}
-
-// ParseURL converts raw bytes to a *url.URL value
-func ParseURL(value []byte) (*url.URL, error) {
-	if !Relaxed.Match(value) {
-		return nil, fmt.Errorf("invalid url: %s", string(value))
-	}
-	return url.Parse(string(value))
-}
-
 // JSONArrayOrObject examines bytes checking if the outermost
 // closure is an array or object
-func JSONArrayOrObject(value []byte) (string, error) {
+func JSONArrayOrObject(value []byte) string {
 	obji := bytes.IndexRune(value, '{')
 	arri := bytes.IndexRune(value, '[')
 	if obji == -1 && arri == -1 {
-		return "", fmt.Errorf("invalid json data")
+		return ""
 	}
 	if (obji < arri || arri == -1) && obji >= 0 {
-		return "object", nil
+		return "object"
 	}
-	return "array", nil
+	return "array"
 }
 
 // ParseJSON converts raw bytes to a JSON value
 func ParseJSON(value []byte) (interface{}, error) {
-	t, err := JSONArrayOrObject(value)
-	if err != nil {
-		return nil, err
+	t := JSONArrayOrObject(value)
+	if t == "" {
+		return nil, fmt.Errorf("invalid json data")
 	}
 
 	if t == "object" {
 		p := map[string]interface{}{}
-		err = json.Unmarshal(value, &p)
+		err := json.Unmarshal(value, &p)
 		return p, err
 	}
 
 	p := []interface{}{}
-	err = json.Unmarshal(value, &p)
+	err := json.Unmarshal(value, &p)
 	return p, err
 }
 
+// IsInteger checks if a slice of bytes is an integer
 func IsInteger(value []byte) bool {
 	if len(value) == 0 {
 		return false
@@ -333,6 +268,7 @@ func IsInteger(value []byte) bool {
 	return false
 }
 
+// IsBoolean checks if a slice of bytes is a boolean value
 func IsBoolean(value []byte) bool {
 	switch string(value) {
 	case "1", "0", "t", "f", "T", "F", "true", "false", "TRUE", "FALSE", "True", "False":
@@ -342,6 +278,7 @@ func IsBoolean(value []byte) bool {
 	}
 }
 
+// IsFloat checks if a slice of bytes is a float value
 func IsFloat(value []byte) bool {
 	if len(value) == 0 {
 		return false
@@ -349,22 +286,8 @@ func IsFloat(value []byte) bool {
 	if value[0] == '[' || value[0] == '{' || !bytes.ContainsAny(value[0:1], "-+0123456789") {
 		return false
 	}
-	if _, err := ParseFloat(value); err == nil || err.(*strconv.NumError).Err == strconv.ErrRange {
+	if _, err := ParseNumber(value); err == nil || err.(*strconv.NumError).Err == strconv.ErrRange {
 		return true
 	}
 	return false
-}
-
-func IsJSON(value []byte) bool {
-	if _, err := ParseJSON(value); err != nil {
-		return false
-	}
-	return true
-}
-
-func IsDate(value []byte) bool {
-	if _, err := ParseDate(value); err != nil {
-		return false
-	}
-	return true
 }

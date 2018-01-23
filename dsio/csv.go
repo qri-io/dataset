@@ -2,8 +2,12 @@ package dsio
 
 import (
 	"encoding/csv"
-	"github.com/qri-io/dataset"
+	"encoding/json"
+	"fmt"
 	"io"
+
+	"github.com/qri-io/dataset"
+	"github.com/qri-io/dataset/vals"
 )
 
 // CSVReader implements the RowReader interface for the CSV data format
@@ -26,8 +30,8 @@ func (r *CSVReader) Structure() *dataset.Structure {
 	return r.st
 }
 
-// ReadRow reads one CSV record from the reader
-func (r *CSVReader) ReadRow() ([][]byte, error) {
+// ReadValue reads one CSV record from the reader
+func (r *CSVReader) ReadValue() (vals.Value, error) {
 	if !r.readHeader {
 		if HasHeaderRow(r.st) {
 			if _, err := r.r.Read(); err != nil {
@@ -44,9 +48,9 @@ func (r *CSVReader) ReadRow() ([][]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	row := make([][]byte, len(data))
+	row := make(vals.Array, len(data))
 	for i, d := range data {
-		row[i] = []byte(d)
+		row[i] = vals.String(string(d))
 	}
 	return row, nil
 }
@@ -80,11 +84,39 @@ func NewCSVWriter(st *dataset.Structure, w io.Writer) *CSVWriter {
 	if CSVOpts, ok := st.FormatConfig.(*dataset.CSVOptions); ok {
 		if CSVOpts.HeaderRow {
 			// TODO - capture error
-			writer.Write(st.Schema.FieldNames())
+			if titles, err := terribleHackToGetHeaderRow(st); err == nil {
+				writer.Write(titles)
+			}
 		}
 	}
 
 	return wr
+}
+
+// TODO - holy shit dis so bad. fix
+func terribleHackToGetHeaderRow(st *dataset.Structure) ([]string, error) {
+	data, err := st.Schema.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	sch := map[string]interface{}{}
+	if err := json.Unmarshal(data, &sch); err != nil {
+		return nil, err
+	}
+	if itemObj, ok := sch["items"].(map[string]interface{}); ok {
+		if itemArr, ok := itemObj["items"].([]interface{}); ok {
+			titles := make([]string, len(itemArr))
+			for i, f := range itemArr {
+				if field, ok := f.(map[string]interface{}); ok {
+					if title, ok := field["title"].(string); ok {
+						titles[i] = title
+					}
+				}
+			}
+			return titles, nil
+		}
+	}
+	return nil, fmt.Errorf("nope")
 }
 
 // Structure gives this writer's structure
@@ -92,13 +124,16 @@ func (w *CSVWriter) Structure() *dataset.Structure {
 	return w.st
 }
 
-// WriteRow writes one CSV record to the writer
-func (w *CSVWriter) WriteRow(data [][]byte) error {
-	row := make([]string, len(data))
-	for i, d := range data {
-		row[i] = string(d)
+// WriteValue writes one CSV record to the writer
+func (w *CSVWriter) WriteValue(val vals.Value) error {
+	if arr, ok := val.(vals.Array); ok {
+		row := make([]string, len(arr))
+		for i, d := range arr {
+			row[i] = d.String()
+		}
+		return w.w.Write(row)
 	}
-	return w.w.Write(row)
+	return fmt.Errorf("expected array value to write csv row. got: %s", val.Type())
 }
 
 // Close finalizes the writer, indicating no more records

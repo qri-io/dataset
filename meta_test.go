@@ -80,9 +80,9 @@ func TestMetaMarshalJSON(t *testing.T) {
 		out []byte
 		err error
 	}{
-		{&Meta{}, []byte(`{"kind":"qri:md:0"}`), nil},
-		{AirportCodes.Meta, []byte(`{"citations":[{"name":"Our Airports","url":"http://ourairports.com/data/"}],"homePath":"http://www.ourairports.com/","kind":"qri:md:0","license":"PDDL-1.0","title":"Airport Codes"}`), nil},
-		{Hours.Meta, []byte(`{"accessPath":"https://example.com/not/a/url","downloadPath":"https://example.com/not/a/url","kind":"qri:md:0","readmePath":"/ipfs/notahash","title":"hours"}`), nil},
+		{&Meta{}, []byte(`{"qri":"md:0"}`), nil},
+		{AirportCodes.Meta, []byte(`{"citations":[{"name":"Our Airports","url":"http://ourairports.com/data/"}],"homePath":"http://www.ourairports.com/","license":"PDDL-1.0","qri":"md:0","title":"Airport Codes"}`), nil},
+		{Hours.Meta, []byte(`{"accessPath":"https://example.com/not/a/url","downloadPath":"https://example.com/not/a/url","qri":"md:0","readmePath":"/ipfs/notahash","title":"hours"}`), nil},
 	}
 
 	for i, c := range cases {
@@ -167,7 +167,7 @@ func TestMetaUnmarshalJSON(t *testing.T) {
 }
 
 func TestUnmarshalMeta(t *testing.T) {
-	dsa := Meta{Kind: KindMeta}
+	dsa := Meta{Qri: KindMeta}
 	cases := []struct {
 		value interface{}
 		out   *Meta
@@ -175,7 +175,7 @@ func TestUnmarshalMeta(t *testing.T) {
 	}{
 		{dsa, &dsa, ""},
 		{&dsa, &dsa, ""},
-		{[]byte("{\"kind\":\"qri:md:0\"}"), &Meta{Kind: KindMeta}, ""},
+		{[]byte("{\"qri\":\"md:0\"}"), &Meta{Qri: KindMeta}, ""},
 		{5, nil, "couldn't parse metadata, value is invalid type"},
 	}
 

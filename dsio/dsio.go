@@ -6,35 +6,36 @@ import (
 	"io"
 
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/dataset/vals"
 )
 
-// RowWriter is a generalized interface for writing structured data
-type RowWriter interface {
+// ValueWriter is a generalized interface for writing structured data
+type ValueWriter interface {
 	// Structure gives the structure being written
 	Structure() *dataset.Structure
-	// WriteRow writes one row of structured data to the Writer
-	WriteRow(row [][]byte) error
+	// WriteValue writes one row of structured data to the Writer
+	WriteValue(val vals.Value) error
 	// Close finalizes the writer, indicating all entries
 	// have been written
 	Close() error
 }
 
-// RowReader is a generalized interface for reading Structured Data
-type RowReader interface {
+// ValueReader is a generalized interface for reading Ordered Structured Data
+type ValueReader interface {
 	// Structure gives the structure being read
 	Structure() *dataset.Structure
-	// ReadRow reads one row of structured data from the reader
-	ReadRow() ([][]byte, error)
+	// ReadVal reads one row of structured data from the reader
+	ReadValue() (vals.Value, error)
 }
 
-// RowReadWriter combines RowWriter and RowReader behaviors
+// RowReadWriter combines ValueWriter and ValueReader behaviors
 type RowReadWriter interface {
 	// Structure gives the structure being read and written
 	Structure() *dataset.Structure
-	// ReadRow reads one row of structured data from the reader
-	ReadRow() ([][]byte, error)
-	// WriteRow writes one row of structured data to the ReadWriter
-	WriteRow(row [][]byte) error
+	// ReadVal reads one row of structured data from the reader
+	ReadValue() (vals.Value, error)
+	// WriteValue writes one row of structured data to the ReadWriter
+	WriteValue(val vals.Value) error
 	// Close finalizes the ReadWriter, indicating all entries
 	// have been written
 	Close() error
@@ -42,15 +43,15 @@ type RowReadWriter interface {
 	Bytes() []byte
 }
 
-// NewRowReader allocates a RowReader based on a given structure
-func NewRowReader(st *dataset.Structure, r io.Reader) (RowReader, error) {
+// NewValueReader allocates a ValueReader based on a given structure
+func NewValueReader(st *dataset.Structure, r io.Reader) (ValueReader, error) {
 	switch st.Format {
 	case dataset.CSVDataFormat:
 		return NewCSVReader(st, r), nil
 	case dataset.JSONDataFormat:
 		return NewJSONReader(st, r), nil
-	case dataset.CDXJDataFormat:
-		return NewCDXJReader(st, r), nil
+	// case dataset.CDXJDataFormat:
+	// 	return NewCDXJReader(st, r), nil
 	case dataset.UnknownDataFormat:
 		return nil, fmt.Errorf("structure must have a data format")
 	default:
@@ -58,15 +59,15 @@ func NewRowReader(st *dataset.Structure, r io.Reader) (RowReader, error) {
 	}
 }
 
-// NewRowWriter allocates a RowWriter based on a given structure
-func NewRowWriter(st *dataset.Structure, w io.Writer) (RowWriter, error) {
+// NewValueWriter allocates a ValueWriter based on a given structure
+func NewValueWriter(st *dataset.Structure, w io.Writer) (ValueWriter, error) {
 	switch st.Format {
 	case dataset.CSVDataFormat:
 		return NewCSVWriter(st, w), nil
 	case dataset.JSONDataFormat:
 		return NewJSONWriter(st, w), nil
-	case dataset.CDXJDataFormat:
-		return NewCDXJWriter(st, w), nil
+	// case dataset.CDXJDataFormat:
+	// 	return NewCDXJWriter(st, w), nil
 	case dataset.UnknownDataFormat:
 		return nil, fmt.Errorf("structure must have a data format")
 	default:

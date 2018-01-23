@@ -7,6 +7,7 @@ import (
 	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/cafs/memfs"
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/jsonschema"
 )
 
 func TestLoadTransform(t *testing.T) {
@@ -39,9 +40,7 @@ func TestSaveTransform(t *testing.T) {
 		Syntax: "sweet syntax",
 		Structure: &dataset.Structure{
 			Format: dataset.CSVDataFormat,
-			Schema: &dataset.Schema{
-				Fields: []*dataset.Field{{Name: "its_a_field"}},
-			},
+			Schema: jsonschema.Must(`true`),
 		},
 		Resources: map[string]*dataset.Dataset{
 			"a": dsa,
@@ -54,7 +53,7 @@ func TestSaveTransform(t *testing.T) {
 		return
 	}
 
-	hash := "/map/QmPd2M1kKx2DJ49G8emh3WnhRCUkDPxxx6W8TdthMURn79"
+	hash := "/map/QmNyE9y5GJUTK6q72AyXAt8KdbL3iR9koxVHgv5rFmUyha"
 	if hash != key.String() {
 		t.Errorf("key mismatch: %s != %s", hash, key.String())
 		return
@@ -93,9 +92,7 @@ func TestSaveAbstractTransform(t *testing.T) {
 	dsa.Assign(&dataset.Dataset{Meta: &dataset.Meta{Title: "now dataset isn't empty "}})
 	dsa.Structure = &dataset.Structure{
 		Format: dataset.CSVDataFormat,
-		Schema: &dataset.Schema{
-			Fields: []*dataset.Field{{Name: "its_a_field"}},
-		},
+		Schema: jsonschema.Must(`true`),
 	}
 
 	store := memfs.NewMapstore()
@@ -103,9 +100,7 @@ func TestSaveAbstractTransform(t *testing.T) {
 		Syntax: "sweet syntax",
 		Structure: &dataset.Structure{
 			Format: dataset.CSVDataFormat,
-			Schema: &dataset.Schema{
-				Fields: []*dataset.Field{{Name: "its_a_field"}},
-			},
+			Schema: jsonschema.Must(`true`),
 		},
 		Resources: map[string]*dataset.Dataset{
 			"a": dsa,
@@ -118,7 +113,7 @@ func TestSaveAbstractTransform(t *testing.T) {
 		return
 	}
 
-	hash := "/map/QmVwVPj47sCueweD4ayoS6dm7XTUgsDtoPMPQCkcUUfN95"
+	hash := "/map/QmQzv5jSobdHSGTsBJnu8hGAdNx7LNCb6cczCuVCfJBvZx"
 	if hash != key.String() {
 		t.Errorf("key mismatch: %s != %s", hash, key.String())
 		return

@@ -25,7 +25,7 @@ func TestCommitAssign(t *testing.T) {
 	doug := &User{ID: "doug_id", Email: "doug@example.com"}
 	expect := &Commit{
 		path:      datastore.NewKey("a"),
-		Kind:      KindCommit,
+		Qri:       KindCommit,
 		Author:    doug,
 		Timestamp: t1,
 		Title:     "expect title",
@@ -40,7 +40,7 @@ func TestCommitAssign(t *testing.T) {
 
 	got.Assign(&Commit{
 		Author: doug,
-		Kind:   KindCommit,
+		Qri:    KindCommit,
 		Title:  "expect title",
 	}, &Commit{
 		path:      datastore.NewKey("a"),
@@ -85,8 +85,8 @@ func TestCommitMarshalJSON(t *testing.T) {
 		out []byte
 		err error
 	}{
-		{&Commit{Title: "title", Timestamp: ts}, []byte(`{"kind":"qri:cm:0","timestamp":"2001-01-01T01:01:01Z","title":"title"}`), nil},
-		{&Commit{Author: &User{ID: "foo"}, Timestamp: ts}, []byte(`{"author":{"id":"foo"},"kind":"qri:cm:0","timestamp":"2001-01-01T01:01:01Z","title":""}`), nil},
+		{&Commit{Title: "title", Timestamp: ts}, []byte(`{"qri":"cm:0","timestamp":"2001-01-01T01:01:01Z","title":"title"}`), nil},
+		{&Commit{Author: &User{ID: "foo"}, Timestamp: ts}, []byte(`{"author":{"id":"foo"},"qri":"cm:0","timestamp":"2001-01-01T01:01:01Z","title":""}`), nil},
 	}
 
 	for i, c := range cases {
@@ -151,7 +151,7 @@ func TestCommitUnmarshalJSON(t *testing.T) {
 }
 
 func TestUnmarshalCommit(t *testing.T) {
-	cma := Commit{Kind: KindCommit, Message: "foo"}
+	cma := Commit{Qri: KindCommit, Message: "foo"}
 	cases := []struct {
 		value interface{}
 		out   *Commit
@@ -159,7 +159,7 @@ func TestUnmarshalCommit(t *testing.T) {
 	}{
 		{cma, &cma, ""},
 		{&cma, &cma, ""},
-		{[]byte("{\"kind\":\"qri:cm:0\"}"), &Commit{Kind: KindCommit}, ""},
+		{[]byte("{\"qri\":\"cm:0\"}"), &Commit{Qri: KindCommit}, ""},
 		{5, nil, "couldn't parse commitMsg, value is invalid type"},
 	}
 

@@ -37,12 +37,12 @@ type Meta struct {
 	Identifier string `json:"identifier,omitempty"`
 	// String of Keywords
 	Keywords []string `json:"keywords,omitempty"`
-	// Kind is required, must be qri:md:[version]
-	Kind Kind `json:"kind"`
 	// Languages this dataset is written in
 	Language []string `json:"language,omitempty"`
 	// License will automatically parse to & from a string value if provided as a raw string
 	License *License `json:"license,omitempty"`
+	// Kind is required, must be qri:md:[version]
+	Qri Kind `json:"qri"`
 	// path to readmePath
 	ReadmePath string `json:"readmePath,omitempty"`
 	// Title of this dataset
@@ -120,8 +120,8 @@ func (md *Meta) Assign(metas ...*Meta) {
 		if m.path.String() != "" {
 			md.path = m.path
 		}
-		if m.Kind != "" {
-			md.Kind = m.Kind
+		if m.Qri != "" {
+			md.Qri = m.Qri
 		}
 		if m.Title != "" {
 			md.Title = m.Title
@@ -185,7 +185,7 @@ func (md *Meta) MarshalJSON() ([]byte, error) {
 
 	data := md.Meta()
 
-	data["kind"] = KindMeta
+	data["qri"] = KindMeta
 
 	if md.AccessPath != "" {
 		data["accessPath"] = md.AccessPath

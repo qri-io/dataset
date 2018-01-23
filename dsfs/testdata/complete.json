@@ -1,34 +1,38 @@
 {
-  "kind": "qri:ds:0",
+  "qri": "ds:0",
   "commit": {
-    "kind": "qri:cm:0",
+    "qri": "cm:0",
     "title": "I'm a commit"
   },
   "meta": {
-    "kind": "qri:md:0",
+    "qri": "md:0",
     "title": "dataset with all submodels example"
   },
   "transform": {
-    "kind": "qri:tf:0",
+    "qri": "tf:0",
     "syntax": "sql",
     "data": "select * from foo",
     "structure": {
-      "kind": "qri:st:0",
+      "qri": "st:0",
       "format": "csv",
       "formatConfig": {
         "headerRow": true
       },
       "schema": {
-        "fields": [
-          {
-            "name": "title",
-            "type": "string"
-          },
-          {
-            "name": "duration",
-            "type": "integer"
-          }
-        ]
+        "type": "array",
+        "items": {
+          "type": "array",
+          "items": [
+            {
+              "title": "title",
+              "type": "string"
+            },
+            {
+              "title": "duration",
+              "type": "integer"
+            }
+          ]
+        }
       }
     },
     "resources": {
@@ -36,25 +40,29 @@
     }
   },
   "abstractTransform": {
-    "kind": "qri:tf:0",
+    "qri": "tf:0",
     "data": "select * from a",
     "structure": {
-      "kind": "qri:st:0",
+      "qri": "st:0",
       "format": "csv",
       "formatConfig": {
         "headerRow": true
       },
       "schema": {
-        "fields": [
-          {
-            "name": "a",
-            "type": "string"
-          },
-          {
-            "name": "b",
-            "type": "integer"
-          }
-        ]
+        "type": "array",
+        "items": {
+          "type": "array",
+          "items": [
+            {
+              "title": "a",
+              "type": "string"
+            },
+            {
+              "title": "b",
+              "type": "integer"
+            }
+          ]
+        }
       }
     },
     "resources": {
@@ -62,44 +70,52 @@
     }
   },
   "abstract": {
-    "kind": "qri:ds:0",
+    "qri": "ds:0",
     "structure": {
-      "kind": "qri:st:0",
+      "qri": "st:0",
       "format": "csv",
       "formatConfig": {
         "headerRow": true
       },
       "schema": {
-        "fields": [
-          {
-            "name": "a",
-            "type": "string"
-          },
-          {
-            "name": "b",
-            "type": "integer"
-          }
-        ]
+        "type": "array",
+        "items": {
+          "type": "array",
+          "items": [
+            {
+              "title": "a",
+              "type": "string"
+            },
+            {
+              "title": "b",
+              "type": "integer"
+            }
+          ]
+        }
       }
     }
   },
   "structure": {
-    "kind": "qri:st:0",
+    "qri": "st:0",
     "format": "csv",
     "formatConfig": {
       "headerRow": true
     },
     "schema": {
-      "fields": [
-        {
-          "name": "title",
-          "type": "string"
-        },
-        {
-          "name": "duration",
-          "type": "integer"
-        }
-      ]
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": [
+          {
+            "title": "title",
+            "type": "string"
+          },
+          {
+            "title": "duration",
+            "type": "integer"
+          }
+        ]
+      }
     }
   }
 }

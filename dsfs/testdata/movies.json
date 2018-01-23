@@ -1,23 +1,27 @@
 {
   "title": "example movie data",
-  "kind": "qri:ds:0",
+  "qri": "ds:0",
   "structure": {
-    "kind": "qri:st:0",
+    "qri": "st:0",
     "format": "csv",
     "formatConfig": {
       "headerRow": true
     },
     "schema": {
-      "fields": [
-        {
-          "name": "title",
-          "type": "string"
-        },
-        {
-          "name": "duration",
-          "type": "integer"
-        }
-      ]
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": [
+          {
+            "title": "title",
+            "type": "string"
+          },
+          {
+            "title": "duration",
+            "type": "integer"
+          }
+        ]
+      }
     }
   }
 }

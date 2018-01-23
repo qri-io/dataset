@@ -3,16 +3,18 @@ package dsio
 import (
 	"fmt"
 	"io"
+
+	"github.com/qri-io/dataset/vals"
 )
 
 // DataIteratorFunc is a function for each "row" of a resource's raw data
-type DataIteratorFunc func(int, [][]byte, error) error
+type DataIteratorFunc func(int, vals.Value, error) error
 
-// EachRow calls fn on each row of a given RowReader
-func EachRow(rr RowReader, fn DataIteratorFunc) error {
+// EachValue calls fn on each row of a given ValueReader
+func EachValue(rr ValueReader, fn DataIteratorFunc) error {
 	num := 0
 	for {
-		row, err := rr.ReadRow()
+		row, err := rr.ReadValue()
 		if err != nil {
 			if err.Error() == io.EOF.Error() {
 				return nil

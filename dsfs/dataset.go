@@ -72,10 +72,8 @@ func DerefDataset(store cafs.Filestore, ds *dataset.Dataset) error {
 	if err := DerefDatasetTransform(store, ds); err != nil {
 		return err
 	}
-	if err := DerefDatasetCommit(store, ds); err != nil {
-		return err
-	}
-	return nil
+
+	return DerefDatasetCommit(store, ds)
 }
 
 // DerefDatasetStructure derferences a dataset's structure element if required
@@ -182,18 +180,18 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 	ds.Structure.Length = len(data)
 
 	// TODO - add a dsio.RowCount function that avoids actually arranging data into rows
-	rr, err := dsio.NewRowReader(ds.Structure, memfs.NewMemfileBytes("data", data))
+	rr, err := dsio.NewValueReader(ds.Structure, memfs.NewMemfileBytes("data", data))
 	if err != nil {
-		return nil, fmt.Errorf("error reading data rows: %s", err.Error())
+		return nil, fmt.Errorf("error reading data values: %s", err.Error())
 	}
 
 	entries := 0
 	for err == nil {
 		entries++
-		_, err = rr.ReadRow()
+		_, err = rr.ReadValue()
 	}
 	if err.Error() != "EOF" {
-		return nil, fmt.Errorf("error reading rows: %s", err.Error())
+		return nil, fmt.Errorf("error reading values: %s", err.Error())
 	}
 
 	ds.Structure.Entries = entries

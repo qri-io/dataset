@@ -6,12 +6,13 @@ import (
 	"testing"
 
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/dataset/vals"
 )
 
-func TestStructuredBuffer(t *testing.T) {
+func TestValueBuffer(t *testing.T) {
 	datasets, err := makeTestData()
 	if err != nil {
-		t.Errorf("error creating filestore", err.Error())
+		t.Errorf("error creating filestore: %s", err.Error())
 		return
 	}
 
@@ -29,23 +30,23 @@ func TestStructuredBuffer(t *testing.T) {
 		Schema: ds.Structure.Schema,
 	}
 
-	rbuf, err := NewStructuredBuffer(outst)
+	rbuf, err := NewValueBuffer(outst)
 	if err != nil {
-		t.Errorf("error allocating StructuredBuffer: %s", err.Error())
+		t.Errorf("error allocating ValueBuffer: %s", err.Error())
 		return
 	}
 
-	rr, err := NewRowReader(ds.Structure, bytes.NewBuffer(datasets["movies"].data))
+	rr, err := NewValueReader(ds.Structure, bytes.NewBuffer(datasets["movies"].data))
 	if err != nil {
 		t.Errorf("error allocating RowReader: %s", err.Error())
 		return
 	}
 
-	if err = EachRow(rr, func(i int, row [][]byte, err error) error {
+	if err = EachValue(rr, func(i int, val vals.Value, err error) error {
 		if err != nil {
 			return err
 		}
-		return rbuf.WriteRow(row)
+		return rbuf.WriteValue(val)
 	}); err != nil {
 		t.Errorf("error writing rows: %s", err.Error())
 		return

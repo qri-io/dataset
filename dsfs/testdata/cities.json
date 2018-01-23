@@ -1,38 +1,42 @@
 {
   "meta": {
-    "kind" : "qri:md:0",
+    "qri": "md:0",
     "title": "example city data"
   },
-  "commit" : {
-    "kind": "qri:cm:0",
-    "title" : "initial commit"
+  "commit": {
+    "qri": "cm:0",
+    "title": "initial commit"
   },
-  "kind": "qri:ds:0",
+  "qri": "ds:0",
   "structure": {
-    "kind": "qri:st:0",
+    "qri": "st:0",
     "format": "csv",
     "formatConfig": {
       "headerRow": true
     },
     "schema": {
-      "fields": [
-        {
-          "name": "city",
-          "type": "string"
-        },
-        {
-          "name": "pop",
-          "type": "integer"
-        },
-        {
-          "name": "avg_age",
-          "type": "float"
-        },
-        {
-          "name": "in_usa",
-          "type": "boolean"
-        }
-      ]
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": [
+          {
+            "title": "city",
+            "type": "string"
+          },
+          {
+            "title": "pop",
+            "type": "integer"
+          },
+          {
+            "title": "avg_age",
+            "type": "number"
+          },
+          {
+            "title": "in_usa",
+            "type": "boolean"
+          }
+        ]
+      }
     }
   }
 }
