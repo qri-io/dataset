@@ -72,10 +72,8 @@ func DerefDataset(store cafs.Filestore, ds *dataset.Dataset) error {
 	if err := DerefDatasetTransform(store, ds); err != nil {
 		return err
 	}
-	if err := DerefDatasetCommit(store, ds); err != nil {
-		return err
-	}
-	return nil
+
+	return DerefDatasetCommit(store, ds)
 }
 
 // DerefDatasetStructure derferences a dataset's structure element if required
