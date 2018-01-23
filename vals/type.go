@@ -61,7 +61,10 @@ func ParseType(value []byte) Type {
 	if len(value) == 0 {
 		return TypeString
 	}
-	if IsInteger(value) {
+
+	if bytes.Equal(value, []byte("null")) {
+		return TypeNull
+	} else if IsInteger(value) {
 		return TypeInteger
 	} else if IsFloat(value) {
 		return TypeNumber

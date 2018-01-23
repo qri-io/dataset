@@ -6,24 +6,28 @@
       "headerRow": true
     },
     "schema": {
-      "fields": [
-        {
-          "name": "city",
-          "type": "string"
-        },
-        {
-          "name": "pop",
-          "type": "integer"
-        },
-        {
-          "name": "avg_age",
-          "type": "float"
-        },
-        {
-          "name": "in_usa",
-          "type": "boolean"
-        }
-      ]
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": [
+          {
+            "title": "city",
+            "type": "string"
+          },
+          {
+            "title": "pop",
+            "type": "integer"
+          },
+          {
+            "title": "avg_age",
+            "type": "number"
+          },
+          {
+            "title": "in_usa",
+            "type": "boolean"
+          }
+        ]
+      }
     }
   }
 }

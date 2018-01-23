@@ -15,6 +15,8 @@ func TestUnmarshalJSON(t *testing.T) {
 		{`"foo"`, String("foo"), ""},
 		{`123`, Integer(123), ""},
 		{`123.45`, Number(123.45), ""},
+		{`{ "city" : "toronto", "pop" : 40000000, "avg_age" : 55.5 , "in_usa" : false }`, Object{"city": String("toronto"), "pop": Integer(40000000), "avg_age": Number(55.5), "in_usa": Boolean(false)}, ""},
+		{`["a", false, null, 2, 23.5]`, Array{String("a"), Boolean(false), Null(false), Integer(2), Number(23.5)}, ""},
 	}
 	for i, c := range cases {
 		got, err := UnmarshalJSON([]byte(c.input))

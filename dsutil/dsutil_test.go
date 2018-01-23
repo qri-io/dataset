@@ -3,16 +3,17 @@ package dsutil
 import (
 	"archive/zip"
 	"bytes"
-	"github.com/ipfs/go-datastore"
-	"github.com/qri-io/dataset/datatypes"
-	"github.com/qri-io/dataset/dsfs"
+	"github.com/qri-io/jsonschema"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/cafs/memfs"
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/dataset/dsfs"
+	"github.com/qri-io/dataset/vals"
 )
 
 func TestWriteZipArchive(t *testing.T) {
@@ -97,11 +98,15 @@ func testStore() (cafs.Filestore, map[string]datastore.Key, error) {
 	ds := &dataset.Dataset{
 		Structure: &dataset.Structure{
 			Format: dataset.CSVDataFormat,
-			Schema: &dataset.Schema{
-				Fields: []*dataset.Field{
-					{Name: "movie", Type: datatypes.String},
-				},
-			},
+			Schema: jsonschema.Must(`{
+				"type": "array",
+				"items": {
+					"type":"array",
+					"items" : [
+						{"title": "movie", "type": "string"}
+					]
+				}
+			}`),
 		},
 	}
 

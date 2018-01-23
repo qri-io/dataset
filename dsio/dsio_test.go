@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestNewRowReader(t *testing.T) {
+func TestNewValueReader(t *testing.T) {
 	cases := []struct {
 		st  *dataset.Structure
 		err string
@@ -15,7 +15,7 @@ func TestNewRowReader(t *testing.T) {
 	}
 
 	for i, c := range cases {
-		_, err := NewRowReader(c.st, &bytes.Buffer{})
+		_, err := NewValueReader(c.st, &bytes.Buffer{})
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
 			continue
@@ -23,7 +23,7 @@ func TestNewRowReader(t *testing.T) {
 	}
 }
 
-func TestNewRowWriter(t *testing.T) {
+func TestNewValueWriter(t *testing.T) {
 	cases := []struct {
 		st  *dataset.Structure
 		err string
@@ -32,7 +32,7 @@ func TestNewRowWriter(t *testing.T) {
 	}
 
 	for i, c := range cases {
-		_, err := NewRowWriter(c.st, &bytes.Buffer{})
+		_, err := NewValueWriter(c.st, &bytes.Buffer{})
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
 			continue
