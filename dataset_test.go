@@ -23,6 +23,7 @@ func TestDatasetAssign(t *testing.T) {
 		{&Dataset{DataPath: "foo"}},
 		{&Dataset{PreviousPath: "stuff"}},
 		{&Dataset{Meta: &Meta{Title: "foo"}}},
+		{&Dataset{VisConfig: &VisConfig{Kind: KindVisConfig}}},
 	}
 
 	for i, c := range cases {
@@ -41,6 +42,7 @@ func TestDatasetAssign(t *testing.T) {
 		AbstractTransform: &Transform{},
 		Structure:         &Structure{},
 		Commit:            &Commit{},
+		VisConfig:         &VisConfig{},
 	}
 	madsa := &Dataset{
 		Abstract:          &Dataset{Structure: &Structure{}},
@@ -48,6 +50,7 @@ func TestDatasetAssign(t *testing.T) {
 		AbstractTransform: &Transform{Data: "I'm abstract transform data?"},
 		Structure:         &Structure{Format: CSVDataFormat},
 		Commit:            &Commit{Title: "dy.no.mite."},
+		VisConfig:         &VisConfig{Kind: KindVisConfig},
 	}
 	mads.Assign(madsa)
 
@@ -160,6 +163,7 @@ func TestDatasetIsEmpty(t *testing.T) {
 		{&Dataset{PreviousPath: "nope"}},
 		{&Dataset{Structure: &Structure{}}},
 		{&Dataset{Transform: &Transform{}}},
+		{&Dataset{VisConfig: &VisConfig{}}},
 	}
 
 	for i, c := range cases {
