@@ -1,0 +1,11 @@
+{
+  "format": "foo",
+  "kind": "vc:0",
+  "visualizations": {
+  	"type": "bar",
+  	"colors": {
+  		"bars": "#ffffff",
+  		"background": "#000000"
+  	}
+  }
+}

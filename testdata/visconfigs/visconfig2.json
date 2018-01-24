@@ -1,0 +1,5 @@
+{
+  "format": "bar",
+  "kind": "vc:0",
+  "visualizations": ["foo", "bar"]
+}

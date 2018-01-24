@@ -45,6 +45,8 @@ type Dataset struct {
 	Structure *Structure `json:"structure"`
 	// Transform is a path to the transformation that generated this resource
 	Transform *Transform `json:"transform,omitempty"`
+	// VisConfig stores configuration data related to representing a dataset as a visualization
+	VisConfig *VisConfig `json:"visconfig,omitempty"`
 }
 
 // IsEmpty checks to see if dataset has any fields other than the internal path
@@ -56,7 +58,8 @@ func (ds *Dataset) IsEmpty() bool {
 		ds.DataPath == "" &&
 		ds.Meta == nil &&
 		ds.PreviousPath == "" &&
-		ds.Transform == nil
+		ds.Transform == nil &&
+		ds.VisConfig == nil
 }
 
 // Path gives the internal path reference for this dataset
@@ -122,6 +125,11 @@ func (ds *Dataset) Assign(datasets ...*Dataset) {
 			ds.Commit = d.Commit
 		} else if ds.Commit != nil {
 			ds.Commit.Assign(d.Commit)
+		}
+		if ds.VisConfig == nil && d.VisConfig != nil {
+			ds.VisConfig = d.VisConfig
+		} else if ds.VisConfig != nil {
+			ds.VisConfig.Assign(d.VisConfig)
 		}
 
 		if d.DataPath != "" {

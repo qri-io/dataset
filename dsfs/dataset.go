@@ -268,6 +268,7 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 // This method is currently exported, but 99% of use cases should use CreateDataset instead of this
 // lower-level function
 func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File, pin bool) (datastore.Key, error) {
+
 	// assign to a new dataset instance to avoid clobbering input dataset
 	cp := &dataset.Dataset{}
 	cp.Assign(ds)
@@ -360,6 +361,15 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File,
 		adder.AddFile(abf)
 	}
 
+	if ds.VisConfig != nil {
+		vc, err := JSONFile(PackageFileVisConfig.String(), ds.VisConfig)
+		if err != nil {
+			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset visconfig to json: %s", err.Error())
+		}
+		fileTasks++
+		adder.AddFile(vc)
+	}
+
 	var path datastore.Key
 	done := make(chan error, 0)
 	go func() {
@@ -378,6 +388,8 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File,
 				ds.Meta = dataset.NewMetaRef(ao.Path)
 			case PackageFileCommit.String():
 				ds.Commit = dataset.NewCommitRef(ao.Path)
+			case PackageFileVisConfig.String():
+				ds.VisConfig = dataset.NewVisConfigRef(ao.Path)
 			case dataFile.FileName():
 				ds.DataPath = ao.Path.String()
 			default:
