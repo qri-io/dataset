@@ -151,10 +151,10 @@ func TestVisConfigMarshalJSON(t *testing.T) {
 		out []byte
 		err string
 	}{
-		{&VisConfig{}, []byte(`{"kind":"qri:vc:0"}`), ""},
-		{&VisConfig{Kind: KindVisConfig}, []byte(`{"kind":"qri:vc:0"}`), ""},
-		{&VisConfig{Format: "foo", Kind: KindVisConfig}, []byte(`{"format":"foo","kind":"qri:vc:0"}`), ""},
-		{VisConfig1, []byte(`{"format":"foo","kind":"qri:vc:0","visualizations":{"colors":{"background":"#000000","bars":"#ffffff"},"type":"bar"}}`), ""},
+		{&VisConfig{}, []byte(`{"kind":"vc:0"}`), ""},
+		{&VisConfig{Kind: KindVisConfig}, []byte(`{"kind":"vc:0"}`), ""},
+		{&VisConfig{Format: "foo", Kind: KindVisConfig}, []byte(`{"format":"foo","kind":"vc:0"}`), ""},
+		{VisConfig1, []byte(`{"format":"foo","kind":"vc:0","visualizations":{"colors":{"background":"#000000","bars":"#ffffff"},"type":"bar"}}`), ""},
 	}
 
 	for i, c := range cases {
@@ -190,7 +190,7 @@ func TestUnmarshalVisConfig(t *testing.T) {
 	}{
 		{vc, &vc, ""},
 		{&vc, &vc, ""},
-		{[]byte("{\"kind\":\"qri:vc:0\"}"), &VisConfig{Kind: KindVisConfig}, ""},
+		{[]byte("{\"kind\":\"vc:0\"}"), &VisConfig{Kind: KindVisConfig}, ""},
 		{5, nil, "couldn't parse VisConfig, value is invalid type"},
 	}
 

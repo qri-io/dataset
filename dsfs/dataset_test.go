@@ -140,7 +140,7 @@ func TestCreateDataset(t *testing.T) {
 	}{
 		{"testdata/bad/invalid_reference.json", "testdata/cities.csv", "", "", 0, "error loading dataset commit: error loading commit file: datastore: key not found"},
 		{"testdata/bad/invalid.json", "testdata/cities.csv", "", "", 0, "commit is required"},
-		{"testdata/cities.json", "testdata/cities.csv", "cities.csv", "/map/QmQAHgLH7biAnD3wChpfyBaz1HNUkUwzotttm6TE15smkG", 7, ""},
+		{"testdata/cities.json", "testdata/cities.csv", "cities.csv", "/map/QmSnDC8LAqFVH6SQeQMnJi8UmDqP1RwsgBkaG8NQWciEYq", 7, ""},
 		{"testdata/complete.json", "testdata/complete.csv", "complete.csv", "/map/QmQ2CuZ8dbKqjyaKvoQwynXgqnxPKTywojNVJ2Jpj2yb6c", 14, ""},
 		{"testdata/cities_no_commit_title.json", "testdata/cities.csv", "cities.csv", "/map/QmfDrtmb4rrkjfHEDFS27aPpcgye42ZGqerMjd8FtmKfqF", 16, ""},
 	}
