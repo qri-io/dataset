@@ -168,42 +168,39 @@ var timestamp = func() time.Time {
 	return time.Now()
 }
 
-func getAutoCommitTitleIfBlank(store cafs.Filestore, ds *dataset.Dataset) error {
+func generateCommitMsg(store cafs.Filestore, ds *dataset.Dataset) error {
 	// check for user-supplied commit message
-	fmt.Printf("ds.Commit.Title = '%s'\n", ds.Commit.Title)
-	if ds.Commit.Title == "" {
-		var prev *dataset.Dataset
-		if ds.PreviousPath != "" {
-			prevKey := datastore.NewKey(ds.PreviousPath)
-			var err error
-			prev, err = LoadDataset(store, prevKey)
-			if err != nil {
-				err = fmt.Errorf("error loading previous dataset: %s", err.Error())
-				return err
-			}
-		} else {
-			prev = &dataset.Dataset{
-				Commit: &dataset.Commit{},
-				Structure: &dataset.Structure{
-					Checksum: base58.Encode([]byte(`abc`)),
-				},
-				DataPath: "abc",
-			}
-		}
-
-		// var diffList datasetDiffer.DiffList
-		fmt.Printf("structure checksum: '%s'\n", ds.Structure.Checksum)
-		diffList, err := datasetDiffer.DiffDatasets(prev, ds)
+	var prev *dataset.Dataset
+	if ds.PreviousPath != "" {
+		prevKey := datastore.NewKey(ds.PreviousPath)
+		var err error
+		prev, err = LoadDataset(store, prevKey)
 		if err != nil {
-			err = fmt.Errorf("error diffing datasets: %s", err.Error())
+			err = fmt.Errorf("error loading previous dataset: %s", err.Error())
 			return err
 		}
-		diffDescription := diffList.String()
-		ds.Commit.Title = diffDescription
-		fmt.Println("---------")
-		fmt.Println(diffDescription)
-		fmt.Println("---------")
+	} else {
+		prev = &dataset.Dataset{
+			Commit: &dataset.Commit{},
+			Structure: &dataset.Structure{
+				Checksum: base58.Encode([]byte(`abc`)),
+			},
+			DataPath: "abc",
+			Meta: &dataset.Meta{
+				Title:       "",
+				Description: "",
+			},
+		}
 	}
+
+	// var diffList datasetDiffer.DiffList
+	diffList, err := datasetDiffer.DiffDatasets(prev, ds)
+	if err != nil {
+		err = fmt.Errorf("error diffing datasets: %s", err.Error())
+		return err
+	}
+	diffDescription := diffList.String()
+	ds.Commit.Title = diffDescription
 	return nil
 }
 
@@ -250,9 +247,11 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 	// generate abstract form of dataset
 	ds.Abstract = dataset.Abstract(ds)
 	//get auto commit message if necessary
-	err = getAutoCommitTitleIfBlank(store, ds)
-	if err != nil {
-		return nil, fmt.Errorf("%s", err.Error())
+	if ds.Commit.Title == "" {
+		err = generateCommitMsg(store, ds)
+		if err != nil {
+			return nil, fmt.Errorf("%s", err.Error())
+		}
 	}
 	ds.Commit.Timestamp = timestamp()
 	signedBytes, err := privKey.Sign(ds.Commit.SignableBytes())
