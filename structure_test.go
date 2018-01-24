@@ -18,7 +18,7 @@ func TestStrucureHash(t *testing.T) {
 		hash string
 		err  error
 	}{
-		{&Structure{Qri: KindStructure, Format: CSVDataFormat}, "QmXKrm8qWRuY5HeU12Y6Ld83L9SGCxWfi4BW87a9yGpwfj", nil},
+		{&Structure{Qri: KindStructure, Format: CSVDataFormat}, "QmUqNTfVuJamhRfXLC1QUZ8RLaGhUaTY31ChX4GbtamW2o", nil},
 	}
 
 	for i, c := range cases {
@@ -71,6 +71,7 @@ func TestStructureIsEmpty(t *testing.T) {
 		{&Structure{Compression: compression.Tar}},
 		{&Structure{Encoding: "a"}},
 		{&Structure{Entries: 1}},
+		{&Structure{ErrCount: 1}},
 		{&Structure{Format: CSVDataFormat}},
 		{&Structure{FormatConfig: &CSVOptions{}}},
 		{&Structure{Length: 1}},
@@ -183,9 +184,9 @@ func TestStructureMarshalJSON(t *testing.T) {
 		out []byte
 		err error
 	}{
-		{&Structure{Format: CSVDataFormat}, []byte(`{"format":"csv","qri":"st:0"}`), nil},
-		{&Structure{Format: CSVDataFormat, Qri: KindStructure}, []byte(`{"format":"csv","qri":"st:0"}`), nil},
-		{AirportCodesStructure, []byte(`{"format":"csv","formatConfig":{"headerRow":true},"qri":"st:0","schema":{"items":{"items":[{"title":"ident","type":"string"},{"title":"type","type":"string"},{"title":"name","type":"string"},{"title":"latitude_deg","type":"string"},{"title":"longitude_deg","type":"string"},{"title":"elevation_ft","type":"string"},{"title":"continent","type":"string"},{"title":"iso_country","type":"string"},{"title":"iso_region","type":"string"},{"title":"municipality","type":"string"},{"title":"gps_code","type":"string"},{"title":"iata_code","type":"string"},{"title":"local_code","type":"string"}],"type":"array"},"type":"array"}}`), nil},
+		{&Structure{Format: CSVDataFormat}, []byte(`{"errCount":0,"format":"csv","qri":"st:0"}`), nil},
+		{&Structure{Format: CSVDataFormat, Qri: KindStructure}, []byte(`{"errCount":0,"format":"csv","qri":"st:0"}`), nil},
+		{AirportCodesStructure, []byte(`{"errCount":5,"format":"csv","formatConfig":{"headerRow":true},"qri":"st:0","schema":{"items":{"items":[{"title":"ident","type":"string"},{"title":"type","type":"string"},{"title":"name","type":"string"},{"title":"latitude_deg","type":"string"},{"title":"longitude_deg","type":"string"},{"title":"elevation_ft","type":"string"},{"title":"continent","type":"string"},{"title":"iso_country","type":"string"},{"title":"iso_region","type":"string"},{"title":"municipality","type":"string"},{"title":"gps_code","type":"string"},{"title":"iata_code","type":"string"},{"title":"local_code","type":"string"}],"type":"array"},"type":"array"}}`), nil},
 	}
 
 	for i, c := range cases {

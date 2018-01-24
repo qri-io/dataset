@@ -179,6 +179,10 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 	}
 	ds.Structure.Length = len(data)
 
+	// set error count
+	validationErrors := ds.Structure.Schema.ValidateBytes(data)
+	ds.Structure.ErrCount = len(validationErrors)
+
 	// TODO - add a dsio.RowCount function that avoids actually arranging data into rows
 	rr, err := dsio.NewValueReader(ds.Structure, memfs.NewMemfileBytes("data", data))
 	if err != nil {
