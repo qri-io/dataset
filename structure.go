@@ -18,7 +18,7 @@ import (
 type Structure struct {
 	// private storage for reference to this object
 	path datastore.Key
-	// Checksum is a bas58-encoded multihash checksum of the data
+	// Checksum is a bas58-encoded multihash checksum of the entire data
 	// file this structure points to. This is different from IPFS
 	// hashes, which are calculated after breaking the file into blocks
 	Checksum string `json:"checksum,omitempty"`
@@ -28,6 +28,9 @@ type Structure struct {
 	// Encoding specifics character encoding
 	// should assume utf-8 if not specified
 	Encoding string `json:"encoding,omitempty"`
+	// ErrCount is the number of errors returned by validating data
+	// against this schema. required
+	ErrCount int `json:"errCount"`
 	// Entries is number of top-level entries in the dataset. With tablular data
 	// this is the same as the number of rows
 	// required when structure is concrete, and must match underlying dataset.
@@ -97,6 +100,7 @@ type _structure struct {
 	Compression  compression.Type       `json:"compression,omitempty"`
 	Encoding     string                 `json:"encoding,omitempty"`
 	Entries      int                    `json:"entries,omitempty"`
+	ErrCount     int                    `json:"errCount"`
 	Format       DataFormat             `json:"format"`
 	FormatConfig map[string]interface{} `json:"formatConfig,omitempty"`
 	Length       int                    `json:"length,omitempty"`
@@ -125,6 +129,7 @@ func (s Structure) MarshalJSON() (data []byte, err error) {
 		Compression:  s.Compression,
 		Encoding:     s.Encoding,
 		Entries:      s.Entries,
+		ErrCount:     s.ErrCount,
 		Format:       s.Format,
 		FormatConfig: opt,
 		Length:       s.Length,
@@ -162,6 +167,7 @@ func (s *Structure) UnmarshalJSON(data []byte) (err error) {
 		Compression:  _s.Compression,
 		Encoding:     _s.Encoding,
 		Entries:      _s.Entries,
+		ErrCount:     _s.ErrCount,
 		Format:       _s.Format,
 		FormatConfig: fmtCfg,
 		Length:       _s.Length,
@@ -177,6 +183,7 @@ func (s *Structure) IsEmpty() bool {
 		s.Compression == compression.None &&
 		s.Encoding == "" &&
 		s.Entries == 0 &&
+		s.ErrCount == 0 &&
 		s.Format == UnknownDataFormat &&
 		s.FormatConfig == nil &&
 		s.Length == 0 &&
@@ -205,6 +212,9 @@ func (s *Structure) Assign(structures ...*Structure) {
 		}
 		if st.Entries != 0 {
 			s.Entries = st.Entries
+		}
+		if st.ErrCount != 0 {
+			s.ErrCount = st.ErrCount
 		}
 		if st.Format != UnknownDataFormat {
 			s.Format = st.Format
@@ -283,9 +293,3 @@ func base26(d int) (s string) {
 	}
 	return s
 }
-
-// func SchemaFieldNames(rs *jsonschema.RootSchema) (fn []string) {
-// if itemsch, ok := rs.Validators["items"].(*jsonschema.Schema); ok {
-// 	itemsch.Validators["items"]
-// }
-// }

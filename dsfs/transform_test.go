@@ -53,7 +53,7 @@ func TestSaveTransform(t *testing.T) {
 		return
 	}
 
-	hash := "/map/QmNyE9y5GJUTK6q72AyXAt8KdbL3iR9koxVHgv5rFmUyha"
+	hash := "/map/QmbaGqpbMmdJwRS4spApiwtE4JcwqHpR7YhvbpgUx1fqXF"
 	if hash != key.String() {
 		t.Errorf("key mismatch: %s != %s", hash, key.String())
 		return
@@ -113,7 +113,7 @@ func TestSaveAbstractTransform(t *testing.T) {
 		return
 	}
 
-	hash := "/map/QmQzv5jSobdHSGTsBJnu8hGAdNx7LNCb6cczCuVCfJBvZx"
+	hash := "/map/QmXcMVfHAjhiahiXKEvAb9AvDahv4T7cG4FoVgkefScKEa"
 	if hash != key.String() {
 		t.Errorf("key mismatch: %s != %s", hash, key.String())
 		return
