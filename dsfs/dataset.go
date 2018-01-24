@@ -15,6 +15,7 @@ import (
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsio"
 	"github.com/qri-io/dataset/validate"
+	"github.com/qri-io/datasetDiffer"
 )
 
 // LoadDataset reads a dataset from a cafs and dereferences structure, transform, and commitMsg if they exist,
@@ -167,6 +168,42 @@ var timestamp = func() time.Time {
 	return time.Now()
 }
 
+func generateCommitMsg(store cafs.Filestore, ds *dataset.Dataset) error {
+	// check for user-supplied commit message
+	var prev *dataset.Dataset
+	if ds.PreviousPath != "" {
+		prevKey := datastore.NewKey(ds.PreviousPath)
+		var err error
+		prev, err = LoadDataset(store, prevKey)
+		if err != nil {
+			err = fmt.Errorf("error loading previous dataset: %s", err.Error())
+			return err
+		}
+	} else {
+		prev = &dataset.Dataset{
+			Commit: &dataset.Commit{},
+			Structure: &dataset.Structure{
+				Checksum: base58.Encode([]byte(`abc`)),
+			},
+			DataPath: "abc",
+			Meta: &dataset.Meta{
+				Title:       "",
+				Description: "",
+			},
+		}
+	}
+
+	// var diffList datasetDiffer.DiffList
+	diffList, err := datasetDiffer.DiffDatasets(prev, ds)
+	if err != nil {
+		err = fmt.Errorf("error diffing datasets: %s", err.Error())
+		return err
+	}
+	diffDescription := diffList.String()
+	ds.Commit.Title = diffDescription
+	return nil
+}
+
 // prepareDataset modifies a dataset in preparation for adding to a dsfs
 // it returns a new data file for use in WriteDataset
 func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, privKey crypto.PrivKey) (cafs.File, error) {
@@ -209,7 +246,13 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 
 	// generate abstract form of dataset
 	ds.Abstract = dataset.Abstract(ds)
-
+	//get auto commit message if necessary
+	if ds.Commit.Title == "" {
+		err = generateCommitMsg(store, ds)
+		if err != nil {
+			return nil, fmt.Errorf("%s", err.Error())
+		}
+	}
 	ds.Commit.Timestamp = timestamp()
 	signedBytes, err := privKey.Sign(ds.Commit.SignableBytes())
 	if err != nil {

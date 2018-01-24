@@ -18,7 +18,8 @@ func TestDataset(t *testing.T) {
 	}{
 		{nil, ""},
 		{&dataset.Dataset{}, "commit is required"},
-		{&dataset.Dataset{Commit: &dataset.Commit{}}, "commit: title is required"},
+		// {&dataset.Dataset{Commit: &dataset.Commit{}}, "commit: title is required"},
+		{&dataset.Dataset{Commit: &dataset.Commit{}}, "structure is required"},
 		{&dataset.Dataset{Commit: cm}, "structure is required"},
 		{&dataset.Dataset{Commit: cm, Structure: &dataset.Structure{Schema: jsonschema.Must(`true`)}}, "structure: dataFormat is required"},
 		// {&dataset.Dataset{Commit: cm, Abstract: &dataset.Dataset{Metadata: &dataset.Metadata{}}}, "abstract field is not an abstract dataset. Metadata: nil: <not nil> != <nil>"},
@@ -40,7 +41,7 @@ func TestCommit(t *testing.T) {
 		err string
 	}{
 		{nil, ""},
-		{&dataset.Commit{}, "title is required"},
+		{&dataset.Commit{}, ""},
 		{&dataset.Commit{Title: strings.Repeat("f", 150)}, "title is too long. 150 length exceeds 100 character limit"},
 		{&dataset.Commit{Title: "message"}, ""},
 	}
