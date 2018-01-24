@@ -58,7 +58,12 @@ func (q *Transform) Path() datastore.Key {
 
 // IsEmpty checks to see if transform has any fields other than the internal path
 func (q *Transform) IsEmpty() bool {
-	return q.Data == "" && q.Resources == nil
+	return q.Data == "" &&
+		q.Resources == nil &&
+		q.Syntax == "" &&
+		q.AppVersion == "" &&
+		q.Structure == nil &&
+		q.Config == nil
 }
 
 // Assign collapses all properties of a group of queries onto one.
