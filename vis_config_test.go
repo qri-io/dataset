@@ -82,7 +82,7 @@ func TestVisConfigIsEmpty(t *testing.T) {
 		vc       *VisConfig
 		expected bool
 	}{
-		{&VisConfig{Kind: KindVisConfig}, false},
+		{&VisConfig{Kind: KindVisConfig}, true},
 		// {&VisConfig{DataPath: "foo"}, false},
 		{&VisConfig{Visualizations: "bar"}, false},
 		{&VisConfig{}, true},

@@ -35,13 +35,13 @@ func (v *VisConfig) Path() datastore.Key {
 // NewVisConfigRef creates an empty struct with it's
 // internal path set
 func NewVisConfigRef(path datastore.Key) *VisConfig {
-  return &VisConfig{Kind: KindVisConfig, path: path}
+  return &VisConfig{path: path}
 }
 
 // IsEmpty checks to see if VisConfig has any fields other than the internal path
 func (v *VisConfig) IsEmpty() bool {
-  return v.Kind == "" && v.Format == "" && v.Visualizations == nil
-  // return v.Kind == "" && v.Format == "" && v.DataPath == "" && v.Visualizations == nil
+  return v.Format == "" && v.Visualizations == nil
+  // v.Format == "" && v.DataPath == "" && v.Visualizations == nil
 }
 
 // Assign collapses all properties of a group of structures on to one
