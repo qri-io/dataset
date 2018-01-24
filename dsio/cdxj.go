@@ -1,13 +1,15 @@
 package dsio
 
 import (
-	"bytes"
+	// "bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"time"
 
 	"github.com/datatogether/cdxj"
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/dataset/vals"
 )
 
 // CDXJReader implements the RowReader interface for the CDXJ data format
@@ -29,8 +31,8 @@ func (r *CDXJReader) Structure() *dataset.Structure {
 	return r.st
 }
 
-// ReadRow reads one CDXJ record from the reader
-func (r *CDXJReader) ReadRow() ([][]byte, error) {
+// ReadValue reads one CDXJ record from the reader
+func (r *CDXJReader) ReadValue() (vals.Value, error) {
 	rec, err := r.r.Read()
 	if err != nil {
 		return nil, err
@@ -41,13 +43,19 @@ func (r *CDXJReader) ReadRow() ([][]byte, error) {
 		return nil, err
 	}
 
-	row := make([][]byte, 4)
-	row[0] = []byte(u)
-	row[1] = []byte(rec.Timestamp.Format(time.RFC3339))
-	row[2] = []byte(rec.RecordType.String())
-	row[3], err = json.Marshal(rec.JSON)
+	data, err := json.Marshal(rec.JSON)
 	if err != nil {
 		return nil, err
+	}
+	v, err := vals.UnmarshalJSON(data)
+	if err != nil {
+		return nil, err
+	}
+	row := vals.Array{
+		vals.String(u),
+		vals.String(rec.Timestamp.Format(time.RFC3339)),
+		vals.String(rec.RecordType.String()),
+		v,
 	}
 	return row, nil
 }
@@ -74,14 +82,17 @@ func (w *CDXJWriter) Structure() *dataset.Structure {
 	return w.st
 }
 
-// WriteRow writes one CDXJ record to the writer
-func (w *CDXJWriter) WriteRow(data [][]byte) error {
-	r := &cdxj.Record{}
-	joined := bytes.Join(data, []byte(" "))
-	if err := r.UnmarshalCDXJ(joined); err != nil {
-		return err
-	}
-	return w.WriteRecord(r)
+// WriteValue writes one CDXJ record to the writer
+func (w *CDXJWriter) WriteValue(data vals.Value) error {
+	// r := &cdxj.Record{}
+	// joined := bytes.Join(data, []byte(" "))
+	// if err := r.UnmarshalCDXJ(joined); err != nil {
+	// 	return err
+	// }
+	// return w.WriteRecord(r)
+
+	// TODO - restore
+	return fmt.Errorf("writing cdxj records currently doesn't work")
 }
 
 // WriteRecord writes a cdxj record to the Writer
