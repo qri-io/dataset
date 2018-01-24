@@ -128,7 +128,7 @@ func TestCompareStructures(t *testing.T) {
 // 		Description:  "a",
 // 	}
 
-func TestCompareVisConfig(t *testing.T) {
+func TestCompareVisConfigs(t *testing.T) {
 	cases := []struct {
 		a, b *VisConfig
 		err  string
@@ -145,7 +145,7 @@ func TestCompareVisConfig(t *testing.T) {
 	}
 
 	for i, c := range cases {
-		err := CompareVisConfig(c.a, c.b)
+		err := CompareVisConfigs(c.a, c.b)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("case %d error: expected: '%s', got: '%s'", i, c.err, err)
 		}

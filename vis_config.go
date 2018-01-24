@@ -76,7 +76,7 @@ type _visconfig struct {
   // DataPath       string      `json:"datapath,omitempty"`
   Format         string      `json:"format,omitempty"`
   Kind           Kind        `json:"kind,omitempty"`
-  Visualizations interface{} `json:"visualization,omitempty"`
+  Visualizations interface{} `json:"visualizations,omitempty"`
 }
 
 // MarshalJSON satisfies the json.Marshaler interface
@@ -94,7 +94,7 @@ func (v *VisConfig) MarshalJSON() ([]byte, error) {
   return json.Marshal(&_visconfig{
     // DataPath:       v.DataPath,
     Format:         v.Format,
-    Kind:           v.Kind,
+    Kind:           kind,
     Visualizations: v.Visualizations,
   })
 }
@@ -134,6 +134,6 @@ func UnmarshalVisConfig(v interface{}) (*VisConfig, error) {
     err := json.Unmarshal(q, visConfig)
     return visConfig, err
   default:
-    return nil, fmt.Errorf("couldn't parse VisConfig")
+    return nil, fmt.Errorf("couldn't parse VisConfig, value is invalid type")
   }
 }

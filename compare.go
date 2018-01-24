@@ -162,9 +162,9 @@ func CompareStructures(a, b *Structure) error {
 	return nil
 }
 
-// CompareVisConfig checks if all fields of two VisConfig pointers are equal,
+// CompareVisConfigs checks if all fields of two VisConfig pointers are equal,
 // returning an error on the first, nil if equal
-func CompareVisConfig(a, b *VisConfig) error {
+func CompareVisConfigs(a, b *VisConfig) error {
 	if a == nil && b == nil {
 		return nil
 	} else if a == nil && b != nil {
