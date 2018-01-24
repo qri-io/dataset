@@ -140,9 +140,9 @@ func TestCreateDataset(t *testing.T) {
 	}{
 		{"testdata/bad/invalid_reference.json", "testdata/cities.csv", "", "", 0, "error loading dataset commit: error loading commit file: datastore: key not found"},
 		{"testdata/bad/invalid.json", "testdata/cities.csv", "", "", 0, "commit is required"},
-		{"testdata/cities.json", "testdata/cities.csv", "cities.csv", "/map/QmQAHgLH7biAnD3wChpfyBaz1HNUkUwzotttm6TE15smkG", 6, ""},
-		{"testdata/complete.json", "testdata/complete.csv", "complete.csv", "/map/QmQ2CuZ8dbKqjyaKvoQwynXgqnxPKTywojNVJ2Jpj2yb6c", 13, ""},
-		{"testdata/cities_no_commit_title.json", "testdata/cities.csv", "cities.csv", "/map/QmfDrtmb4rrkjfHEDFS27aPpcgye42ZGqerMjd8FtmKfqF", 15, ""},
+		{"testdata/cities.json", "testdata/cities.csv", "cities.csv", "/map/QmQAHgLH7biAnD3wChpfyBaz1HNUkUwzotttm6TE15smkG", 7, ""},
+		{"testdata/complete.json", "testdata/complete.csv", "complete.csv", "/map/QmQ2CuZ8dbKqjyaKvoQwynXgqnxPKTywojNVJ2Jpj2yb6c", 14, ""},
+		{"testdata/cities_no_commit_title.json", "testdata/cities.csv", "cities.csv", "/map/QmfDrtmb4rrkjfHEDFS27aPpcgye42ZGqerMjd8FtmKfqF", 16, ""},
 	}
 
 	for i, c := range cases {
@@ -177,7 +177,7 @@ func TestCreateDataset(t *testing.T) {
 			}
 
 			if len(store.(memfs.MapStore)) != c.repoFiles {
-				t.Errorf("case expected %d invalid number of entries: %d != %d", i, c.repoFiles, len(store.(memfs.MapStore)))
+				t.Errorf("case %d expected invalid number of entries: %d != %d", i, c.repoFiles, len(store.(memfs.MapStore)))
 				_, err := store.(memfs.MapStore).Print()
 				if err != nil {
 					panic(err)
@@ -215,8 +215,8 @@ func TestWriteDataset(t *testing.T) {
 		repoFiles int // expected total count of files in repo after test execution
 		err       string
 	}{
-		{"testdata/cities.json", "testdata/cities.csv", "/map/", 5, ""},
-		{"testdata/complete.json", "testdata/complete.csv", "/map/", 13, ""},
+		{"testdata/cities.json", "testdata/cities.csv", "/map/", 6, ""},
+		{"testdata/complete.json", "testdata/complete.csv", "/map/", 14, ""},
 	}
 
 	for i, c := range cases {
@@ -307,6 +307,12 @@ func TestWriteDataset(t *testing.T) {
 				t.Errorf("expected stored dataset.Structure to be a reference")
 			}
 			ds.Structure.Assign(dataset.NewStructureRef(ref.Structure.Path()))
+		}
+		if ref.VisConfig != nil {
+			if !ref.VisConfig.IsEmpty() {
+				t.Errorf("expected stored dataset.VisConfig to be a reference")
+			}
+			ds.VisConfig.Assign(dataset.NewVisConfigRef(ref.VisConfig.Path()))
 		}
 		ds.DataPath = ref.DataPath
 
