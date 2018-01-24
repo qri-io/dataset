@@ -50,8 +50,8 @@ func NewValueReader(st *dataset.Structure, r io.Reader) (ValueReader, error) {
 		return NewCSVReader(st, r), nil
 	case dataset.JSONDataFormat:
 		return NewJSONReader(st, r), nil
-	// case dataset.CDXJDataFormat:
-	// 	return NewCDXJReader(st, r), nil
+	case dataset.CDXJDataFormat:
+		return NewCDXJReader(st, r), nil
 	case dataset.UnknownDataFormat:
 		return nil, fmt.Errorf("structure must have a data format")
 	default:

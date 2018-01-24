@@ -1,74 +1,71 @@
 package dsio
 
-// import (
-// 	"bytes"
-// 	"testing"
+import (
+	"bytes"
+	"github.com/qri-io/dataset/vals"
+	"testing"
 
-// 	"github.com/qri-io/dataset"
-// 	"github.com/qri-io/jsonschema"
-// )
+	"github.com/qri-io/dataset"
+	"github.com/qri-io/jsonschema"
+)
 
-// // TODO - vary up test input
-// const cdxjData = `!OpenWayback-CDXJ 1.0
-// (com,cnn,)/world 2015-09-03T13:27:52Z response {"a" : 0, "b" : "b", "c" : false }
-// (com,cnn,)/world 2015-09-03T13:27:52Z response {"a" : 0, "b" : "b", "c" : false }
-// (com,cnn,)/world 2015-09-03T13:27:52Z response {"a" : 0, "b" : "b", "c" : false }
-// (com,cnn,)/world 2015-09-03T13:27:52Z response {"a" : 0, "b" : "b", "c" : false }
-// `
+// TODO - vary up test input
+const cdxjData = `!OpenWayback-CDXJ 1.0
+(com,cnn,)/world 2015-09-03T13:27:52Z response {"a" : 0, "b" : "b", "c" : false }
+(com,cnn,)/world 2015-09-03T13:27:52Z response {"a" : 0, "b" : "b", "c" : false }
+(com,cnn,)/world 2015-09-03T13:27:52Z response {"a" : 0, "b" : "b", "c" : false }
+(com,cnn,)/world 2015-09-03T13:27:52Z response {"a" : 0, "b" : "b", "c" : false }
+`
 
-// var cdxjStruct = &dataset.Structure{
-// 	Format: dataset.CDXJDataFormat,
-// 	Schema: jsonschema.Must(`{
-// 		"type": "array",
-// 		"items":{
-// 			"type":"array",
-// 			"items: [
-// 				{"title": "surt_uri","type": "string"},
-// 				{"title": "timestamp","type": "string"},
-// 				{"title": "record_type","type": "string"},
-// 				{"title": "record_type","type": "object"}
-// 			]
-// 		}
-// 	}`),
-// 	// Schema: &dataset.Schema{
-// 	// 	Fields: []*dataset.Field{
-// 	// 		{Name: "surt_uri", Type: datatypes.String},
-// 	// 		// TODO - currently using string b/c date interface isn't fully implemented
-// 	// 		{Name: "timestamp", Type: datatypes.String},
-// 	// 		{Name: "record_type", Type: datatypes.String},
-// 	// 		{Name: "metadata", Type: datatypes.JSON},
-// 	// 	},
-// 	// },
-// }
+var cdxjStruct = &dataset.Structure{
+	Format: dataset.CDXJDataFormat,
+	Schema: jsonschema.Must(`{
+		"type": "array",
+		"items":{
+			"type":"array",
+			"items": [
+				{"title": "surt_uri","type": "string"},
+				{"title": "timestamp","type": "string"},
+				{"title": "record_type","type": "string"},
+				{"title": "record_type","type": "object"}
+			]
+		}
+	}`),
+}
 
-// func TestCDXJReader(t *testing.T) {
-// 	buf := bytes.NewBuffer([]byte(cdxjData))
-// 	rdr, err := NewRowReader(cdxjStruct, buf)
-// 	if err != nil {
-// 		t.Errorf("error allocating rowReader: %s", err.Error())
-// 		return
-// 	}
-// 	count := 0
-// 	for {
-// 		row, err := rdr.ReadRow()
-// 		if err != nil {
-// 			if err.Error() == "EOF" {
-// 				break
-// 			}
-// 			t.Errorf("unexpected error: %s", err.Error())
-// 			return
-// 		}
+func TestCDXJReader(t *testing.T) {
+	buf := bytes.NewBuffer([]byte(cdxjData))
+	rdr, err := NewValueReader(cdxjStruct, buf)
+	if err != nil {
+		t.Errorf("error allocating rowReader: %s", err.Error())
+		return
+	}
+	count := 0
+	for {
+		row, err := rdr.ReadValue()
+		if err != nil {
+			if err.Error() == "EOF" {
+				break
+			}
+			t.Errorf("unexpected error: %s", err.Error())
+			return
+		}
 
-// 		if len(row) != 4 {
-// 			t.Errorf("invalid row length for row %d. expected %d, got %d", count, 4, len(row))
-// 		}
+		if row.Type() != vals.TypeArray {
+			t.Errorf("expected row value type to be an array. got: %s", row.Type())
+			return
+		}
 
-// 		count++
-// 	}
-// 	if count != 4 {
-// 		t.Errorf("expected: %d rows, got: %d", 4, count)
-// 	}
-// }
+		if row.Len() != 4 {
+			t.Errorf("invalid row length for row %d. expected %d, got %d", count, 4, row.Len())
+		}
+
+		count++
+	}
+	if count != 4 {
+		t.Errorf("expected: %d rows, got: %d", 4, count)
+	}
+}
 
 // func TestCDXJWriter(t *testing.T) {
 // 	rows := [][][]byte{
@@ -80,7 +77,7 @@ package dsio
 // 	}
 
 // 	buf := &bytes.Buffer{}
-// 	rw, err := NewRowWriter(cdxjStruct, buf)
+// 	rw, err := NewValueWriter(cdxjStruct, buf)
 // 	if err != nil {
 // 		t.Errorf("error allocating RowWriter: %s", err.Error())
 // 		return
