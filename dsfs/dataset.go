@@ -265,7 +265,7 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 }
 
 // confirmChangesOc
-func confirmChangesOccurred(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, privKey crypto.PrivKey) error {
+func confirmChangesOccurred(store cafs.Filestore, ds *dataset.Dataset, df cafs.File) error {
 	if ds.PreviousPath == "" {
 		return nil
 	}
@@ -279,7 +279,7 @@ func confirmChangesOccurred(store cafs.Filestore, ds *dataset.Dataset, df cafs.F
 		return err
 	}
 	if diffList.String() == "" {
-		return fmt.Errorf("cannot update a dataset with no changes")
+		return fmt.Errorf("cannot record changes if no changes occured")
 	}
 	return nil
 }
