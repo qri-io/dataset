@@ -136,3 +136,30 @@ func TestTransformMarshalJSON(t *testing.T) {
 		t.Errorf("marshal strbyte interface byte mismatch: %s != %s", string(strbytes), "\"/path/to/transform\"")
 	}
 }
+
+func TestTransformIsEmpty(t *testing.T) {
+	cases := []struct {
+		tf       *Transform
+		expected bool
+	}{
+		{&Transform{Qri: KindTransform}, true},
+		{&Transform{path: datastore.NewKey("foo")}, true},
+		{&Transform{}, true},
+		{&Transform{Syntax: "foo"}, false},
+		{&Transform{AppVersion: "0"}, false},
+		{&Transform{Data: "foo"}, false},
+		{&Transform{Structure: nil}, true},
+		{&Transform{Structure: &Structure{}}, false},
+		{&Transform{Config: nil}, true},
+		{&Transform{Config: map[string]interface{}{}}, false},
+		{&Transform{Resources: nil}, true},
+		{&Transform{Resources: map[string]*Dataset{}}, false},
+	}
+
+	for i, c := range cases {
+		if c.tf.IsEmpty() != c.expected {
+			t.Errorf("case %d improperly reported transform as empty == %v", i, c.expected)
+			continue
+		}
+	}
+}
