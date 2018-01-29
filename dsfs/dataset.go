@@ -195,12 +195,12 @@ func generateCommitMsg(store cafs.Filestore, ds *dataset.Dataset) error {
 		}
 	}
 
-	diffList, err := datasetDiffer.DiffDatasets(prev, ds)
+	diffMap, err := datasetDiffer.DiffDatasets(prev, ds)
 	if err != nil {
 		err = fmt.Errorf("error diffing datasets: %s", err.Error())
 		return err
 	}
-	diffDescription := diffList.String()
+	diffDescription := datasetDiffer.MapDiffsToString(diffMap)
 	ds.Commit.Title = diffDescription
 	return nil
 }
@@ -274,11 +274,12 @@ func confirmChangesOccurred(store cafs.Filestore, ds *dataset.Dataset, df cafs.F
 	if err != nil {
 		return fmt.Errorf("error loading previous dataset: %s", err.Error())
 	}
-	diffList, err := datasetDiffer.DiffDatasets(prev, ds)
+	diffMap, err := datasetDiffer.DiffDatasets(prev, ds)
 	if err != nil {
 		return err
 	}
-	if diffList.String() == "" {
+
+	if datasetDiffer.MapDiffsToString(diffMap) == "" {
 		return fmt.Errorf("cannot record changes if no changes occured")
 	}
 	return nil
