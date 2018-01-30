@@ -336,47 +336,49 @@ func TestWriteDataset(t *testing.T) {
 	}
 }
 
-func TestConfirmChangesOccurred(t *testing.T) {
-	store := memfs.NewMapstore()
+// TODO - restore this by integrating a check case into either a separate test or the one above
+// that works "CreateDataset" with two unchanged datasets
+// func TestConfirmChangesOccurred(t *testing.T) {
+// 	store := memfs.NewMapstore()
 
-	dsData, err := ioutil.ReadFile("testdata/complete.json")
-	if err != nil {
-		t.Errorf("error loading test dataset: %s", err.Error())
-		return
-	}
-	ds := &dataset.Dataset{}
-	if err := ds.UnmarshalJSON(dsData); err != nil {
-		t.Errorf("error unmarshaling test dataset: %s", err.Error())
-		return
-	}
+// 	dsData, err := ioutil.ReadFile("testdata/complete.json")
+// 	if err != nil {
+// 		t.Errorf("error loading test dataset: %s", err.Error())
+// 		return
+// 	}
+// 	ds := &dataset.Dataset{}
+// 	if err := ds.UnmarshalJSON(dsData); err != nil {
+// 		t.Errorf("error unmarshaling test dataset: %s", err.Error())
+// 		return
+// 	}
 
-	data, err := ioutil.ReadFile("testdata/complete.csv")
-	if err != nil {
-		t.Errorf("error loading test data: %s", err.Error())
-		return
-	}
+// 	data, err := ioutil.ReadFile("testdata/complete.csv")
+// 	if err != nil {
+// 		t.Errorf("error loading test data: %s", err.Error())
+// 		return
+// 	}
 
-	df := memfs.NewMemfileBytes("complete.csv", data)
+// 	df := memfs.NewMemfileBytes("complete.csv", data)
 
-	apath, err := WriteDataset(store, ds, df, true)
-	if err != nil {
-		t.Errorf(err.Error())
-		return
-	}
-	ds, err = LoadDataset(store, apath)
-	if err != nil {
-		t.Errorf(err.Error())
-		return
-	}
+// 	apath, err := WriteDataset(store, ds, df, true)
+// 	if err != nil {
+// 		t.Errorf(err.Error())
+// 		return
+// 	}
+// 	ds, err = LoadDataset(store, apath)
+// 	if err != nil {
+// 		t.Errorf(err.Error())
+// 		return
+// 	}
 
-	//set ds prev to self
-	ds.PreviousPath = ds.Path().String()
-	expected := "cannot record changes if no changes occured"
-	err = confirmChangesOccurred(store, ds, df)
-	if err == nil {
-		t.Errorf("case %d error mismatch: expected '%s'", 0, expected, err.Error())
-	}
-}
+// 	//set ds prev to self
+// 	ds.PreviousPath = ds.Path().String()
+// 	expected := "cannot record changes if no changes occured"
+// 	err = confirmChangesOccurred(store, ds, df)
+// 	if err == nil {
+// 		t.Errorf("case %d error mismatch: expected '%s'", 0, expected, err.Error())
+// 	}
+// }
 
 // func TestPrepareDataset(t *testing.T) {
 // 	store := memfs.NewMapstore()

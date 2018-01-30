@@ -142,6 +142,8 @@ func DerefDatasetCommit(store cafs.Filestore, ds *dataset.Dataset) error {
 // Dataset to be saved
 // Pin the dataset if the underlying store supports the pinning interface
 func CreateDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pk crypto.PrivKey, pin bool) (path datastore.Key, err error) {
+	var diffDescription string
+
 	if pk == nil {
 		err = fmt.Errorf("private key is required to create a dataset")
 		return
@@ -152,12 +154,17 @@ func CreateDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pk c
 	if err = validate.Dataset(ds); err != nil {
 		return
 	}
-	if df, err = prepareDataset(store, ds, df, pk); err != nil {
+	df, diffDescription, err = prepareDataset(store, ds, df, pk)
+	if err != nil {
 		return
 	}
-	if err = confirmChangesOccurred(store, ds, df); err != nil {
+	if diffDescription == "" {
+		err = fmt.Errorf("cannot record changes if no changes occured")
 		return
 	}
+	// if err = confirmChangesOccurred(store, ds, df); err != nil {
+	// 	return
+	// }
 	path, err = WriteDataset(store, ds, df, pin)
 	if err != nil {
 		err = fmt.Errorf("error writing dataset: %s", err.Error())
@@ -171,7 +178,7 @@ var timestamp = func() time.Time {
 	return time.Now()
 }
 
-func generateCommitMsg(store cafs.Filestore, ds *dataset.Dataset) error {
+func generateCommitMsg(store cafs.Filestore, ds *dataset.Dataset) (string, error) {
 	// check for user-supplied commit message
 	var prev *dataset.Dataset
 	if ds.PreviousPath != "" {
@@ -179,7 +186,7 @@ func generateCommitMsg(store cafs.Filestore, ds *dataset.Dataset) error {
 		var err error
 		prev, err = LoadDataset(store, prevKey)
 		if err != nil {
-			return fmt.Errorf("error loading previous dataset: %s", err.Error())
+			return "", fmt.Errorf("error loading previous dataset: %s", err.Error())
 		}
 	} else {
 		prev = &dataset.Dataset{
@@ -189,32 +196,29 @@ func generateCommitMsg(store cafs.Filestore, ds *dataset.Dataset) error {
 				Format:   ds.Structure.Format,
 			},
 			DataPath: "abc",
-			Meta: &dataset.Meta{
-				Title:       "",
-				Description: "",
-			},
+			// Meta:     nil,
 		}
 	}
 
 	diffMap, err := datasetDiffer.DiffDatasets(prev, ds)
 	if err != nil {
 		err = fmt.Errorf("error diffing datasets: %s", err.Error())
-		return err
+		return "", err
 	}
 	diffDescription := datasetDiffer.MapDiffsToString(diffMap)
-	ds.Commit.Title = diffDescription
-	return nil
+	// ds.Commit.Title = diffDescription
+	return diffDescription, nil
 }
 
 // prepareDataset modifies a dataset in preparation for adding to a dsfs
 // it returns a new data file for use in WriteDataset
-func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, privKey crypto.PrivKey) (cafs.File, error) {
+func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, privKey crypto.PrivKey) (cafs.File, string, error) {
 	// TODO - need a better strategy for huge files. I think that strategy is to split
 	// the reader into multiple consumers that are all performing their task on a stream
 	// of byte slices
 	data, err := ioutil.ReadAll(df)
 	if err != nil {
-		return nil, fmt.Errorf("error reading file: %s", err.Error())
+		return nil, "", fmt.Errorf("error reading file: %s", err.Error())
 	}
 	ds.Structure.Length = len(data)
 
@@ -225,7 +229,7 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 	// TODO - add a dsio.RowCount function that avoids actually arranging data into rows
 	rr, err := dsio.NewValueReader(ds.Structure, memfs.NewMemfileBytes("data", data))
 	if err != nil {
-		return nil, fmt.Errorf("error reading data values: %s", err.Error())
+		return nil, "", fmt.Errorf("error reading data values: %s", err.Error())
 	}
 
 	entries := 0
@@ -234,7 +238,7 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 		_, err = rr.ReadValue()
 	}
 	if err.Error() != "EOF" {
-		return nil, fmt.Errorf("error reading values: %s", err.Error())
+		return nil, "", fmt.Errorf("error reading values: %s", err.Error())
 	}
 
 	ds.Structure.Entries = entries
@@ -242,48 +246,50 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 	// TODO - set hash
 	shasum, err := multihash.Sum(data, multihash.SHA2_256, -1)
 	if err != nil {
-		return nil, fmt.Errorf("error calculating hash: %s", err.Error())
+		return nil, "", fmt.Errorf("error calculating hash: %s", err.Error())
 	}
 	ds.Structure.Checksum = shasum.B58String()
 
 	// generate abstract form of dataset
 	ds.Abstract = dataset.Abstract(ds)
 	//get auto commit message if necessary
+	diffDescription, err := generateCommitMsg(store, ds)
+	if err != nil {
+		return nil, "", fmt.Errorf("%s", err.Error())
+	}
+
 	if ds.Commit.Title == "" {
-		err = generateCommitMsg(store, ds)
-		if err != nil {
-			return nil, fmt.Errorf("%s", err.Error())
-		}
+		ds.Commit.Title = diffDescription
 	}
 	ds.Commit.Timestamp = timestamp()
 	signedBytes, err := privKey.Sign(ds.Commit.SignableBytes())
 	if err != nil {
-		return nil, fmt.Errorf("error signing commit title: %s", err.Error())
+		return nil, "", fmt.Errorf("error signing commit title: %s", err.Error())
 	}
 	ds.Commit.Signature = base58.Encode(signedBytes)
 
-	return memfs.NewMemfileBytes("data."+ds.Structure.Format.String(), data), nil
+	return memfs.NewMemfileBytes("data."+ds.Structure.Format.String(), data), diffDescription, nil
 }
 
-func confirmChangesOccurred(store cafs.Filestore, ds *dataset.Dataset, df cafs.File) error {
-	if ds.PreviousPath == "" {
-		return nil
-	}
-	prevKey := datastore.NewKey(ds.PreviousPath)
-	prev, err := LoadDataset(store, prevKey)
-	if err != nil {
-		return fmt.Errorf("error loading previous dataset: %s", err.Error())
-	}
-	diffMap, err := datasetDiffer.DiffDatasets(prev, ds)
-	if err != nil {
-		return err
-	}
+// func confirmChangesOccurred(store cafs.Filestore, ds *dataset.Dataset, df cafs.File) error {
+// 	if ds.PreviousPath == "" {
+// 		return nil
+// 	}
+// 	prevKey := datastore.NewKey(ds.PreviousPath)
+// 	prev, err := LoadDataset(store, prevKey)
+// 	if err != nil {
+// 		return fmt.Errorf("error loading previous dataset: %s", err.Error())
+// 	}
+// 	diffMap, err := datasetDiffer.DiffDatasets(prev, ds)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	if datasetDiffer.MapDiffsToString(diffMap) == "" {
-		return fmt.Errorf("cannot record changes if no changes occured")
-	}
-	return nil
-}
+// 	if datasetDiffer.MapDiffsToString(diffMap) == "" {
+// 		return fmt.Errorf("cannot record changes if no changes occured")
+// 	}
+// 	return nil
+// }
 
 // WriteDataset writes a dataset to a cafs, replacing subcomponents of a dataset with path references
 // during the write process. Directory structure is according to PackageFile naming conventions.
