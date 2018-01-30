@@ -265,7 +265,6 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 	return memfs.NewMemfileBytes("data."+ds.Structure.Format.String(), data), nil
 }
 
-// confirmChangesOc
 func confirmChangesOccurred(store cafs.Filestore, ds *dataset.Dataset, df cafs.File) error {
 	if ds.PreviousPath == "" {
 		return nil
