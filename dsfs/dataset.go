@@ -186,6 +186,7 @@ func generateCommitMsg(store cafs.Filestore, ds *dataset.Dataset) error {
 			Commit: &dataset.Commit{},
 			Structure: &dataset.Structure{
 				Checksum: base58.Encode([]byte(`abc`)),
+				Format:   ds.Structure.Format,
 			},
 			DataPath: "abc",
 			Meta: &dataset.Meta{
