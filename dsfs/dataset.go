@@ -155,6 +155,9 @@ func CreateDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pk c
 	if df, err = prepareDataset(store, ds, df, pk); err != nil {
 		return
 	}
+	if err = confirmChangesOccurred(store, ds, df); err != nil {
+		return
+	}
 	path, err = WriteDataset(store, ds, df, pin)
 	if err != nil {
 		err = fmt.Errorf("error writing dataset: %s", err.Error())
@@ -176,14 +179,14 @@ func generateCommitMsg(store cafs.Filestore, ds *dataset.Dataset) error {
 		var err error
 		prev, err = LoadDataset(store, prevKey)
 		if err != nil {
-			err = fmt.Errorf("error loading previous dataset: %s", err.Error())
-			return err
+			return fmt.Errorf("error loading previous dataset: %s", err.Error())
 		}
 	} else {
 		prev = &dataset.Dataset{
 			Commit: &dataset.Commit{},
 			Structure: &dataset.Structure{
 				Checksum: base58.Encode([]byte(`abc`)),
+				Format:   ds.Structure.Format,
 			},
 			DataPath: "abc",
 			Meta: &dataset.Meta{
@@ -193,13 +196,12 @@ func generateCommitMsg(store cafs.Filestore, ds *dataset.Dataset) error {
 		}
 	}
 
-	// var diffList datasetDiffer.DiffList
-	diffList, err := datasetDiffer.DiffDatasets(prev, ds)
+	diffMap, err := datasetDiffer.DiffDatasets(prev, ds)
 	if err != nil {
 		err = fmt.Errorf("error diffing datasets: %s", err.Error())
 		return err
 	}
-	diffDescription := diffList.String()
+	diffDescription := datasetDiffer.MapDiffsToString(diffMap)
 	ds.Commit.Title = diffDescription
 	return nil
 }
@@ -261,6 +263,26 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 	ds.Commit.Signature = base58.Encode(signedBytes)
 
 	return memfs.NewMemfileBytes("data."+ds.Structure.Format.String(), data), nil
+}
+
+func confirmChangesOccurred(store cafs.Filestore, ds *dataset.Dataset, df cafs.File) error {
+	if ds.PreviousPath == "" {
+		return nil
+	}
+	prevKey := datastore.NewKey(ds.PreviousPath)
+	prev, err := LoadDataset(store, prevKey)
+	if err != nil {
+		return fmt.Errorf("error loading previous dataset: %s", err.Error())
+	}
+	diffMap, err := datasetDiffer.DiffDatasets(prev, ds)
+	if err != nil {
+		return err
+	}
+
+	if datasetDiffer.MapDiffsToString(diffMap) == "" {
+		return fmt.Errorf("cannot record changes if no changes occured")
+	}
+	return nil
 }
 
 // WriteDataset writes a dataset to a cafs, replacing subcomponents of a dataset with path references

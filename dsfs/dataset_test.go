@@ -140,9 +140,9 @@ func TestCreateDataset(t *testing.T) {
 	}{
 		{"testdata/bad/invalid_reference.json", "testdata/cities.csv", "", "", 0, "error loading dataset commit: error loading commit file: datastore: key not found"},
 		{"testdata/bad/invalid.json", "testdata/cities.csv", "", "", 0, "commit is required"},
-		{"testdata/cities.json", "testdata/cities.csv", "cities.csv", "/map/QmSnDC8LAqFVH6SQeQMnJi8UmDqP1RwsgBkaG8NQWciEYq", 7, ""},
+		{"testdata/cities.json", "testdata/cities.csv", "cities.csv", "/map/QmRAuWroJY1C2bCd4s1yPDVRHUfqB3d36Y9HCGnVRE3suN", 7, ""},
 		{"testdata/complete.json", "testdata/complete.csv", "complete.csv", "/map/QmQ2CuZ8dbKqjyaKvoQwynXgqnxPKTywojNVJ2Jpj2yb6c", 14, ""},
-		{"testdata/cities_no_commit_title.json", "testdata/cities.csv", "cities.csv", "/map/QmfDrtmb4rrkjfHEDFS27aPpcgye42ZGqerMjd8FtmKfqF", 16, ""},
+		{"testdata/cities_no_commit_title.json", "testdata/cities.csv", "cities.csv", "/map/QmWYCEEdJUCoBi9Z78YYFmbVmJttPiLTBm4qiSJ5XvYm2m", 16, ""},
 	}
 
 	for i, c := range cases {
@@ -333,6 +333,48 @@ func TestWriteDataset(t *testing.T) {
 			t.Log(string(d))
 			continue
 		}
+	}
+}
+
+func TestConfirmChangesOccurred(t *testing.T) {
+	store := memfs.NewMapstore()
+
+	dsData, err := ioutil.ReadFile("testdata/complete.json")
+	if err != nil {
+		t.Errorf("error loading test dataset: %s", err.Error())
+		return
+	}
+	ds := &dataset.Dataset{}
+	if err := ds.UnmarshalJSON(dsData); err != nil {
+		t.Errorf("error unmarshaling test dataset: %s", err.Error())
+		return
+	}
+
+	data, err := ioutil.ReadFile("testdata/complete.csv")
+	if err != nil {
+		t.Errorf("error loading test data: %s", err.Error())
+		return
+	}
+
+	df := memfs.NewMemfileBytes("complete.csv", data)
+
+	apath, err := WriteDataset(store, ds, df, true)
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+	}
+	ds, err = LoadDataset(store, apath)
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+	}
+
+	//set ds prev to self
+	ds.PreviousPath = ds.Path().String()
+	expected := "cannot record changes if no changes occured"
+	err = confirmChangesOccurred(store, ds, df)
+	if err == nil {
+		t.Errorf("case %d error mismatch: expected '%s'", 0, expected, err.Error())
 	}
 }
 
