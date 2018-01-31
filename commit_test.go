@@ -65,6 +65,25 @@ func TestCommitAssign(t *testing.T) {
 	}
 }
 
+func TestCommitIsEmpty(t *testing.T) {
+	cases := []struct {
+		cm *Commit
+	}{
+		{&Commit{Title: "a"}},
+		{&Commit{Author: &User{}}},
+		{&Commit{Message: "a"}},
+		{&Commit{Signature: "a"}},
+		{&Commit{Timestamp: time.Now()}},
+	}
+
+	for i, c := range cases {
+		if c.cm.IsEmpty() == true {
+			t.Errorf("case %d improperly reported commit as empty", i)
+			continue
+		}
+	}
+}
+
 func TestCommitSignableBytes(t *testing.T) {
 	expect := []byte("2001-01-01T01:01:01Z\nI'm a commit message")
 	cm := &Commit{

@@ -35,7 +35,7 @@ func NewCommitRef(path datastore.Key) *Commit {
 
 // IsEmpty checks to see if any fields are filled out
 func (cm *Commit) IsEmpty() bool {
-	return cm.Message == "" && cm.Author == nil
+	return cm.Title == "" && cm.Signature == "" && cm.Message == "" && cm.Author == nil && cm.Timestamp.IsZero()
 }
 
 // Path returns the internal path of this commitMsg
