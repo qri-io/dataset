@@ -142,7 +142,7 @@ func DerefDatasetCommit(store cafs.Filestore, ds *dataset.Dataset) error {
 // Dataset to be saved
 // Pin the dataset if the underlying store supports the pinning interface
 func CreateDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pk crypto.PrivKey, pin bool) (path datastore.Key, err error) {
-	var diffDescription string
+	// var diffDescription string
 
 	if pk == nil {
 		err = fmt.Errorf("private key is required to create a dataset")
@@ -154,16 +154,18 @@ func CreateDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pk c
 	if err = validate.Dataset(ds); err != nil {
 		return
 	}
-	df, diffDescription, err = prepareDataset(store, ds, df, pk)
+	df, _, err = prepareDataset(store, ds, df, pk)
 	if err != nil {
 		return
 	}
-	if diffDescription == "" {
-		err = fmt.Errorf("cannot record changes if no changes occured")
-		return
-	}
-	// if err = confirmChangesOccurred(store, ds, df); err != nil {
+	// if diffDescription == "" {
+	// 	err = fmt.Errorf("cannot record changes if no changes occured")
 	// 	return
+	// }
+
+	// if err = confirmChangesOccurred(store, ds, df); err != nil {
+	//   err = fmt.Errorf("cannot record changes if no changes occured")
+	// 	 return
 	// }
 	path, err = WriteDataset(store, ds, df, pin)
 	if err != nil {

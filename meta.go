@@ -183,6 +183,11 @@ func (md *Meta) MarshalJSON() ([]byte, error) {
 		return md.path.MarshalJSON()
 	}
 
+	return md.MarshalJSONObject()
+}
+
+// MarshalJSONObject always marshals to a json Object, even if meta is empty or a reference
+func (md *Meta) MarshalJSONObject() ([]byte, error) {
 	data := md.Meta()
 
 	data["qri"] = KindMeta
@@ -271,7 +276,7 @@ func (md *Meta) UnmarshalJSON(data []byte) error {
 		"identifier",
 		"image",
 		"keyword",
-		"kind",
+		"qri",
 		"language",
 		"length",
 		"license",
