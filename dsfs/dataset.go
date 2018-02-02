@@ -73,6 +73,9 @@ func DerefDataset(store cafs.Filestore, ds *dataset.Dataset) error {
 	if err := DerefDatasetTransform(store, ds); err != nil {
 		return err
 	}
+	if err := DerefDatasetVisConfig(store, ds); err != nil {
+		return err
+	}
 
 	return DerefDatasetCommit(store, ds)
 }
@@ -88,6 +91,21 @@ func DerefDatasetStructure(store cafs.Filestore, ds *dataset.Dataset) error {
 		// assign path to retain internal reference to path
 		st.Assign(dataset.NewStructureRef(ds.Structure.Path()))
 		ds.Structure = st
+	}
+	return nil
+}
+
+// DerefDatasetVisConfig derferences a dataset's VisConfig element if required
+// should be a no-op if ds.VisConfig is nil or isn't a reference
+func DerefDatasetVisConfig(store cafs.Filestore, ds *dataset.Dataset) error {
+	if ds.VisConfig != nil && ds.VisConfig.IsEmpty() && ds.VisConfig.Path().String() != "" {
+		st, err := LoadVisConfig(store, ds.VisConfig.Path())
+		if err != nil {
+			return fmt.Errorf("error loading dataset visconfig: %s", err.Error())
+		}
+		// assign path to retain internal reference to path
+		st.Assign(dataset.NewVisConfigRef(ds.VisConfig.Path()))
+		ds.VisConfig = st
 	}
 	return nil
 }
