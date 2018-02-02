@@ -187,6 +187,7 @@ func TestStructureMarshalJSON(t *testing.T) {
 		{&Structure{Format: CSVDataFormat}, []byte(`{"errCount":0,"format":"csv","qri":"st:0"}`), nil},
 		{&Structure{Format: CSVDataFormat, Qri: KindStructure}, []byte(`{"errCount":0,"format":"csv","qri":"st:0"}`), nil},
 		{AirportCodesStructure, []byte(`{"errCount":5,"format":"csv","formatConfig":{"headerRow":true},"qri":"st:0","schema":{"items":{"items":[{"title":"ident","type":"string"},{"title":"type","type":"string"},{"title":"name","type":"string"},{"title":"latitude_deg","type":"string"},{"title":"longitude_deg","type":"string"},{"title":"elevation_ft","type":"string"},{"title":"continent","type":"string"},{"title":"iso_country","type":"string"},{"title":"iso_region","type":"string"},{"title":"municipality","type":"string"},{"title":"gps_code","type":"string"},{"title":"iata_code","type":"string"},{"title":"local_code","type":"string"}],"type":"array"},"type":"array"}}`), nil},
+		{&Structure{path: datastore.NewKey("/map/QmUaMozKVkjPf7CVf3Zd8Cy5Ex1i9oUdhYhU8uTJph5iFD")}, []byte(`"/map/QmUaMozKVkjPf7CVf3Zd8Cy5Ex1i9oUdhYhU8uTJph5iFD"`), nil},
 	}
 
 	for i, c := range cases {
