@@ -220,6 +220,34 @@ func TestVisConfigMarshalJSONObject(t *testing.T) {
 	}
 }
 
+func TestVisConfigMarshalJSONObject(t *testing.T) {
+	cases := []struct {
+		in  *VisConfig
+		out []byte
+		err string
+	}{
+		{&VisConfig{}, []byte(`{"kind":"vc:0"}`), ""},
+		{&VisConfig{Kind: KindVisConfig}, []byte(`{"kind":"vc:0"}`), ""},
+		{&VisConfig{Format: "foo", Kind: KindVisConfig}, []byte(`{"format":"foo","kind":"vc:0"}`), ""},
+		{VisConfig1, []byte(`{"format":"foo","kind":"vc:0","visualizations":{"colors":{"background":"#000000","bars":"#ffffff"},"type":"bar"}}`), ""},
+	}
+
+	for i, c := range cases {
+		got, err := c.in.MarshalJSON()
+		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
+			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
+			continue
+		}
+		check := &map[string]interface{}{}
+		err = json.Unmarshal(got, check)
+		if err != nil {
+			t.Errorf("case %d error: failed to unmarshal to object: %s", err.Error())
+			continue
+		}
+
+	}
+}
+
 func TestUnmarshalVisConfig(t *testing.T) {
 	vc := VisConfig{Kind: KindVisConfig, Format: "foo"}
 	cases := []struct {
