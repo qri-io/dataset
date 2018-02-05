@@ -183,42 +183,42 @@ func TestVisConfigMarshalJSON(t *testing.T) {
 	}
 }
 
-func TestVisConfigMarshalJSONObject(t *testing.T) {
-	cases := []struct {
-		in  *VisConfig
-		out []byte
-		err string
-	}{
-		{&VisConfig{}, []byte(`{"kind":"vc:0"}`), ""},
-		{&VisConfig{Kind: KindVisConfig}, []byte(`{"kind":"vc:0"}`), ""},
-		{&VisConfig{Format: "foo", Kind: KindVisConfig}, []byte(`{"format":"foo","kind":"vc:0"}`), ""},
-		{VisConfig1, []byte(`{"format":"foo","kind":"vc:0","visualizations":{"colors":{"background":"#000000","bars":"#ffffff"},"type":"bar"}}`), ""},
-		{&VisConfig{path: datastore.NewKey("/map/QmXo5LE3WVfKZKzTrrgtUUX3nMK4VREKTAoBu5WAGECz4U")}, []byte(`{"kind":"vc:0"}`), ""},
-	}
+// func TestVisConfigMarshalJSONObject(t *testing.T) {
+// 	cases := []struct {
+// 		in  *VisConfig
+// 		out []byte
+// 		err string
+// 	}{
+// 		{&VisConfig{}, []byte(`{"kind":"vc:0"}`), ""},
+// 		{&VisConfig{Kind: KindVisConfig}, []byte(`{"kind":"vc:0"}`), ""},
+// 		{&VisConfig{Format: "foo", Kind: KindVisConfig}, []byte(`{"format":"foo","kind":"vc:0"}`), ""},
+// 		{VisConfig1, []byte(`{"format":"foo","kind":"vc:0","visualizations":{"colors":{"background":"#000000","bars":"#ffffff"},"type":"bar"}}`), ""},
+// 		{&VisConfig{path: datastore.NewKey("/map/QmXo5LE3WVfKZKzTrrgtUUX3nMK4VREKTAoBu5WAGECz4U")}, []byte(`{"kind":"vc:0"}`), ""},
+// 	}
 
-	for i, c := range cases {
-		got, err := c.in.MarshalJSONObject()
-		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
-			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
-			continue
-		}
+// 	for i, c := range cases {
+// 		got, err := c.in.MarshalJSONObject()
+// 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
+// 			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
+// 			continue
+// 		}
 
-		if string(c.out) != string(got) {
-			t.Errorf("case %d, %s != %s", i, string(c.out), string(got))
-			continue
-		}
-	}
+// 		if string(c.out) != string(got) {
+// 			t.Errorf("case %d, %s != %s", i, string(c.out), string(got))
+// 			continue
+// 		}
+// 	}
 
-	vcbytes, err := json.Marshal(&VisConfig{path: datastore.NewKey("/path/to/VisConfig")})
-	if err != nil {
-		t.Errorf("unexpected string marshal error: %s", err.Error())
-		return
-	}
+// 	vcbytes, err := json.Marshal(&VisConfig{path: datastore.NewKey("/path/to/VisConfig")})
+// 	if err != nil {
+// 		t.Errorf("unexpected string marshal error: %s", err.Error())
+// 		return
+// 	}
 
-	if !bytes.Equal(vcbytes, []byte("\"/path/to/VisConfig\"")) {
-		t.Errorf("marshal strbyte interface byte mismatch: %s != %s", string(vcbytes), "\"/path/to/VisConfig\"")
-	}
-}
+// 	if !bytes.Equal(vcbytes, []byte("\"/path/to/VisConfig\"")) {
+// 		t.Errorf("marshal strbyte interface byte mismatch: %s != %s", string(vcbytes), "\"/path/to/VisConfig\"")
+// 	}
+// }
 
 func TestVisConfigMarshalJSONObject(t *testing.T) {
 	cases := []struct {

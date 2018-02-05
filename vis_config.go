@@ -88,21 +88,6 @@ func (v *VisConfig) MarshalJSON() ([]byte, error) {
 	return v.MarshalJSONObject()
 }
 
-// MarshalJSONObject always marshals to a json Object, even if meta is empty or a reference
-func (v *VisConfig) MarshalJSONObject() ([]byte, error) {
-	kind := v.Kind
-	if kind == "" {
-		kind = KindVisConfig
-	}
-
-	return json.Marshal(&_visconfig{
-		// DataPath:       v.DataPath,
-		Format:         v.Format,
-		Kind:           kind,
-		Visualizations: v.Visualizations,
-	})
-}
-
 // UnmarshalJSON satisfies the json.Unmarshaler interface
 func (v *VisConfig) UnmarshalJSON(data []byte) error {
 	var s string
@@ -144,15 +129,15 @@ func UnmarshalVisConfig(v interface{}) (*VisConfig, error) {
 
 // MarshalJSONObject always marshals to a json Object, even if VisConfig is empty or a reference
 func (v *VisConfig) MarshalJSONObject() ([]byte, error) {
-  data := map[string]interface{}{}
-  data["kind"] = KindVisConfig
+	data := map[string]interface{}{}
+	data["kind"] = KindVisConfig
 
-  if v.Format != "" {
-    data["format"] = v.Format
-  }
-  if v.Visualizations != nil {
-    data["visualizations"] = v.Visualizations
-  }
+	if v.Format != "" {
+		data["format"] = v.Format
+	}
+	if v.Visualizations != nil {
+		data["visualizations"] = v.Visualizations
+	}
 
-  return json.Marshal(data)
+	return json.Marshal(data)
 }
