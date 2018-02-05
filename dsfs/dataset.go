@@ -220,12 +220,12 @@ func generateCommitMsg(store cafs.Filestore, ds *dataset.Dataset) (string, error
 		}
 	}
 
-	diffMap, err := datasetDiffer.DiffDatasets(prev, ds)
+	diffMap, err := datasetDiffer.DiffDatasets(prev, ds, nil)
 	if err != nil {
 		err = fmt.Errorf("error diffing datasets: %s", err.Error())
 		return "", err
 	}
-	diffDescription, err := datasetDiffer.MapDiffsToString(diffMap)
+	diffDescription, err := datasetDiffer.MapDiffsToString(diffMap, "listKeys")
 	if err != nil {
 		return "", err
 	}
