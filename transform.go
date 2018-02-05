@@ -148,6 +148,11 @@ func (q Transform) MarshalJSON() ([]byte, error) {
 	})
 }
 
+// MarshalJSONObject always marshals to a json Object, even if meta is empty or a reference
+func (q Transform) MarshalJSONObject() ([]byte, error) {
+	return []byte("todo..."), nil
+}
+
 // UnmarshalJSON satisfies the json.Unmarshaler interface
 func (q *Transform) UnmarshalJSON(data []byte) error {
 	var s string
