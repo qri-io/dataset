@@ -104,7 +104,7 @@ func TestTransformUnmarshalJSON(t *testing.T) {
 	}
 }
 
-func TestTransformMarshalJSON(t *testing.T) {
+func TestTransformMarshalJSONObject(t *testing.T) {
 	cases := []struct {
 		q   *Transform
 		out string
