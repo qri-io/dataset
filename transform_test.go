@@ -104,7 +104,7 @@ func TestTransformUnmarshalJSON(t *testing.T) {
 	}
 }
 
-func TestTransformMarshalJSON(t *testing.T) {
+func TestTransformMarshalJSONObject(t *testing.T) {
 	cases := []struct {
 		q   *Transform
 		out string
@@ -135,6 +135,32 @@ func TestTransformMarshalJSON(t *testing.T) {
 	if !bytes.Equal(strbytes, []byte("\"/path/to/transform\"")) {
 		t.Errorf("marshal strbyte interface byte mismatch: %s != %s", string(strbytes), "\"/path/to/transform\"")
 	}
+}
+
+func TestTransformMarshalJSON(t *testing.T) {
+	cases := []struct {
+		q   *Transform
+		out string
+		err error
+	}{
+		{&Transform{}, `{"qri":"tf:0"}`, nil},
+		{&Transform{Syntax: "sql", Data: "select a from b"}, `{"data":"select a from b","qri":"tf:0","syntax":"sql"}`, nil},
+	}
+
+	for i, c := range cases {
+		data, err := json.Marshal(c.q)
+		if err != c.err {
+			t.Errorf("case %d error mismatch. expected: %s, got: %s", i, c.err, err)
+			continue
+		}
+		check := &map[string]interface{}{}
+		err = json.Unmarshal(data, check)
+		if err != nil {
+			t.Errorf("case %d error: failed to unmarshal to object: %s", err.Error())
+			continue
+		}
+	}
+
 }
 
 func TestTransformIsEmpty(t *testing.T) {

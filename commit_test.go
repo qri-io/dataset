@@ -132,6 +132,34 @@ func TestCommitMarshalJSON(t *testing.T) {
 	}
 }
 
+func TestCommitMarshalJSONObject(t *testing.T) {
+	ts := time.Date(2001, 01, 01, 01, 01, 01, 0, time.UTC)
+	cases := []struct {
+		in  *Commit
+		out []byte
+		err error
+	}{
+		{&Commit{Title: "title", Timestamp: ts}, []byte(`{"qri":"cm:0","timestamp":"2001-01-01T01:01:01Z","title":"title"}`), nil},
+		{&Commit{Author: &User{ID: "foo"}, Timestamp: ts}, []byte(`{"author":{"id":"foo"},"qri":"cm:0","timestamp":"2001-01-01T01:01:01Z","title":""}`), nil},
+	}
+
+	for i, c := range cases {
+		got, err := c.in.MarshalJSON()
+		if err != c.err {
+			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
+			continue
+		}
+		check := &map[string]interface{}{}
+		err = json.Unmarshal(got, check)
+		if err != nil {
+			t.Errorf("case %d error: failed to unmarshal to object: %s", err.Error())
+			continue
+		}
+
+	}
+
+}
+
 func TestCommitUnmarshalJSON(t *testing.T) {
 	cases := []struct {
 		data   string
