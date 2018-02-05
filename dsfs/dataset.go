@@ -73,6 +73,9 @@ func DerefDataset(store cafs.Filestore, ds *dataset.Dataset) error {
 	if err := DerefDatasetTransform(store, ds); err != nil {
 		return err
 	}
+	if err := DerefDatasetVisConfig(store, ds); err != nil {
+		return err
+	}
 
 	return DerefDatasetCommit(store, ds)
 }
@@ -88,6 +91,21 @@ func DerefDatasetStructure(store cafs.Filestore, ds *dataset.Dataset) error {
 		// assign path to retain internal reference to path
 		st.Assign(dataset.NewStructureRef(ds.Structure.Path()))
 		ds.Structure = st
+	}
+	return nil
+}
+
+// DerefDatasetVisConfig derferences a dataset's VisConfig element if required
+// should be a no-op if ds.VisConfig is nil or isn't a reference
+func DerefDatasetVisConfig(store cafs.Filestore, ds *dataset.Dataset) error {
+	if ds.VisConfig != nil && ds.VisConfig.IsEmpty() && ds.VisConfig.Path().String() != "" {
+		st, err := LoadVisConfig(store, ds.VisConfig.Path())
+		if err != nil {
+			return fmt.Errorf("error loading dataset visconfig: %s", err.Error())
+		}
+		// assign path to retain internal reference to path
+		st.Assign(dataset.NewVisConfigRef(ds.VisConfig.Path()))
+		ds.VisConfig = st
 	}
 	return nil
 }
@@ -218,6 +236,20 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 	// TODO - need a better strategy for huge files. I think that strategy is to split
 	// the reader into multiple consumers that are all performing their task on a stream
 	// of byte slices
+	var err error
+	if df == nil && ds.PreviousPath == "" {
+		return nil, "", fmt.Errorf("datafile or dataset PreviousPath needed")
+	}
+	if df == nil && ds.PreviousPath != "" {
+		prev, err := LoadDataset(store, datastore.NewKey(ds.PreviousPath))
+		if err != nil {
+			return nil, "", fmt.Errorf("error loading previous dataset: %s", err)
+		}
+		df, err = LoadData(store, prev)
+		if err != nil {
+			return nil, "", fmt.Errorf("error loading previous dataset data: %s", err)
+		}
+	}
 	data, err := ioutil.ReadAll(df)
 	if err != nil {
 		return nil, "", fmt.Errorf("error reading file: %s", err.Error())

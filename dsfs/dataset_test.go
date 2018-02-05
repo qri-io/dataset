@@ -27,7 +27,6 @@ func init() {
 
 func TestLoadDataset(t *testing.T) {
 	store := memfs.NewMapstore()
-
 	dsData, err := ioutil.ReadFile("testdata/complete.json")
 	if err != nil {
 		t.Errorf("error loading test dataset: %s", err.Error())
@@ -38,7 +37,6 @@ func TestLoadDataset(t *testing.T) {
 		t.Errorf("error unmarshaling test dataset: %s", err.Error())
 		return
 	}
-
 	data, err := ioutil.ReadFile("testdata/complete.csv")
 	if err != nil {
 		t.Errorf("error loading test data: %s", err.Error())
@@ -52,6 +50,7 @@ func TestLoadDataset(t *testing.T) {
 		t.Errorf(err.Error())
 		return
 	}
+
 	_, err = LoadDataset(store, apath)
 	if err != nil {
 		t.Errorf(err.Error())
@@ -79,6 +78,9 @@ func TestLoadDataset(t *testing.T) {
 		{&dataset.Dataset{
 			Commit: dataset.NewCommitRef(datastore.NewKey("/bad/path")),
 		}, "error loading dataset commit: error loading commit file: datastore: key not found"},
+		{&dataset.Dataset{
+			VisConfig: dataset.NewVisConfigRef(datastore.NewKey("/bad/path")),
+		}, "error loading dataset visconfig: error loading visconfig file: datastore: key not found"},
 	}
 
 	for i, c := range cases {
@@ -102,6 +104,7 @@ func TestLoadDataset(t *testing.T) {
 			continue
 		}
 	}
+
 }
 
 func TestCreateDataset(t *testing.T) {
@@ -141,8 +144,8 @@ func TestCreateDataset(t *testing.T) {
 		{"testdata/bad/invalid_reference.json", "testdata/cities.csv", "", "", 0, "error loading dataset commit: error loading commit file: datastore: key not found"},
 		{"testdata/bad/invalid.json", "testdata/cities.csv", "", "", 0, "commit is required"},
 		{"testdata/cities.json", "testdata/cities.csv", "cities.csv", "/map/QmRAuWroJY1C2bCd4s1yPDVRHUfqB3d36Y9HCGnVRE3suN", 7, ""},
-		{"testdata/complete.json", "testdata/complete.csv", "complete.csv", "/map/QmQ2CuZ8dbKqjyaKvoQwynXgqnxPKTywojNVJ2Jpj2yb6c", 14, ""},
-		{"testdata/cities_no_commit_title.json", "testdata/cities.csv", "cities.csv", "/map/QmWYCEEdJUCoBi9Z78YYFmbVmJttPiLTBm4qiSJ5XvYm2m", 16, ""},
+		{"testdata/complete.json", "testdata/complete.csv", "complete.csv", "/map/QmSfLdn1Q3i1hoJDK1whx1D4d1N2MSFZhjT33YHBRDsZP5", 15, ""},
+		{"testdata/cities_no_commit_title.json", "testdata/cities.csv", "cities.csv", "/map/QmUaMozKVkjPf7CVf3Zd8Cy5Ex1i9oUdhYhU8uTJph5iFD", 17, ""},
 	}
 
 	for i, c := range cases {
@@ -193,6 +196,36 @@ func TestCreateDataset(t *testing.T) {
 			// t.Error(str)
 		}
 	}
+	dsData, err := ioutil.ReadFile("testdata/cities.json")
+	if err != nil {
+		t.Errorf("case nil datafile and no PreviousPath, error reading dataset file: %s", err.Error())
+	}
+	ds := &dataset.Dataset{}
+	if err := ds.UnmarshalJSON(dsData); err != nil {
+		t.Errorf("case nil datafile and no PreviousPath, error unmarshaling dataset file: %s", err.Error())
+	}
+
+	if err != nil {
+		t.Errorf("case nil datafile and no PreviousPath, error reading data file: %s", err.Error())
+	}
+	expectedErr := "datafile or dataset PreviousPath needed"
+	_, err = CreateDataset(store, ds, nil, privKey, false)
+	if err.Error() != expectedErr {
+		t.Errorf("case nil datafile and no PreviousPath, error mismatch: expected '%s', got '%s'", expectedErr, err.Error())
+	}
+	// take path from previous case
+	ds.PreviousPath = cases[2].resultPath
+	_, err = CreateDataset(store, ds, nil, privKey, false)
+	if err != nil {
+		t.Errorf("case nil datafile and PreviousPath, error mismatch: expected no error, got '%s'", err.Error())
+	}
+	if len(store.(memfs.MapStore)) != 18 {
+		t.Errorf("case nil datafile and PreviousPath, expected invalid number of entries: %d != %d", 18, len(store.(memfs.MapStore)))
+		_, err := store.(memfs.MapStore).Print()
+		if err != nil {
+			panic(err)
+		}
+	}
 }
 
 func TestWriteDataset(t *testing.T) {
@@ -216,7 +249,7 @@ func TestWriteDataset(t *testing.T) {
 		err       string
 	}{
 		{"testdata/cities.json", "testdata/cities.csv", "/map/", 6, ""},
-		{"testdata/complete.json", "testdata/complete.csv", "/map/", 14, ""},
+		{"testdata/complete.json", "testdata/complete.csv", "/map/", 15, ""},
 	}
 
 	for i, c := range cases {

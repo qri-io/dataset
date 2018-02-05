@@ -137,3 +137,18 @@ func UnmarshalVisConfig(v interface{}) (*VisConfig, error) {
     return nil, fmt.Errorf("couldn't parse VisConfig, value is invalid type")
   }
 }
+
+// MarshalJSONObject always marshals to a json Object, even if VisConfig is empty or a reference
+func (v *VisConfig) MarshalJSONObject() ([]byte, error) {
+  data := map[string]interface{}{}
+  data["kind"] = KindVisConfig
+
+  if v.Format != "" {
+    data["format"] = v.Format
+  }
+  if v.Visualizations != nil {
+    data["visualizations"] = v.Visualizations
+  }
+
+  return json.Marshal(data)
+}
