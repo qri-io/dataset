@@ -87,7 +87,11 @@ func (cm *Commit) MarshalJSON() ([]byte, error) {
 	if cm.path.String() != "" && cm.IsEmpty() {
 		return cm.path.MarshalJSON()
 	}
+	return cm.MarshalJSONObject()
+}
 
+// MarshalJSONObject always marshals to a json Object, even if meta is empty or a reference
+func (cm *Commit) MarshalJSONObject() ([]byte, error) {
 	kind := cm.Qri
 	if kind == "" {
 		kind = KindCommit
@@ -102,11 +106,6 @@ func (cm *Commit) MarshalJSON() ([]byte, error) {
 		Title:     cm.Title,
 	}
 	return json.Marshal(m)
-}
-
-// MarshalJSONObject always marshals to a json Object, even if meta is empty or a reference
-func (cm *Commit) MarshalJSONObject() ([]byte, error) {
-	return []byte("todo..."), nil
 }
 
 // internal struct for json unmarshaling

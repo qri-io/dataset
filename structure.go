@@ -114,6 +114,11 @@ func (s Structure) MarshalJSON() (data []byte, err error) {
 		return s.path.MarshalJSON()
 	}
 
+	return s.MarshalJSONObject()
+}
+
+// MarshalJSONObject always marshals to a json Object, even if meta is empty or a reference
+func (s Structure) MarshalJSONObject() ([]byte, error) {
 	kind := s.Qri
 	if kind == "" {
 		kind = KindStructure
@@ -136,11 +141,6 @@ func (s Structure) MarshalJSON() (data []byte, err error) {
 		Qri:          kind,
 		Schema:       s.Schema,
 	})
-}
-
-// MarshalJSONObject always marshals to a json Object, even if meta is empty or a reference
-func (s Structure) MarshalJSONObject() ([]byte, error) {
-	return []byte("todo..."), nil
 }
 
 // UnmarshalJSON satisfies the json.Unmarshaler interface

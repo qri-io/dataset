@@ -131,7 +131,11 @@ func (q Transform) MarshalJSON() ([]byte, error) {
 	if q.path.String() != "" && q.IsEmpty() {
 		return q.path.MarshalJSON()
 	}
+	return q.MarshalJSONObject()
+}
 
+// MarshalJSONObject always marshals to a json Object, even if meta is empty or a reference
+func (q Transform) MarshalJSONObject() ([]byte, error) {
 	kind := q.Qri
 	if kind == "" {
 		kind = KindTransform
@@ -146,11 +150,6 @@ func (q Transform) MarshalJSON() ([]byte, error) {
 		Structure:  q.Structure,
 		Syntax:     q.Syntax,
 	})
-}
-
-// MarshalJSONObject always marshals to a json Object, even if meta is empty or a reference
-func (q Transform) MarshalJSONObject() ([]byte, error) {
-	return []byte("todo..."), nil
 }
 
 // UnmarshalJSON satisfies the json.Unmarshaler interface
