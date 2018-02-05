@@ -214,6 +214,33 @@ func TestStructureMarshalJSON(t *testing.T) {
 	}
 }
 
+func TestStructureMarshalJSONObject(t *testing.T) {
+	cases := []struct {
+		in  *Structure
+		out []byte
+		err error
+	}{
+		{&Structure{Format: CSVDataFormat}, []byte(`{"errCount":0,"format":"csv","qri":"st:0"}`), nil},
+		{&Structure{Format: CSVDataFormat, Qri: KindStructure}, []byte(`{"errCount":0,"format":"csv","qri":"st:0"}`), nil},
+		{AirportCodesStructure, []byte(`{"errCount":5,"format":"csv","formatConfig":{"headerRow":true},"qri":"st:0","schema":{"items":{"items":[{"title":"ident","type":"string"},{"title":"type","type":"string"},{"title":"name","type":"string"},{"title":"latitude_deg","type":"string"},{"title":"longitude_deg","type":"string"},{"title":"elevation_ft","type":"string"},{"title":"continent","type":"string"},{"title":"iso_country","type":"string"},{"title":"iso_region","type":"string"},{"title":"municipality","type":"string"},{"title":"gps_code","type":"string"},{"title":"iata_code","type":"string"},{"title":"local_code","type":"string"}],"type":"array"},"type":"array"}}`), nil},
+	}
+
+	for i, c := range cases {
+		got, err := c.in.MarshalJSONObject()
+		if err != c.err {
+			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
+			continue
+		}
+		// now try to unmarshal to map string interface
+		check := &map[string]interface{}{}
+		err = json.Unmarshal(got, check)
+		if err != nil {
+			t.Errorf("case %d error: failed to unmarshal to object: %s", err.Error())
+			continue
+		}
+	}
+}
+
 func TestUnmarshalStructure(t *testing.T) {
 	sta := Structure{Qri: KindStructure, Format: CSVDataFormat}
 	cases := []struct {
