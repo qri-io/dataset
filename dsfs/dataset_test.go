@@ -104,6 +104,7 @@ func TestLoadDataset(t *testing.T) {
 			continue
 		}
 	}
+
 }
 
 func TestCreateDataset(t *testing.T) {
@@ -193,6 +194,36 @@ func TestCreateDataset(t *testing.T) {
 			// 	panic(err)
 			// }
 			// t.Error(str)
+		}
+	}
+	dsData, err := ioutil.ReadFile("testdata/cities.json")
+	if err != nil {
+		t.Errorf("case nil datafile and no PreviousPath, error reading dataset file: %s", err.Error())
+	}
+	ds := &dataset.Dataset{}
+	if err := ds.UnmarshalJSON(dsData); err != nil {
+		t.Errorf("case nil datafile and no PreviousPath, error unmarshaling dataset file: %s", err.Error())
+	}
+
+	if err != nil {
+		t.Errorf("case nil datafile and no PreviousPath, error reading data file: %s", err.Error())
+	}
+	expectedErr := "datafile or dataset PreviousPath needed"
+	_, err = CreateDataset(store, ds, nil, privKey, false)
+	if err.Error() != expectedErr {
+		t.Errorf("case nil datafile and no PreviousPath, error mismatch: expected '%s', got '%s'", expectedErr, err.Error())
+	}
+	// take path from previous case
+	ds.PreviousPath = cases[2].resultPath
+	_, err = CreateDataset(store, ds, nil, privKey, false)
+	if err != nil {
+		t.Errorf("case nil datafile and PreviousPath, error mismatch: expected no error, got '%s'", err.Error())
+	}
+	if len(store.(memfs.MapStore)) != 18 {
+		t.Errorf("case nil datafile and PreviousPath, expected invalid number of entries: %d != %d", 18, len(store.(memfs.MapStore)))
+		_, err := store.(memfs.MapStore).Print()
+		if err != nil {
+			panic(err)
 		}
 	}
 }

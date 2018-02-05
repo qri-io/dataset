@@ -236,6 +236,20 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 	// TODO - need a better strategy for huge files. I think that strategy is to split
 	// the reader into multiple consumers that are all performing their task on a stream
 	// of byte slices
+	var err error
+	if df == nil && ds.PreviousPath == "" {
+		return nil, "", fmt.Errorf("datafile or dataset PreviousPath needed")
+	}
+	if df == nil && ds.PreviousPath != "" {
+		prev, err := LoadDataset(store, datastore.NewKey(ds.PreviousPath))
+		if err != nil {
+			return nil, "", fmt.Errorf("error loading previous dataset: %s", err)
+		}
+		df, err = LoadData(store, prev)
+		if err != nil {
+			return nil, "", fmt.Errorf("error loading previous dataset data: %s", err)
+		}
+	}
 	data, err := ioutil.ReadAll(df)
 	if err != nil {
 		return nil, "", fmt.Errorf("error reading file: %s", err.Error())
