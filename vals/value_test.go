@@ -29,12 +29,11 @@ func ExecValueMethod(v Value, methodName string) {
 	}
 }
 
-func TestNumber(t *testing.T) {
+func TestNumberPanic(t *testing.T) {
 	cases := []struct {
 		methodName  string
 		expectedErr string
 	}{
-		// {"Type", "data: call of Type on number Value"},
 		{"Len", "data: call of Len on number Value"},
 		{"Index", "data: call of Index on number Value"},
 		{"Keys", "data: call of Keys on number Value"},
@@ -59,13 +58,13 @@ func TestNumber(t *testing.T) {
 					t.Errorf("expected invalid call to %s to panic", c.methodName)
 				}
 			}()
-			var num Number = 33.333
-			ExecValueMethod(num, c.methodName)
+			var testNum Number = 33.333
+			ExecValueMethod(testNum, c.methodName)
 		}()
 	}
 }
 
-func TestInteger(t *testing.T) {
+func TestIntegerPanic(t *testing.T) {
 	cases := []struct {
 		methodName  string
 		expectedErr string
@@ -101,7 +100,7 @@ func TestInteger(t *testing.T) {
 	}
 }
 
-func TestBoolean(t *testing.T) {
+func TestBooleanPanic(t *testing.T) {
 	cases := []struct {
 		methodName  string
 		expectedErr string
@@ -137,7 +136,7 @@ func TestBoolean(t *testing.T) {
 	}
 }
 
-func TestString(t *testing.T) {
+func TestStringPanic(t *testing.T) {
 	cases := []struct {
 		methodName  string
 		expectedErr string
@@ -167,13 +166,13 @@ func TestString(t *testing.T) {
 					t.Errorf("expected invalid call to %s to panic", c.methodName)
 				}
 			}()
-			var s String = "qriqriqri"
-			ExecValueMethod(s, c.methodName)
+			var testString String = "qriqriqri"
+			ExecValueMethod(testString, c.methodName)
 		}()
 	}
 }
 
-func TestArray(t *testing.T) {
+func TestArrayPanic(t *testing.T) {
 	cases := []struct {
 		methodName  string
 		expectedErr string
@@ -205,13 +204,13 @@ func TestArray(t *testing.T) {
 			}()
 			var num1 Number = 99.99
 			var num2 Number = 98.89
-			arr := &Array{num1, num2}
-			ExecValueMethod(*arr, c.methodName)
+			testArr := &Array{num1, num2}
+			ExecValueMethod(*testArr, c.methodName)
 		}()
 	}
 }
 
-func TestObject(t *testing.T) {
+func TestObjectPanic(t *testing.T) {
 	cases := []struct {
 		methodName  string
 		expectedErr string
@@ -241,18 +240,14 @@ func TestObject(t *testing.T) {
 					t.Errorf("expected invalid call to %s to panic", c.methodName)
 				}
 			}()
-			// var num1 Number = 99.99
-			// var num2 Number = 98.89
-			// msv := make(map[string]Number)
-			obj := &Object{}
-			// msv["num1"] = num1
-			// *obj = Object(msv)
-			ExecValueMethod(*obj, c.methodName)
+			testObj := &Object{}
+
+			ExecValueMethod(*testObj, c.methodName)
 		}()
 	}
 }
 
-func TestNull(t *testing.T) {
+func TestNullPanic(t *testing.T) {
 	cases := []struct {
 		methodName  string
 		expectedErr string
@@ -282,8 +277,88 @@ func TestNull(t *testing.T) {
 					t.Errorf("expected invalid call to %s to panic", c.methodName)
 				}
 			}()
-			var nullVal Null = Null(true)
-			ExecValueMethod(nullVal, c.methodName)
+			var testNull Null = Null(true)
+			ExecValueMethod(testNull, c.methodName)
+		}()
+	}
+}
+
+func TestTypeMethods(t *testing.T) {
+	var testNum Number = 33.333
+	var testInt Integer = 42
+	var testBool Boolean = true
+	var testArr Array
+	var testString String = "qriqriqri"
+	var testObj Object
+	var testNull Null = Null(true)
+	cases := []struct {
+		val          Value
+		expectedType Type
+	}{
+		{testNum, TypeNumber},
+		{testInt, TypeInteger},
+		{testBool, TypeBoolean},
+		{testArr, TypeArray},
+		{testString, TypeString},
+		{testObj, TypeObject},
+		{testNull, TypeNull},
+	}
+	for i, c := range cases {
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					if err, ok := r.(error); ok {
+						if err != nil {
+							t.Errorf("case %d error mismatch: valid function should not have paniced", i)
+						}
+					}
+				}
+			}()
+			got := c.val.Type()
+			if got != c.expectedType {
+				t.Errorf("case %d response mismatch: expected: '%s', got: '%s'", i, c.expectedType, got)
+				// continue
+			}
+		}()
+	}
+}
+
+func TestStringMethods(t *testing.T) {
+	var testNum Number = 33.333
+	var testInt Integer = 42
+	var testBool Boolean = true
+	var testArr Array
+	var testString String = "qriqriqri"
+	var testObj Object
+	var testNull Null = Null(true)
+	cases := []struct {
+		val            Value
+		expectedOutput string
+	}{
+		{testNum, "<number>"},
+		{testInt, "<integer>"},
+		{testBool, "<boolean true>"},
+		{testArr, "<array>"},
+		{testString, "qriqriqri"},
+		{testObj, "<object 0 keys>"},
+		{testNull, "<null>"},
+	}
+	for i, c := range cases {
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					if err, ok := r.(error); ok {
+						if err != nil {
+							t.Errorf("case %d error mismatch: valid function should not have paniced", i)
+						}
+					}
+				}
+			}()
+			got := c.val.String()
+			if got != c.expectedOutput {
+				t.Errorf("case %d response mismatch: expected: '%s', got: '%s'", i, c.expectedOutput, got)
+				// continue
+			}
 		}()
 	}
 }
