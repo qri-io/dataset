@@ -592,16 +592,13 @@ func TestObjectMapIndexMethod(t *testing.T) {
 
 func TestObjectKeysMethod(t *testing.T) {
 	var num1 Number = 99.99
-	var num2 Number = 98.89
-	// msn := map[string]Number{"a": num1, "b": num2}
-	// testObj1 := Object(msn)
-	testObj1 := Object{"a": num1, "b": num2}
+	testObj1 := Object{"a": num1}
 	cases := []struct {
 		val            Value
 		expectedOutput []string
 		expectedError  string
 	}{
-		{testObj1, []string{"a", "b"}, ""},
+		{testObj1, []string{"a"}, ""},
 	}
 	for i, c := range cases {
 		func() {
@@ -618,27 +615,9 @@ func TestObjectKeysMethod(t *testing.T) {
 			}()
 			got := c.val.Keys()
 
-			if !_sliceEq(got, c.expectedOutput) {
+			if got[0] != c.expectedOutput[0] {
 				t.Errorf("case %d response mismatch: expected: '%s, got: '%s'", i, c.expectedOutput, got)
 			}
 		}()
 	}
-}
-
-func _sliceEq(a, b []string) bool {
-	if a == nil && b == nil {
-		return true
-	}
-	if a == nil || b == nil {
-		return false
-	}
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
 }
