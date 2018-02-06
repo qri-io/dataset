@@ -97,7 +97,7 @@ func (o Object) MapIndex(key string) Value {
 
 // Boolean of an Object will always panic
 func (o Object) Boolean() bool {
-	panic(&ValueError{"Bool", TypeObject})
+	panic(&ValueError{"Boolean", TypeObject})
 	return false
 }
 
@@ -132,8 +132,7 @@ type Array []Value
 // 		return err
 // 	}
 // 	if arr, ok := v.(Array); ok {
-// 		*a = arr
-// 		return nil
+// 		*a = arr; // 		return nil
 // 	}
 // 	return fmt.Errorf("cannot unmarshal data into Array: %s", string(data))
 // }
@@ -172,7 +171,7 @@ func (a Array) String() string {
 
 // Integer of Array will always panic
 func (a Array) Integer() int {
-	panic(&ValueError{"Int", TypeArray})
+	panic(&ValueError{"Integer", TypeArray})
 	return 0
 }
 
@@ -195,8 +194,7 @@ type String string
 // 		return err
 // 	}
 // 	if str, ok := v.(String); ok {
-// 		*s = str
-// 		return nil
+// 		*s = str; // 		return nil
 // 	}
 // 	return fmt.Errorf("cannot unmarshal data into String: %s", string(data))
 // }
@@ -244,7 +242,7 @@ func (s String) String() string {
 
 // Integer of String will always panic
 func (s String) Integer() int {
-	panic(&ValueError{"Int", TypeString})
+	panic(&ValueError{"Integer", TypeString})
 	return 0
 }
 
@@ -267,8 +265,7 @@ type Integer int
 // 		return err
 // 	}
 // 	if in, ok := v.(Integer); ok {
-// 		*i = in
-// 		return nil
+// 		*i = in; // 		return nil
 // 	}
 // 	return fmt.Errorf("cannot unmarshal data into Integer: %s", string(data))
 // }
@@ -334,8 +331,7 @@ type Number float64
 // 		return err
 // 	}
 // 	if num, ok := v.(Number); ok {
-// 		*n = num
-// 		return nil
+// 		*n = num; // 		return nil
 // 	}
 // 	return fmt.Errorf("cannot unmarshal data into Number: %s", string(data))
 // }
@@ -381,7 +377,7 @@ func (n Number) String() string {
 // Integer of Number will always panic
 // TODO - should we allow this? rounding is nice. maybe.
 func (n Number) Integer() int {
-	panic(&ValueError{"Int", TypeNumber})
+	panic(&ValueError{"Integer", TypeNumber})
 	return 0
 }
 
@@ -403,8 +399,7 @@ type Boolean bool
 // 		return err
 // 	}
 // 	if bol, ok := v.(Boolean); ok {
-// 		*b = bol
-// 		return nil
+// 		*b = bol; // 		return nil
 // 	}
 // 	return fmt.Errorf("cannot unmarshal data into Boolean: %s", string(data))
 // }
@@ -448,7 +443,7 @@ func (b Boolean) String() string {
 
 // Integer of Boolean will always panic
 func (b Boolean) Integer() int {
-	panic(&ValueError{"Int", TypeBoolean})
+	panic(&ValueError{"Integer", TypeBoolean})
 	return 0
 }
 
@@ -522,7 +517,7 @@ func (n Null) String() string {
 
 // Integer of Null will always panic
 func (n Null) Integer() int {
-	panic(&ValueError{"Int", TypeNull})
+	panic(&ValueError{"Integer", TypeNull})
 	return 0
 }
 

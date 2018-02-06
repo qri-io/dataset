@@ -41,8 +41,8 @@ func TestNumber(t *testing.T) {
 		{"MapIndex", "data: call of MapIndex on number Value"},
 		{"Boolean", "data: call of Boolean on number Value"},
 		// {"String", "data: call of String on number Value"},
-		{"Integer", "data: call of Int on number Value"},
-		// {"Number", "data: call of Int on number Value"},
+		{"Integer", "data: call of Integer on number Value"},
+		// {"Number", "data: call of Integer on number Value"},
 	}
 	for i, c := range cases {
 		func() {
@@ -77,8 +77,8 @@ func TestInteger(t *testing.T) {
 		{"MapIndex", "data: call of MapIndex on integer Value"},
 		{"Boolean", "data: call of Boolean on integer Value"},
 		// {"String", "data: call of String on integer Value"},
-		// {"Integer", "data: call of Int on integer Value"},
-		// {"Number", "data: call of Int on integer Value"},
+		// {"Integer", "data: call of Integer on integer Value"},
+		// {"Number", "data: call of Integer on integer Value"},
 	}
 	for i, c := range cases {
 		func() {
@@ -113,7 +113,7 @@ func TestBoolean(t *testing.T) {
 		{"MapIndex", "data: call of MapIndex on boolean Value"},
 		// {"Boolean", "data: call of Boolean on boolean Value"},
 		// {"String", "data: call of String on boolean Value"},
-		{"Integer", "data: call of Int on boolean Value"},
+		{"Integer", "data: call of Integer on boolean Value"},
 		{"Number", "data: call of Number on boolean Value"},
 	}
 	for i, c := range cases {
@@ -149,7 +149,7 @@ func TestString(t *testing.T) {
 		{"MapIndex", "data: call of MapIndex on string Value"},
 		{"Boolean", "data: call of Boolean on string Value"},
 		// {"String", "data: call of String on string Value"},
-		{"Integer", "data: call of Int on string Value"},
+		{"Integer", "data: call of Integer on string Value"},
 		{"Number", "data: call of Number on string Value"},
 	}
 	for i, c := range cases {
@@ -185,7 +185,7 @@ func TestArray(t *testing.T) {
 		{"MapIndex", "data: call of MapIndex on array Value"},
 		{"Boolean", "data: call of Boolean on array Value"},
 		// {"String", "data: call of String on array Value"},
-		{"Integer", "data: call of Int on array Value"},
+		{"Integer", "data: call of Integer on array Value"},
 		{"Number", "data: call of Number on array Value"},
 	}
 	for i, c := range cases {
@@ -221,7 +221,7 @@ func TestObject(t *testing.T) {
 		{"Index", "data: call of Index on object Value"},
 		// {"Keys", "data: call of Keys on object Value"},
 		// {"MapIndex", "data: call of MapIndex on object Value"},
-		{"Boolean", "data: call of Bool on object Value"},
+		{"Boolean", "data: call of Boolean on object Value"},
 		// {"String", "data: call of String on object Value"},
 		{"Integer", "data: call of Integer on object Value"},
 		{"Number", "data: call of Number on object Value"},
@@ -248,6 +248,42 @@ func TestObject(t *testing.T) {
 			// msv["num1"] = num1
 			// *obj = Object(msv)
 			ExecValueMethod(*obj, c.methodName)
+		}()
+	}
+}
+
+func TestNull(t *testing.T) {
+	cases := []struct {
+		methodName  string
+		expectedErr string
+	}{
+		// {"Type", "data: call of Type on null Value"},
+		{"Len", "data: call of Len on null Value"},
+		{"Index", "data: call of Index on null Value"},
+		{"Keys", "data: call of Keys on null Value"},
+		{"MapIndex", "data: call of MapIndex on null Value"},
+		{"Boolean", "data: call of Boolean on null Value"},
+		// {"String", "data: call of String on null Value"},
+		{"Integer", "data: call of Integer on null Value"},
+		{"Number", "data: call of Number on null Value"},
+	}
+	for i, c := range cases {
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					if err, ok := r.(error); ok {
+						if err.Error() != c.expectedErr {
+							t.Errorf("case %d error mismatch. expected: '%s', got '%s'", i, c.expectedErr, err.Error())
+						}
+					} else {
+						t.Errorf("%s paniced with a non-error", c.methodName)
+					}
+				} else {
+					t.Errorf("expected invalid call to %s to panic", c.methodName)
+				}
+			}()
+			var nullVal Null = Null(true)
+			ExecValueMethod(nullVal, c.methodName)
 		}()
 	}
 }
