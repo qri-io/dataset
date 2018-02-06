@@ -70,13 +70,11 @@ func (o Object) Type() Type { return TypeObject }
 // Len of an Object will always panic
 func (o Object) Len() int {
 	panic(&ValueError{"Len", TypeObject})
-	return 0
 }
 
 // Index of an Object will always panic
 func (o Object) Index(i int) Value {
 	panic(&ValueError{"Index", TypeObject})
-	return nil
 }
 
 // Keys gives a slice of keys in an object, in random order
@@ -98,7 +96,6 @@ func (o Object) MapIndex(key string) Value {
 // Boolean of an Object will always panic
 func (o Object) Boolean() bool {
 	panic(&ValueError{"Boolean", TypeObject})
-	return false
 }
 
 // String must satisfy the stringer interface, but output is intentionally
@@ -110,13 +107,11 @@ func (o Object) String() string {
 // Integer of an Object will always panic
 func (o Object) Integer() int {
 	panic(&ValueError{"Integer", TypeObject})
-	return 0
 }
 
 // Number of an Object will always panic
 func (o Object) Number() float64 {
 	panic(&ValueError{"Number", TypeObject})
-	return 0
 }
 
 // IsNull of an Object always returns false
@@ -149,19 +144,16 @@ func (a Array) Index(i int) Value { return a[i] }
 // Keys of Array will always panic
 func (a Array) Keys() []string {
 	panic(&ValueError{"Keys", TypeArray})
-	return nil
 }
 
 // MapIndex of Array will always Panic
 func (a Array) MapIndex(key string) Value {
 	panic(&ValueError{"MapIndex", TypeArray})
-	return nil
 }
 
 // Boolean of Array will always panic
 func (a Array) Boolean() bool {
 	panic(&ValueError{"Boolean", TypeArray})
-	return false
 }
 
 // String of Array must satisfy the stringer interface, but output is intentionally obfuscated
@@ -172,13 +164,11 @@ func (a Array) String() string {
 // Integer of Array will always panic
 func (a Array) Integer() int {
 	panic(&ValueError{"Integer", TypeArray})
-	return 0
 }
 
 // Number of Array will always panic
 func (a Array) Number() float64 {
 	panic(&ValueError{"Number", TypeArray})
-	return 0
 }
 
 // IsNull of Array always returns false
@@ -205,31 +195,26 @@ func (s String) Type() Type { return TypeString }
 // Len of String will always panic
 func (s String) Len() int {
 	panic(&ValueError{"Len", TypeString})
-	return 0
 }
 
 // Index of String will always panic
 func (s String) Index(i int) Value {
 	panic(&ValueError{"Index", TypeString})
-	return nil
 }
 
 // Keys of String will always panic
 func (s String) Keys() []string {
 	panic(&ValueError{"Keys", TypeString})
-	return nil
 }
 
 // MapIndex of String will always Panic
 func (s String) MapIndex(key string) Value {
 	panic(&ValueError{"MapIndex", TypeString})
-	return nil
 }
 
 // Boolean of String will always panic
 func (s String) Boolean() bool {
 	panic(&ValueError{"Boolean", TypeString})
-	return false
 }
 
 // String returns String as a string
@@ -243,13 +228,11 @@ func (s String) String() string {
 // Integer of String will always panic
 func (s String) Integer() int {
 	panic(&ValueError{"Integer", TypeString})
-	return 0
 }
 
 // Number of String will always panic
 func (s String) Number() float64 {
 	panic(&ValueError{"Number", TypeString})
-	return 0
 }
 
 // IsNull of String always returns false
@@ -276,31 +259,26 @@ func (i Integer) Type() Type { return TypeInteger }
 // Len of Integer will always panic
 func (i Integer) Len() int {
 	panic(&ValueError{"Len", TypeInteger})
-	return 0
 }
 
 // Index of Integer will always panic
 func (i Integer) Index(j int) Value {
 	panic(&ValueError{"Index", TypeInteger})
-	return nil
 }
 
 // Keys of Integer will always panic
 func (i Integer) Keys() []string {
 	panic(&ValueError{"Keys", TypeInteger})
-	return nil
 }
 
 // MapIndex of Integer will always Panic
 func (i Integer) MapIndex(key string) Value {
 	panic(&ValueError{"MapIndex", TypeInteger})
-	return nil
 }
 
 // Boolean of Integer will always panic
 func (i Integer) Boolean() bool {
 	panic(&ValueError{"Boolean", TypeInteger})
-	return false
 }
 
 // String of Integer must satisfy the stringer interface, but output is intentionally obfuscated
@@ -342,31 +320,26 @@ func (n Number) Type() Type { return TypeNumber }
 // Len of Number will always panic
 func (n Number) Len() int {
 	panic(&ValueError{"Len", TypeNumber})
-	return 0
 }
 
 // Index of Number will always panic
 func (n Number) Index(i int) Value {
 	panic(&ValueError{"Index", TypeNumber})
-	return nil
 }
 
 // Keys of Number will always panic
 func (n Number) Keys() []string {
 	panic(&ValueError{"Keys", TypeNumber})
-	return nil
 }
 
 // MapIndex of Number will always Panic
 func (n Number) MapIndex(key string) Value {
 	panic(&ValueError{"MapIndex", TypeNumber})
-	return nil
 }
 
 // Boolean of Number will always panic
 func (n Number) Boolean() bool {
 	panic(&ValueError{"Boolean", TypeNumber})
-	return false
 }
 
 // String of Number must satisfy the stringer interface, but output is intentionally obfuscated
@@ -378,10 +351,9 @@ func (n Number) String() string {
 // TODO - should we allow this? rounding is nice. maybe.
 func (n Number) Integer() int {
 	panic(&ValueError{"Integer", TypeNumber})
-	return 0
 }
 
-// Number of Number will always panic
+// Number returns Number as a float64
 func (n Number) Number() float64 {
 	return float64(n)
 }
@@ -410,28 +382,24 @@ func (b Boolean) Type() Type { return TypeBoolean }
 // Len of Boolean will always panic
 func (b Boolean) Len() int {
 	panic(&ValueError{"Len", TypeBoolean})
-	return 0
 }
 
 // Index of Boolean will always panic
 func (b Boolean) Index(i int) Value {
 	panic(&ValueError{"Index", TypeBoolean})
-	return nil
 }
 
 // Keys of Boolean will always panic
 func (b Boolean) Keys() []string {
 	panic(&ValueError{"Keys", TypeBoolean})
-	return nil
 }
 
 // MapIndex of Boolean will always Panic
 func (b Boolean) MapIndex(key string) Value {
 	panic(&ValueError{"MapIndex", TypeBoolean})
-	return nil
 }
 
-// Boolean of Boolean will always panic
+// Boolean returns Boolean as a bool
 func (b Boolean) Boolean() bool {
 	return bool(b)
 }
@@ -444,13 +412,11 @@ func (b Boolean) String() string {
 // Integer of Boolean will always panic
 func (b Boolean) Integer() int {
 	panic(&ValueError{"Integer", TypeBoolean})
-	return 0
 }
 
 // Number of Boolean will always panic
 func (b Boolean) Number() float64 {
 	panic(&ValueError{"Number", TypeBoolean})
-	return 0
 }
 
 // IsNull of Boolean always returns false
@@ -483,31 +449,26 @@ func (n Null) Type() Type { return TypeNull }
 // Len of Null will always panic
 func (n Null) Len() int {
 	panic(&ValueError{"Len", TypeNull})
-	return 0
 }
 
 // Index of Null will always panic
 func (n Null) Index(i int) Value {
 	panic(&ValueError{"Index", TypeNull})
-	return nil
 }
 
 // Keys of Null will always panic
 func (n Null) Keys() []string {
 	panic(&ValueError{"Keys", TypeNull})
-	return nil
 }
 
 // MapIndex of Null will always Panic
 func (n Null) MapIndex(key string) Value {
 	panic(&ValueError{"MapIndex", TypeNull})
-	return nil
 }
 
 // Boolean of Null will always panic
 func (n Null) Boolean() bool {
 	panic(&ValueError{"Boolean", TypeNull})
-	return false
 }
 
 // String of Null must satisfy the stringer interface, but output is intentionally obfuscated
@@ -518,13 +479,11 @@ func (n Null) String() string {
 // Integer of Null will always panic
 func (n Null) Integer() int {
 	panic(&ValueError{"Integer", TypeNull})
-	return 0
 }
 
 // Number of Null will always panic
 func (n Null) Number() float64 {
 	panic(&ValueError{"Number", TypeNull})
-	return 0
 }
 
 // IsNull of Null always returns true

@@ -39,9 +39,7 @@ func TestNumberPanic(t *testing.T) {
 		{"Keys", "data: call of Keys on number Value"},
 		{"MapIndex", "data: call of MapIndex on number Value"},
 		{"Boolean", "data: call of Boolean on number Value"},
-		// {"String", "data: call of String on number Value"},
 		{"Integer", "data: call of Integer on number Value"},
-		// {"Number", "data: call of Integer on number Value"},
 	}
 	for i, c := range cases {
 		func() {
@@ -69,15 +67,11 @@ func TestIntegerPanic(t *testing.T) {
 		methodName  string
 		expectedErr string
 	}{
-		// {"Type", "data: call of Type on integer Value"},
 		{"Len", "data: call of Len on integer Value"},
 		{"Index", "data: call of Index on integer Value"},
 		{"Keys", "data: call of Keys on integer Value"},
 		{"MapIndex", "data: call of MapIndex on integer Value"},
 		{"Boolean", "data: call of Boolean on integer Value"},
-		// {"String", "data: call of String on integer Value"},
-		// {"Integer", "data: call of Integer on integer Value"},
-		// {"Number", "data: call of Integer on integer Value"},
 	}
 	for i, c := range cases {
 		func() {
@@ -105,13 +99,10 @@ func TestBooleanPanic(t *testing.T) {
 		methodName  string
 		expectedErr string
 	}{
-		// {"Type", "data: call of Type on boolean Value"},
 		{"Len", "data: call of Len on boolean Value"},
 		{"Index", "data: call of Index on boolean Value"},
 		{"Keys", "data: call of Keys on boolean Value"},
 		{"MapIndex", "data: call of MapIndex on boolean Value"},
-		// {"Boolean", "data: call of Boolean on boolean Value"},
-		// {"String", "data: call of String on boolean Value"},
 		{"Integer", "data: call of Integer on boolean Value"},
 		{"Number", "data: call of Number on boolean Value"},
 	}
@@ -141,13 +132,11 @@ func TestStringPanic(t *testing.T) {
 		methodName  string
 		expectedErr string
 	}{
-		// {"Type", "data: call of Type on string Value"},
 		{"Len", "data: call of Len on string Value"},
 		{"Index", "data: call of Index on string Value"},
 		{"Keys", "data: call of Keys on string Value"},
 		{"MapIndex", "data: call of MapIndex on string Value"},
 		{"Boolean", "data: call of Boolean on string Value"},
-		// {"String", "data: call of String on string Value"},
 		{"Integer", "data: call of Integer on string Value"},
 		{"Number", "data: call of Number on string Value"},
 	}
@@ -177,13 +166,11 @@ func TestArrayPanic(t *testing.T) {
 		methodName  string
 		expectedErr string
 	}{
-		// {"Type", "data: call of Type on array Value"},
 		// {"Len", "data: call of Len on array Value"},
 		// {"Index", "data: call of Index on array Value"},
 		{"Keys", "data: call of Keys on array Value"},
 		{"MapIndex", "data: call of MapIndex on array Value"},
 		{"Boolean", "data: call of Boolean on array Value"},
-		// {"String", "data: call of String on array Value"},
 		{"Integer", "data: call of Integer on array Value"},
 		{"Number", "data: call of Number on array Value"},
 	}
@@ -215,13 +202,11 @@ func TestObjectPanic(t *testing.T) {
 		methodName  string
 		expectedErr string
 	}{
-		// {"Type", "data: call of Type on object Value"},
 		{"Len", "data: call of Len on object Value"},
 		{"Index", "data: call of Index on object Value"},
 		// {"Keys", "data: call of Keys on object Value"},
 		// {"MapIndex", "data: call of MapIndex on object Value"},
 		{"Boolean", "data: call of Boolean on object Value"},
-		// {"String", "data: call of String on object Value"},
 		{"Integer", "data: call of Integer on object Value"},
 		{"Number", "data: call of Number on object Value"},
 	}
@@ -252,13 +237,11 @@ func TestNullPanic(t *testing.T) {
 		methodName  string
 		expectedErr string
 	}{
-		// {"Type", "data: call of Type on null Value"},
 		{"Len", "data: call of Len on null Value"},
 		{"Index", "data: call of Index on null Value"},
 		{"Keys", "data: call of Keys on null Value"},
 		{"MapIndex", "data: call of MapIndex on null Value"},
 		{"Boolean", "data: call of Boolean on null Value"},
-		// {"String", "data: call of String on null Value"},
 		{"Integer", "data: call of Integer on null Value"},
 		{"Number", "data: call of Number on null Value"},
 	}
@@ -277,7 +260,7 @@ func TestNullPanic(t *testing.T) {
 					t.Errorf("expected invalid call to %s to panic", c.methodName)
 				}
 			}()
-			var testNull Null = Null(true)
+			testNull := Null(true)
 			ExecValueMethod(testNull, c.methodName)
 		}()
 	}
@@ -290,7 +273,7 @@ func TestTypeMethods(t *testing.T) {
 	var testArr Array
 	var testString String = "qriqriqri"
 	var testObj Object
-	var testNull Null = Null(true)
+	testNull := Null(true)
 	cases := []struct {
 		val          Value
 		expectedType Type
@@ -317,7 +300,6 @@ func TestTypeMethods(t *testing.T) {
 			got := c.val.Type()
 			if got != c.expectedType {
 				t.Errorf("case %d response mismatch: expected: '%s', got: '%s'", i, c.expectedType, got)
-				// continue
 			}
 		}()
 	}
@@ -330,7 +312,7 @@ func TestStringMethods(t *testing.T) {
 	var testArr Array
 	var testString String = "qriqriqri"
 	var testObj Object
-	var testNull Null = Null(true)
+	testNull := Null(true)
 	cases := []struct {
 		val            Value
 		expectedOutput string
@@ -357,8 +339,306 @@ func TestStringMethods(t *testing.T) {
 			got := c.val.String()
 			if got != c.expectedOutput {
 				t.Errorf("case %d response mismatch: expected: '%s', got: '%s'", i, c.expectedOutput, got)
-				// continue
 			}
 		}()
 	}
+}
+
+func TestIsNullMethods(t *testing.T) {
+	var testNum Number = 33.333
+	var testInt Integer = 42
+	var testBool Boolean = true
+	var testArr Array
+	var testString String = "qriqriqri"
+	var testObj Object
+	testNull := Null(true)
+	cases := []struct {
+		val            Value
+		expectedOutput bool
+	}{
+		{testNum, false},
+		{testInt, false},
+		{testBool, false},
+		{testArr, false},
+		{testString, false},
+		{testObj, false},
+		{testNull, true},
+	}
+	for i, c := range cases {
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					if err, ok := r.(error); ok {
+						if err != nil {
+							t.Errorf("case %d error mismatch: valid function should not have paniced", i)
+						}
+					}
+				}
+			}()
+			got := c.val.IsNull()
+			if got != c.expectedOutput {
+				t.Errorf("case %d response mismatch: expected: '%t', got: '%t'", i, c.expectedOutput, got)
+			}
+		}()
+	}
+}
+
+func TestNumberMethods(t *testing.T) {
+	var testNum Number = 33.333
+	var testInt Integer = 42
+	cases := []struct {
+		val            Value
+		expectedOutput float64
+	}{
+		{testNum, 33.333},
+		{testInt, 42.0},
+	}
+	for i, c := range cases {
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					if err, ok := r.(error); ok {
+						if err != nil {
+							t.Errorf("case %d error mismatch: valid function should not have paniced", i)
+						}
+					}
+				}
+			}()
+			got := c.val.Number()
+			if got != c.expectedOutput {
+				t.Errorf("case %d response mismatch: expected: '%v, got: '%v'", i, c.expectedOutput, got)
+			}
+		}()
+	}
+}
+
+func TestIntegerMethod(t *testing.T) {
+	var testInt Integer = 42
+	cases := []struct {
+		val            Value
+		expectedOutput int
+	}{
+		{testInt, 42},
+	}
+	for i, c := range cases {
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					if err, ok := r.(error); ok {
+						if err != nil {
+							t.Errorf("case %d error mismatch: valid function should not have paniced", i)
+						}
+					}
+				}
+			}()
+			got := c.val.Integer()
+			if got != c.expectedOutput {
+				t.Errorf("case %d response mismatch: expected: '%v, got: '%v'", i, c.expectedOutput, got)
+			}
+		}()
+	}
+}
+
+func TestBooleanMethod(t *testing.T) {
+	var testBool Boolean = true
+	cases := []struct {
+		val            Value
+		expectedOutput bool
+	}{
+		{testBool, true},
+	}
+	for i, c := range cases {
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					if err, ok := r.(error); ok {
+						if err != nil {
+							t.Errorf("case %d error mismatch: valid function should not have paniced", i)
+						}
+					}
+				}
+			}()
+			got := c.val.Boolean()
+			if got != c.expectedOutput {
+				t.Errorf("case %d response mismatch: expected: '%v, got: '%v'", i, c.expectedOutput, got)
+			}
+		}()
+	}
+}
+
+func TestArrayIndexMethod(t *testing.T) {
+	var num1 Number = 99.99
+	var num2 Number = 98.89
+	testArr1 := &Array{num1, num2}
+	testArr2 := &Array{}
+	cases := []struct {
+		val            Value
+		index          int
+		expectedOutput Value
+		expectedError  string
+	}{
+		{*testArr1, 0, num1, ""},
+		{*testArr1, 1, num2, ""},
+		{*testArr1, 2, num2, "runtime error: index out of range"},
+		{*testArr2, 0, num2, "runtime error: index out of range"},
+	}
+	for i, c := range cases {
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					if err, ok := r.(error); ok {
+						if err != nil {
+							if err.Error() != c.expectedError {
+								t.Errorf("case %d error mismatch: expected: '%s', got: '%s'", i, c.expectedError, err.Error())
+							}
+						}
+					}
+				}
+			}()
+			got := c.val.Index(c.index)
+			if got != c.expectedOutput {
+				t.Errorf("case %d response mismatch: expected: '%v, got: '%v'", i, c.expectedOutput, got)
+			}
+		}()
+	}
+}
+
+func TestArrayLenMethod(t *testing.T) {
+	var num1 Number = 99.99
+	var num2 Number = 98.89
+	testArr1 := &Array{num1, num2}
+	testArr2 := &Array{}
+	cases := []struct {
+		val            Value
+		expectedOutput int
+		expectedError  string
+	}{
+		{*testArr1, 2, ""},
+		{*testArr2, 0, ""},
+	}
+	for i, c := range cases {
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					if err, ok := r.(error); ok {
+						if err != nil {
+							if err.Error() != c.expectedError {
+								t.Errorf("case %d error mismatch: expected: '%s', got: '%s'", i, c.expectedError, err.Error())
+							}
+						}
+					}
+				}
+			}()
+			got := c.val.Len()
+			if got != c.expectedOutput {
+				t.Errorf("case %d response mismatch: expected: '%v, got: '%v'", i, c.expectedOutput, got)
+			}
+		}()
+	}
+}
+
+// This test is not super useful but can't think of another way to
+// cover this func 100% at this time
+func TestValueErrorError(t *testing.T) {
+	e := &ValueError{"abc", TypeUnknown}
+	cases := []struct {
+		input    *ValueError
+		expected string
+	}{
+		{e, "data: call of abc on Unknown Type"},
+	}
+	for i, c := range cases {
+		got := c.input.Error()
+		if got != c.expected {
+			t.Errorf("case %d response mismatch: expected: '%s, got: '%s'", i, c.expected, got)
+		}
+	}
+}
+
+func TestObjectMapIndexMethod(t *testing.T) {
+	var num1 Number = 99.99
+	var num2 Number = 98.89
+	// msn := map[string]Number{"a": num1, "b": num2}
+	// testObj1 := Object(msn)
+	testObj1 := Object{"a": num1, "b": num2}
+	cases := []struct {
+		val            Value
+		key            string
+		expectedOutput Value
+		expectedError  string
+	}{
+		{testObj1, "a", num1, ""},
+	}
+	for i, c := range cases {
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					if err, ok := r.(error); ok {
+						if err != nil {
+							if err.Error() != c.expectedError {
+								t.Errorf("case %d error mismatch: expected: '%s', got: '%s'", i, c.expectedError, err.Error())
+							}
+						}
+					}
+				}
+			}()
+			got := c.val.MapIndex(c.key)
+			if got != c.expectedOutput {
+				t.Errorf("case %d response mismatch: expected: '%s, got: '%s'", i, c.expectedOutput, got)
+			}
+		}()
+	}
+}
+
+func TestObjectKeysMethod(t *testing.T) {
+	var num1 Number = 99.99
+	var num2 Number = 98.89
+	// msn := map[string]Number{"a": num1, "b": num2}
+	// testObj1 := Object(msn)
+	testObj1 := Object{"a": num1, "b": num2}
+	cases := []struct {
+		val            Value
+		expectedOutput []string
+		expectedError  string
+	}{
+		{testObj1, []string{"a", "b"}, ""},
+	}
+	for i, c := range cases {
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					if err, ok := r.(error); ok {
+						if err != nil {
+							if err.Error() != c.expectedError {
+								t.Errorf("case %d error mismatch: expected: '%s', got: '%s'", i, c.expectedError, err.Error())
+							}
+						}
+					}
+				}
+			}()
+			got := c.val.Keys()
+
+			if !_sliceEq(got, c.expectedOutput) {
+				t.Errorf("case %d response mismatch: expected: '%s, got: '%s'", i, c.expectedOutput, got)
+			}
+		}()
+	}
+}
+
+func _sliceEq(a, b []string) bool {
+	if a == nil && b == nil {
+		return true
+	}
+	if a == nil || b == nil {
+		return false
+	}
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
 }
