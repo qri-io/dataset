@@ -220,12 +220,15 @@ func generateCommitMsg(store cafs.Filestore, ds *dataset.Dataset) (string, error
 		}
 	}
 
-	diffMap, err := datasetDiffer.DiffDatasets(prev, ds)
+	diffMap, err := datasetDiffer.DiffDatasets(prev, ds, nil)
 	if err != nil {
 		err = fmt.Errorf("error diffing datasets: %s", err.Error())
 		return "", err
 	}
-	diffDescription := datasetDiffer.MapDiffsToString(diffMap)
+	diffDescription, err := datasetDiffer.MapDiffsToString(diffMap, "listKeys")
+	if err != nil {
+		return "", err
+	}
 	// ds.Commit.Title = diffDescription
 	return diffDescription, nil
 }
@@ -304,26 +307,6 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 
 	return memfs.NewMemfileBytes("data."+ds.Structure.Format.String(), data), diffDescription, nil
 }
-
-// func confirmChangesOccurred(store cafs.Filestore, ds *dataset.Dataset, df cafs.File) error {
-// 	if ds.PreviousPath == "" {
-// 		return nil
-// 	}
-// 	prevKey := datastore.NewKey(ds.PreviousPath)
-// 	prev, err := LoadDataset(store, prevKey)
-// 	if err != nil {
-// 		return fmt.Errorf("error loading previous dataset: %s", err.Error())
-// 	}
-// 	diffMap, err := datasetDiffer.DiffDatasets(prev, ds)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	if datasetDiffer.MapDiffsToString(diffMap) == "" {
-// 		return fmt.Errorf("cannot record changes if no changes occured")
-// 	}
-// 	return nil
-// }
 
 // WriteDataset writes a dataset to a cafs, replacing subcomponents of a dataset with path references
 // during the write process. Directory structure is according to PackageFile naming conventions.

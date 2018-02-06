@@ -146,6 +146,8 @@ func TestCreateDataset(t *testing.T) {
 		{"testdata/cities.json", "testdata/cities.csv", "cities.csv", "/map/QmRAuWroJY1C2bCd4s1yPDVRHUfqB3d36Y9HCGnVRE3suN", 7, ""},
 		{"testdata/complete.json", "testdata/complete.csv", "complete.csv", "/map/QmSfLdn1Q3i1hoJDK1whx1D4d1N2MSFZhjT33YHBRDsZP5", 15, ""},
 		{"testdata/cities_no_commit_title.json", "testdata/cities.csv", "cities.csv", "/map/QmUaMozKVkjPf7CVf3Zd8Cy5Ex1i9oUdhYhU8uTJph5iFD", 17, ""},
+		// {"testdata/complete.json", "testdata/complete.csv", "complete.csv", "/map/QmQ2CuZ8dbKqjyaKvoQwynXgqnxPKTywojNVJ2Jpj2yb6c", 14, ""},
+		// {"testdata/cities_no_commit_title.json", "testdata/cities.csv", "cities.csv", "/map/QmUaMozKVkjPf7CVf3Zd8Cy5Ex1i9oUdhYhU8uTJph5iFD", 16, ""},
 	}
 
 	for i, c := range cases {
