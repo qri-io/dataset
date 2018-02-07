@@ -19,6 +19,7 @@ func SaveVisConfig(store cafs.Filestore, v *dataset.VisConfig, pin bool) (path d
 
 // LoadVisConfig loads a visconfig from a given path in a store
 func LoadVisConfig(store cafs.Filestore, path datastore.Key) (st *dataset.VisConfig, err error) {
+	path = PackageKeypath(store, path, PackageFileVisConfig)
 	data, err := fileBytes(store.Get(path))
 	if err != nil {
 		return nil, fmt.Errorf("error loading visconfig file: %s", err.Error())

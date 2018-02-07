@@ -1,5 +1,13 @@
 package dsfs
 
+import (
+	"github.com/ipfs/go-datastore"
+	"path/filepath"
+	"strings"
+
+	"github.com/qri-io/cafs"
+)
+
 // PackageFile specifies the different types of files that are
 // stored in a package
 type PackageFile int
@@ -60,4 +68,27 @@ func (p PackageFile) String() string {
 // Filename gives the canonical filename for a PackageFile
 func (p PackageFile) Filename() string {
 	return filenames[p]
+}
+
+// PackageFilepath relies on package storage conventions and cafs.Filestore path prefixes
+// to deliver the path to a package file for a given base path
+func PackageFilepath(store cafs.Filestore, path string, pf PackageFile) string {
+	switch store.PathPrefix() {
+	case "ipfs":
+		return filepath.Join("/ipfs", ipfsHashBase(path), pf.String())
+	default:
+		return path
+	}
+}
+
+// ipfsHashBase strips paths to return just the hash
+func ipfsHashBase(in string) string {
+	in = strings.TrimLeft(in, "/")
+	in = strings.TrimPrefix(in, "ipfs/")
+	return strings.Split(in, "/")[0]
+}
+
+// PackageKeypath wraps PackageFilepath to work with datastore.Keys instead
+func PackageKeypath(store cafs.Filestore, path datastore.Key, pf PackageFile) datastore.Key {
+	return datastore.NewKey(PackageFilepath(store, path.String(), pf))
 }

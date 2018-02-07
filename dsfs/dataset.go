@@ -21,6 +21,7 @@ import (
 // LoadDataset reads a dataset from a cafs and dereferences structure, transform, and commitMsg if they exist,
 // returning a fully-hydrated dataset
 func LoadDataset(store cafs.Filestore, path datastore.Key) (*dataset.Dataset, error) {
+	path = PackageKeypath(store, path, PackageFileDataset)
 	ds, err := LoadDatasetRefs(store, path)
 	if err != nil {
 		return nil, fmt.Errorf("error loading dataset: %s", err.Error())
@@ -32,10 +33,12 @@ func LoadDataset(store cafs.Filestore, path datastore.Key) (*dataset.Dataset, er
 	return ds, nil
 }
 
-// LoadDatasetRefs reads a dataset from a content addressed filesystem
+// LoadDatasetRefs reads a dataset from a content addressed filesystem without dereferencing
+// it's components
 func LoadDatasetRefs(store cafs.Filestore, path datastore.Key) (*dataset.Dataset, error) {
 	ds := &dataset.Dataset{}
 
+	path = PackageKeypath(store, path, PackageFileDataset)
 	data, err := fileBytes(store.Get(path))
 	// if err != nil {
 	// 	return nil, fmt.Errorf("error getting file bytes: %s", err.Error())
