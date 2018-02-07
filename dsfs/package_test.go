@@ -1,6 +1,8 @@
 package dsfs
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/ipfs/go-datastore"
@@ -10,11 +12,12 @@ import (
 )
 
 func TestPackageFilepath(t *testing.T) {
-	ipfs, err := ipfsfs.NewFilestore()
+	ipfs, destroy, err := makeTestIPFSRepo("")
 	if err != nil {
-		t.Errorf("error creating ipfs filestore: %s", err.Error())
+		t.Errorf("error creating IPFS test repo: %s", err.Error())
 		return
 	}
+	defer destroy()
 
 	mem := memfs.NewMapstore()
 
@@ -51,4 +54,24 @@ func TestPackageKeyPath(t *testing.T) {
 	if !got.Equal(p) {
 		t.Errorf("key mismatch. expected: %s, got %s", p, got)
 	}
+}
+
+func makeTestIPFSRepo(path string) (fs *ipfsfs.Filestore, destroy func(), err error) {
+	if path == "" {
+		path = filepath.Join(os.TempDir(), ".ipfs")
+	}
+	err = ipfsfs.InitRepo(path, "")
+	if err != nil {
+		return
+	}
+	fs, err = ipfsfs.NewFilestore(func(cfg *ipfsfs.StoreCfg) { cfg.FsRepoPath = path })
+	if err != nil {
+		return
+	}
+
+	destroy = func() {
+		os.RemoveAll(path)
+	}
+
+	return
 }
