@@ -134,10 +134,10 @@ func TestCompareVisConfigs(t *testing.T) {
 		err  string
 	}{
 		{nil, nil, ""},
-		{&VisConfig{Kind: "a", Format: "b", Visualizations: []interface{}{1, 2, 3}}, &VisConfig{Kind: "a", Format: "b", Visualizations: []interface{}{1, 2, 3}}, ""},
+		{&VisConfig{Qri: "a", Format: "b", Visualizations: []interface{}{1, 2, 3}}, &VisConfig{Qri: "a", Format: "b", Visualizations: []interface{}{1, 2, 3}}, ""},
 		{&VisConfig{}, nil, "nil: <not nil> != <nil>"},
 		{nil, &VisConfig{}, "nil: <nil> != <not nil>"},
-		{&VisConfig{Kind: "a"}, &VisConfig{Kind: "b"}, "Kind: a != b"},
+		{&VisConfig{Qri: "a"}, &VisConfig{Qri: "b"}, "Qri: a != b"},
 		{&VisConfig{Format: "a"}, &VisConfig{Format: "b"}, "Format: a != b"},
 		// {&VisConfig{DataPath: "a"}, &VisConfig{DataPath: "b"}, "DataPath: a != b"},
 		{&VisConfig{Visualizations: []interface{}{"hey", "sup"}}, &VisConfig{Visualizations: "test"}, "Visualizations not equal"},

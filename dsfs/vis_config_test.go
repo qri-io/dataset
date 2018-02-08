@@ -9,7 +9,7 @@ import (
 
 var VisConfig1 = &dataset.VisConfig{
 	Format: "foo",
-	Kind:   dataset.KindVisConfig,
+	Qri:    dataset.KindVisConfig,
 	Visualizations: map[string]interface{}{
 		"type": "bar",
 		"colors": map[string]interface{}{

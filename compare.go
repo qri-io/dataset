@@ -172,8 +172,8 @@ func CompareVisConfigs(a, b *VisConfig) error {
 	} else if a != nil && b == nil {
 		return fmt.Errorf("nil: <not nil> != <nil>")
 	}
-	if a.Kind != b.Kind {
-		return fmt.Errorf("Kind: %s != %s", a.Kind, b.Kind)
+	if a.Qri != b.Qri {
+		return fmt.Errorf("Qri: %s != %s", a.Qri, b.Qri)
 	}
 	if a.Format != b.Format {
 		return fmt.Errorf("Format: %s != %s", a.Format, b.Format)
