@@ -12,6 +12,7 @@ import (
 
 // LoadTransform loads a transform from a given path in a store
 func LoadTransform(store cafs.Filestore, path datastore.Key) (q *dataset.Transform, err error) {
+	path = PackageKeypath(store, path, PackageFileTransform)
 	data, err := fileBytes(store.Get(path))
 	if err != nil {
 		return nil, fmt.Errorf("error loading transform raw data: %s", err.Error())

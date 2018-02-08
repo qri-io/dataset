@@ -19,6 +19,7 @@ func SaveMeta(store cafs.Filestore, s *dataset.Meta, pin bool) (path datastore.K
 
 // LoadMeta loads a metadata from a given path in a store
 func LoadMeta(store cafs.Filestore, path datastore.Key) (md *dataset.Meta, err error) {
+	path = PackageKeypath(store, path, PackageFileMeta)
 	data, err := fileBytes(store.Get(path))
 	if err != nil {
 		return nil, fmt.Errorf("error loading metadata file: %s", err.Error())

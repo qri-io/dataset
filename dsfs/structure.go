@@ -19,6 +19,7 @@ func SaveStructure(store cafs.Filestore, s *dataset.Structure, pin bool) (path d
 
 // LoadStructure loads a structure from a given path in a store
 func LoadStructure(store cafs.Filestore, path datastore.Key) (st *dataset.Structure, err error) {
+	path = PackageKeypath(store, path, PackageFileStructure)
 	data, err := fileBytes(store.Get(path))
 	if err != nil {
 		return nil, fmt.Errorf("error loading structure file: %s", err.Error())
