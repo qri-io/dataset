@@ -87,7 +87,7 @@ func DerefDataset(store cafs.Filestore, ds *dataset.Dataset) error {
 // should be a no-op if ds.Structure is nil or isn't a reference
 func DerefDatasetStructure(store cafs.Filestore, ds *dataset.Dataset) error {
 	if ds.Structure != nil && ds.Structure.IsEmpty() && ds.Structure.Path().String() != "" {
-		st, err := LoadStructure(store, ds.Structure.Path())
+		st, err := loadStructure(store, ds.Structure.Path())
 		if err != nil {
 			return fmt.Errorf("error loading dataset structure: %s", err.Error())
 		}
@@ -102,7 +102,7 @@ func DerefDatasetStructure(store cafs.Filestore, ds *dataset.Dataset) error {
 // should be a no-op if ds.VisConfig is nil or isn't a reference
 func DerefDatasetVisConfig(store cafs.Filestore, ds *dataset.Dataset) error {
 	if ds.VisConfig != nil && ds.VisConfig.IsEmpty() && ds.VisConfig.Path().String() != "" {
-		st, err := LoadVisConfig(store, ds.VisConfig.Path())
+		st, err := loadVisConfig(store, ds.VisConfig.Path())
 		if err != nil {
 			return fmt.Errorf("error loading dataset visconfig: %s", err.Error())
 		}
@@ -117,7 +117,7 @@ func DerefDatasetVisConfig(store cafs.Filestore, ds *dataset.Dataset) error {
 // should be a no-op if ds.Structure is nil or isn't a reference
 func DerefDatasetTransform(store cafs.Filestore, ds *dataset.Dataset) error {
 	if ds.Transform != nil && ds.Transform.IsEmpty() && ds.Transform.Path().String() != "" {
-		t, err := LoadTransform(store, ds.Transform.Path())
+		t, err := loadTransform(store, ds.Transform.Path())
 		if err != nil {
 			return fmt.Errorf("error loading dataset transform: %s", err.Error())
 		}
@@ -132,7 +132,7 @@ func DerefDatasetTransform(store cafs.Filestore, ds *dataset.Dataset) error {
 // should be a no-op if ds.Structure is nil or isn't a reference
 func DerefDatasetMeta(store cafs.Filestore, ds *dataset.Dataset) error {
 	if ds.Meta != nil && ds.Meta.IsEmpty() && ds.Meta.Path().String() != "" {
-		md, err := LoadMeta(store, ds.Meta.Path())
+		md, err := loadMeta(store, ds.Meta.Path())
 		if err != nil {
 			return fmt.Errorf("error loading dataset metadata: %s", err.Error())
 		}
@@ -147,7 +147,7 @@ func DerefDatasetMeta(store cafs.Filestore, ds *dataset.Dataset) error {
 // should be a no-op if ds.Structure is nil or isn't a reference
 func DerefDatasetCommit(store cafs.Filestore, ds *dataset.Dataset) error {
 	if ds.Commit != nil && ds.Commit.IsEmpty() && ds.Commit.Path().String() != "" {
-		cm, err := LoadCommit(store, ds.Commit.Path())
+		cm, err := loadCommit(store, ds.Commit.Path())
 		if err != nil {
 			return fmt.Errorf("error loading dataset commit: %s", err.Error())
 		}

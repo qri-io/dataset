@@ -20,6 +20,11 @@ func SaveCommit(store cafs.Filestore, s *dataset.Commit, pin bool) (path datasto
 // LoadCommit loads a commit from a given path in a store
 func LoadCommit(store cafs.Filestore, path datastore.Key) (st *dataset.Commit, err error) {
 	path = PackageKeypath(store, path, PackageFileCommit)
+	return loadCommit(store, path)
+}
+
+// loadCommit assumes the provided path is valid
+func loadCommit(store cafs.Filestore, path datastore.Key) (st *dataset.Commit, err error) {
 	data, err := fileBytes(store.Get(path))
 	if err != nil {
 		return nil, fmt.Errorf("error loading commit file: %s", err.Error())
