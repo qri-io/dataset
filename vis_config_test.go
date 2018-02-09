@@ -10,7 +10,7 @@ import (
 
 var VisConfig1 = &VisConfig{
 	Format: "foo",
-	Kind:   KindVisConfig,
+	Qri:    KindVisConfig,
 	Visualizations: map[string]interface{}{
 		"type": "bar",
 		"colors": map[string]interface{}{
@@ -22,13 +22,13 @@ var VisConfig1 = &VisConfig{
 
 var VisConfig2 = &VisConfig{
 	Format:         "bar",
-	Kind:           KindVisConfig,
+	Qri:            KindVisConfig,
 	Visualizations: []interface{}{"foo", "bar"},
 }
 
 var VisConfig3 = &VisConfig{
 	Format:         "bar",
-	Kind:           KindVisConfig,
+	Qri:            KindVisConfig,
 	Visualizations: float64(10),
 }
 
@@ -43,27 +43,27 @@ func TestVisConfigAssign(t *testing.T) {
 		{&VisConfig{}, VisConfig1, VisConfig1, ""},
 		{&VisConfig{
 			Format:         "bar",
-			Kind:           KindVisConfig,
+			Qri:            KindVisConfig,
 			Visualizations: float64(10),
 		},
 			VisConfig2, VisConfig2, ""},
 		{&VisConfig{
 			Format:         "bar",
-			Kind:           KindVisConfig,
+			Qri:            KindVisConfig,
 			Visualizations: float64(10),
 		},
 			VisConfig2, VisConfig3, "Visualizations not equal"},
 		{&VisConfig{
 			path:           datastore.NewKey("foo"),
 			Format:         "foo",
-			Kind:           KindVisConfig,
+			Qri:            KindVisConfig,
 			Visualizations: float64(10),
 		},
 			&VisConfig{path: datastore.NewKey("bar"), Format: "bar"},
 			&VisConfig{
 				path:           datastore.NewKey("foo"),
 				Format:         "bar",
-				Kind:           KindVisConfig,
+				Qri:            KindVisConfig,
 				Visualizations: float64(10),
 			}, ""},
 	}
@@ -82,7 +82,7 @@ func TestVisConfigIsEmpty(t *testing.T) {
 		vc       *VisConfig
 		expected bool
 	}{
-		{&VisConfig{Kind: KindVisConfig}, true},
+		{&VisConfig{Qri: KindVisConfig}, true},
 		// {&VisConfig{DataPath: "foo"}, false},
 		{&VisConfig{Visualizations: "bar"}, false},
 		{&VisConfig{}, true},
@@ -151,10 +151,10 @@ func TestVisConfigMarshalJSON(t *testing.T) {
 		out []byte
 		err string
 	}{
-		{&VisConfig{}, []byte(`{"kind":"vc:0"}`), ""},
-		{&VisConfig{Kind: KindVisConfig}, []byte(`{"kind":"vc:0"}`), ""},
-		{&VisConfig{Format: "foo", Kind: KindVisConfig}, []byte(`{"format":"foo","kind":"vc:0"}`), ""},
-		{VisConfig1, []byte(`{"format":"foo","kind":"vc:0","visualizations":{"colors":{"background":"#000000","bars":"#ffffff"},"type":"bar"}}`), ""},
+		{&VisConfig{}, []byte(`{"qri":"vc:0"}`), ""},
+		{&VisConfig{Qri: KindVisConfig}, []byte(`{"qri":"vc:0"}`), ""},
+		{&VisConfig{Format: "foo", Qri: KindVisConfig}, []byte(`{"format":"foo","qri":"vc:0"}`), ""},
+		{VisConfig1, []byte(`{"format":"foo","qri":"vc:0","visualizations":{"colors":{"background":"#000000","bars":"#ffffff"},"type":"bar"}}`), ""},
 		{&VisConfig{path: datastore.NewKey("/map/QmXo5LE3WVfKZKzTrrgtUUX3nMK4VREKTAoBu5WAGECz4U")}, []byte(`"/map/QmXo5LE3WVfKZKzTrrgtUUX3nMK4VREKTAoBu5WAGECz4U"`), ""},
 		{&VisConfig{path: datastore.NewKey("/map/QmUaMozKVkjPf7CVf3Zd8Cy5Ex1i9oUdhYhU8uTJph5iFD")}, []byte(`"/map/QmUaMozKVkjPf7CVf3Zd8Cy5Ex1i9oUdhYhU8uTJph5iFD"`), ""},
 	}
@@ -189,11 +189,11 @@ func TestVisConfigMarshalJSON(t *testing.T) {
 // 		out []byte
 // 		err string
 // 	}{
-// 		{&VisConfig{}, []byte(`{"kind":"vc:0"}`), ""},
-// 		{&VisConfig{Kind: KindVisConfig}, []byte(`{"kind":"vc:0"}`), ""},
-// 		{&VisConfig{Format: "foo", Kind: KindVisConfig}, []byte(`{"format":"foo","kind":"vc:0"}`), ""},
-// 		{VisConfig1, []byte(`{"format":"foo","kind":"vc:0","visualizations":{"colors":{"background":"#000000","bars":"#ffffff"},"type":"bar"}}`), ""},
-// 		{&VisConfig{path: datastore.NewKey("/map/QmXo5LE3WVfKZKzTrrgtUUX3nMK4VREKTAoBu5WAGECz4U")}, []byte(`{"kind":"vc:0"}`), ""},
+// 		{&VisConfig{}, []byte(`{"qri":"vc:0"}`), ""},
+// 		{&VisConfig{Qri: KindVisConfig}, []byte(`{"qri":"vc:0"}`), ""},
+// 		{&VisConfig{Format: "foo", Qri: KindVisConfig}, []byte(`{"format":"foo","qri":"vc:0"}`), ""},
+// 		{VisConfig1, []byte(`{"format":"foo","qri":"vc:0","visualizations":{"colors":{"background":"#000000","bars":"#ffffff"},"type":"bar"}}`), ""},
+// 		{&VisConfig{path: datastore.NewKey("/map/QmXo5LE3WVfKZKzTrrgtUUX3nMK4VREKTAoBu5WAGECz4U")}, []byte(`{"qri":"vc:0"}`), ""},
 // 	}
 
 // 	for i, c := range cases {
@@ -226,10 +226,10 @@ func TestVisConfigMarshalJSONObject(t *testing.T) {
 		out []byte
 		err string
 	}{
-		{&VisConfig{}, []byte(`{"kind":"vc:0"}`), ""},
-		{&VisConfig{Kind: KindVisConfig}, []byte(`{"kind":"vc:0"}`), ""},
-		{&VisConfig{Format: "foo", Kind: KindVisConfig}, []byte(`{"format":"foo","kind":"vc:0"}`), ""},
-		{VisConfig1, []byte(`{"format":"foo","kind":"vc:0","visualizations":{"colors":{"background":"#000000","bars":"#ffffff"},"type":"bar"}}`), ""},
+		{&VisConfig{}, []byte(`{"qri":"vc:0"}`), ""},
+		{&VisConfig{Qri: KindVisConfig}, []byte(`{"qri":"vc:0"}`), ""},
+		{&VisConfig{Format: "foo", Qri: KindVisConfig}, []byte(`{"format":"foo","qri":"vc:0"}`), ""},
+		{VisConfig1, []byte(`{"format":"foo","qri":"vc:0","visualizations":{"colors":{"background":"#000000","bars":"#ffffff"},"type":"bar"}}`), ""},
 	}
 
 	for i, c := range cases {
@@ -249,7 +249,7 @@ func TestVisConfigMarshalJSONObject(t *testing.T) {
 }
 
 func TestUnmarshalVisConfig(t *testing.T) {
-	vc := VisConfig{Kind: KindVisConfig, Format: "foo"}
+	vc := VisConfig{Qri: KindVisConfig, Format: "foo"}
 	cases := []struct {
 		value interface{}
 		out   *VisConfig
@@ -257,7 +257,7 @@ func TestUnmarshalVisConfig(t *testing.T) {
 	}{
 		{vc, &vc, ""},
 		{&vc, &vc, ""},
-		{[]byte("{\"kind\":\"vc:0\"}"), &VisConfig{Kind: KindVisConfig}, ""},
+		{[]byte("{\"qri\":\"vc:0\"}"), &VisConfig{Qri: KindVisConfig}, ""},
 		{5, nil, "couldn't parse VisConfig, value is invalid type"},
 	}
 

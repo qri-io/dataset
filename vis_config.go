@@ -10,8 +10,8 @@ import (
 type VisConfig struct {
 	// private storage for reference to this object
 	path datastore.Key
-	// Kind should always be "qri:vc:0"
-	Kind Kind
+	// Qri should always be "vc:0"
+	Qri Kind
 	// Format designates the visualization configuration syntax
 	Format string
 	// Visualizations lists concrete configuration details. Top level must always
@@ -55,8 +55,8 @@ func (v *VisConfig) Assign(visConfigs ...*VisConfig) {
 		if vs.path.String() != "" {
 			v.path = vs.path
 		}
-		if vs.Kind != "" {
-			v.Kind = vs.Kind
+		if vs.Qri != "" {
+			v.Qri = vs.Qri
 		}
 		if vs.Format != "" {
 			v.Format = vs.Format
@@ -75,7 +75,7 @@ func (v *VisConfig) Assign(visConfigs ...*VisConfig) {
 type _visconfig struct {
 	// DataPath       string      `json:"datapath,omitempty"`
 	Format         string      `json:"format,omitempty"`
-	Kind           Kind        `json:"kind,omitempty"`
+	Qri            Kind        `json:"qri,omitempty"`
 	Visualizations interface{} `json:"visualizations,omitempty"`
 }
 
@@ -104,7 +104,7 @@ func (v *VisConfig) UnmarshalJSON(data []byte) error {
 	*v = VisConfig{
 		// DataPath:       _v.DataPath,
 		Format:         _v.Format,
-		Kind:           _v.Kind,
+		Qri:            _v.Qri,
 		Visualizations: _v.Visualizations,
 	}
 	return nil
@@ -130,7 +130,7 @@ func UnmarshalVisConfig(v interface{}) (*VisConfig, error) {
 // MarshalJSONObject always marshals to a json Object, even if VisConfig is empty or a reference
 func (v *VisConfig) MarshalJSONObject() ([]byte, error) {
 	data := map[string]interface{}{}
-	data["kind"] = KindVisConfig
+	data["qri"] = KindVisConfig
 
 	if v.Format != "" {
 		data["format"] = v.Format

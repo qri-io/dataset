@@ -1,6 +1,6 @@
 {
   "format": "foo",
-  "kind": "vc:0",
+  "qri": "vc:0",
   "visualizations": {
   	"type": "bar",
   	"colors": {
