@@ -335,6 +335,11 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 		return nil, "", fmt.Errorf("error saving: no changes detected")
 	}
 
+	if ds.Commit.Title == "" && ds.Commit.Message != "" {
+		ds.Commit.Title = ds.Commit.Message
+		ds.Commit.Message = ""
+	}
+
 	if ds.Commit.Title == "" {
 		ds.Commit.Title = diffDescription
 	}
