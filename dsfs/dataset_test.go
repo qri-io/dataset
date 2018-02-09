@@ -214,11 +214,12 @@ func TestCreateDataset(t *testing.T) {
 		t.Errorf("case nil datafile and no PreviousPath, error mismatch: expected '%s', got '%s'", expectedErr, err.Error())
 	}
 	// take path from previous case
-	// ds.PreviousPath = cases[2].resultPath
-	// _, err = CreateDataset(store, ds, nil, privKey, false)
-	// if err != nil {
-	// 	t.Errorf("case nil datafile and PreviousPath, error mismatch: expected no error, got '%s'", err.Error())
-	// }
+	ds.PreviousPath = cases[2].resultPath
+	expectedErr = "error saving: no changes detected"
+	_, err = CreateDataset(store, ds, nil, privKey, false)
+	if err.Error() != expectedErr {
+		t.Errorf("case nil datafile and no PreviousPath, error mismatch: expected '%s', got '%s'", expectedErr, err.Error())
+	}
 	if len(store.(memfs.MapStore)) != 17 {
 		t.Errorf("case nil datafile and PreviousPath, expected invalid number of entries: %d != %d", 17, len(store.(memfs.MapStore)))
 		_, err := store.(memfs.MapStore).Print()
