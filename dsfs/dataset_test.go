@@ -145,9 +145,7 @@ func TestCreateDataset(t *testing.T) {
 		{"testdata/bad/invalid.json", "testdata/cities.csv", "", "", 0, "commit is required"},
 		{"testdata/cities.json", "testdata/cities.csv", "cities.csv", "/map/QmebrWmmBt2GmfYAT69vioaMb1Rp2aTfQm1jac7KEWHKNa", 7, ""},
 		{"testdata/complete.json", "testdata/complete.csv", "complete.csv", "/map/Qmehg2driQVjsGpf44p37EekpbLVXcu8kigP59j1ob24fD", 15, ""},
-		{"testdata/cities_no_commit_title.json", "testdata/cities.csv", "cities.csv", "/map/QmWF1hfiHiDs2wQp2WCmG1Xbj8rhby5REwFbqg4AXBsxA3", 17, ""},
-		// {"testdata/complete.json", "testdata/complete.csv", "complete.csv", "/map/QmQ2CuZ8dbKqjyaKvoQwynXgqnxPKTywojNVJ2Jpj2yb6c", 14, ""},
-		// {"testdata/cities_no_commit_title.json", "testdata/cities.csv", "cities.csv", "/map/QmUaMozKVkjPf7CVf3Zd8Cy5Ex1i9oUdhYhU8uTJph5iFD", 16, ""},
+		{"testdata/cities_no_commit_title.json", "testdata/cities.csv", "cities.csv", "/map/QmY5TnPy9xWBpqqcqBfcCKChKgfmdS149WnaGDrbnVhWLa", 17, ""},
 	}
 
 	for i, c := range cases {
@@ -217,12 +215,13 @@ func TestCreateDataset(t *testing.T) {
 	}
 	// take path from previous case
 	ds.PreviousPath = cases[2].resultPath
+	expectedErr = "error saving: no changes detected"
 	_, err = CreateDataset(store, ds, nil, privKey, false)
-	if err != nil {
-		t.Errorf("case nil datafile and PreviousPath, error mismatch: expected no error, got '%s'", err.Error())
+	if err.Error() != expectedErr {
+		t.Errorf("case nil datafile and no PreviousPath, error mismatch: expected '%s', got '%s'", expectedErr, err.Error())
 	}
-	if len(store.(memfs.MapStore)) != 18 {
-		t.Errorf("case nil datafile and PreviousPath, expected invalid number of entries: %d != %d", 18, len(store.(memfs.MapStore)))
+	if len(store.(memfs.MapStore)) != 17 {
+		t.Errorf("case nil datafile and PreviousPath, expected invalid number of entries: %d != %d", 17, len(store.(memfs.MapStore)))
 		_, err := store.(memfs.MapStore).Print()
 		if err != nil {
 			panic(err)

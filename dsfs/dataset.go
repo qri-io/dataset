@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"strings"
 	"time"
 
 	"github.com/ipfs/go-datastore"
@@ -228,12 +229,45 @@ func generateCommitMsg(store cafs.Filestore, ds *dataset.Dataset) (string, error
 		err = fmt.Errorf("error diffing datasets: %s", err.Error())
 		return "", err
 	}
+
 	diffDescription, err := datasetDiffer.MapDiffsToString(diffMap, "listKeys")
 	if err != nil {
 		return "", err
 	}
 	// ds.Commit.Title = diffDescription
 	return diffDescription, nil
+}
+
+// cleanTitleAndMessage adjusts the title to include no more
+// than 70 characters and no more than one line.  Text following
+// a line break or this limit will be prepended to the message
+func cleanTitleAndMessage(sTitle, sMsg *string) {
+	st := *sTitle
+	sm := *sMsg
+	// if title is blank move pass message up to title
+	if st == "" {
+		st = sm
+		sm = ""
+	}
+	//adjust for length
+	if len(st) > 70 {
+		cutIndex := 66
+		lastSpaceIndex := strings.LastIndex(st[:67], " ")
+		if lastSpaceIndex > 0 {
+			cutIndex = lastSpaceIndex + 1
+		}
+		sm = fmt.Sprintf("...%s\n%s", st[cutIndex:], sm)
+		st = fmt.Sprintf("%s...", st[:cutIndex])
+	}
+	// adjust for line breaks
+	newlineIndex := strings.Index(st, "\n")
+	if newlineIndex > 0 {
+		sm = fmt.Sprintf("%s\n%s", st[newlineIndex+1:], sm)
+		st = st[:newlineIndex]
+
+	}
+	*sTitle = st
+	*sMsg = sm
 }
 
 // prepareDataset modifies a dataset in preparation for adding to a dsfs
@@ -297,10 +331,20 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 	if err != nil {
 		return nil, "", fmt.Errorf("%s", err.Error())
 	}
+	if diffDescription == "" {
+		return nil, "", fmt.Errorf("error saving: no changes detected")
+	}
+
+	if ds.Commit.Title == "" && ds.Commit.Message != "" {
+		ds.Commit.Title = ds.Commit.Message
+		ds.Commit.Message = ""
+	}
 
 	if ds.Commit.Title == "" {
 		ds.Commit.Title = diffDescription
 	}
+	cleanTitleAndMessage(&ds.Commit.Title, &ds.Commit.Message)
+
 	ds.Commit.Timestamp = timestamp()
 	signedBytes, err := privKey.Sign(ds.Commit.SignableBytes())
 	if err != nil {
