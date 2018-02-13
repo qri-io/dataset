@@ -109,12 +109,12 @@ func TestLoadDataset(t *testing.T) {
 
 func TestCreateDataset(t *testing.T) {
 	store := memfs.NewMapstore()
-	prev := timestamp
+	prev := Timestamp
 	// shameless call to timestamp to get the coverge points
-	timestamp()
+	Timestamp()
 
-	defer func() { timestamp = prev }()
-	timestamp = func() time.Time { return time.Date(2001, 01, 01, 01, 01, 01, 01, time.UTC) }
+	defer func() { Timestamp = prev }()
+	Timestamp = func() time.Time { return time.Date(2001, 01, 01, 01, 01, 01, 01, time.UTC) }
 
 	privKey, err := crypto.UnmarshalPrivateKey(testPk)
 	if err != nil {
@@ -231,9 +231,9 @@ func TestCreateDataset(t *testing.T) {
 
 func TestWriteDataset(t *testing.T) {
 	store := memfs.NewMapstore()
-	prev := timestamp
-	defer func() { timestamp = prev }()
-	timestamp = func() time.Time { return time.Date(2001, 01, 01, 01, 01, 01, 01, time.UTC) }
+	prev := Timestamp
+	defer func() { Timestamp = prev }()
+	Timestamp = func() time.Time { return time.Date(2001, 01, 01, 01, 01, 01, 01, time.UTC) }
 
 	if _, err := WriteDataset(store, nil, nil, true); err == nil || err.Error() != "cannot save empty dataset" {
 		t.Errorf("didn't reject empty dataset: %s", err)
