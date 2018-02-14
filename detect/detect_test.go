@@ -15,10 +15,12 @@ func TestFromFile(t *testing.T) {
 		err            string
 	}{
 		{"not/a/file.csv", "", "open not/a/file.csv: no such file or directory"},
-		{"testdata/hours-with-header.csv", "testdata/hours-with-header.resource.json", ""},
-		{"testdata/hours.csv", "testdata/hours.resource.json", ""},
-		{"testdata/spelling.csv", "testdata/spelling.resource.json", ""},
-		{"testdata/daily_wind_2011.csv", "testdata/daily_wind_2011.resource.json", ""},
+		{"testdata/hours-with-header.csv", "testdata/hours-with-header.structure.json", ""},
+		{"testdata/hours.csv", "testdata/hours.structure.json", ""},
+		{"testdata/spelling.csv", "testdata/spelling.structure.json", ""},
+		{"testdata/daily_wind_2011.csv", "testdata/daily_wind_2011.structure.json", ""},
+		{"testdata/sitemap_array.json", "testdata/sitemap_array.structure.json", ""},
+		{"testdata/sitemap_object.json", "testdata/sitemap_object.structure.json", ""},
 	}
 
 	for i, c := range cases {
