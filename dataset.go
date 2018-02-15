@@ -85,6 +85,16 @@ func Abstract(ds *Dataset) *Dataset {
 	return abs
 }
 
+// SetPath sets the internal path property of a dataset
+// Use with caution. most callers should never need to call SetPath
+func (ds *Dataset) SetPath(path string) {
+	if path == "" {
+		ds.path = datastore.Key{}
+	} else {
+		ds.path = datastore.NewKey(path)
+	}
+}
+
 // Assign collapses all properties of a group of datasets onto one.
 // this is directly inspired by Javascript's Object.assign
 func (ds *Dataset) Assign(datasets ...*Dataset) {

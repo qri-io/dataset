@@ -86,6 +86,25 @@ func TestStructureIsEmpty(t *testing.T) {
 	}
 }
 
+func TestStructureSetPath(t *testing.T) {
+	cases := []struct {
+		path   string
+		expect *Structure
+	}{
+		{"", &Structure{path: datastore.Key{}}},
+		{"path", &Structure{path: datastore.NewKey("path")}},
+	}
+
+	for i, c := range cases {
+		got := &Structure{}
+		got.SetPath(c.path)
+		if err := CompareStructures(c.expect, got); err != nil {
+			t.Errorf("case %d error: %s", i, err)
+			continue
+		}
+	}
+}
+
 func TestStructureAssign(t *testing.T) {
 	expect := &Structure{
 		Format: CSVDataFormat,

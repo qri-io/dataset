@@ -48,6 +48,16 @@ func (cm *Commit) SignableBytes() []byte {
 	return []byte(fmt.Sprintf("%s\n%s", cm.Timestamp.Format(time.RFC3339), cm.Title))
 }
 
+// SetPath sets the internal path property of a commit
+// Use with caution. most callers should never need to call SetPath
+func (cm *Commit) SetPath(path string) {
+	if path == "" {
+		cm.path = datastore.Key{}
+	} else {
+		cm.path = datastore.NewKey(path)
+	}
+}
+
 // Assign collapses all properties of a set of Commit onto one.
 // this is directly inspired by Javascript's Object.assign
 func (cm *Commit) Assign(msgs ...*Commit) {

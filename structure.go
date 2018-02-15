@@ -195,6 +195,16 @@ func (s *Structure) IsEmpty() bool {
 		s.Schema == nil
 }
 
+// SetPath sets the internal path property of a Structure
+// Use with caution. most callers should never need to call SetPath
+func (s *Structure) SetPath(path string) {
+	if path == "" {
+		s.path = datastore.Key{}
+	} else {
+		s.path = datastore.NewKey(path)
+	}
+}
+
 // Assign collapses all properties of a group of structures on to one
 // this is directly inspired by Javascript's Object.assign
 func (s *Structure) Assign(structures ...*Structure) {

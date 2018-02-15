@@ -32,6 +32,25 @@ var VisConfig3 = &VisConfig{
 	Visualizations: float64(10),
 }
 
+func TestVisConfigSetPath(t *testing.T) {
+	cases := []struct {
+		path   string
+		expect *VisConfig
+	}{
+		{"", &VisConfig{path: datastore.Key{}}},
+		{"path", &VisConfig{path: datastore.NewKey("path")}},
+	}
+
+	for i, c := range cases {
+		got := &VisConfig{}
+		got.SetPath(c.path)
+		if err := CompareVisConfigs(c.expect, got); err != nil {
+			t.Errorf("case %d error: %s", i, err)
+			continue
+		}
+	}
+}
+
 func TestVisConfigAssign(t *testing.T) {
 	cases := []struct {
 		got    *VisConfig

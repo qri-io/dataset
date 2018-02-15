@@ -109,6 +109,16 @@ func UnmarshalMeta(v interface{}) (*Meta, error) {
 	}
 }
 
+// SetPath sets the internal path property of a Meta
+// Use with caution. most callers should never need to call SetPath
+func (md *Meta) SetPath(path string) {
+	if path == "" {
+		md.path = datastore.Key{}
+	} else {
+		md.path = datastore.NewKey(path)
+	}
+}
+
 // Assign collapses all properties of a group of metadata structs onto one.
 // this is directly inspired by Javascript's Object.assign
 func (md *Meta) Assign(metas ...*Meta) {

@@ -9,6 +9,25 @@ import (
 	"github.com/ipfs/go-datastore"
 )
 
+func TestDatasetSetPath(t *testing.T) {
+	cases := []struct {
+		path   string
+		expect *Dataset
+	}{
+		{"", &Dataset{path: datastore.Key{}}},
+		{"path", &Dataset{path: datastore.NewKey("path")}},
+	}
+
+	for i, c := range cases {
+		got := &Dataset{}
+		got.SetPath(c.path)
+		if err := CompareDatasets(c.expect, got); err != nil {
+			t.Errorf("case %d error: %s", i, err)
+			continue
+		}
+	}
+}
+
 func TestDatasetAssign(t *testing.T) {
 	// TODO - expand test to check all fields
 	cases := []struct {
@@ -29,6 +48,7 @@ func TestDatasetAssign(t *testing.T) {
 	for i, c := range cases {
 		got := &Dataset{}
 		got.Assign(c.in)
+		// assign resets the path:
 		if err := CompareDatasets(c.in, got); err != nil {
 			t.Errorf("case %d error: %s", i, err.Error())
 			continue
