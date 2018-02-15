@@ -23,6 +23,18 @@ func TestJSONReader(t *testing.T) {
 			FormatConfig: &dataset.JSONOptions{
 				ArrayEntries: false,
 			}}, "testdata/city_data.json", 6, ""},
+		{&dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: jsonschema.Must(`{ "type" : "object" }`),
+		}, "testdata/sitemap_object.json", 10, ""},
+		{&dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: jsonschema.Must(`{ "type" : "object" }`),
+		}, "testdata/links_object.json", 20, ""},
+		{&dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: jsonschema.Must(`{ "type" : "array" }`),
+		}, "testdata/links_array.json", 20, ""},
 	}
 
 	for i, c := range cases {
