@@ -20,6 +20,25 @@ func TestCommit(t *testing.T) {
 	}
 }
 
+func TestCommitSetPath(t *testing.T) {
+	cases := []struct {
+		path   string
+		expect *Commit
+	}{
+		{"", &Commit{path: datastore.Key{}}},
+		{"path", &Commit{path: datastore.NewKey("path")}},
+	}
+
+	for i, c := range cases {
+		got := &Commit{}
+		got.SetPath(c.path)
+		if err := CompareCommits(c.expect, got); err != nil {
+			t.Errorf("case %d error: %s", i, err)
+			continue
+		}
+	}
+}
+
 func TestCommitAssign(t *testing.T) {
 	t1 := time.Now()
 	doug := &User{ID: "doug_id", Email: "doug@example.com"}

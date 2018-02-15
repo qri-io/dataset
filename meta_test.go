@@ -10,6 +10,25 @@ import (
 	"github.com/ipfs/go-datastore"
 )
 
+func TestMetaSetPath(t *testing.T) {
+	cases := []struct {
+		path   string
+		expect *Meta
+	}{
+		{"", &Meta{path: datastore.Key{}}},
+		{"path", &Meta{path: datastore.NewKey("path")}},
+	}
+
+	for i, c := range cases {
+		got := &Meta{}
+		got.SetPath(c.path)
+		if err := CompareMetas(c.expect, got); err != nil {
+			t.Errorf("case %d error: %s", i, err)
+			continue
+		}
+	}
+}
+
 func TestMetaAssign(t *testing.T) {
 	// TODO - expand test to check all fields
 	cases := []struct {
@@ -20,14 +39,14 @@ func TestMetaAssign(t *testing.T) {
 		{&Meta{DownloadPath: "foo"}},
 		{&Meta{ReadmePath: "foo"}},
 		{&Meta{AccrualPeriodicity: "1W"}},
-		{&Meta{Citations: []*Citation{&Citation{Email: "foo"}}}},
+		{&Meta{Citations: []*Citation{{Email: "foo"}}}},
 		{&Meta{Description: "foo"}},
 		{&Meta{HomePath: "foo"}},
 		{&Meta{Identifier: "foo"}},
 		{&Meta{License: &License{Type: "foo"}}},
 		{&Meta{Version: "foo"}},
 		{&Meta{Keywords: []string{"foo"}}},
-		{&Meta{Contributors: []*User{&User{Email: "foo"}}}},
+		{&Meta{Contributors: []*User{{Email: "foo"}}}},
 		{&Meta{Language: []string{"stuff"}}},
 		{&Meta{Theme: []string{"stuff"}}},
 		{&Meta{meta: map[string]interface{}{"foo": "bar"}}},

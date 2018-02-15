@@ -66,6 +66,16 @@ func (q *Transform) IsEmpty() bool {
 		q.Config == nil
 }
 
+// SetPath sets the internal path property of a Transform
+// Use with caution. most callers should never need to call SetPath
+func (q *Transform) SetPath(path string) {
+	if path == "" {
+		q.path = datastore.Key{}
+	} else {
+		q.path = datastore.NewKey(path)
+	}
+}
+
 // Assign collapses all properties of a group of queries onto one.
 // this is directly inspired by Javascript's Object.assign
 func (q *Transform) Assign(qs ...*Transform) {

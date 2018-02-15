@@ -8,6 +8,25 @@ import (
 	"github.com/ipfs/go-datastore"
 )
 
+func TestTransformSetPath(t *testing.T) {
+	cases := []struct {
+		path   string
+		expect *Transform
+	}{
+		{"", &Transform{path: datastore.Key{}}},
+		{"path", &Transform{path: datastore.NewKey("path")}},
+	}
+
+	for i, c := range cases {
+		got := &Transform{}
+		got.SetPath(c.path)
+		if err := CompareTransforms(c.expect, got); err != nil {
+			t.Errorf("case %d error: %s", i, err)
+			continue
+		}
+	}
+}
+
 func TestTransformAssign(t *testing.T) {
 	expect := &Transform{
 		path:       datastore.NewKey("path"),

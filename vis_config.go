@@ -44,6 +44,16 @@ func (v *VisConfig) IsEmpty() bool {
 	// v.Format == "" && v.DataPath == "" && v.Visualizations == nil
 }
 
+// SetPath sets the internal path property of a VisConfig
+// Use with caution. most callers should never need to call SetPath
+func (v *VisConfig) SetPath(path string) {
+	if path == "" {
+		v.path = datastore.Key{}
+	} else {
+		v.path = datastore.NewKey(path)
+	}
+}
+
 // Assign collapses all properties of a group of structures on to one
 // this is directly inspired by Javascript's Object.assign
 func (v *VisConfig) Assign(visConfigs ...*VisConfig) {
