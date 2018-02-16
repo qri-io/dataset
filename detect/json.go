@@ -3,6 +3,7 @@ package detect
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"io"
 
 	"github.com/qri-io/dataset"
@@ -10,21 +11,25 @@ import (
 )
 
 var (
-	stdArraySchema  = jsonschema.Must(`{"type":"array"}`)
-	stdObjectSchema = jsonschema.Must(`{"type":"object"}`)
+	// BaseSchemaJSONArray is a minimum schema for the json file format, specifying that the top
+	// level of the document is an array
+	BaseSchemaJSONArray = jsonschema.Must(`{"type":"array"}`)
+	// BaseSchemaJSONObject is a minimum schema for the json format, specifying that the top level
+	// of the document is an object
+	BaseSchemaJSONObject = jsonschema.Must(`{"type":"object"}`)
 )
 
 // JSONSchema determines the field names and types of an io.Reader of JSON-formatted data, returning a json schema
 func JSONSchema(resource *dataset.Structure, data io.Reader) (schema *jsonschema.RootSchema, err error) {
 	rd := bufio.NewReader(data)
 	lin, err := rd.ReadSlice('{')
-	if err != nil {
-		return nil, err
+	if err != nil && err != io.EOF {
+		return nil, fmt.Errorf("error reading data: %s", err.Error())
 	}
 
 	if bytes.Contains(lin, []byte{'['}) {
-		return stdArraySchema, nil
+		return BaseSchemaJSONArray, nil
 	}
 
-	return stdObjectSchema, nil
+	return BaseSchemaJSONObject, nil
 }

@@ -25,17 +25,17 @@ func TestUnmarshalJSON(t *testing.T) {
 		{`{ "city" : "toronto", "pop" : 40000000, "avg_age" : 55.5 , "in_usa" : false }`, *object0, ""},
 		{`["a", false, null, 2, 23.5]`, *array0, ""},
 
-		// not passing:
+		// TODO - not passing:
 		//   - expected: vals.Array{true, true, true},
 		//   - got: vals.Array{false, false, false}
 		// {`[null, null, null]`, Array{Null(true), Null(true), Null(true)}, ""},
 
-		// not passing:
+		// TODO - not passing:
 		//   - expected: vals.Array{vals.Array{"a", ...}, vals.Array{"a", ...}},
 		//   - got: vals.Array{vals.Value(nil), vals.Value(nil)}
 		// {`[["a", false, null, 2, 23.5],["a", false, null, 2, 23.5]]`, *array1, ""},
 
-		// not passing:
+		// TODO - not passing:
 		//   - expected: vals.Array{vals.Object{"city":"toronto"...}, vals.Object{"city":"toronto"...}},
 		//   - got: vals.Array{vals.Value(nil), vals.Value(nil)}
 		// {`[{ "city" : "toronto", "pop" : 40000000, "avg_age" : 55.5 , "in_usa" : false },{ "city" : "toronto", "pop" : 40000000, "avg_age" : 55.5 , "in_usa" : false }]`, *array2, ""},

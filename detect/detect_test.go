@@ -21,6 +21,8 @@ func TestFromFile(t *testing.T) {
 		{"testdata/daily_wind_2011.csv", "testdata/daily_wind_2011.structure.json", ""},
 		{"testdata/sitemap_array.json", "testdata/sitemap_array.structure.json", ""},
 		{"testdata/sitemap_object.json", "testdata/sitemap_object.structure.json", ""},
+		{"testdata/array.json", "testdata/sitemap_array.structure.json", ""},
+		{"testdata/object.json", "testdata/sitemap_object.structure.json", ""},
 	}
 
 	for i, c := range cases {

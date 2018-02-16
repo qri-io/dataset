@@ -70,22 +70,13 @@ func NewJSONOptions(opts map[string]interface{}) (FormatConfig, error) {
 	if opts == nil {
 		return o, nil
 	}
-	if opts["arrayEntries"] != nil {
-		if arrayEntries, ok := opts["arrayEntries"].(bool); ok {
-			o.ArrayEntries = arrayEntries
-		} else {
-			return nil, fmt.Errorf("invalid arrayEntries value: %s", opts["arrayEntries"])
-		}
-	}
 	return o, nil
 }
 
-// JSONOptions specifies configuration details for json files
-// note that is for treating json files as a *dataset*, not
-// the JSON datatype from the github.com/qri-io/dataset/datatypes
-// package
+// JSONOptions specifies configuration details for json file format
 type JSONOptions struct {
-	ArrayEntries bool `json:"arrayEntries"`
+	// TODO:
+	// Indent string
 }
 
 // Format announces the JSON Data Format for the FormatConfig interface
@@ -98,7 +89,5 @@ func (o *JSONOptions) Map() map[string]interface{} {
 	if o == nil {
 		return nil
 	}
-	return map[string]interface{}{
-		"arrayEntries": o.ArrayEntries,
-	}
+	return map[string]interface{}{}
 }

@@ -1,4 +1,4 @@
-// Package dsio defines writers & readers for dataset data
+// Package dsio defines writers & readers for operating on "container" data structures (objects and arrays)
 package dsio
 
 import (
@@ -28,8 +28,8 @@ type ValueReader interface {
 	ReadValue() (vals.Value, error)
 }
 
-// RowReadWriter combines ValueWriter and ValueReader behaviors
-type RowReadWriter interface {
+// ValueReadWriter combines ValueWriter and ValueReader behaviors
+type ValueReadWriter interface {
 	// Structure gives the structure being read and written
 	Structure() *dataset.Structure
 	// ReadVal reads one row of structured data from the reader
@@ -49,7 +49,7 @@ func NewValueReader(st *dataset.Structure, r io.Reader) (ValueReader, error) {
 	case dataset.CSVDataFormat:
 		return NewCSVReader(st, r), nil
 	case dataset.JSONDataFormat:
-		return NewJSONReader(st, r), nil
+		return NewJSONReader(st, r)
 	case dataset.CDXJDataFormat:
 		return NewCDXJReader(st, r), nil
 	case dataset.UnknownDataFormat:
@@ -65,7 +65,7 @@ func NewValueWriter(st *dataset.Structure, w io.Writer) (ValueWriter, error) {
 	case dataset.CSVDataFormat:
 		return NewCSVWriter(st, w), nil
 	case dataset.JSONDataFormat:
-		return NewJSONWriter(st, w), nil
+		return NewJSONWriter(st, w)
 	// case dataset.CDXJDataFormat:
 	// 	return NewCDXJWriter(st, w), nil
 	case dataset.UnknownDataFormat:
