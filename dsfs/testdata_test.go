@@ -157,7 +157,7 @@ func makeFilestore() (map[string]datastore.Key, cafs.Filestore, error) {
 	}
 
 	for k := range datasets {
-		dsdata, err := ioutil.ReadFile(fmt.Sprintf("testdata/%s.json", k))
+		dsdata, err := ioutil.ReadFile(fmt.Sprintf("testdata/%s/input.dataset.json", k))
 		if err != nil {
 			return datasets, nil, err
 		}
@@ -167,7 +167,7 @@ func makeFilestore() (map[string]datastore.Key, cafs.Filestore, error) {
 			return datasets, nil, err
 		}
 
-		dataPath := fmt.Sprintf("testdata/%s.%s", k, ds.Structure.Format.String())
+		dataPath := fmt.Sprintf("testdata/%s/data.%s", k, ds.Structure.Format.String())
 		data, err := ioutil.ReadFile(dataPath)
 		if err != nil {
 			return datasets, nil, err

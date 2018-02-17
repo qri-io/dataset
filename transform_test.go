@@ -175,7 +175,7 @@ func TestTransformMarshalJSON(t *testing.T) {
 		check := &map[string]interface{}{}
 		err = json.Unmarshal(data, check)
 		if err != nil {
-			t.Errorf("case %d error: failed to unmarshal to object: %s", err.Error())
+			t.Errorf("case %d error: failed to unmarshal to object: %s", i, err.Error())
 			continue
 		}
 	}

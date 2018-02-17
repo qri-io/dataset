@@ -35,7 +35,7 @@ func TestFromFile(t *testing.T) {
 		if c.dspath != "" {
 			data, err := ioutil.ReadFile(c.dspath)
 			if err != nil {
-				t.Error("case %d: %s", i, err)
+				t.Errorf("case %d: %s", i, err)
 				continue
 			}
 			expect := &dataset.Structure{}

@@ -92,7 +92,7 @@ func TestCSVOptionsMap(t *testing.T) {
 		got := c.opt.Map()
 		for key, val := range c.res {
 			if got[key] != val {
-				t.Errorf("case %s, key '%s' expected: '%s' got:'%s'", i, key, val, got[key])
+				t.Errorf("case %d, key '%s' expected: '%s' got:'%s'", i, key, val, got[key])
 			}
 		}
 	}
@@ -137,7 +137,7 @@ func TestJSONOptionsMap(t *testing.T) {
 		got := c.opt.Map()
 		for key, val := range c.res {
 			if got[key] != val {
-				t.Errorf("case %s, key '%s' expected: '%s' got:'%s'", i, key, val, got[key])
+				t.Errorf("case %d, key '%s' expected: '%s' got:'%s'", i, key, val, got[key])
 			}
 		}
 	}

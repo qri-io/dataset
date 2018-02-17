@@ -51,7 +51,7 @@ func TestCompareTypeBytes(t *testing.T) {
 	for i, c := range cases {
 		got, err := CompareTypeBytes([]byte(c.a), []byte(c.b), c.t)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
-			t.Errorf("case %d error mismatch. expected: %d, got: %s", i, c.err, err)
+			t.Errorf("case %d error mismatch. expected: %s, got: %s", i, c.err, err)
 			continue
 		}
 		if got != c.expect {
@@ -103,7 +103,7 @@ func TestCompareNumberBytes(t *testing.T) {
 	for i, c := range cases {
 		got, err := CompareNumberBytes([]byte(c.a), []byte(c.b))
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
-			t.Errorf("case %d error mismatch. expected: %d, got: %s", i, c.err, err)
+			t.Errorf("case %d error mismatch. expected: %s, got: %s", i, c.err, err)
 			continue
 		}
 		if got != c.expect {
