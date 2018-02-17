@@ -76,6 +76,8 @@ func (r *JSONReader) ReadValue() (vals.Value, error) {
 		return nil, r.sc.Err()
 	}
 
+	fmt.Println(r.sc.Text())
+
 	return vals.UnmarshalJSON(r.sc.Bytes())
 }
 
@@ -240,20 +242,27 @@ LOOP:
 
 func scanObject(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	starti, stopi, depth := -1, -1, 0
+	instring := false
 
 LOOP:
 	for i, b := range data {
 		switch b {
+		case '"':
+			instring = !instring
 		case '{':
-			if depth == 0 {
-				starti = i
+			if !instring {
+				if depth == 0 {
+					starti = i
+				}
+				depth++
 			}
-			depth++
 		case '}':
-			depth--
-			if depth == 0 {
-				stopi = i + 1
-				break LOOP
+			if !instring {
+				depth--
+				if depth == 0 {
+					stopi = i + 1
+					break LOOP
+				}
 			}
 		}
 	}
@@ -271,20 +280,27 @@ LOOP:
 
 func scanArray(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	starti, stopi, depth := -1, -1, 0
+	instring := false
 
 LOOP:
 	for i, b := range data {
 		switch b {
+		case '"':
+			instring = !instring
 		case '[':
-			if depth == 0 {
-				starti = i
+			if !instring {
+				if depth == 0 {
+					starti = i
+				}
+				depth++
 			}
-			depth++
 		case ']':
-			depth--
-			if depth == 0 {
-				stopi = i + 1
-				break LOOP
+			if !instring {
+				depth--
+				if depth == 0 {
+					stopi = i + 1
+					break LOOP
+				}
 			}
 		}
 	}

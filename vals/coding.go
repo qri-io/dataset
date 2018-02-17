@@ -24,7 +24,7 @@ func UnmarshalJSON(data []byte) (v Value, err error) {
 		b := Boolean(false)
 		v = &b
 	case TypeNull:
-		n := Null(false)
+		n := Null(true)
 		v = &n
 	}
 
@@ -55,10 +55,10 @@ func unmarshalObject(data []byte) (Value, error) {
 			obj[key] = *t
 		case *Null:
 			obj[key] = *t
-		case *Object:
-			obj[key] = *t
-		case *Array:
-			obj[key] = *t
+		case Object:
+			obj[key] = t
+		case Array:
+			obj[key] = t
 		case *Boolean:
 			obj[key] = *t
 		}
@@ -90,10 +90,10 @@ func unmarshalArray(data []byte) (Value, error) {
 			arr[i] = *t
 		case *Null:
 			arr[i] = *t
-		case *Object:
-			arr[i] = *t
-		case *Array:
-			arr[i] = *t
+		case Object:
+			arr[i] = t
+		case Array:
+			arr[i] = t
 		case *Boolean:
 			arr[i] = *t
 		}

@@ -19,34 +19,38 @@ func TestJSONReader(t *testing.T) {
 		count     int
 		err       string
 	}{
-		{&dataset.Structure{}, "testdata/city_data.json", 0, "schema required for JSON reader"},
-		{&dataset.Structure{Schema: jsonschema.Must(`false`)}, "testdata/city_data.json", 0, "invalid schema for JSON data format. root must be either an array or object type"},
+		// {&dataset.Structure{}, "testdata/city_data.json", 0, "schema required for JSON reader"},
+		// {&dataset.Structure{Schema: jsonschema.Must(`false`)}, "testdata/city_data.json", 0, "invalid schema for JSON data format. root must be either an array or object type"},
+		// {&dataset.Structure{
+		// 	Format: dataset.JSONDataFormat,
+		// 	Schema: detect.BaseSchemaJSONArray,
+		// },
+		// 	"testdata/city_data.json", 6, ""},
+		// {&dataset.Structure{
+		// 	Format: dataset.JSONDataFormat,
+		// 	Schema: detect.BaseSchemaJSONObject,
+		// },
+		// 	"testdata/sitemap_object.json", 7, ""},
+		// {&dataset.Structure{
+		// 	Format: dataset.JSONDataFormat,
+		// 	Schema: detect.BaseSchemaJSONObject,
+		// }, "testdata/links_object.json", 20, ""},
+		// {&dataset.Structure{
+		// 	Format: dataset.JSONDataFormat,
+		// 	Schema: detect.BaseSchemaJSONArray,
+		// }, "testdata/links_array.json", 20, ""},
+		// {&dataset.Structure{
+		// 	Format: dataset.JSONDataFormat,
+		// 	Schema: detect.BaseSchemaJSONArray,
+		// }, "testdata/json_array.json", 10, ""},
+		// {&dataset.Structure{
+		// 	Format: dataset.JSONDataFormat,
+		// 	Schema: detect.BaseSchemaJSONObject,
+		// }, "testdata/json_object.json", 10, ""},
 		{&dataset.Structure{
 			Format: dataset.JSONDataFormat,
 			Schema: detect.BaseSchemaJSONArray,
-		},
-			"testdata/city_data.json", 6, ""},
-		{&dataset.Structure{
-			Format: dataset.JSONDataFormat,
-			Schema: detect.BaseSchemaJSONObject,
-		},
-			"testdata/sitemap_object.json", 7, ""},
-		{&dataset.Structure{
-			Format: dataset.JSONDataFormat,
-			Schema: detect.BaseSchemaJSONObject,
-		}, "testdata/links_object.json", 20, ""},
-		{&dataset.Structure{
-			Format: dataset.JSONDataFormat,
-			Schema: detect.BaseSchemaJSONArray,
-		}, "testdata/links_array.json", 20, ""},
-		{&dataset.Structure{
-			Format: dataset.JSONDataFormat,
-			Schema: detect.BaseSchemaJSONArray,
-		}, "testdata/json_array.json", 10, ""},
-		{&dataset.Structure{
-			Format: dataset.JSONDataFormat,
-			Schema: detect.BaseSchemaJSONObject,
-		}, "testdata/json_object.json", 10, ""},
+		}, "testdata/craigslist.json", 2, ""},
 	}
 
 	for i, c := range cases {
