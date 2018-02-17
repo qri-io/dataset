@@ -76,8 +76,6 @@ func (r *JSONReader) ReadValue() (vals.Value, error) {
 		return nil, r.sc.Err()
 	}
 
-	fmt.Println(r.sc.Text())
-
 	return vals.UnmarshalJSON(r.sc.Bytes())
 }
 
