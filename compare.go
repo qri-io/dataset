@@ -8,6 +8,7 @@ import (
 
 // CompareDatasets checks if all fields of a dataset are equal,
 // returning an error on the first, nil if equal
+// Note that comparison does not examine the internal path property
 func CompareDatasets(a, b *Dataset) error {
 	if a == nil && b == nil {
 		return nil
@@ -18,9 +19,6 @@ func CompareDatasets(a, b *Dataset) error {
 		return fmt.Errorf("nil: <not nil> != <nil>")
 	}
 
-	if !a.Path().Equal(b.Path()) {
-		return fmt.Errorf("Path: %s != %s", a.Path(), b.Path())
-	}
 	if a.Qri.String() != b.Qri.String() {
 		return fmt.Errorf("Qri: %s != %s", a.Qri, b.Qri)
 	}
@@ -56,6 +54,7 @@ func CompareDatasets(a, b *Dataset) error {
 
 // CompareMetas checks if all fields of a metadata struct are equal,
 // returning an error on the first, nil if equal
+// Note that comparison does not examine the internal path property
 func CompareMetas(a, b *Meta) error {
 	if a == nil && b == nil {
 		return nil
@@ -66,9 +65,6 @@ func CompareMetas(a, b *Meta) error {
 		return fmt.Errorf("nil: <not nil> != <nil>")
 	}
 
-	if !a.Path().Equal(b.Path()) {
-		return fmt.Errorf("Path: %s != %s", a.Path(), b.Path())
-	}
 	if a.Qri.String() != b.Qri.String() {
 		return fmt.Errorf("Qri: %s != %s", a.Qri, b.Qri)
 	}
@@ -124,6 +120,7 @@ func CompareMetas(a, b *Meta) error {
 
 // CompareStructures checks if all fields of two structure pointers are equal,
 // returning an error on the first, nil if equal
+// Note that comparison does not examine the internal path property
 func CompareStructures(a, b *Structure) error {
 	if a == nil && b == nil {
 		return nil
@@ -164,6 +161,7 @@ func CompareStructures(a, b *Structure) error {
 
 // CompareVisConfigs checks if all fields of two VisConfig pointers are equal,
 // returning an error on the first, nil if equal
+// Note that comparison does not examine the internal path property
 func CompareVisConfigs(a, b *VisConfig) error {
 	if a == nil && b == nil {
 		return nil
@@ -189,6 +187,7 @@ func CompareVisConfigs(a, b *VisConfig) error {
 
 // CompareSchemas checks if all fields of two Schema pointers are equal,
 // returning an error on the first, nil if equal
+// Note that comparison does not examine the internal path property
 func CompareSchemas(a, b *jsonschema.RootSchema) error {
 	if a == nil && b == nil {
 		return nil
@@ -223,6 +222,7 @@ func CompareSchemas(a, b *jsonschema.RootSchema) error {
 
 // CompareCommits checks if all fields of a Commit are equal,
 // returning an error on the first, nil if equal
+// Note that comparison does not examine the internal path property
 func CompareCommits(a, b *Commit) error {
 	if a == nil && b == nil {
 		return nil
@@ -253,6 +253,7 @@ func CompareCommits(a, b *Commit) error {
 
 // CompareTransforms checks if all fields of two transform pointers are equal,
 // returning an error on the first, nil if equal
+// Note that comparison does not examine the internal path property
 func CompareTransforms(a, b *Transform) error {
 	if a == nil && b == nil {
 		return nil
@@ -262,9 +263,6 @@ func CompareTransforms(a, b *Transform) error {
 		return fmt.Errorf("nil: <not nil> != <nil>")
 	}
 
-	if !a.Path().Equal(b.Path()) {
-		return fmt.Errorf("path: %s != %s", a.Path(), b.Path())
-	}
 	if a.Qri.String() != b.Qri.String() {
 		return fmt.Errorf("Qri: %s != %s", a.Qri, b.Qri)
 	}
@@ -284,7 +282,7 @@ func CompareTransforms(a, b *Transform) error {
 	if a.Resources == nil && b.Resources == nil {
 		return nil
 	} else if a.Resources == nil && b.Resources != nil || a.Resources != nil && b.Resources == nil {
-		return fmt.Errorf("Resources: %s != %s", a.Resources, b.Resources)
+		return fmt.Errorf("Resources: %v != %v", a.Resources, b.Resources)
 	}
 	for key, dsa := range a.Resources {
 		dsb := b.Resources[key]

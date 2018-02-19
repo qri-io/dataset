@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	array0  = &Array{String("a"), Boolean(false), Null(false), Integer(2), Number(23.5)}
+	array0  = &Array{String("a"), Boolean(false), Null(true), Integer(2), Number(23.5)}
 	object0 = &Object{"city": String("toronto"), "pop": Integer(40000000), "avg_age": Number(55.5), "in_usa": Boolean(false)}
 	array1  = &Array{*array0, *array0}
 	array2  = &Array{*object0, *object0}
@@ -24,21 +24,9 @@ func TestUnmarshalJSON(t *testing.T) {
 		{`123.45`, Number(123.45), ""},
 		{`{ "city" : "toronto", "pop" : 40000000, "avg_age" : 55.5 , "in_usa" : false }`, *object0, ""},
 		{`["a", false, null, 2, 23.5]`, *array0, ""},
-
-		// not passing:
-		//   - expected: vals.Array{true, true, true},
-		//   - got: vals.Array{false, false, false}
-		// {`[null, null, null]`, Array{Null(true), Null(true), Null(true)}, ""},
-
-		// not passing:
-		//   - expected: vals.Array{vals.Array{"a", ...}, vals.Array{"a", ...}},
-		//   - got: vals.Array{vals.Value(nil), vals.Value(nil)}
-		// {`[["a", false, null, 2, 23.5],["a", false, null, 2, 23.5]]`, *array1, ""},
-
-		// not passing:
-		//   - expected: vals.Array{vals.Object{"city":"toronto"...}, vals.Object{"city":"toronto"...}},
-		//   - got: vals.Array{vals.Value(nil), vals.Value(nil)}
-		// {`[{ "city" : "toronto", "pop" : 40000000, "avg_age" : 55.5 , "in_usa" : false },{ "city" : "toronto", "pop" : 40000000, "avg_age" : 55.5 , "in_usa" : false }]`, *array2, ""},
+		{`[null, null, null]`, Array{Null(true), Null(true), Null(true)}, ""},
+		{`[["a", false, null, 2, 23.5],["a", false, null, 2, 23.5]]`, *array1, ""},
+		{`[{ "city" : "toronto", "pop" : 40000000, "avg_age" : 55.5 , "in_usa" : false },{ "city" : "toronto", "pop" : 40000000, "avg_age" : 55.5 , "in_usa" : false }]`, *array2, ""},
 	}
 	for i, c := range cases {
 		got, err := UnmarshalJSON([]byte(c.input))

@@ -1,0 +1,29 @@
+{
+  "a": false,
+  "b": true,
+  "c": null,
+  "g": "this is a very long string to make sure the bytes.Scanner needs to load more data at least once during the course of scanning. So now I'm just gonna paste the word puppy like 30x. puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy ",
+  "d": "oh hello there",
+  "e": {
+    "key": "oh hello there"
+  },
+  "f": [
+    "key",
+    "oh hello there"
+  ],
+  "l": {
+    "objects": {
+      "within": {
+        "objects": {
+          "that": {
+            "haz": [
+              "array"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "m" : 1234567890,
+  "n" : -1234567890e0,
+}

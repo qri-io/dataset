@@ -58,28 +58,35 @@ func TypeFromString(t string) Type {
 // it's type, starting with the more specific possible types, then falling
 // back to more general types. ParseType always returns a type
 func ParseType(value []byte) Type {
-	if len(value) == 0 {
-		return TypeString
+	for _, b := range value {
+		switch b {
+		case '"':
+			return TypeString
+		case 't', 'f':
+			return TypeBoolean
+		case 'n':
+			return TypeNull
+		case '-', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'e':
+			if _, e := strconv.ParseFloat(string(value), 32); e != nil {
+				return TypeString
+			}
+			if IsInteger(value) {
+				return TypeInteger
+			}
+			return TypeNumber
+		case '{':
+			return TypeObject
+		case '[':
+			return TypeArray
+		case ' ', '\n':
+			continue
+		default:
+			return TypeString
+		}
 	}
 
-	if bytes.Equal(value, []byte("null")) {
-		return TypeNull
-	} else if IsInteger(value) {
-		return TypeInteger
-	} else if IsFloat(value) {
-		return TypeNumber
-	} else if IsBoolean(value) {
-		return TypeBoolean
-	}
-
-	switch JSONArrayOrObject(value) {
-	case "object":
-		return TypeObject
-	case "array":
-		return TypeArray
-	default:
-		return TypeString
-	}
+	// assume a string? sure.
+	return TypeString
 }
 
 // String satsfies the stringer interface
@@ -225,15 +232,17 @@ func ParseBoolean(value []byte) (bool, error) {
 // JSONArrayOrObject examines bytes checking if the outermost
 // closure is an array or object
 func JSONArrayOrObject(value []byte) string {
-	obji := bytes.IndexRune(value, '{')
-	arri := bytes.IndexRune(value, '[')
-	if obji == -1 && arri == -1 {
-		return ""
+	for _, b := range value {
+		switch b {
+		case '"':
+			return ""
+		case '{':
+			return "object"
+		case '[':
+			return "array"
+		}
 	}
-	if (obji < arri || arri == -1) && obji >= 0 {
-		return "object"
-	}
-	return "array"
+	return ""
 }
 
 // ParseJSON converts raw bytes to a JSON value

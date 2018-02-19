@@ -527,8 +527,8 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File,
 	// the cafs interface, or the concrete cafs/ipfs implementation?
 	// TODO - remove this in favour of some sort of method on filestores
 	// that generate path roots
-	if store.PathPrefix() == "ipfs" {
-		path = datastore.NewKey(path.String() + "/" + PackageFileDataset.String())
-	}
+	// if store.PathPrefix() == "ipfs" {
+	// 	path = datastore.NewKey(path.String() + "/" + PackageFileDataset.String())
+	// }
 	return path, err
 }

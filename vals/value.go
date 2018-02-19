@@ -7,7 +7,7 @@ import (
 // Value represents a single data point of one of seven primitive types:
 // null, boolean, string, integer, number, object, array
 type Value interface {
-	// Yields one of the primitive types
+	// Type yields one of the primitive types
 	Type() Type
 
 	// Number of elements if array type
@@ -17,7 +17,7 @@ type Value interface {
 
 	// Slice of keys in an object, in random order
 	Keys() []string
-	// Give element for map key
+	// MapIndex returns the element stored at a string key
 	MapIndex(key string) Value
 
 	// Boolean value

@@ -30,7 +30,6 @@ func TestParseFormatConfigMap(t *testing.T) {
 	}{
 		{CSVDataFormat, map[string]interface{}{}, &CSVOptions{}, ""},
 		{JSONDataFormat, map[string]interface{}{}, &JSONOptions{}, ""},
-		{JSONDataFormat, map[string]interface{}{"arrayEntries": true}, &JSONOptions{ArrayEntries: true}, ""},
 		{XLSDataFormat, map[string]interface{}{}, nil, "cannot parse configuration for format: xls"},
 	}
 
@@ -93,7 +92,7 @@ func TestCSVOptionsMap(t *testing.T) {
 		got := c.opt.Map()
 		for key, val := range c.res {
 			if got[key] != val {
-				t.Errorf("case %s, key '%s' expected: '%s' got:'%s'", i, key, val, got[key])
+				t.Errorf("case %d, key '%s' expected: '%s' got:'%s'", i, key, val, got[key])
 			}
 		}
 	}
@@ -107,8 +106,6 @@ func TestNewJSONOptions(t *testing.T) {
 	}{
 		{nil, &JSONOptions{}, ""},
 		{map[string]interface{}{}, &JSONOptions{}, ""},
-		{map[string]interface{}{"arrayEntries": true}, &JSONOptions{ArrayEntries: true}, ""},
-		{map[string]interface{}{"arrayEntries": "foo"}, nil, "invalid arrayEntries value: foo"},
 	}
 
 	for i, c := range cases {
@@ -118,14 +115,9 @@ func TestNewJSONOptions(t *testing.T) {
 			continue
 		}
 		if c.err == "" {
-			jsono, ok := got.(*JSONOptions)
+			_, ok := got.(*JSONOptions)
 			if !ok {
 				t.Errorf("case %d didn't return a JSONOptions pointer", i)
-				continue
-			}
-
-			if jsono.ArrayEntries != c.res.ArrayEntries {
-				fmt.Errorf("case %d ArrayEntries expected: %t, got: %t", i, jsono.ArrayEntries, c.res.ArrayEntries)
 				continue
 			}
 		}
@@ -138,14 +130,14 @@ func TestJSONOptionsMap(t *testing.T) {
 		res map[string]interface{}
 	}{
 		{nil, nil},
-		{&JSONOptions{ArrayEntries: true}, map[string]interface{}{"arrayEntries": true}},
+		{&JSONOptions{}, map[string]interface{}{}},
 	}
 
 	for i, c := range cases {
 		got := c.opt.Map()
 		for key, val := range c.res {
 			if got[key] != val {
-				t.Errorf("case %s, key '%s' expected: '%s' got:'%s'", i, key, val, got[key])
+				t.Errorf("case %d, key '%s' expected: '%s' got:'%s'", i, key, val, got[key])
 			}
 		}
 	}

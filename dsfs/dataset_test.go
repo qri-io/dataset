@@ -12,6 +12,7 @@ import (
 	"github.com/libp2p/go-libp2p-crypto"
 	"github.com/qri-io/cafs/memfs"
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/dataset/dstest"
 )
 
 // Test Private Key. peerId: QmZePf5LeXow3RW5U1AgEiNbW46YnRGhZ7HPvm1UmPFPwt
@@ -27,7 +28,7 @@ func init() {
 
 func TestLoadDataset(t *testing.T) {
 	store := memfs.NewMapstore()
-	dsData, err := ioutil.ReadFile("testdata/complete.json")
+	dsData, err := ioutil.ReadFile("testdata/complete/input.dataset.json")
 	if err != nil {
 		t.Errorf("error loading test dataset: %s", err.Error())
 		return
@@ -37,7 +38,7 @@ func TestLoadDataset(t *testing.T) {
 		t.Errorf("error unmarshaling test dataset: %s", err.Error())
 		return
 	}
-	data, err := ioutil.ReadFile("testdata/complete.csv")
+	data, err := ioutil.ReadFile("testdata/complete/data.csv")
 	if err != nil {
 		t.Errorf("error loading test data: %s", err.Error())
 		return
@@ -93,7 +94,7 @@ func TestLoadDataset(t *testing.T) {
 			}
 			path, err = store.Put(dsf, true)
 			if err != nil {
-				t.Errorf("case %d error putting file in store", i, err.Error())
+				t.Errorf("case %d error putting file in store: %s", i, err.Error())
 				continue
 			}
 		}
@@ -134,53 +135,47 @@ func TestCreateDataset(t *testing.T) {
 	}
 
 	cases := []struct {
-		dsPath       string
-		dataPath     string
-		dataFilename string
-		resultPath   string
-		repoFiles    int // expected total count of files in repo after test execution
-		err          string
+		casePath   string
+		resultPath string
+		repoFiles  int // expected total count of files in repo after test execution
+		err        string
 	}{
-		{"testdata/bad/invalid_reference.json", "testdata/cities.csv", "", "", 0, "error loading dataset commit: error loading commit file: datastore: key not found"},
-		{"testdata/bad/invalid.json", "testdata/cities.csv", "", "", 0, "commit is required"},
-		{"testdata/cities.json", "testdata/cities.csv", "cities.csv", "/map/QmebrWmmBt2GmfYAT69vioaMb1Rp2aTfQm1jac7KEWHKNa", 7, ""},
-		{"testdata/complete.json", "testdata/complete.csv", "complete.csv", "/map/Qmehg2driQVjsGpf44p37EekpbLVXcu8kigP59j1ob24fD", 15, ""},
-		{"testdata/cities_no_commit_title.json", "testdata/cities.csv", "cities.csv", "/map/QmY5TnPy9xWBpqqcqBfcCKChKgfmdS149WnaGDrbnVhWLa", 17, ""},
+		{"invalid_reference",
+			"", 0, "error loading dataset commit: error loading commit file: datastore: key not found"},
+		{"invalid",
+			"", 0, "commit is required"},
+		{"cities",
+			"/map/QmebrWmmBt2GmfYAT69vioaMb1Rp2aTfQm1jac7KEWHKNa", 7, ""},
+		{"complete",
+			"/map/Qmehg2driQVjsGpf44p37EekpbLVXcu8kigP59j1ob24fD", 15, ""},
+		{"cities_no_commit_title",
+			"/map/QmY5TnPy9xWBpqqcqBfcCKChKgfmdS149WnaGDrbnVhWLa", 17, ""},
+		{"craigslist",
+			"/map/QmeytVZwjuWxTBdyZ83F2FSAK2xrtvzYse8Y129d2cGJde", 21, ""},
 	}
 
-	for i, c := range cases {
-		dsData, err := ioutil.ReadFile(c.dsPath)
+	for _, c := range cases {
+		tc, err := dstest.NewTestCaseFromDir("testdata/"+c.casePath, t)
 		if err != nil {
-			t.Errorf("case %d error reading dataset file: %s", i, err.Error())
-			continue
-		}
-		ds := &dataset.Dataset{}
-		if err := ds.UnmarshalJSON(dsData); err != nil {
-			t.Errorf("case %d error unmarshaling dataset file: %s", err.Error())
+			t.Errorf("%s: error creating test case: %s", c.casePath, err)
 			continue
 		}
 
-		data, err := ioutil.ReadFile(c.dataPath)
-		if err != nil {
-			t.Errorf("case %d error reading data file: %s", i, err.Error())
-			continue
-		}
-		df := memfs.NewMemfileBytes(c.dataFilename, data)
-
-		path, err := CreateDataset(store, ds, df, privKey, false)
+		df := memfs.NewMemfileBytes(tc.DataFilename, tc.Data)
+		path, err := CreateDataset(store, tc.Input, df, privKey, false)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
-			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
+			t.Errorf("%s: error mismatch. expected: '%s', got: '%s'", tc.Name, c.err, err)
 			continue
 		}
 
 		if c.err == "" {
 			resultPath := datastore.NewKey(c.resultPath)
 			if !resultPath.Equal(path) {
-				t.Errorf("case %d result path mismatch: expected: '%s', got: '%s'", i, resultPath, path)
+				t.Errorf("%s: result path mismatch: expected: '%s', got: '%s'", tc.Name, resultPath, path)
 			}
 
 			if len(store.(memfs.MapStore)) != c.repoFiles {
-				t.Errorf("case %d expected invalid number of entries: %d != %d", i, c.repoFiles, len(store.(memfs.MapStore)))
+				t.Errorf("%s: invalid number of mapstore entries: %d != %d", tc.Name, c.repoFiles, len(store.(memfs.MapStore)))
 				_, err := store.(memfs.MapStore).Print()
 				if err != nil {
 					panic(err)
@@ -188,15 +183,22 @@ func TestCreateDataset(t *testing.T) {
 				continue
 			}
 
-			// TODO - check that Stored datasets are what we expect!
-			// str, err := store.(memfs.MapStore).Print()
-			// if err != nil {
-			// 	panic(err)
-			// }
-			// t.Error(str)
+			ds, err := LoadDataset(store, resultPath)
+			if err != nil {
+				t.Errorf("%s: error loading dataset: %s", tc.Name, err.Error())
+				continue
+			}
+
+			t.Log(tc.Expect)
+			if tc.Expect != nil {
+				if err := dataset.CompareDatasets(tc.Expect, ds); err != nil {
+					t.Errorf("%s: dataset comparison error: %s", tc.Name, err.Error())
+				}
+			}
 		}
 	}
-	dsData, err := ioutil.ReadFile("testdata/cities.json")
+
+	dsData, err := ioutil.ReadFile("testdata/cities/input.dataset.json")
 	if err != nil {
 		t.Errorf("case nil datafile and no PreviousPath, error reading dataset file: %s", err.Error())
 	}
@@ -220,8 +222,8 @@ func TestCreateDataset(t *testing.T) {
 	if err.Error() != expectedErr {
 		t.Errorf("case nil datafile and no PreviousPath, error mismatch: expected '%s', got '%s'", expectedErr, err.Error())
 	}
-	if len(store.(memfs.MapStore)) != 17 {
-		t.Errorf("case nil datafile and PreviousPath, expected invalid number of entries: %d != %d", 17, len(store.(memfs.MapStore)))
+	if len(store.(memfs.MapStore)) != 21 {
+		t.Errorf("case nil datafile and PreviousPath, expected invalid number of entries: %d != %d", 21, len(store.(memfs.MapStore)))
 		_, err := store.(memfs.MapStore).Print()
 		if err != nil {
 			panic(err)
@@ -249,8 +251,8 @@ func TestWriteDataset(t *testing.T) {
 		repoFiles int // expected total count of files in repo after test execution
 		err       string
 	}{
-		{"testdata/cities.json", "testdata/cities.csv", "/map/", 6, ""},
-		{"testdata/complete.json", "testdata/complete.csv", "/map/", 15, ""},
+		{"testdata/cities/input.dataset.json", "testdata/cities/data.csv", "/map/", 6, ""},
+		{"testdata/complete/input.dataset.json", "testdata/complete/data.csv", "/map/", 15, ""},
 	}
 
 	for i, c := range cases {
@@ -369,64 +371,3 @@ func TestWriteDataset(t *testing.T) {
 		}
 	}
 }
-
-// TODO - restore this by integrating a check case into either a separate test or the one above
-// that works "CreateDataset" with two unchanged datasets
-// func TestConfirmChangesOccurred(t *testing.T) {
-// 	store := memfs.NewMapstore()
-
-// 	dsData, err := ioutil.ReadFile("testdata/complete.json")
-// 	if err != nil {
-// 		t.Errorf("error loading test dataset: %s", err.Error())
-// 		return
-// 	}
-// 	ds := &dataset.Dataset{}
-// 	if err := ds.UnmarshalJSON(dsData); err != nil {
-// 		t.Errorf("error unmarshaling test dataset: %s", err.Error())
-// 		return
-// 	}
-
-// 	data, err := ioutil.ReadFile("testdata/complete.csv")
-// 	if err != nil {
-// 		t.Errorf("error loading test data: %s", err.Error())
-// 		return
-// 	}
-
-// 	df := memfs.NewMemfileBytes("complete.csv", data)
-
-// 	apath, err := WriteDataset(store, ds, df, true)
-// 	if err != nil {
-// 		t.Errorf(err.Error())
-// 		return
-// 	}
-// 	ds, err = LoadDataset(store, apath)
-// 	if err != nil {
-// 		t.Errorf(err.Error())
-// 		return
-// 	}
-
-// 	//set ds prev to self
-// 	ds.PreviousPath = ds.Path().String()
-// 	expected := "cannot record changes if no changes occured"
-// 	err = confirmChangesOccurred(store, ds, df)
-// 	if err == nil {
-// 		t.Errorf("case %d error mismatch: expected '%s'", 0, expected, err.Error())
-// 	}
-// }
-
-// func TestPrepareDataset(t *testing.T) {
-// 	store := memfs.NewMapstore()
-
-// 	cases := []struct {
-// 		in, out *dataset.Dataset
-// 		err     string
-// 	}{}
-
-// 	for i, c := range cases {
-// 		err := PrepareDataset(store, ds)
-// 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
-// 			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
-// 			continue
-// 		}
-// 	}
-// }

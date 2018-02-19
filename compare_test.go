@@ -16,7 +16,6 @@ func TestCompareDatasets(t *testing.T) {
 	}{
 		{nil, nil, ""},
 		{AirportCodes, AirportCodes, ""},
-		{NewDatasetRef(datastore.NewKey("a")), NewDatasetRef(datastore.NewKey("b")), "Path: /a != /b"},
 		{&Dataset{Qri: "a"}, &Dataset{Qri: "b"}, "Qri: a != b"},
 		{&Dataset{PreviousPath: "a"}, &Dataset{PreviousPath: "b"}, "PreviousPath: a != b"},
 		{&Dataset{DataPath: "a"}, &Dataset{DataPath: "b"}, "DataPath: a != b"},
@@ -41,7 +40,6 @@ func TestCompareMetas(t *testing.T) {
 	}{
 		{nil, nil, ""},
 		{AirportCodes.Meta, AirportCodes.Meta, ""},
-		{NewMetaRef(datastore.NewKey("a")), NewMetaRef(datastore.NewKey("b")), "Path: /a != /b"},
 		{&Meta{Qri: "a"}, &Meta{Qri: "b"}, "Qri: a != b"},
 		{&Meta{Title: "a"}, &Meta{Title: "b"}, "Title: a != b"},
 		{&Meta{AccessPath: "a"}, &Meta{AccessPath: "b"}, "AccessPath: a != b"},
@@ -139,7 +137,6 @@ func TestCompareVisConfigs(t *testing.T) {
 		{nil, &VisConfig{}, "nil: <nil> != <not nil>"},
 		{&VisConfig{Qri: "a"}, &VisConfig{Qri: "b"}, "Qri: a != b"},
 		{&VisConfig{Format: "a"}, &VisConfig{Format: "b"}, "Format: a != b"},
-		// {&VisConfig{DataPath: "a"}, &VisConfig{DataPath: "b"}, "DataPath: a != b"},
 		{&VisConfig{Visualizations: []interface{}{"hey", "sup"}}, &VisConfig{Visualizations: "test"}, "Visualizations not equal"},
 		{&VisConfig{Visualizations: []interface{}{}}, &VisConfig{Visualizations: []interface{}{}}, ""},
 	}
@@ -227,7 +224,6 @@ func TestCompareTransforms(t *testing.T) {
 		{t1, nil, "nil: <not nil> != <nil>"},
 		{nil, t1, "nil: <nil> != <not nil>"},
 		{&Transform{}, &Transform{}, ""},
-		{NewTransformRef(datastore.NewKey("a")), NewTransformRef(datastore.NewKey("b")), "path: /a != /b"},
 		{&Transform{Qri: "a"}, &Transform{Qri: "b"}, "Qri: a != b"},
 		{&Transform{Syntax: "a"}, &Transform{Syntax: "b"}, "Syntax: a != b"},
 		{&Transform{AppVersion: "a"}, &Transform{AppVersion: "b"}, "AppVersion: a != b"},

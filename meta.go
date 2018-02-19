@@ -55,9 +55,7 @@ type Meta struct {
 
 // IsEmpty checks to see if dataset has any fields other than the internal path
 func (md *Meta) IsEmpty() bool {
-	return md.Title == "" &&
-		md.Description == "" &&
-		md.AccessPath == "" &&
+	return md.AccessPath == "" &&
 		md.AccrualPeriodicity == "" &&
 		md.Citations == nil &&
 		md.Contributors == nil &&
@@ -271,7 +269,7 @@ func (md *Meta) UnmarshalJSON(data []byte) error {
 
 	meta := map[string]interface{}{}
 	if err := json.Unmarshal(data, &meta); err != nil {
-		return fmt.Errorf("error unmarshaling dataset metadata: %s", err, err)
+		return fmt.Errorf("error unmarshaling dataset metadata: %s", err)
 	}
 
 	for _, f := range []string{

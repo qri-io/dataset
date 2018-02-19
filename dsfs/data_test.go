@@ -31,7 +31,7 @@ func TestLoadData(t *testing.T) {
 		return
 	}
 
-	eq, err := ioutil.ReadFile("testdata/movies.csv")
+	eq, err := ioutil.ReadFile("testdata/movies/data.csv")
 	if err != nil {
 		t.Errorf("error reading test file: %s", err.Error())
 		return

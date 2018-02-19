@@ -3,12 +3,13 @@ package dsio
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/qri-io/jsonschema"
 	"os"
 	"testing"
 
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/dataset/detect"
 	"github.com/qri-io/dataset/vals"
-	"github.com/qri-io/jsonschema"
 )
 
 func TestJSONReader(t *testing.T) {
@@ -18,11 +19,38 @@ func TestJSONReader(t *testing.T) {
 		count     int
 		err       string
 	}{
+		// {&dataset.Structure{}, "testdata/city_data.json", 0, "schema required for JSON reader"},
+		// {&dataset.Structure{Schema: jsonschema.Must(`false`)}, "testdata/city_data.json", 0, "invalid schema for JSON data format. root must be either an array or object type"},
+		// {&dataset.Structure{
+		// 	Format: dataset.JSONDataFormat,
+		// 	Schema: detect.BaseSchemaJSONArray,
+		// },
+		// 	"testdata/city_data.json", 6, ""},
+		// {&dataset.Structure{
+		// 	Format: dataset.JSONDataFormat,
+		// 	Schema: detect.BaseSchemaJSONObject,
+		// },
+		// 	"testdata/sitemap_object.json", 7, ""},
+		// {&dataset.Structure{
+		// 	Format: dataset.JSONDataFormat,
+		// 	Schema: detect.BaseSchemaJSONObject,
+		// }, "testdata/links_object.json", 20, ""},
+		// {&dataset.Structure{
+		// 	Format: dataset.JSONDataFormat,
+		// 	Schema: detect.BaseSchemaJSONArray,
+		// }, "testdata/links_array.json", 20, ""},
+		// {&dataset.Structure{
+		// 	Format: dataset.JSONDataFormat,
+		// 	Schema: detect.BaseSchemaJSONArray,
+		// }, "testdata/json_array.json", 10, ""},
+		// {&dataset.Structure{
+		// 	Format: dataset.JSONDataFormat,
+		// 	Schema: detect.BaseSchemaJSONObject,
+		// }, "testdata/json_object.json", 10, ""},
 		{&dataset.Structure{
 			Format: dataset.JSONDataFormat,
-			FormatConfig: &dataset.JSONOptions{
-				ArrayEntries: false,
-			}}, "testdata/city_data.json", 6, ""},
+			Schema: detect.BaseSchemaJSONArray,
+		}, "testdata/craigslist.json", 2, ""},
 	}
 
 	for i, c := range cases {
@@ -32,11 +60,24 @@ func TestJSONReader(t *testing.T) {
 			continue
 		}
 
-		r := NewJSONReader(c.structure, f)
+		r, err := NewJSONReader(c.structure, f)
+		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
+			t.Errorf("case %d error mismatch. expected: %s. got: %s", i, c.err, err)
+			continue
+		} else if c.err != "" {
+			continue
+		}
+
+		if r.Structure() == nil {
+			t.Errorf("nil structure?")
+			return
+		}
+
 		j := 0
+		vs := []vals.Value{}
 		for {
 			// TODO - inspect row output for well formed json
-			_, err := r.ReadValue()
+			v, err := r.ReadValue()
 			if err != nil {
 				if err.Error() == "EOF" {
 					break
@@ -44,11 +85,13 @@ func TestJSONReader(t *testing.T) {
 				t.Errorf("case %d error reading row %d: %s", i, j, err.Error())
 				break
 			}
+			vs = append(vs, v)
 			j++
 		}
 
 		if c.count != j {
 			t.Errorf("case %d count mismatch. expected: %d, got: %d", i, c.count, j)
+			t.Log(vs)
 			continue
 		}
 
@@ -80,95 +123,34 @@ func TestJSONReader(t *testing.T) {
 }
 
 func TestJSONWriter(t *testing.T) {
+	objst := &dataset.Structure{Schema: detect.BaseSchemaJSONObject}
+	arrst := &dataset.Structure{Schema: detect.BaseSchemaJSONArray}
+
 	cases := []struct {
 		structure *dataset.Structure
 		entries   vals.Array
 		out       string
+		err       string
 	}{
-		{&dataset.Structure{Schema: jsonschema.Must(`{"type": "array", "items": { "type": "array", "items": [{"title": "a", "type":"string"}]}}`)}, vals.Array{}, "[]"},
-		{&dataset.Structure{Schema: jsonschema.Must(`{"type": "array", "items": { "type": "array", "items": [{"title": "a", "type":"string"}]}}`)}, vals.Array{vals.Object{"a": vals.String("hello")}}, "[\n{\"a\":\"hello\"}\n]"},
-		// {&dataset.Structure{Schema: &dataset.Schema{Fields: []*dataset.Field{{Name: "a", Type: datatypes.String}}}, FormatConfig: &dataset.JSONOptions{ArrayEntries: true}}, [][][]byte{{[]byte("hello")}}, "[\n[\"hello\"]\n]"},
-		// {&dataset.Structure{Schema: &dataset.Schema{Fields: []*dataset.Field{{Name: "a", Type: datatypes.String}}}}, [][][]byte{
-		// 	{[]byte("hello")},
-		// 	{[]byte("world")},
-		// }, "[\n{\"a\":\"hello\"},\n{\"a\":\"world\"}\n]"},
-		// {&dataset.Structure{ Schema: &dataset.Schema{ Fields: []*dataset.Field{&dataset.Field{Name: "a", Type: datatypes.String}}}}, [][][]byte{
-		// 	[][]byte{[]byte("hello")},
-		// 	[][]byte{[]byte("world")},
-		// }, "[\n[\"hello\"],\n[\"world\"]\n]"},
-		// 		{&dataset.Structure{Schema: &dataset.Schema{Fields: []*dataset.Field{{Name: "a", Type: datatypes.String}}}, FormatConfig: &dataset.JSONOptions{ArrayEntries: true}}, [][][]byte{
-		// 			{[]byte("hello\n?")},
-		// 			{[]byte("world")},
-		// 		}, "[\n[\"hello\\n?\"],\n[\"world\"]\n]"},
-		// 		{&dataset.Structure{Schema: &dataset.Schema{
-		// 			Fields: []*dataset.Field{
-		// 				{Name: "ident", Type: datatypes.String},
-		// 				{Name: "type", Type: datatypes.String},
-		// 				{Name: "name", Type: datatypes.String},
-		// 				{Name: "latitude_deg", Type: datatypes.Float},
-		// 				{Name: "longitude_deg", Type: datatypes.Float},
-		// 				{Name: "elevation_ft", Type: datatypes.Integer},
-		// 				{Name: "continent", Type: datatypes.String},
-		// 				{Name: "iso_country", Type: datatypes.String},
-		// 				{Name: "iso_region", Type: datatypes.String},
-		// 				{Name: "municipality", Type: datatypes.String},
-		// 				{Name: "gps_code", Type: datatypes.String},
-		// 				{Name: "iata_code", Type: datatypes.String},
-		// 				{Name: "local_code", Type: datatypes.String},
-		// 				{Name: "bool_teim", Type: datatypes.Boolean},
-		// 			}},
-		// 			FormatConfig: &dataset.JSONOptions{ArrayEntries: true}},
-		// 			[][][]byte{
-		// 				{[]byte("00AR"), []byte("heliport"), []byte("Newport Hospital & Clinic Heliport"), {}, {}, {}, []byte("NA"), []byte("US"), []byte("US-AR"), []byte("Newport"), []byte("00AR"), {}, []byte("00AR"), {}},
-		// 			},
-		// 			// "[\n[\"00AR\",\"heliport\",\"Newport Hospital & Clinic Heliport\",0,0,0,\"NA\",\"US\",\"US-AR\",\"Newport\",\"00AR\",\"\",\"00AR\",false]\n]",
-		// 			`[
-		// ["00AR","heliport","Newport Hospital & Clinic Heliport",null,null,null,"NA","US","US-AR","Newport","00AR",null,"00AR",null]
-		// ]`,
-		// 		},
-		// 		{&dataset.Structure{Schema: &dataset.Schema{
-		// 			Fields: []*dataset.Field{
-		// 				{Name: "ident", Type: datatypes.String},
-		// 				{Name: "type", Type: datatypes.String},
-		// 				{Name: "name", Type: datatypes.String},
-		// 				{Name: "latitude_deg", Type: datatypes.Float},
-		// 				{Name: "longitude_deg", Type: datatypes.Float},
-		// 				{Name: "elevation_ft", Type: datatypes.Integer},
-		// 				{Name: "continent", Type: datatypes.String},
-		// 				{Name: "iso_country", Type: datatypes.String},
-		// 				{Name: "iso_region", Type: datatypes.String},
-		// 				{Name: "municipality", Type: datatypes.String},
-		// 				{Name: "gps_code", Type: datatypes.String},
-		// 				{Name: "iata_code", Type: datatypes.String},
-		// 				{Name: "local_code", Type: datatypes.String},
-		// 				{Name: "bool_teim", Type: datatypes.Boolean},
-		// 			}}},
-		// 			[][][]byte{
-		// 				{[]byte("00AR"), []byte("heliport"), []byte("Newport Hospital & Clinic Heliport"), {}, []byte("0"), {}, []byte("NA"), []byte("US"), []byte("US-AR"), []byte("Newport"), []byte("00AR"), {}, []byte("00AR"), {}},
-		// 			},
-		// 			`[
-		// {"ident":"00AR","type":"heliport","name":"Newport Hospital & Clinic Heliport","latitude_deg":null,"longitude_deg":0,"elevation_ft":null,"continent":"NA","iso_country":"US","iso_region":"US-AR","municipality":"Newport","gps_code":"00AR","iata_code":null,"local_code":"00AR","bool_teim":null}
-		// ]`,
-		// 		},
-		// 		{&dataset.Structure{Schema: &dataset.Schema{
-		// 			Fields: []*dataset.Field{
-		// 				{Name: "name", Type: datatypes.String},
-		// 				{Name: "metadata", Type: datatypes.JSON},
-		// 			}}},
-		// 			[][][]byte{
-		// 				{[]byte("name_one"), []byte(`{ "data" : "stuff", "foo" : 5, "false" : true }`)},
-		// 				{[]byte("name_two"), []byte(`["stuff",5,false,null,27.5]`)},
-		// 			},
-		// 			`[
-		// {"name":"name_one","metadata":{ "data" : "stuff", "foo" : 5, "false" : true }},
-		// {"name":"name_two","metadata":["stuff",5,false,null,27.5]}
-		// ]`,
-		// 		},
+		{&dataset.Structure{}, vals.Array{}, "[]", "schema required for JSON writer"},
+		{&dataset.Structure{Schema: jsonschema.Must(`true`)}, vals.Array{}, "[]", "invalid schema for JSON data format. root must be either an array or object type"},
+
+		{arrst, vals.Array{}, "[]", ""},
+		{objst, vals.Array{}, "{}", ""},
+		{objst, vals.Array{vals.ObjectValue{"a", vals.String("hello")}, vals.ObjectValue{"b", vals.String("world")}}, `{"a":"hello","b":"world"}`, ""},
+		{objst, vals.Array{vals.ObjectValue{"a", vals.String("hello")}, vals.ObjectValue{"b", vals.String("world")}}, `{"a":"hello","b":"world"}`, ""},
 	}
 
 	for i, c := range cases {
 		buf := &bytes.Buffer{}
-		w := NewJSONWriter(c.structure, buf)
+		w, err := NewJSONWriter(c.structure, buf)
+		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
+			t.Errorf("case %d error mismatch. expected: %s. got: %s", i, c.err, err)
+			continue
+		} else if c.err != "" {
+			continue
+		}
+
 		for _, ent := range c.entries {
 			if err := w.WriteValue(ent); err != nil {
 				t.Errorf("case %d WriteValue error: %s", i, err.Error())
@@ -184,7 +166,7 @@ func TestJSONWriter(t *testing.T) {
 		}
 
 		var v interface{}
-		if cfg, ok := c.structure.FormatConfig.(*dataset.JSONOptions); ok && cfg.ArrayEntries {
+		if w.ContainerType() == "object" {
 			v = []interface{}{}
 		} else {
 			v = map[string]interface{}{}
@@ -193,5 +175,51 @@ func TestJSONWriter(t *testing.T) {
 		if err := json.Unmarshal(buf.Bytes(), &v); err != nil {
 			t.Errorf("unmarshal error: %s", err.Error())
 		}
+	}
+}
+
+func TestJSONWriterNonObjectValue(t *testing.T) {
+	buf := &bytes.Buffer{}
+	w, err := NewJSONWriter(&dataset.Structure{Format: dataset.JSONDataFormat, Schema: detect.BaseSchemaJSONObject}, buf)
+	if err != nil {
+		t.Errorf("unexpected error creating writer: %s", err.Error())
+		return
+	}
+
+	err = w.WriteValue(vals.Boolean(false))
+	expect := `only vals.ObjectValue can be written to a JSON object writer`
+	if err.Error() != expect {
+		t.Errorf("error mismatch. expected: %s. got: %s", expect, err.Error())
+		return
+	}
+}
+
+func TestJSONWriterDoubleKey(t *testing.T) {
+	buf := &bytes.Buffer{}
+	w, err := NewJSONWriter(&dataset.Structure{Format: dataset.JSONDataFormat, Schema: detect.BaseSchemaJSONObject}, buf)
+	if err != nil {
+		t.Errorf("unexpected error creating writer: %s", err.Error())
+		return
+	}
+
+	if w.Structure() == nil {
+		t.Errorf("nil structure?")
+	}
+
+	if err := w.WriteValue(vals.ObjectValue{"a", vals.String("foo")}); err != nil {
+		t.Errorf("unexpected error writing key: %s", err.Error())
+		return
+	}
+
+	err = w.WriteValue(vals.ObjectValue{"a", vals.Boolean(true)})
+	if err == nil {
+		t.Errorf("expected an error on second write with duplicate key")
+		return
+	}
+
+	expect := `key already written: "a"`
+	if err.Error() != expect {
+		t.Errorf("error mismatch. expected: %s. got: %s", expect, err.Error())
+		return
 	}
 }

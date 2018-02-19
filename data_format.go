@@ -36,6 +36,17 @@ const (
 	// TODO - make this list more exhaustive
 )
 
+// SupportedDataFormats gives a slice of data formats that are
+// expected to work with this dataset package. As we work through
+// support for different formats, the last step of providing full
+// support to a format will be an addition to this slice
+func SupportedDataFormats() []DataFormat {
+	return []DataFormat{
+		CSVDataFormat,
+		JSONDataFormat,
+	}
+}
+
 // String implements stringer interface for DataFormat
 func (f DataFormat) String() string {
 	s, ok := map[DataFormat]string{

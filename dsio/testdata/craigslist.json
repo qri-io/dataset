@@ -1,0 +1,32 @@
+[
+  {
+    "name": "*NO FEE // HARLEM  2 BEDS (GREAT VIEWS) -- [UTILITIES INCLUDED!]", 
+    "url": "https://newyork.craigslist.org/mnh/nfb/d/no-fee-harlem-2-beds-great/6496082858.html", 
+    "containedIn": {
+      "name": " (Harlem / Morningside)", 
+      "containedInPlace": {
+        "name": "New York City"
+      }
+    }, 
+    "additionalProperty": {
+      "name": "price", 
+      "value": 2695.0, 
+      "currency": "USD"
+    }
+  }, 
+  {
+    "name": "***QUALITY -- HARLEM 1 BEDS (RENOVATED WITH GREAT VIEWS)", 
+    "url": "https://newyork.craigslist.org/mnh/nfb/d/quality-harlem-1-beds/6496082551.html", 
+    "containedIn": {
+      "name": " (Harlem / Morningside)", 
+      "containedInPlace": {
+        "name": "New York City"
+      }
+    }, 
+    "additionalProperty": {
+      "name": "price", 
+      "value": 2000.0, 
+      "currency": "USD"
+    }
+  }
+]

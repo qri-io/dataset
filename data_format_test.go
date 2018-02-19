@@ -5,6 +5,19 @@ import (
 	"testing"
 )
 
+func TestSupportedDataFormats(t *testing.T) {
+	expect := []DataFormat{
+		CSVDataFormat,
+		JSONDataFormat,
+	}
+
+	for i, f := range SupportedDataFormats() {
+		if expect[i] != f {
+			t.Errorf("index %d mismatch. expected: %s got: %s", i, expect, f)
+		}
+	}
+}
+
 func TestDataFormatString(t *testing.T) {
 	cases := []struct {
 		f      DataFormat

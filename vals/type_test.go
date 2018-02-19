@@ -232,7 +232,7 @@ func TestParseBoolean(t *testing.T) {
 	for i, c := range cases {
 		value, got := ParseBoolean(c.input)
 		if value != c.expect {
-			t.Errorf("case %d value mismatch. expected: %s, got: %s", i, c.expect, value)
+			t.Errorf("case %d value mismatch. expected: %t, got: %t", i, c.expect, value)
 		}
 		if c.err != got {
 			t.Errorf("case %d error mismatch. expected: %s, got: %s", i, c.err, got)
