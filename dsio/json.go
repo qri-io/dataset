@@ -101,6 +101,8 @@ func initialIndex(data []byte) (md scanMode, skip int, err error) {
 	return smArray, idx + 1, nil
 }
 
+var moars = 0
+
 // scanJSONValue scans according to json closures ([] and {})
 func (r *JSONReader) scanJSONValue(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	if atEOF && len(data) == 0 {
@@ -117,11 +119,13 @@ func (r *JSONReader) scanJSONValue(data []byte, atEOF bool) (advance int, token 
 			r.initialized = true
 			data = data[skip:]
 		}
+		return skip, nil, nil
 	}
 
 	if r.scanMode == smObject {
 		return scanObjectValue(data, atEOF)
 	}
+
 	return scanValue(data, atEOF)
 }
 
@@ -186,6 +190,7 @@ func strTokScanner(tok string) func([]byte, bool) (int, []byte, error) {
 			return 0, nil, fmt.Errorf("unexpected error scanning %s value", tok)
 		}
 		stop := start + len(tok)
+
 		return advSep(stop, data), data[start:stop], nil
 	}
 }
@@ -215,6 +220,10 @@ LOOP:
 		}
 	}
 
+	if stop == -1 || start == -1 {
+		return 0, nil, nil
+	}
+
 	return advSep(stop, data), data[start:stop], nil
 }
 
@@ -226,13 +235,23 @@ LOOP:
 	for i, b := range data {
 		switch b {
 		case '"':
+
 			if start == -1 {
 				start = i
 			} else {
+				// skip escaped quote characters
+				if data[i-1] == '\\' {
+					break
+				}
+
 				stop = i + 1
 				break LOOP
 			}
 		}
+	}
+
+	if stop == -1 || start == -1 {
+		return 0, nil, nil
 	}
 
 	return advSep(stop, data), data[start:stop], nil
@@ -246,6 +265,10 @@ LOOP:
 	for i, b := range data {
 		switch b {
 		case '"':
+			// skip escaped quote characters
+			if instring && data[i-1] == '\\' {
+				break
+			}
 			instring = !instring
 		case '{':
 			if !instring {
@@ -284,6 +307,10 @@ LOOP:
 	for i, b := range data {
 		switch b {
 		case '"':
+			// skip escaped quote chars
+			if instring && data[i-1] == '\\' {
+				break
+			}
 			instring = !instring
 		case '[':
 			if !instring {

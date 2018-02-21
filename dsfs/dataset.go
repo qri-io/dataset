@@ -307,9 +307,11 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 	}
 
 	entries := 0
-	for err == nil {
+	for {
+		if _, err = rr.ReadValue(); err != nil {
+			break
+		}
 		entries++
-		_, err = rr.ReadValue()
 	}
 	if err.Error() != "EOF" {
 		return nil, "", fmt.Errorf("error reading values: %s", err.Error())
