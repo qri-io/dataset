@@ -6,14 +6,14 @@
     "timestamp": "2001-01-01T01:01:01.000000001Z",
     "title": "initial commit"
   },
-  "dataPath": "/map/QmPT7t4GQaBN4uxCdv3PD8A5vWaJ1ELCKCaZEjYYvUhe4W",
+  "dataPath": "/map/QmUPfueN4Amv6pyPddi6KRtYFw3dpJKyD4ka95jUgBq9dv",
   "qri": "ds:0",
   "structure": {
-    "checksum": "QmPT7t4GQaBN4uxCdv3PD8A5vWaJ1ELCKCaZEjYYvUhe4W",
-    "entries": 30,
+    "checksum": "QmUPfueN4Amv6pyPddi6KRtYFw3dpJKyD4ka95jUgBq9dv",
+    "entries": 1200,
     "errCount": 1,
     "format": "json",
-    "length": 512676,
+    "length": 520254,
     "qri": "st:0",
     "schema": {
       "definitions": {

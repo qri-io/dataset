@@ -47,18 +47,18 @@ func NewTestCaseFromDir(dir string, t *testing.T) (tc TestCase, err error) {
 	}
 	tc.Data, tc.DataFilename, err = ReadInputData(dir)
 	if err != nil {
-		err = fmt.Errorf("error reading test case data: %s", err.Error())
+		err = fmt.Errorf("error reading test case data for directory %s: %s", dir, err.Error())
 		return
 	}
 
 	tc.Input, err = ReadDataset(dir, InputDatasetFilename)
-	if err != nil && !os.IsNotExist(err) {
+	if err != nil && !os.IsNotExist(err) && t != nil {
 		t.Logf("%s: error loading input dataset: %s", tc.Name, err)
 	}
 	err = nil
 
 	tc.Expect, err = ReadDataset(dir, ExpectDatasetFilename)
-	if err != nil && !os.IsNotExist(err) {
+	if err != nil && !os.IsNotExist(err) && t != nil {
 		t.Logf("%s: error loading expect dataset: %s", tc.Name, err)
 	}
 	err = nil

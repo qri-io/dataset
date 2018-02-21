@@ -19,6 +19,7 @@ type JSONReader struct {
 	scanMode    scanMode // are we scanning an object or an array? default: array.
 	st          *dataset.Structure
 	sc          *bufio.Scanner
+	objKey      string
 }
 
 func schemaScanMode(sc *jsonschema.RootSchema) (scanMode, error) {
@@ -76,7 +77,16 @@ func (r *JSONReader) ReadValue() (vals.Value, error) {
 		return nil, r.sc.Err()
 	}
 
-	return vals.UnmarshalJSON(r.sc.Bytes())
+	val, err := vals.UnmarshalJSON(r.sc.Bytes())
+	if err != nil {
+		return nil, err
+	}
+
+	if r.scanMode == smObject {
+		return vals.NewObjectValue(r.objKey, val), nil
+	}
+
+	return val, nil
 }
 
 // initialIndex sets the scanner up to read data, advancing until the first
@@ -101,6 +111,8 @@ func initialIndex(data []byte) (md scanMode, skip int, err error) {
 	return smArray, idx + 1, nil
 }
 
+var moars = 0
+
 // scanJSONValue scans according to json closures ([] and {})
 func (r *JSONReader) scanJSONValue(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	if atEOF && len(data) == 0 {
@@ -117,15 +129,17 @@ func (r *JSONReader) scanJSONValue(data []byte, atEOF bool) (advance int, token 
 			r.initialized = true
 			data = data[skip:]
 		}
+		return skip, nil, nil
 	}
 
 	if r.scanMode == smObject {
-		return scanObjectValue(data, atEOF)
+		return r.scanObjectValue(data, atEOF)
 	}
+
 	return scanValue(data, atEOF)
 }
 
-func scanObjectValue(data []byte, atEOF bool) (advance int, token []byte, err error) {
+func (r *JSONReader) scanObjectValue(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	for _, b := range data {
 		if b == ':' {
 			break
@@ -142,6 +156,7 @@ func scanObjectValue(data []byte, atEOF bool) (advance int, token []byte, err er
 	if key == nil || e != nil {
 		return stradv, key, e
 	}
+	r.objKey = string(key)
 
 	vadv, val, e := scanValue(data[stradv:], atEOF)
 	if val == nil || e != nil {
@@ -186,6 +201,7 @@ func strTokScanner(tok string) func([]byte, bool) (int, []byte, error) {
 			return 0, nil, fmt.Errorf("unexpected error scanning %s value", tok)
 		}
 		stop := start + len(tok)
+
 		return advSep(stop, data), data[start:stop], nil
 	}
 }
@@ -215,6 +231,10 @@ LOOP:
 		}
 	}
 
+	if stop == -1 || start == -1 {
+		return 0, nil, nil
+	}
+
 	return advSep(stop, data), data[start:stop], nil
 }
 
@@ -226,13 +246,23 @@ LOOP:
 	for i, b := range data {
 		switch b {
 		case '"':
+
 			if start == -1 {
 				start = i
 			} else {
+				// skip escaped quote characters
+				if data[i-1] == '\\' {
+					break
+				}
+
 				stop = i + 1
 				break LOOP
 			}
 		}
+	}
+
+	if stop == -1 || start == -1 {
+		return 0, nil, nil
 	}
 
 	return advSep(stop, data), data[start:stop], nil
@@ -246,6 +276,10 @@ LOOP:
 	for i, b := range data {
 		switch b {
 		case '"':
+			// skip escaped quote characters
+			if instring && data[i-1] == '\\' {
+				break
+			}
 			instring = !instring
 		case '{':
 			if !instring {
@@ -284,6 +318,10 @@ LOOP:
 	for i, b := range data {
 		switch b {
 		case '"':
+			// skip escaped quote chars
+			if instring && data[i-1] == '\\' {
+				break
+			}
 			instring = !instring
 		case '[':
 			if !instring {

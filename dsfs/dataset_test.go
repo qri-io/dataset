@@ -145,13 +145,13 @@ func TestCreateDataset(t *testing.T) {
 		{"invalid",
 			"", 0, "commit is required"},
 		{"cities",
-			"/map/QmebrWmmBt2GmfYAT69vioaMb1Rp2aTfQm1jac7KEWHKNa", 7, ""},
+			"/map/QmYHjqM9EFJhxW5u2W4CZ76kVFxF98pBkYvjBY9WpRYxa3", 7, ""},
 		{"complete",
-			"/map/Qmehg2driQVjsGpf44p37EekpbLVXcu8kigP59j1ob24fD", 15, ""},
+			"/map/QmZ98pNQKSR2mRP466K7eZLttU8fx4FPp4QEaDTMZ8BonD", 15, ""},
 		{"cities_no_commit_title",
-			"/map/QmY5TnPy9xWBpqqcqBfcCKChKgfmdS149WnaGDrbnVhWLa", 17, ""},
+			"/map/QmafoKFW7VVaUJszdwEidyQNmrcJ1oBdKhLt9Xnf2KLEFn", 17, ""},
 		{"craigslist",
-			"/map/QmeytVZwjuWxTBdyZ83F2FSAK2xrtvzYse8Y129d2cGJde", 21, ""},
+			"/map/QmRLpDXcrccTzNCwWXyyHRZCmSzDxPoMX91KtLW3szmmkX", 21, ""},
 	}
 
 	for _, c := range cases {
@@ -189,7 +189,6 @@ func TestCreateDataset(t *testing.T) {
 				continue
 			}
 
-			t.Log(tc.Expect)
 			if tc.Expect != nil {
 				if err := dataset.CompareDatasets(tc.Expect, ds); err != nil {
 					t.Errorf("%s: dataset comparison error: %s", tc.Name, err.Error())
