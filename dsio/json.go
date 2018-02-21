@@ -19,6 +19,7 @@ type JSONReader struct {
 	scanMode    scanMode // are we scanning an object or an array? default: array.
 	st          *dataset.Structure
 	sc          *bufio.Scanner
+	objKey      string
 }
 
 func schemaScanMode(sc *jsonschema.RootSchema) (scanMode, error) {
@@ -76,7 +77,16 @@ func (r *JSONReader) ReadValue() (vals.Value, error) {
 		return nil, r.sc.Err()
 	}
 
-	return vals.UnmarshalJSON(r.sc.Bytes())
+	val, err := vals.UnmarshalJSON(r.sc.Bytes())
+	if err != nil {
+		return nil, err
+	}
+
+	if r.scanMode == smObject {
+		return vals.NewObjectValue(r.objKey, val), nil
+	}
+
+	return val, nil
 }
 
 // initialIndex sets the scanner up to read data, advancing until the first
@@ -123,13 +133,13 @@ func (r *JSONReader) scanJSONValue(data []byte, atEOF bool) (advance int, token 
 	}
 
 	if r.scanMode == smObject {
-		return scanObjectValue(data, atEOF)
+		return r.scanObjectValue(data, atEOF)
 	}
 
 	return scanValue(data, atEOF)
 }
 
-func scanObjectValue(data []byte, atEOF bool) (advance int, token []byte, err error) {
+func (r *JSONReader) scanObjectValue(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	for _, b := range data {
 		if b == ':' {
 			break
@@ -146,6 +156,7 @@ func scanObjectValue(data []byte, atEOF bool) (advance int, token []byte, err er
 	if key == nil || e != nil {
 		return stradv, key, e
 	}
+	r.objKey = string(key)
 
 	vadv, val, e := scanValue(data[stradv:], atEOF)
 	if val == nil || e != nil {
