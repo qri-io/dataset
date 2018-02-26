@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/vals"
@@ -21,7 +22,7 @@ type CSVReader struct {
 func NewCSVReader(st *dataset.Structure, r io.Reader) *CSVReader {
 	return &CSVReader{
 		st: st,
-		r:  csv.NewReader(r),
+		r:  csv.NewReader(ReplaceSoloCarriageReturns(r)),
 	}
 }
 
@@ -141,4 +142,39 @@ func (w *CSVWriter) WriteValue(val vals.Value) error {
 func (w *CSVWriter) Close() error {
 	w.w.Flush()
 	return nil
+}
+
+// ReplaceSoloCarriageReturns looks for instances of lonely \r replacing them with \r\n
+// lots of files in the wild will come without "proper" line breaks, which irritates go's
+// standard csv package
+func ReplaceSoloCarriageReturns(data io.Reader) io.Reader {
+	replaces := strings.NewReplacer("\r\n", "\r\n", "\r", "\r\n")
+	rpl := func(data []byte) []byte {
+		return []byte(replaces.Replace(string(data)))
+	}
+	return replaceReader{
+		rdr: data,
+		rep: rpl,
+	}
+}
+
+// internal byte replacer inspired by strings.NewReplacer
+type replacer func([]byte) []byte
+
+// replaceReader wrapers a reader, calling replace on every read
+type replaceReader struct {
+	prev []byte
+	rdr  io.Reader
+	rep  replacer
+}
+
+// Read implements io.Reader for replaceReader
+func (c replaceReader) Read(p []byte) (int, error) {
+	n, err := c.rdr.Read(p)
+	if err != nil || n == 0 {
+		return n, err
+	}
+
+	copy(p, c.rep(p))
+	return n, err
 }

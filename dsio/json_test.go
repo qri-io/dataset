@@ -3,13 +3,12 @@ package dsio
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/qri-io/jsonschema"
 	"os"
 	"testing"
 
 	"github.com/qri-io/dataset"
-	"github.com/qri-io/dataset/detect"
 	"github.com/qri-io/dataset/vals"
+	"github.com/qri-io/jsonschema"
 )
 
 func TestJSONReader(t *testing.T) {
@@ -23,37 +22,37 @@ func TestJSONReader(t *testing.T) {
 		{&dataset.Structure{Schema: jsonschema.Must(`false`)}, "testdata/city_data.json", 0, "invalid schema for JSON data format. root must be either an array or object type"},
 		{&dataset.Structure{
 			Format: dataset.JSONDataFormat,
-			Schema: detect.BaseSchemaJSONArray,
+			Schema: dataset.BaseSchemaJSONArray,
 		},
 			"testdata/city_data.json", 6, ""},
 		{&dataset.Structure{
 			Format: dataset.JSONDataFormat,
-			Schema: detect.BaseSchemaJSONObject,
+			Schema: dataset.BaseSchemaJSONObject,
 		},
 			"testdata/sitemap_object.json", 7, ""},
 		{&dataset.Structure{
 			Format: dataset.JSONDataFormat,
-			Schema: detect.BaseSchemaJSONObject,
+			Schema: dataset.BaseSchemaJSONObject,
 		}, "testdata/links_object.json", 20, ""},
 		{&dataset.Structure{
 			Format: dataset.JSONDataFormat,
-			Schema: detect.BaseSchemaJSONArray,
+			Schema: dataset.BaseSchemaJSONArray,
 		}, "testdata/links_array.json", 20, ""},
 		{&dataset.Structure{
 			Format: dataset.JSONDataFormat,
-			Schema: detect.BaseSchemaJSONArray,
+			Schema: dataset.BaseSchemaJSONArray,
 		}, "testdata/json_array.json", 10, ""},
 		{&dataset.Structure{
 			Format: dataset.JSONDataFormat,
-			Schema: detect.BaseSchemaJSONObject,
+			Schema: dataset.BaseSchemaJSONObject,
 		}, "testdata/json_object.json", 10, ""},
 		{&dataset.Structure{
 			Format: dataset.JSONDataFormat,
-			Schema: detect.BaseSchemaJSONArray,
+			Schema: dataset.BaseSchemaJSONArray,
 		}, "testdata/craigslist.json", 1200, ""},
 		{&dataset.Structure{
 			Format: dataset.JSONDataFormat,
-			Schema: detect.BaseSchemaJSONObject,
+			Schema: dataset.BaseSchemaJSONObject,
 		}, "testdata/sitemap.json", 1, ""},
 	}
 
@@ -127,8 +126,8 @@ func TestJSONReader(t *testing.T) {
 }
 
 func TestJSONWriter(t *testing.T) {
-	objst := &dataset.Structure{Schema: detect.BaseSchemaJSONObject}
-	arrst := &dataset.Structure{Schema: detect.BaseSchemaJSONArray}
+	objst := &dataset.Structure{Schema: dataset.BaseSchemaJSONObject}
+	arrst := &dataset.Structure{Schema: dataset.BaseSchemaJSONArray}
 
 	cases := []struct {
 		structure *dataset.Structure
@@ -184,7 +183,7 @@ func TestJSONWriter(t *testing.T) {
 
 func TestJSONWriterNonObjectValue(t *testing.T) {
 	buf := &bytes.Buffer{}
-	w, err := NewJSONWriter(&dataset.Structure{Format: dataset.JSONDataFormat, Schema: detect.BaseSchemaJSONObject}, buf)
+	w, err := NewJSONWriter(&dataset.Structure{Format: dataset.JSONDataFormat, Schema: dataset.BaseSchemaJSONObject}, buf)
 	if err != nil {
 		t.Errorf("unexpected error creating writer: %s", err.Error())
 		return
@@ -200,7 +199,7 @@ func TestJSONWriterNonObjectValue(t *testing.T) {
 
 func TestJSONWriterDoubleKey(t *testing.T) {
 	buf := &bytes.Buffer{}
-	w, err := NewJSONWriter(&dataset.Structure{Format: dataset.JSONDataFormat, Schema: detect.BaseSchemaJSONObject}, buf)
+	w, err := NewJSONWriter(&dataset.Structure{Format: dataset.JSONDataFormat, Schema: dataset.BaseSchemaJSONObject}, buf)
 	if err != nil {
 		t.Errorf("unexpected error creating writer: %s", err.Error())
 		return

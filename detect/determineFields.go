@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/dataset/dsio"
 	"github.com/qri-io/dataset/vals"
 	"github.com/qri-io/jsonschema"
 	"github.com/qri-io/varName"
@@ -42,7 +43,7 @@ type field struct {
 
 // CSVSchema determines the field names and types of an io.Reader of CSV-formatted data, returning a json schema
 func CSVSchema(resource *dataset.Structure, data io.Reader) (schema *jsonschema.RootSchema, err error) {
-	r := csv.NewReader(data)
+	r := csv.NewReader(dsio.ReplaceSoloCarriageReturns(data))
 	r.FieldsPerRecord = -1
 	r.TrimLeadingSpace = true
 	header, err := r.Read()
@@ -90,11 +91,13 @@ func CSVSchema(resource *dataset.Structure, data io.Reader) (schema *jsonschema.
 			return nil, fmt.Errorf("error reading csv file: %s", err.Error())
 		}
 
-		for i, cell := range rec {
-			types[i][vals.ParseType([]byte(cell))]++
-		}
+		if len(rec) == len(types) {
+			for i, cell := range rec {
+				types[i][vals.ParseType([]byte(cell))]++
+			}
 
-		count++
+			count++
+		}
 	}
 
 	for i, tally := range types {

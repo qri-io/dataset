@@ -2,8 +2,9 @@ package dsio
 
 import (
 	"bytes"
-	"github.com/qri-io/dataset"
 	"testing"
+
+	"github.com/qri-io/dataset"
 )
 
 func TestNewValueReader(t *testing.T) {
