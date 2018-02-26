@@ -51,6 +51,10 @@ func TestJSONReader(t *testing.T) {
 			Format: dataset.JSONDataFormat,
 			Schema: detect.BaseSchemaJSONArray,
 		}, "testdata/craigslist.json", 1200, ""},
+		{&dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: detect.BaseSchemaJSONObject,
+		}, "testdata/sitemap.json", 1, ""},
 	}
 
 	for i, c := range cases {
