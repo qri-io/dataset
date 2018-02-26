@@ -1,11 +1,11 @@
 package dsio
 
 import (
+	"bufio"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"io"
-	"strings"
 
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/vals"
@@ -144,37 +144,49 @@ func (w *CSVWriter) Close() error {
 	return nil
 }
 
-// ReplaceSoloCarriageReturns looks for instances of lonely \r replacing them with \r\n
+// ReplaceSoloCarriageReturns wraps an io.Reader, on every call of Read it
+// for instances of lonely \r replacing them with \r\n before returning to the end customer
 // lots of files in the wild will come without "proper" line breaks, which irritates go's
-// standard csv package
+// standard csv package. This'll fix by wrapping the reader passed to csv.NewReader:
+// 		rdr, err := csv.NewReader(ReplaceSoloCarriageReturns(r))
+//
 func ReplaceSoloCarriageReturns(data io.Reader) io.Reader {
-	replaces := strings.NewReplacer("\r\n", "\r\n", "\r", "\r\n")
-	rpl := func(data []byte) []byte {
-		return []byte(replaces.Replace(string(data)))
-	}
-	return replaceReader{
-		rdr: data,
-		rep: rpl,
+	return crlfReplaceReader{
+		rdr: bufio.NewReader(data),
 	}
 }
 
-// internal byte replacer inspired by strings.NewReplacer
-type replacer func([]byte) []byte
-
-// replaceReader wrapers a reader, calling replace on every read
-type replaceReader struct {
-	prev []byte
-	rdr  io.Reader
-	rep  replacer
+// crlfReplaceReader wraps a reader
+type crlfReplaceReader struct {
+	rdr *bufio.Reader
 }
 
-// Read implements io.Reader for replaceReader
-func (c replaceReader) Read(p []byte) (int, error) {
-	n, err := c.rdr.Read(p)
-	if err != nil || n == 0 {
-		return n, err
+// Read implements io.Reader for crlfReplaceReader
+func (c crlfReplaceReader) Read(p []byte) (n int, err error) {
+	if len(p) == 0 {
+		return
 	}
 
-	copy(p, c.rep(p))
-	return n, err
+	for {
+		if n == len(p) {
+			return
+		}
+
+		p[n], err = c.rdr.ReadByte()
+		if err != nil {
+			return
+		}
+
+		// any time we encounter \r & still have space, check to see if \n follows
+		// ff next char is not \n, add it in manually
+		if p[n] == '\r' && n < len(p) {
+			if pk, err := c.rdr.Peek(1); (err == nil && pk[0] != '\n') || (err != nil && err.Error() == "EOF") {
+				n++
+				p[n] = '\n'
+			}
+		}
+
+		n++
+	}
+	return
 }

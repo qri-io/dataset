@@ -111,10 +111,12 @@ func TestReplaceSoloCarriageReturns(t *testing.T) {
 	expect := []byte("foo\r\n\r\nbar\r\nbaz\r\n\r\n")
 
 	got := make([]byte, 19)
-	_, err := ReplaceSoloCarriageReturns(bytes.NewReader(input)).Read(got)
-	if err != nil {
+	n, err := ReplaceSoloCarriageReturns(bytes.NewReader(input)).Read(got)
+	if err != nil && err.Error() != "EOF" {
 		t.Errorf("unexpected error: %s", err.Error())
-		return
+	}
+	if n != 19 {
+		t.Errorf("length error. expected: %d, got: %d", 19, n)
 	}
 	if !bytes.Equal(expect, got) {
 		t.Errorf("byte mismatch. expected:\n%v\ngot:\n%v", expect, got)
