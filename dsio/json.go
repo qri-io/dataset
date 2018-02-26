@@ -5,11 +5,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/qri-io/jsonschema"
 	"io"
 
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/vals"
+	"github.com/qri-io/jsonschema"
 )
 
 // JSONReader implements the RowReader interface for the JSON data format
@@ -54,6 +54,10 @@ func NewJSONReader(st *dataset.Structure, r io.Reader) (*JSONReader, error) {
 		sc: sc,
 	}
 	sc.Split(jr.scanJSONValue)
+	// TODO - this is an interesting edge case. Need a big buffer for truly huge tokens.
+	// let's create an issue to discuss. It might make sense to store the size of the largest
+	// entry in the dataset as a structure definition
+	sc.Buffer(nil, 256*1024)
 
 	sm, err := schemaScanMode(st.Schema)
 	jr.scanMode = sm
@@ -113,7 +117,7 @@ func initialIndex(data []byte) (md scanMode, skip int, err error) {
 
 var moars = 0
 
-// scanJSONValue scans according to json closures ([] and {})
+// scanJSONValue scans according to json value types (object, array, string, boolean, number, null, and integer)
 func (r *JSONReader) scanJSONValue(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	if atEOF && len(data) == 0 {
 		return 0, nil, nil
@@ -307,6 +311,7 @@ LOOP:
 	if starti < stopi {
 		return advSep(stopi, data), data[starti:stopi], nil
 	}
+
 	return 0, nil, nil
 }
 
@@ -340,6 +345,7 @@ LOOP:
 			}
 		}
 	}
+
 	if stopi == -1 || starti == -1 {
 		return 0, nil, nil
 	}
