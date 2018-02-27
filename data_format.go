@@ -24,6 +24,9 @@ const (
 	CSVDataFormat
 	// JSONDataFormat specifies Javascript Object Notation-formatted data
 	JSONDataFormat
+	// CBORDataFormat specifies RFC 7049 Concise Binary Object Representation
+	// read more at cbor.io
+	CBORDataFormat
 	// XMLDataFormat specifies eXtensible Markup Language-formatted data
 	// currently not supported.
 	XMLDataFormat
@@ -38,8 +41,9 @@ const (
 // support to a format will be an addition to this slice
 func SupportedDataFormats() []DataFormat {
 	return []DataFormat{
-		CSVDataFormat,
+		CBORDataFormat,
 		JSONDataFormat,
+		CSVDataFormat,
 	}
 }
 
@@ -51,6 +55,7 @@ func (f DataFormat) String() string {
 		JSONDataFormat:    "json",
 		XMLDataFormat:     "xml",
 		XLSDataFormat:     "xls",
+		CBORDataFormat:    "cbor",
 	}[f]
 
 	if !ok {
@@ -72,6 +77,8 @@ func ParseDataFormatString(s string) (df DataFormat, err error) {
 		"xml":   XMLDataFormat,
 		".xls":  XLSDataFormat,
 		"xls":   XLSDataFormat,
+		"cbor":  CBORDataFormat,
+		".cbor": CBORDataFormat,
 	}[s]
 	if !ok {
 		err = fmt.Errorf("invalid data format: `%s`", s)

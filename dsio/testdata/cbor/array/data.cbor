@@ -1,0 +1,29 @@
+Yˆ[
+  false,
+  true,
+  null,
+  1234567890,
+  -1234567890e3,
+  "this is a very long string to make sure the bytes.Scanner needs to load more data at least once during the course of scanning. So now I'm just gonna paste the word puppy like 30x. puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy puppy ",
+  "oh hello there",
+  {
+    "key": "oh hello there"
+  },
+  [
+    "key",
+    "oh hello there"
+  ],
+  {
+    "objects": {
+      "within": {
+        "objects": {
+          "that": {
+            "haz": [
+              "array"
+            ]
+          }
+        }
+      }
+    }
+  }
+]

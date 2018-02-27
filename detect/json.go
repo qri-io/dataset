@@ -19,8 +19,8 @@ func JSONSchema(resource *dataset.Structure, data io.Reader) (schema *jsonschema
 	}
 
 	if bytes.Contains(lin, []byte{'['}) {
-		return dataset.BaseSchemaJSONArray, nil
+		return dataset.BaseSchemaArray, nil
 	}
 
-	return dataset.BaseSchemaJSONObject, nil
+	return dataset.BaseSchemaObject, nil
 }

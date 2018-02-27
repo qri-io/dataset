@@ -1,5 +1,8 @@
 {
-  "title": "example city data",
+  "qri": "ds:0",
+  "meta": {
+    "title": "example movie data"
+  },
   "structure": {
     "format": "csv",
     "formatConfig": {
@@ -11,20 +14,12 @@
         "type": "array",
         "items": [
           {
-            "title": "city",
+            "title": "movie_title",
             "type": "string"
           },
           {
-            "title": "pop",
+            "title": "duration",
             "type": "integer"
-          },
-          {
-            "title": "avg_age",
-            "type": "number"
-          },
-          {
-            "title": "in_usa",
-            "type": "boolean"
           }
         ]
       }

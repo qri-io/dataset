@@ -10,12 +10,12 @@ import (
 )
 
 var (
-	// BaseSchemaJSONArray is a minimum schema for the json file format, specifying that the top
+	// BaseSchemaArray is a minimum schema to constitute a dataset, specifying that the top
 	// level of the document is an array
-	BaseSchemaJSONArray = jsonschema.Must(`{"type":"array"}`)
-	// BaseSchemaJSONObject is a minimum schema for the json format, specifying that the top level
+	BaseSchemaArray = jsonschema.Must(`{"type":"array"}`)
+	// BaseSchemaObject is a minimum schema to constitute a dataset, specifying that the top level
 	// of the document is an object
-	BaseSchemaJSONObject = jsonschema.Must(`{"type":"object"}`)
+	BaseSchemaObject = jsonschema.Must(`{"type":"object"}`)
 )
 
 // Structure designates a deterministic definition for working with a discrete dataset.

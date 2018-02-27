@@ -7,8 +7,9 @@ import (
 
 func TestSupportedDataFormats(t *testing.T) {
 	expect := []DataFormat{
-		CSVDataFormat,
+		CBORDataFormat,
 		JSONDataFormat,
+		CSVDataFormat,
 	}
 
 	for i, f := range SupportedDataFormats() {
@@ -28,6 +29,7 @@ func TestDataFormatString(t *testing.T) {
 		{JSONDataFormat, "json"},
 		{XMLDataFormat, "xml"},
 		{XLSDataFormat, "xls"},
+		{CBORDataFormat, "cbor"},
 	}
 
 	for i, c := range cases {
@@ -53,6 +55,8 @@ func TestParseDataFormatString(t *testing.T) {
 		{"xml", XMLDataFormat, ""},
 		{".xls", XLSDataFormat, ""},
 		{"xls", XLSDataFormat, ""},
+		{"cbor", CBORDataFormat, ""},
+		{".cbor", CBORDataFormat, ""},
 	}
 
 	for i, c := range cases {
@@ -78,6 +82,7 @@ func TestDataFormatMarshalJSON(t *testing.T) {
 		{JSONDataFormat, []byte(`"json"`), ""},
 		{XMLDataFormat, []byte(`"xml"`), ""},
 		{XLSDataFormat, []byte(`"xls"`), ""},
+		{CBORDataFormat, []byte(`"cbor"`), ""},
 	}
 	for i, c := range cases {
 		got, err := c.format.MarshalJSON()
@@ -102,6 +107,7 @@ func TestDataFormatUnmarshalJSON(t *testing.T) {
 		{[]byte(`"json"`), JSONDataFormat, ""},
 		{[]byte(`"xml"`), XMLDataFormat, ""},
 		{[]byte(`"xls"`), XLSDataFormat, ""},
+		{[]byte(`"cbor"`), CBORDataFormat, ""},
 	}
 
 	for i, c := range cases {

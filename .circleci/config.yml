@@ -25,6 +25,7 @@ jobs:
             github.com/sergi/go-diff/diffmatchpatch
             github.com/qri-io/varName
             github.com/qri-io/jsonschema
+            github.com/ugorji/go/codec
       - run: 
           name: Run Lint Tests
           command: golint -set_exit_status ./...
