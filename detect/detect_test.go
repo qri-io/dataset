@@ -89,16 +89,6 @@ func TestFromFile(t *testing.T) {
 	}
 }
 
-func TestReplaceSoloCarriageReturns(t *testing.T) {
-	input := []byte("foo\r\rbar\r\nbaz\r\r")
-	expect := []byte("foo\r\n\r\nbar\r\nbaz\r\n\r\n")
-
-	got := ReplaceSoloCarriageReturns(input)
-	if !bytes.Equal(expect, got) {
-		t.Errorf("byte mismatch. expected:\n%v\ngot:\n%v", expect, got)
-	}
-}
-
 func TestExtensionDataFormat(t *testing.T) {
 	cases := []struct {
 		path   string

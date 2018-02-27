@@ -1,0 +1,43 @@
+{
+  "format": "csv",
+  "schema": {
+    "type": "array",
+    "items": {
+      "type": "array",
+      "items": [
+        {
+          "title": "city",
+          "type": "string"
+        },
+        {
+          "title": "police_force_size",
+          "type": "integer"
+        },
+        {
+          "title": "all",
+          "type": "number"
+        },
+        {
+          "title": "white",
+          "type": "number"
+        },
+        {
+          "title": "non_white",
+          "type": "number"
+        },
+        {
+          "title": "black",
+          "type": "number"
+        },
+        {
+          "title": "hispanic",
+          "type": "number"
+        },
+        {
+          "title": "asian",
+          "type": "number"
+        }
+      ]
+    }
+  }
+}

@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strings"
 
 	"github.com/qri-io/dataset"
 )
@@ -44,16 +43,6 @@ func Structure(format dataset.DataFormat, data io.Reader) (r *dataset.Structure,
 	// ds.Data = ReplaceSoloCarriageReturns(ds.Data)
 	r.Schema, err = Schema(r, data)
 	return
-}
-
-// ReplaceSoloCarriageReturns looks for instances of lonely \r replacing them with \r\n
-// lots of files in the wild will come without "proper" line breaks, which irritates go's
-// native csv package.
-// TODO - make software robust to the problem, instead presenting a warning to the user
-// also, we should write all output files with unified line breaks.
-func ReplaceSoloCarriageReturns(data []byte) []byte {
-	cleaned := strings.NewReplacer("\r\n", "\r\n", "\r", "\r\n").Replace(string(data))
-	return []byte(cleaned)
 }
 
 // DataFormat does it's best to determine the format of a specified dataset

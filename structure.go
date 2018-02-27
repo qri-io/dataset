@@ -9,6 +9,15 @@ import (
 	"github.com/qri-io/jsonschema"
 )
 
+var (
+	// BaseSchemaJSONArray is a minimum schema for the json file format, specifying that the top
+	// level of the document is an array
+	BaseSchemaJSONArray = jsonschema.Must(`{"type":"array"}`)
+	// BaseSchemaJSONObject is a minimum schema for the json format, specifying that the top level
+	// of the document is an object
+	BaseSchemaJSONObject = jsonschema.Must(`{"type":"object"}`)
+)
+
 // Structure designates a deterministic definition for working with a discrete dataset.
 // Structure is a concrete handle that provides precise details about how to interpret a given
 // piece of data (the reference to the data itself is provided elsewhere, specifically in the dataset struct )
