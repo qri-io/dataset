@@ -28,7 +28,6 @@ func TestDataFormatString(t *testing.T) {
 		{JSONDataFormat, "json"},
 		{XMLDataFormat, "xml"},
 		{XLSDataFormat, "xls"},
-		{CDXJDataFormat, "cdxj"},
 	}
 
 	for i, c := range cases {
@@ -54,8 +53,6 @@ func TestParseDataFormatString(t *testing.T) {
 		{"xml", XMLDataFormat, ""},
 		{".xls", XLSDataFormat, ""},
 		{"xls", XLSDataFormat, ""},
-		{".cdxj", CDXJDataFormat, ""},
-		{"cdxj", CDXJDataFormat, ""},
 	}
 
 	for i, c := range cases {
@@ -81,7 +78,6 @@ func TestDataFormatMarshalJSON(t *testing.T) {
 		{JSONDataFormat, []byte(`"json"`), ""},
 		{XMLDataFormat, []byte(`"xml"`), ""},
 		{XLSDataFormat, []byte(`"xls"`), ""},
-		{CDXJDataFormat, []byte(`"cdxj"`), ""},
 	}
 	for i, c := range cases {
 		got, err := c.format.MarshalJSON()
@@ -106,7 +102,6 @@ func TestDataFormatUnmarshalJSON(t *testing.T) {
 		{[]byte(`"json"`), JSONDataFormat, ""},
 		{[]byte(`"xml"`), XMLDataFormat, ""},
 		{[]byte(`"xls"`), XLSDataFormat, ""},
-		{[]byte(`"cdxj"`), CDXJDataFormat, ""},
 	}
 
 	for i, c := range cases {

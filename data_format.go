@@ -30,10 +30,6 @@ const (
 	// XLSDataFormat specifies microsoft excel formatted data
 	// currently not supported.
 	XLSDataFormat
-	// CDXJDataFormat specifies the Wayback machine's CDX-Json formated data
-	// https://github.com/iipc/warc-specifications/blob/gh-pages/specifications/cdx-format/openwayback-cdxj/index.md
-	CDXJDataFormat
-	// TODO - make this list more exhaustive
 )
 
 // SupportedDataFormats gives a slice of data formats that are
@@ -55,7 +51,6 @@ func (f DataFormat) String() string {
 		JSONDataFormat:    "json",
 		XMLDataFormat:     "xml",
 		XLSDataFormat:     "xls",
-		CDXJDataFormat:    "cdxj",
 	}[f]
 
 	if !ok {
@@ -77,8 +72,6 @@ func ParseDataFormatString(s string) (df DataFormat, err error) {
 		"xml":   XMLDataFormat,
 		".xls":  XLSDataFormat,
 		"xls":   XLSDataFormat,
-		".cdxj": CDXJDataFormat,
-		"cdxj":  CDXJDataFormat,
 	}[s]
 	if !ok {
 		err = fmt.Errorf("invalid data format: `%s`", s)
