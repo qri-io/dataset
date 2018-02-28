@@ -2,9 +2,73 @@ package vals
 
 import (
 	"encoding/json"
+	"fmt"
 )
 
-// UnmarshalJSON turns a slice of bytes into a Value
+// ConvertDecoded converts an interface that has been decoded into standard go types to a Value
+func ConvertDecoded(d interface{}) (Value, error) {
+	var err error
+	if d == nil {
+		return Null(true), nil
+	}
+	switch v := d.(type) {
+	case uint8:
+		return Integer(v), nil
+	case uint16:
+		return Integer(v), nil
+	case uint32:
+		return Integer(v), nil
+	case uint64:
+		return Integer(v), nil
+	case float64:
+		return Number(v), nil
+	case int:
+		return Integer(v), nil
+	case int32:
+		return Integer(int(v)), nil
+	case int64:
+		return Integer(int(v)), nil
+	case string:
+		return String(v), nil
+	case bool:
+		return Boolean(v), nil
+	case []interface{}:
+		arr := make(Array, len(v))
+		for i, val := range v {
+			arr[i], err = ConvertDecoded(val)
+			if err != nil {
+				return arr, err
+			}
+		}
+		return &arr, nil
+	case map[string]interface{}:
+		obj := make(Object, len(v))
+		for key, val := range v {
+			obj[key], err = ConvertDecoded(val)
+			if err != nil {
+				return obj, err
+			}
+		}
+		return &obj, nil
+	case map[interface{}]interface{}:
+		obj := make(Object, len(v))
+		for keyi, val := range v {
+			key, ok := keyi.(string)
+			if !ok {
+				return nil, fmt.Errorf("only strings may be used as keys. got %#v", keyi)
+			}
+			obj[key], err = ConvertDecoded(val)
+			if err != nil {
+				return obj, err
+			}
+		}
+		return &obj, nil
+	default:
+		return nil, fmt.Errorf("unrecognized decoded type: %#v", v)
+	}
+}
+
+// UnmarshalJSON turns a slice of JSON bytes into a Value
 func UnmarshalJSON(data []byte) (v Value, err error) {
 	switch ParseType(data) {
 	case TypeObject:

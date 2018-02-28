@@ -20,7 +20,7 @@ func TestJSONReader(t *testing.T) {
 		err       string
 	}{
 		{"city", &dataset.Structure{}, 0, "schema required for JSON reader"},
-		{"city", &dataset.Structure{Schema: jsonschema.Must(`false`)}, 0, "invalid schema for JSON data format. root must be either an array or object type"},
+		{"city", &dataset.Structure{Schema: jsonschema.Must(`false`)}, 0, "invalid schema. root must be either an array or object type"},
 		{"city", &dataset.Structure{
 			Format: dataset.JSONDataFormat,
 			Schema: dataset.BaseSchemaArray,
@@ -135,7 +135,7 @@ func TestJSONWriter(t *testing.T) {
 		err       string
 	}{
 		{&dataset.Structure{}, vals.Array{}, "[]", "schema required for JSON writer"},
-		{&dataset.Structure{Schema: jsonschema.Must(`true`)}, vals.Array{}, "[]", "invalid schema for JSON data format. root must be either an array or object type"},
+		{&dataset.Structure{Schema: jsonschema.Must(`true`)}, vals.Array{}, "[]", "invalid schema. root must be either an array or object type"},
 
 		{arrst, vals.Array{}, "[]", ""},
 		{objst, vals.Array{}, "{}", ""},
