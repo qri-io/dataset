@@ -386,7 +386,9 @@ func (w *CBORWriter) WriteValue(val vals.Value) error {
 // Close finalizes the writer, indicating no more records
 // will be written
 func (w *CBORWriter) Close() error {
-	enc := codec.NewEncoder(w.wr, &codec.CborHandle{TimeRFC3339: true})
+	h := &codec.CborHandle{TimeRFC3339: true}
+	h.Canonical = true
+	enc := codec.NewEncoder(w.wr, h)
 
 	if w.scanMode == smObject {
 		return enc.Encode(w.obj)

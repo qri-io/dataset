@@ -332,3 +332,43 @@ func TestCBORWriterDoubleKey(t *testing.T) {
 		return
 	}
 }
+
+func TestCBORWriterCanonical(t *testing.T) {
+	st := &dataset.Structure{Format: dataset.CBORDataFormat, Schema: dataset.BaseSchemaObject}
+	vals := vals.Array{
+		vals.ObjectValue{"a", vals.String("a")},
+		vals.ObjectValue{"b", vals.String("b")},
+		vals.ObjectValue{"c", vals.String("c")},
+		vals.ObjectValue{"d", vals.String("d")},
+		vals.ObjectValue{"e", vals.String("e")},
+	}
+	expect := `a56161616161626162616361636164616461656165`
+
+	buf := &bytes.Buffer{}
+	for i := 0; i < 150; i++ {
+		w, err := NewCBORWriter(st, buf)
+		if err != nil {
+			t.Errorf("iteration %d error creating writer: %s", i, err.Error())
+			return
+		}
+		for _, val := range vals {
+			if err := w.WriteValue(val); err != nil {
+				t.Errorf("iteration %d error writing value: %s", i, err.Error())
+				return
+			}
+		}
+
+		if err := w.Close(); err != nil {
+			t.Errorf("iteration %d error closing writer: %s", i, err.Error())
+			return
+		}
+
+		str := hex.EncodeToString(buf.Bytes())
+		if str != expect {
+			t.Errorf("iteration %d produced non-canonical result. expected: %s, got: %s", i, expect, str)
+			return
+		}
+
+		buf.Reset()
+	}
+}
