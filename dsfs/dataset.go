@@ -16,7 +16,7 @@ import (
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsio"
 	"github.com/qri-io/dataset/validate"
-	"github.com/qri-io/datasetDiffer"
+	"github.com/qri-io/dsdiff"
 )
 
 // LoadDataset reads a dataset from a cafs and dereferences structure, transform, and commitMsg if they exist,
@@ -80,7 +80,6 @@ func DerefDataset(store cafs.Filestore, ds *dataset.Dataset) error {
 	if err := DerefDatasetVisConfig(store, ds); err != nil {
 		return err
 	}
-
 	return DerefDatasetCommit(store, ds)
 }
 
@@ -224,13 +223,13 @@ func generateCommitMsg(store cafs.Filestore, ds *dataset.Dataset) (string, error
 		}
 	}
 
-	diffMap, err := datasetDiffer.DiffDatasets(prev, ds, nil)
+	diffMap, err := dsdiff.DiffDatasets(prev, ds, nil)
 	if err != nil {
 		err = fmt.Errorf("error diffing datasets: %s", err.Error())
 		return "", err
 	}
 
-	diffDescription, err := datasetDiffer.MapDiffsToString(diffMap, "listKeys")
+	diffDescription, err := dsdiff.MapDiffsToString(diffMap, "listKeys")
 	if err != nil {
 		return "", err
 	}
