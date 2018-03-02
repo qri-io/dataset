@@ -80,7 +80,6 @@ func DerefDataset(store cafs.Filestore, ds *dataset.Dataset) error {
 	if err := DerefDatasetVisConfig(store, ds); err != nil {
 		return err
 	}
-
 	return DerefDatasetCommit(store, ds)
 }
 
