@@ -2,6 +2,7 @@ package dstest
 
 import (
 	"bytes"
+	"io/ioutil"
 	"testing"
 )
 
@@ -31,5 +32,19 @@ raleigh,250000,50.65,true
 `)
 	if !bytes.Equal(tc.Data, data) {
 		t.Errorf("data mismatch")
+	}
+
+	mf := tc.DataFile()
+	if mf.FileName() != tc.DataFilename {
+		t.Errorf("filename mismatch: %s != %s", mf.FileName(), tc.DataFilename)
+	}
+
+	mfdata, err := ioutil.ReadAll(mf)
+	if err != nil {
+		t.Errorf("error reading file: %s", err.Error())
+	}
+
+	if !bytes.Equal(mfdata, data) {
+		t.Errorf("memfile data mismatch")
 	}
 }

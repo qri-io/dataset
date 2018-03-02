@@ -1,26 +1,23 @@
 package dsio
 
 import (
-	"bytes"
 	"encoding/json"
 	"testing"
 
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/dataset/dstest"
 	"github.com/qri-io/dataset/vals"
 )
 
 func TestValueBuffer(t *testing.T) {
-	datasets, err := makeTestData()
+	tc, err := dstest.NewTestCaseFromDir("testdata/csv/movies", t)
 	if err != nil {
-		t.Errorf("error creating filestore: %s", err.Error())
+		t.Errorf("error loading test case: %s", err.Error())
 		return
 	}
 
-	ds := datasets["movies"].ds
-	if err != nil {
-		t.Errorf("error creating dataset: %s", err.Error())
-		return
-	}
+	ds := tc.Input
+	t.Logf("%v", ds.Structure.Schema)
 
 	outst := &dataset.Structure{
 		Format: dataset.JSONDataFormat,
@@ -33,7 +30,7 @@ func TestValueBuffer(t *testing.T) {
 		return
 	}
 
-	rr, err := NewValueReader(ds.Structure, bytes.NewBuffer(datasets["movies"].data))
+	rr, err := NewValueReader(ds.Structure, tc.DataFile())
 	if err != nil {
 		t.Errorf("error allocating RowReader: %s", err.Error())
 		return

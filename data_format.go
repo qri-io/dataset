@@ -24,16 +24,15 @@ const (
 	CSVDataFormat
 	// JSONDataFormat specifies Javascript Object Notation-formatted data
 	JSONDataFormat
+	// CBORDataFormat specifies RFC 7049 Concise Binary Object Representation
+	// read more at cbor.io
+	CBORDataFormat
 	// XMLDataFormat specifies eXtensible Markup Language-formatted data
 	// currently not supported.
 	XMLDataFormat
 	// XLSDataFormat specifies microsoft excel formatted data
 	// currently not supported.
 	XLSDataFormat
-	// CDXJDataFormat specifies the Wayback machine's CDX-Json formated data
-	// https://github.com/iipc/warc-specifications/blob/gh-pages/specifications/cdx-format/openwayback-cdxj/index.md
-	CDXJDataFormat
-	// TODO - make this list more exhaustive
 )
 
 // SupportedDataFormats gives a slice of data formats that are
@@ -42,8 +41,9 @@ const (
 // support to a format will be an addition to this slice
 func SupportedDataFormats() []DataFormat {
 	return []DataFormat{
-		CSVDataFormat,
+		CBORDataFormat,
 		JSONDataFormat,
+		CSVDataFormat,
 	}
 }
 
@@ -55,7 +55,7 @@ func (f DataFormat) String() string {
 		JSONDataFormat:    "json",
 		XMLDataFormat:     "xml",
 		XLSDataFormat:     "xls",
-		CDXJDataFormat:    "cdxj",
+		CBORDataFormat:    "cbor",
 	}[f]
 
 	if !ok {
@@ -77,8 +77,8 @@ func ParseDataFormatString(s string) (df DataFormat, err error) {
 		"xml":   XMLDataFormat,
 		".xls":  XLSDataFormat,
 		"xls":   XLSDataFormat,
-		".cdxj": CDXJDataFormat,
-		"cdxj":  CDXJDataFormat,
+		"cbor":  CBORDataFormat,
+		".cbor": CBORDataFormat,
 	}[s]
 	if !ok {
 		err = fmt.Errorf("invalid data format: `%s`", s)

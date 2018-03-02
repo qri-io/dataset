@@ -13,6 +13,46 @@ var (
 	array2  = &Array{*object0, *object0}
 )
 
+func TestConvertDecoded(t *testing.T) {
+	cases := []struct {
+		in     interface{}
+		expect Value
+		err    string
+	}{
+		{map[string]interface{}{}, &Object{}, ""},
+		{map[string]interface{}{
+			"a": 0,
+			"b": float64(0),
+			"c": nil,
+			"d": true,
+			"e": "foo",
+			"f": []interface{}{},
+			"g": map[string]interface{}{},
+		}, &Object{
+			"a": Integer(0),
+			"b": Number(0),
+			"c": Null(true),
+			"d": Boolean(true),
+			"e": String("foo"),
+			"f": &Array{},
+			"g": &Object{},
+		}, ""},
+	}
+
+	for i, c := range cases {
+		got, err := ConvertDecoded(c.in)
+		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
+			t.Errorf("case %d error mismatch. expected: %s, got: %s", i, c.err, err)
+			continue
+		}
+
+		if !Equal(c.expect, got) {
+			t.Errorf("case %d result mismatch. epxected: %#v, got: %#v", i, c.expect, got)
+			continue
+		}
+	}
+}
+
 func TestUnmarshalJSON(t *testing.T) {
 	cases := []struct {
 		input  string

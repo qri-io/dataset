@@ -9,7 +9,6 @@ import (
 
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/vals"
-	"github.com/qri-io/jsonschema"
 )
 
 // JSONReader implements the RowReader interface for the JSON data format
@@ -21,26 +20,6 @@ type JSONReader struct {
 	sc          *bufio.Scanner
 	objKey      string
 }
-
-func schemaScanMode(sc *jsonschema.RootSchema) (scanMode, error) {
-	if vt, ok := sc.Validators["type"]; ok {
-		// TODO - lol go PR jsonschema to export access to this instead of this
-		// silly validation hack
-		if errs := vt.Validate(map[string]interface{}{}); len(errs) == 0 {
-			return smObject, nil
-		} else if errs := vt.Validate([]interface{}{}); len(errs) == 0 {
-			return smArray, nil
-		}
-	}
-	return smArray, fmt.Errorf("invalid schema for JSON data format. root must be either an array or object type")
-}
-
-type scanMode int
-
-const (
-	smArray scanMode = iota
-	smObject
-)
 
 // NewJSONReader creates a reader from a structure and read source
 func NewJSONReader(st *dataset.Structure, r io.Reader) (*JSONReader, error) {

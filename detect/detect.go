@@ -55,10 +55,12 @@ func Structure(format dataset.DataFormat, data io.Reader) (r *dataset.Structure,
 func ExtensionDataFormat(path string) (format dataset.DataFormat, err error) {
 	ext := filepath.Ext(path)
 	switch ext {
-	case ".csv":
-		return dataset.CSVDataFormat, nil
+	case ".cbor":
+		return dataset.CBORDataFormat, nil
 	case ".json":
 		return dataset.JSONDataFormat, nil
+	case ".csv":
+		return dataset.CSVDataFormat, nil
 	case ".xml":
 		return dataset.XMLDataFormat, nil
 	case ".xls":

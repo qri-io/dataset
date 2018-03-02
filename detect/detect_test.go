@@ -99,6 +99,7 @@ func TestExtensionDataFormat(t *testing.T) {
 		{"foo/bar/baz.json", dataset.JSONDataFormat, ""},
 		{"foo/bar/baz.xml", dataset.XMLDataFormat, ""},
 		{"foo/bar/baz.xls", dataset.XLSDataFormat, ""},
+		{"foo/bar/baz.cbor", dataset.CBORDataFormat, ""},
 		{"foo/bar/baz", dataset.UnknownDataFormat, "no file extension provided"},
 		{"foo/bar/baz.jpg", dataset.UnknownDataFormat, "unsupported file type: '.jpg'"},
 	}

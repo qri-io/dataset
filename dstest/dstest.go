@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/qri-io/cafs"
+	"github.com/qri-io/cafs/memfs"
 	"github.com/qri-io/dataset"
 )
 
@@ -36,6 +38,11 @@ type TestCase struct {
 	//  Expect should match test output
 	// loads from expect.dataset.json
 	Expect *dataset.Dataset
+}
+
+// DataFile creates a new in-memory file from data & filename properties
+func (t TestCase) DataFile() cafs.File {
+	return memfs.NewMemfileBytes(t.DataFilename, t.Data)
 }
 
 // NewTestCaseFromDir creates a test case from a directory of static test files

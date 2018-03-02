@@ -71,25 +71,3 @@ var rawText4 = `<html>
 </table>
 </body>
 </html>`
-
-var cdxjStructure = &dataset.Structure{
-	Format: dataset.CDXJDataFormat,
-	Schema: jsonschema.Must(`{
-		"type": "array",
-		"items": {
-			"type": "array",
-			"items": [
-				{"title": "url", "type": "string"},
-				{"title": "date", "type": "string"},
-				{"title": "record_type", "type": "string"},
-				{"title": "meta", "type": "object"}
-			]
-		}
-	}`),
-}
-
-const cdxjRawText = `!OpenWayback-CDXJ 1.0
-(com,cnn,)/world> 2015-09-03T13:27:52Z response {"a":0,"b":"b","c":false}
-(uk,ac,rpms,)/> 2015-09-03T13:27:52Z request {"frequency":241,"spread":3}
-(uk,co,bbc,)/images> 2015-09-03T13:27:52Z response {"frequency":725,"spread":1}
-`

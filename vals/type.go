@@ -30,6 +30,8 @@ const (
 	TypeObject
 	// TypeArray is an ordered list of values
 	TypeArray
+	// TypeBytes is an ordered slice of bytes
+	TypeBytes
 )
 
 // NumDatatypes is the total count of data types, including unknown type

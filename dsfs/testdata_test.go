@@ -151,9 +151,8 @@ func makeFilestore() (map[string]datastore.Key, cafs.Filestore, error) {
 	fs := memfs.NewMapstore()
 
 	datasets := map[string]datastore.Key{
-		"movies":  datastore.NewKey(""),
-		"cities":  datastore.NewKey(""),
-		"archive": datastore.NewKey(""),
+		"movies": datastore.NewKey(""),
+		"cities": datastore.NewKey(""),
 	}
 
 	for k := range datasets {
