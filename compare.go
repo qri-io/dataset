@@ -152,6 +152,12 @@ func CompareStructures(a, b *Structure) error {
 		return fmt.Errorf("Compression: %s != %s", a.Compression, b.Compression)
 	}
 
+	if (a.FormatConfig != nil && b.FormatConfig == nil) || (a.FormatConfig == nil && b.FormatConfig != nil) {
+		return fmt.Errorf("FormatConfig nil mismatch")
+	} else if a.FormatConfig != nil && b.FormatConfig != nil && !reflect.DeepEqual(a.FormatConfig.Map(), b.FormatConfig.Map()) {
+		return fmt.Errorf("FormatConfig mismatch")
+	}
+
 	if err := CompareSchemas(a.Schema, b.Schema); err != nil {
 		return fmt.Errorf("Schema: %s", err.Error())
 	}

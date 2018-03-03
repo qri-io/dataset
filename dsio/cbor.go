@@ -158,9 +158,9 @@ func (r *CBORReader) readTopLevel() error {
 
 	// bd = bd & 0x1f
 	switch {
-	case bd >= cborBaseArray && bd < cborBaseMap, bd == cborBdIndefiniteArray, bd == cborBdIndefiniteMap:
+	case bd >= cborBaseArray && bd < cborBaseMap, bd == cborBdIndefiniteArray:
 		return nil
-	case bd >= cborBaseMap && bd < cborBaseTag:
+	case bd >= cborBaseMap && bd < cborBaseTag, bd == cborBdIndefiniteMap:
 		r.readingMap = true
 		return nil
 	}

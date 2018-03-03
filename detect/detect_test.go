@@ -23,10 +23,14 @@ func TestFromFile(t *testing.T) {
 		{"testdata/sitemap_object.json", "testdata/sitemap_object.structure.json", ""},
 		{"testdata/array.json", "testdata/sitemap_array.structure.json", ""},
 		{"testdata/object.json", "testdata/sitemap_object.structure.json", ""},
+
+		{"testdata/invalid.cbor", "", "invalid top-level type for CBOR data. cbor datasets must begin with either an array or map"},
+		{"testdata/cbor_object.cbor", "testdata/cbor_object.structure.json", ""},
+		{"testdata/cbor_array.cbor", "testdata/cbor_array.structure.json", ""},
 	}
 
 	for i, c := range cases {
-		ds, err := FromFile(c.inpath)
+		st, err := FromFile(c.inpath)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("case %d error mismatch. expected: %s, got: %s", i, c.err, err)
 			continue
@@ -44,17 +48,10 @@ func TestFromFile(t *testing.T) {
 				continue
 			}
 
-			// if ds.Name != expect.Name {
-			// 	t.Errorf("case %d name mismatch. expected '%s', got '%s'", i, expect.Name, ds.Name)
-			// }
-
-			if expect.Format != ds.Format {
-				t.Errorf("case %d format mismatch. expected '%s', got '%s'", i, expect.Format, ds.Format)
+			if err := dataset.CompareStructures(expect, st); err != nil {
+				t.Errorf("case %d structure mismatch: %s", i, err.Error())
+				continue
 			}
-
-			// if expect.File != ds.File {
-			// 	t.Errorf("case %d file mismatch. expected '%s', got '%s'", i, expect.File, ds.File)
-			// }
 
 			ej, err := json.Marshal(expect.Schema)
 			if err != nil {
@@ -62,29 +59,16 @@ func TestFromFile(t *testing.T) {
 				continue
 			}
 
-			dsj, err := json.Marshal(ds.Schema)
+			schj, err := json.Marshal(st.Schema)
 			if err != nil {
 				t.Errorf("case %d error marshaling expected schema to json: %s", i, err.Error())
 				continue
 			}
 
-			if !bytes.Equal(ej, dsj) {
-				t.Errorf("case %d schema mismatch: %s != %s", i, string(ej), string(dsj))
+			if !bytes.Equal(ej, schj) {
+				t.Errorf("case %d schema mismatch: %s != %s", i, string(ej), string(schj))
 				continue
 			}
-			// if len(expect.Schema.Fields) != len(ds.Schema.Fields) {
-			// 	t.Errorf("case %d field length mismatch. expected: %d, got: %d", i, len(expect.Schema.Fields), len(ds.Schema.Fields))
-			// 	continue
-			// }
-
-			// for j, f := range expect.Schema.Fields {
-			// 	if f.Type != ds.Schema.Fields[j].Type {
-			// 		t.Errorf("case %d field %d:%s type mismatch. expected: %s, got: %s", i, j, f.Name, f.Type, ds.Schema.Fields[j].Type)
-			// 	}
-			// 	if f.Name != ds.Schema.Fields[j].Name {
-			// 		t.Errorf("case %d field %d name mismatch. expected: %s, got: %s", i, j, f.Name, ds.Schema.Fields[j].Name)
-			// 	}
-			// }
 		}
 	}
 }

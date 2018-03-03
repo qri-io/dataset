@@ -1,0 +1,6 @@
+{
+  "format": "cbor",
+  "schema": {
+    "type": "array"
+  }
+}
