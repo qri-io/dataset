@@ -1,5 +1,8 @@
 {
   "format": "csv",
+  "formatConfig" : {
+    "headerRow" : true
+  },
   "schema": {
     "type": "array",
     "items": {
