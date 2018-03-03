@@ -23,6 +23,10 @@ func TestFromFile(t *testing.T) {
 		{"testdata/sitemap_object.json", "testdata/sitemap_object.structure.json", ""},
 		{"testdata/array.json", "testdata/sitemap_array.structure.json", ""},
 		{"testdata/object.json", "testdata/sitemap_object.structure.json", ""},
+
+		{"testdata/invalid.cbor", "", "invalid top-level type for CBOR data. cbor datasets must begin with either an array or map"},
+		{"testdata/cbor_object.cbor", "testdata/cbor_object.structure.json", ""},
+		{"testdata/cbor_array.cbor", "testdata/cbor_array.structure.json", ""},
 	}
 
 	for i, c := range cases {

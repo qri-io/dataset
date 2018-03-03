@@ -27,10 +27,12 @@ func Schema(r *dataset.Structure, data io.Reader) (schema *jsonschema.RootSchema
 	}
 
 	switch r.Format {
-	case dataset.CSVDataFormat:
-		return CSVSchema(r, data)
+	case dataset.CBORDataFormat:
+		return CBORSchema(r, data)
 	case dataset.JSONDataFormat:
 		return JSONSchema(r, data)
+	case dataset.CSVDataFormat:
+		return CSVSchema(r, data)
 	default:
 		return nil, fmt.Errorf("'%s' is not supported for field detection", r.Format.String())
 	}
