@@ -63,7 +63,7 @@ func (r *CBORReader) ReadValue() (val vals.Value, err error) {
 	)
 
 	if r.rowsRead == 0 {
-		if err = r.readTopLevel(); err != nil {
+		if _, err = r.readTopLevel(); err != nil {
 			r.rowsRead++
 			return nil, err
 		}
@@ -150,22 +150,26 @@ const (
 	cborBaseSimple      = 0xe0
 )
 
-func (r *CBORReader) readTopLevel() error {
+func (r *CBORReader) readTopLevel() (int, error) {
+	defer func() {
+		r.token.Reset()
+	}()
+
 	bd, err := r.rdr.ReadByte()
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	// bd = bd & 0x1f
 	switch {
 	case bd >= cborBaseArray && bd < cborBaseMap, bd == cborBdIndefiniteArray:
-		return nil
+		return r.tokAdduInt(bd)
 	case bd >= cborBaseMap && bd < cborBaseTag, bd == cborBdIndefiniteMap:
 		r.readingMap = true
-		return nil
+		return r.tokAdduInt(bd)
 	}
 
-	return fmt.Errorf("invalid top level type")
+	return 0, fmt.Errorf("invalid top level type")
 }
 
 func (r *CBORReader) readToken() error {
@@ -278,7 +282,7 @@ func (r *CBORReader) tokAdd(i int) error {
 // tokAddB transfers i bytes to the token buffer from the reader, returning
 // the read byte slice
 func (r *CBORReader) tokAddB(i int) ([]byte, error) {
-	// TODO - slow. make not slow.
+	// TODO - slow. make not slow. only you can prevent unnecessary allocations
 	p := make([]byte, i)
 	if _, err := r.rdr.Read(p); err != nil {
 		return p, err
