@@ -41,15 +41,17 @@ func TestCBORReaderOneValue(t *testing.T) {
 	}{
 		{`5f`, nil, "invalid top level type"}, // indefinite string, not a valid dataset
 
-		{`80`, nil, "EOF"},                                          // []
-		{`8000`, vals.Integer(0), ""},                               // [0]
-		{`8116`, vals.Integer(22), ""},                              // [22]
-		{`8117`, vals.Integer(23), ""},                              // [23]
-		{`811818`, vals.Integer(24), ""},                            // [24]
-		{`811901F4`, vals.Integer(500), ""},                         // [500]
-		{`811A004C4B40`, vals.Integer(5000000), ""},                 // [5000000]
-		{`8020`, vals.Integer(-1), ""},                              // [-1]
+		{`80`, nil, "EOF"},                          // []
+		{`8000`, vals.Integer(0), ""},               // [0]
+		{`8116`, vals.Integer(22), ""},              // [22]
+		{`8117`, vals.Integer(23), ""},              // [23]
+		{`811818`, vals.Integer(24), ""},            // [24]
+		{`811901F4`, vals.Integer(500), ""},         // [500]
+		{`811A004C4B40`, vals.Integer(5000000), ""}, // [5000000]
+		{`8020`, vals.Integer(-1), ""},              // [-1]
+
 		{`81FB4028AE147AE147AE`, vals.Number(12.34), ""},            // [12.34]
+		{`81FB402A1D1F601797CC`, vals.Number(13.05688), ""},         // [13.05688]
 		{`8163666F6F`, vals.String("foo"), ""},                      // ["foo"]
 		{`81F5`, vals.Boolean(true), ""},                            // [true]
 		{`81F4`, vals.Boolean(false), ""},                           // [false]
@@ -194,6 +196,11 @@ func TestCBORReaderFile(t *testing.T) {
 			Format: dataset.CBORDataFormat,
 			Schema: dataset.BaseSchemaObject,
 		}, 1, ""},
+
+		{"flourinated_compounds_in_fast_food_packaging", &dataset.Structure{
+			Format: dataset.CBORDataFormat,
+			Schema: dataset.BaseSchemaArray,
+		}, 25, ""},
 	}
 
 	for i, c := range cases {
