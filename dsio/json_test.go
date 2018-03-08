@@ -8,7 +8,6 @@ import (
 
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dstest"
-	"github.com/qri-io/dataset/vals"
 	"github.com/qri-io/jsonschema"
 )
 
@@ -76,10 +75,10 @@ func TestJSONReader(t *testing.T) {
 		}
 
 		j := 0
-		vs := []vals.Value{}
+		vs := []Entry{}
 		for {
 			// TODO - inspect row output for well formed json
-			v, err := r.ReadValue()
+			ent, err := r.ReadEntry()
 			if err != nil {
 				if err.Error() == "EOF" {
 					break
@@ -87,7 +86,7 @@ func TestJSONReader(t *testing.T) {
 				t.Errorf("case %d error reading row %d: %s", i, j, err.Error())
 				break
 			}
-			vs = append(vs, v)
+			vs = append(vs, ent)
 			j++
 		}
 
@@ -130,17 +129,17 @@ func TestJSONWriter(t *testing.T) {
 
 	cases := []struct {
 		structure *dataset.Structure
-		entries   vals.Array
+		entries   []Entry
 		out       string
 		err       string
 	}{
-		{&dataset.Structure{}, vals.Array{}, "[]", "schema required for JSON writer"},
-		{&dataset.Structure{Schema: jsonschema.Must(`true`)}, vals.Array{}, "[]", "invalid schema. root must be either an array or object type"},
+		{&dataset.Structure{}, []Entry{}, "[]", "schema required for JSON writer"},
+		{&dataset.Structure{Schema: jsonschema.Must(`true`)}, []Entry{}, "[]", "invalid schema. root must be either an array or object type"},
 
-		{arrst, vals.Array{}, "[]", ""},
-		{objst, vals.Array{}, "{}", ""},
-		{objst, vals.Array{vals.ObjectValue{"a", vals.String("hello")}, vals.ObjectValue{"b", vals.String("world")}}, `{"a":"hello","b":"world"}`, ""},
-		{objst, vals.Array{vals.ObjectValue{"a", vals.String("hello")}, vals.ObjectValue{"b", vals.String("world")}}, `{"a":"hello","b":"world"}`, ""},
+		{arrst, []Entry{}, "[]", ""},
+		{objst, []Entry{}, "{}", ""},
+		{objst, []Entry{{Key: "a", Value: "hello"}, {Key: "b", Value: "world"}}, `{"a":"hello","b":"world"}`, ""},
+		{objst, []Entry{{Key: "a", Value: "hello"}, {Key: "b", Value: "world"}}, `{"a":"hello","b":"world"}`, ""},
 	}
 
 	for i, c := range cases {
@@ -154,8 +153,8 @@ func TestJSONWriter(t *testing.T) {
 		}
 
 		for _, ent := range c.entries {
-			if err := w.WriteValue(ent); err != nil {
-				t.Errorf("case %d WriteValue error: %s", i, err.Error())
+			if err := w.WriteEntry(ent); err != nil {
+				t.Errorf("case %d WriteEntry error: %s", i, err.Error())
 				break
 			}
 		}
@@ -180,7 +179,7 @@ func TestJSONWriter(t *testing.T) {
 	}
 }
 
-func TestJSONWriterNonObjectValue(t *testing.T) {
+func TestJSONWriterNonObjectEntry(t *testing.T) {
 	buf := &bytes.Buffer{}
 	w, err := NewJSONWriter(&dataset.Structure{Format: dataset.JSONDataFormat, Schema: dataset.BaseSchemaObject}, buf)
 	if err != nil {
@@ -188,8 +187,8 @@ func TestJSONWriterNonObjectValue(t *testing.T) {
 		return
 	}
 
-	err = w.WriteValue(vals.Boolean(false))
-	expect := `only vals.ObjectValue can be written to a JSON object writer`
+	err = w.WriteEntry(Entry{Value: false})
+	expect := `entry key cannot be empty`
 	if err.Error() != expect {
 		t.Errorf("error mismatch. expected: %s. got: %s", expect, err.Error())
 		return
@@ -208,12 +207,12 @@ func TestJSONWriterDoubleKey(t *testing.T) {
 		t.Errorf("nil structure?")
 	}
 
-	if err := w.WriteValue(vals.ObjectValue{"a", vals.String("foo")}); err != nil {
+	if err := w.WriteEntry(Entry{Key: "a", Value: "foo"}); err != nil {
 		t.Errorf("unexpected error writing key: %s", err.Error())
 		return
 	}
 
-	err = w.WriteValue(vals.ObjectValue{"a", vals.Boolean(true)})
+	err = w.WriteEntry(Entry{Key: "a", Value: true})
 	if err == nil {
 		t.Errorf("expected an error on second write with duplicate key")
 		return

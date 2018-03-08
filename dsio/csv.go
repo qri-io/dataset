@@ -8,7 +8,6 @@ import (
 	"io"
 
 	"github.com/qri-io/dataset"
-	"github.com/qri-io/dataset/vals"
 )
 
 // CSVReader implements the RowReader interface for the CSV data format
@@ -31,15 +30,15 @@ func (r *CSVReader) Structure() *dataset.Structure {
 	return r.st
 }
 
-// ReadValue reads one CSV record from the reader
-func (r *CSVReader) ReadValue() (vals.Value, error) {
+// ReadEntry reads one CSV record from the reader
+func (r *CSVReader) ReadEntry() (Entry, error) {
 	if !r.readHeader {
 		if HasHeaderRow(r.st) {
 			if _, err := r.r.Read(); err != nil {
 				if err.Error() == "EOF" {
-					return nil, nil
+					return Entry{}, nil
 				}
-				return nil, err
+				return Entry{}, err
 			}
 		}
 		r.readHeader = true
@@ -47,13 +46,10 @@ func (r *CSVReader) ReadValue() (vals.Value, error) {
 
 	data, err := r.r.Read()
 	if err != nil {
-		return nil, err
+		return Entry{}, err
 	}
-	row := make(vals.Array, len(data))
-	for i, d := range data {
-		row[i] = vals.String(string(d))
-	}
-	return row, nil
+
+	return Entry{Value: data}, nil
 }
 
 // HasHeaderRow checks Structure for the presence of the HeaderRow flag
@@ -112,6 +108,7 @@ func terribleHackToGetHeaderRow(st *dataset.Structure) ([]string, error) {
 					if title, ok := field["title"].(string); ok {
 						titles[i] = title
 					}
+
 				}
 			}
 			return titles, nil
@@ -125,16 +122,16 @@ func (w *CSVWriter) Structure() *dataset.Structure {
 	return w.st
 }
 
-// WriteValue writes one CSV record to the writer
-func (w *CSVWriter) WriteValue(val vals.Value) error {
-	if arr, ok := val.(vals.Array); ok {
-		row := make([]string, len(arr))
-		for i, d := range arr {
-			row[i] = d.String()
-		}
-		return w.w.Write(row)
+// WriteEntry writes one CSV record to the writer
+func (w *CSVWriter) WriteEntry(ent Entry) error {
+	if arr, ok := ent.Value.([]string); ok {
+		// row := make([]string, len(arr))
+		// for i, d := range arr {
+		// 	row[i] = d.String()
+		// }
+		return w.w.Write(arr)
 	}
-	return fmt.Errorf("expected array value to write csv row. got: %s", val.Type())
+	return fmt.Errorf("expected array value to write csv row. got: %v", ent)
 }
 
 // Close finalizes the writer, indicating no more records
@@ -144,8 +141,8 @@ func (w *CSVWriter) Close() error {
 	return nil
 }
 
-// ReplaceSoloCarriageReturns wraps an io.Reader, on every call of Read it
-// for instances of lonely \r replacing them with \r\n before returning to the end customer
+// ReplaceSoloCarriageReturns wraps an io.Reader, on every call of Read. it looks for
+// for instances of lonely \r replacing them with \r\n before returning to the end consumer
 // lots of files in the wild will come without "proper" line breaks, which irritates go's
 // standard csv package. This'll fix by wrapping the reader passed to csv.NewReader:
 // 		rdr, err := csv.NewReader(ReplaceSoloCarriageReturns(r))

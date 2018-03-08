@@ -7,7 +7,7 @@ import (
 	"github.com/qri-io/dataset"
 )
 
-func TestNewValueReader(t *testing.T) {
+func TestNewEntryReader(t *testing.T) {
 	cases := []struct {
 		st  *dataset.Structure
 		err string
@@ -19,7 +19,7 @@ func TestNewValueReader(t *testing.T) {
 	}
 
 	for i, c := range cases {
-		_, err := NewValueReader(c.st, &bytes.Buffer{})
+		_, err := NewEntryReader(c.st, &bytes.Buffer{})
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
 			continue
@@ -27,7 +27,7 @@ func TestNewValueReader(t *testing.T) {
 	}
 }
 
-func TestNewValueWriter(t *testing.T) {
+func TestNewEntryWriter(t *testing.T) {
 	cases := []struct {
 		st  *dataset.Structure
 		err string
@@ -39,7 +39,7 @@ func TestNewValueWriter(t *testing.T) {
 	}
 
 	for i, c := range cases {
-		_, err := NewValueWriter(c.st, &bytes.Buffer{})
+		_, err := NewEntryWriter(c.st, &bytes.Buffer{})
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
 			continue
