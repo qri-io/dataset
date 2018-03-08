@@ -8,12 +8,12 @@ import (
 	"github.com/qri-io/jsonschema"
 )
 
-const csvData = `col_a,col_b,col_c,col_d
-a,b,c,d
-a,b,c,d
-a,b,c,d
-a,b,c,d
-a,b,c,d`
+const csvData = `col_a,col_b,col_c,col_d,col_3,col_f,col_g
+a,1.23,4,false,"{""a"":""b""}","[1,2,3]",null
+a,1.23,4,false,"{""a"":""b""}","[1,2,3]",null
+a,1.23,4,false,"{""a"":""b""}","[1,2,3]",null
+a,1.23,4,false,"{""a"":""b""}","[1,2,3]",null
+a,1.23,4,false,"{""a"":""b""}","[1,2,3]",null`
 
 var csvStruct = &dataset.Structure{
 	Format: dataset.CSVDataFormat,
@@ -26,9 +26,12 @@ var csvStruct = &dataset.Structure{
 			"type":"array",
 			"items": [
 				{"title":"col_a","type":"string"},
-				{"title":"col_b","type":"string"},
-				{"title":"col_c","type":"string"},
-				{"title":"col_d","type":"string"}
+				{"title":"col_b","type":"number"},
+				{"title":"col_c","type":"integer"},
+				{"title":"col_d","type":"boolean"},
+				{"title":"col_e","type":"object"},
+				{"title":"col_f","type":"array"},
+				{"title":"col_g","type":"null"}
 			]
 		}
 	}`),
@@ -52,13 +55,13 @@ func TestCSVReader(t *testing.T) {
 			return
 		}
 
-		if arr, ok := ent.Value.([]string); ok {
-			if len(arr) != 4 {
-				t.Errorf("invalid row length for row %d. expected %d, got %d", count, 4, len(arr))
+		if arr, ok := ent.Value.([]interface{}); ok {
+			if len(arr) != 7 {
+				t.Errorf("invalid row length for row %d. expected %d, got %d", count, 7, len(arr))
 				continue
 			}
 		} else {
-			t.Errorf("expected value to be an Array. got: %#v", ent.Value)
+			t.Errorf("expected value to []interface{}. got: %#v", ent.Value)
 			continue
 		}
 
@@ -72,11 +75,11 @@ func TestCSVReader(t *testing.T) {
 func TestCSVWriter(t *testing.T) {
 	rows := []Entry{
 		// TODO - vary up test input
-		{Value: []string{"a", "b", "c", "d"}},
-		{Value: []string{"a", "b", "c", "d"}},
-		{Value: []string{"a", "b", "c", "d"}},
-		{Value: []string{"a", "b", "c", "d"}},
-		{Value: []string{"a", "b", "c", "d"}},
+		{Value: []interface{}{"a", float64(12), 23, nil}},
+		{Value: []interface{}{"a", float64(12), 23, []interface{}{"foo", "bar"}}},
+		{Value: []interface{}{"a", float64(12), 23, map[string]interface{}{"foo": "bar"}}},
+		{Value: []interface{}{"a", float64(12), int64(23), false}},
+		{Value: []interface{}{"a", float64(12), 23, false}},
 	}
 
 	buf := &bytes.Buffer{}
