@@ -46,12 +46,12 @@ func (b *EntryBuffer) Structure() *dataset.Structure {
 	return b.structure
 }
 
-// ReadRow reads one row from the buffer
-func (b *EntryBuffer) ReadRow() (Entry, error) {
+// ReadEntry reads one "row" from the buffer
+func (b *EntryBuffer) ReadEntry() (Entry, error) {
 	return b.r.ReadEntry()
 }
 
-// WriteEntry writes one row to the buffer
+// WriteEntry writes one "row" to the buffer
 func (b *EntryBuffer) WriteEntry(e Entry) error {
 	return b.w.WriteEntry(e)
 }

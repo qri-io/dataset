@@ -435,7 +435,8 @@ func (w *JSONWriter) WriteEntry(ent Entry) error {
 
 func (w *JSONWriter) valBytes(ent Entry) ([]byte, error) {
 	if w.scanMode == smArray {
-		return json.Marshal(ent)
+		// TODO - add test that checks this is recording values & not entries
+		return json.Marshal(ent.Value)
 	}
 
 	if ent.Key == "" {
