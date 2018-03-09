@@ -2,6 +2,7 @@ package validate
 
 import (
 	"fmt"
+
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/jsonschema"
 )

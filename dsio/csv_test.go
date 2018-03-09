@@ -5,16 +5,15 @@ import (
 	"testing"
 
 	"github.com/qri-io/dataset"
-	"github.com/qri-io/dataset/vals"
 	"github.com/qri-io/jsonschema"
 )
 
-const csvData = `col_a,col_b,col_c,col_d
-a,b,c,d
-a,b,c,d
-a,b,c,d
-a,b,c,d
-a,b,c,d`
+const csvData = `col_a,col_b,col_c,col_d,col_3,col_f,col_g
+a,1.23,4,false,"{""a"":""b""}","[1,2,3]",null
+a,1.23,4,false,"{""a"":""b""}","[1,2,3]",null
+a,1.23,4,false,"{""a"":""b""}","[1,2,3]",null
+a,1.23,4,false,"{""a"":""b""}","[1,2,3]",null
+a,1.23,4,false,"{""a"":""b""}","[1,2,3]",null`
 
 var csvStruct = &dataset.Structure{
 	Format: dataset.CSVDataFormat,
@@ -27,9 +26,12 @@ var csvStruct = &dataset.Structure{
 			"type":"array",
 			"items": [
 				{"title":"col_a","type":"string"},
-				{"title":"col_b","type":"string"},
-				{"title":"col_c","type":"string"},
-				{"title":"col_d","type":"string"}
+				{"title":"col_b","type":"number"},
+				{"title":"col_c","type":"integer"},
+				{"title":"col_d","type":"boolean"},
+				{"title":"col_e","type":"object"},
+				{"title":"col_f","type":"array"},
+				{"title":"col_g","type":"null"}
 			]
 		}
 	}`),
@@ -37,14 +39,14 @@ var csvStruct = &dataset.Structure{
 
 func TestCSVReader(t *testing.T) {
 	buf := bytes.NewBuffer([]byte(csvData))
-	rdr, err := NewValueReader(csvStruct, buf)
+	rdr, err := NewEntryReader(csvStruct, buf)
 	if err != nil {
-		t.Errorf("error allocating ValueReader: %s", err.Error())
+		t.Errorf("error allocating EntryReader: %s", err.Error())
 		return
 	}
 	count := 0
 	for {
-		row, err := rdr.ReadValue()
+		ent, err := rdr.ReadEntry()
 		if err != nil {
 			if err.Error() == "EOF" {
 				break
@@ -53,13 +55,14 @@ func TestCSVReader(t *testing.T) {
 			return
 		}
 
-		if row.Type() != vals.TypeArray {
-			t.Errorf("expected value to be an Array. got: %s", row.Type())
+		if arr, ok := ent.Value.([]interface{}); ok {
+			if len(arr) != 7 {
+				t.Errorf("invalid row length for row %d. expected %d, got %d", count, 7, len(arr))
+				continue
+			}
+		} else {
+			t.Errorf("expected value to []interface{}. got: %#v", ent.Value)
 			continue
-		}
-
-		if row.Len() != 4 {
-			t.Errorf("invalid row length for row %d. expected %d, got %d", count, 4, row.Len())
 		}
 
 		count++
@@ -70,19 +73,19 @@ func TestCSVReader(t *testing.T) {
 }
 
 func TestCSVWriter(t *testing.T) {
-	rows := []vals.Array{
+	rows := []Entry{
 		// TODO - vary up test input
-		vals.Array{vals.String("a"), vals.String("b"), vals.String("c"), vals.String("d")},
-		vals.Array{vals.String("a"), vals.String("b"), vals.String("c"), vals.String("d")},
-		vals.Array{vals.String("a"), vals.String("b"), vals.String("c"), vals.String("d")},
-		vals.Array{vals.String("a"), vals.String("b"), vals.String("c"), vals.String("d")},
-		vals.Array{vals.String("a"), vals.String("b"), vals.String("c"), vals.String("d")},
+		{Value: []interface{}{"a", float64(12), 23, nil}},
+		{Value: []interface{}{"a", float64(12), 23, []interface{}{"foo", "bar"}}},
+		{Value: []interface{}{"a", float64(12), 23, map[string]interface{}{"foo": "bar"}}},
+		{Value: []interface{}{"a", float64(12), int64(23), false}},
+		{Value: []interface{}{"a", float64(12), 23, false}},
 	}
 
 	buf := &bytes.Buffer{}
-	rw, err := NewValueWriter(csvStruct, buf)
+	rw, err := NewEntryWriter(csvStruct, buf)
 	if err != nil {
-		t.Errorf("error allocating ValueWriter: %s", err.Error())
+		t.Errorf("error allocating EntryWriter: %s", err.Error())
 		return
 	}
 	st := rw.Structure()
@@ -92,7 +95,7 @@ func TestCSVWriter(t *testing.T) {
 	}
 
 	for i, row := range rows {
-		if err := rw.WriteValue(row); err != nil {
+		if err := rw.WriteEntry(row); err != nil {
 			t.Errorf("row %d write error: %s", i, err.Error())
 		}
 	}

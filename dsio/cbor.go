@@ -6,9 +6,9 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"reflect"
 
 	"github.com/qri-io/dataset"
-	"github.com/qri-io/dataset/vals"
 	"github.com/ugorji/go/codec"
 )
 
@@ -46,6 +46,12 @@ func NewCBORReader(st *dataset.Structure, r io.Reader) (*CBORReader, error) {
 		sm:    sm,
 		handle: &codec.CborHandle{
 			TimeRFC3339: true,
+			BasicHandle: codec.BasicHandle{
+				DecodeOptions: codec.DecodeOptions{
+					MapType:       reflect.TypeOf(map[string]interface{}{}),
+					SignedInteger: true,
+				},
+			},
 		},
 	}, nil
 }
@@ -55,50 +61,25 @@ func (r *CBORReader) Structure() *dataset.Structure {
 	return r.st
 }
 
-// ReadValue reads one CBOR record from the reader
-func (r *CBORReader) ReadValue() (val vals.Value, err error) {
-	var (
-		key string
-		v   interface{}
-	)
-
+// ReadEntry reads one CBOR record from the reader
+func (r *CBORReader) ReadEntry() (ent Entry, err error) {
 	if r.rowsRead == 0 {
 		if _, err = r.readTopLevel(); err != nil {
 			r.rowsRead++
-			return nil, err
+			return
 		}
 	}
 	r.rowsRead++
 
 	if r.readingMap {
-		if err = r.readToken(); err != nil {
-			return nil, err
-		}
-		if err = codec.NewDecoderBytes(r.token.Bytes(), r.handle).Decode(&key); err != nil {
+		err = r.decodeToken(&ent.Key)
+		if err != nil {
 			return
 		}
-		// fmt.Printf("key: %s %x\n", r.token.Bytes(), key)
-		r.token.Reset()
 	}
 
-	if err = r.readToken(); err != nil {
-		return nil, err
-	}
-
-	// fmt.Printf("value: %x\n", r.token.Bytes())
-
-	if err = codec.NewDecoderBytes(r.token.Bytes(), r.handle).Decode(&v); err != nil {
-		return
-	}
-
-	val, err = vals.ConvertDecoded(v)
-
-	r.token.Reset()
-
-	if r.readingMap {
-		return vals.NewObjectValue(key, val), err
-	}
-	return val, err
+	err = r.decodeToken(&ent.Value)
+	return
 }
 
 const (
@@ -170,6 +151,19 @@ func (r *CBORReader) readTopLevel() (int, error) {
 	}
 
 	return 0, fmt.Errorf("invalid top level type")
+}
+
+func (r *CBORReader) decodeToken(dst interface{}) (err error) {
+	if err = r.readToken(); err != nil {
+		return
+	}
+
+	if err = codec.NewDecoderBytes(r.token.Bytes(), r.handle).Decode(dst); err != nil {
+		return
+	}
+
+	r.token.Reset()
+	return
 }
 
 func (r *CBORReader) readToken() error {
@@ -366,24 +360,25 @@ func (w *CBORWriter) ContainerType() string {
 	return "array"
 }
 
-// WriteValue writes one JSON record to the writer
-func (w *CBORWriter) WriteValue(val vals.Value) error {
+// WriteEntry writes one CBOR record to the writer
+func (w *CBORWriter) WriteEntry(ent Entry) error {
 	defer func() {
 		w.rowsWritten++
 	}()
 
 	if w.scanMode == smObject {
-		if objv, ok := val.(vals.ObjectValue); ok {
-			if _, ok := w.obj[objv.Key]; ok {
-				return fmt.Errorf(`key already written: "%s"`, objv.Key)
-			}
-			w.obj[objv.Key] = objv.Value
-			return nil
+		if ent.Key == "" {
+			return fmt.Errorf("Key cannot be empty")
 		}
-		return fmt.Errorf("only vals.ObjectValue can be written to a JSON object writer")
+
+		if _, ok := w.obj[ent.Key]; ok {
+			return fmt.Errorf(`key already written: '%s'`, ent.Key)
+		}
+		w.obj[ent.Key] = ent.Value
+		return nil
 	}
 
-	w.arr = append(w.arr, val)
+	w.arr = append(w.arr, ent.Value)
 	return nil
 }
 

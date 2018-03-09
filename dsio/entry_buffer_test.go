@@ -6,10 +6,9 @@ import (
 
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dstest"
-	"github.com/qri-io/dataset/vals"
 )
 
-func TestValueBuffer(t *testing.T) {
+func TestEntryBuffer(t *testing.T) {
 	tc, err := dstest.NewTestCaseFromDir("testdata/csv/movies", t)
 	if err != nil {
 		t.Errorf("error loading test case: %s", err.Error())
@@ -17,30 +16,29 @@ func TestValueBuffer(t *testing.T) {
 	}
 
 	ds := tc.Input
-	t.Logf("%v", ds.Structure.Schema)
 
 	outst := &dataset.Structure{
 		Format: dataset.JSONDataFormat,
 		Schema: ds.Structure.Schema,
 	}
 
-	rbuf, err := NewValueBuffer(outst)
+	rbuf, err := NewEntryBuffer(outst)
 	if err != nil {
-		t.Errorf("error allocating ValueBuffer: %s", err.Error())
+		t.Errorf("error allocating EntryBuffer: %s", err.Error())
 		return
 	}
 
-	rr, err := NewValueReader(ds.Structure, tc.DataFile())
+	rr, err := NewEntryReader(ds.Structure, tc.DataFile())
 	if err != nil {
 		t.Errorf("error allocating RowReader: %s", err.Error())
 		return
 	}
 
-	if err = EachValue(rr, func(i int, val vals.Value, err error) error {
+	if err = EachEntry(rr, func(i int, val Entry, err error) error {
 		if err != nil {
 			return err
 		}
-		return rbuf.WriteValue(val)
+		return rbuf.WriteEntry(val)
 	}); err != nil {
 		t.Errorf("error writing rows: %s", err.Error())
 		return
@@ -67,6 +65,4 @@ func TestValueBuffer(t *testing.T) {
 		t.Errorf("error marshaling json data: %s", err.Error())
 		return
 	}
-
-	// ioutil.WriteFile("testdata/movies_out.json", jsondata, 0777)
 }

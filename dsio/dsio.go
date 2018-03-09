@@ -6,37 +6,36 @@ import (
 	"io"
 
 	"github.com/qri-io/dataset"
-	"github.com/qri-io/dataset/vals"
 	"github.com/qri-io/jsonschema"
 )
 
-// ValueWriter is a generalized interface for writing structured data
-type ValueWriter interface {
+// EntryWriter is a generalized interface for writing structured data
+type EntryWriter interface {
 	// Structure gives the structure being written
 	Structure() *dataset.Structure
-	// WriteValue writes one row of structured data to the Writer
-	WriteValue(val vals.Value) error
+	// WriteEntry writes one "row" of structured data to the Writer
+	WriteEntry(Entry) error
 	// Close finalizes the writer, indicating all entries
 	// have been written
 	Close() error
 }
 
-// ValueReader is a generalized interface for reading Ordered Structured Data
-type ValueReader interface {
+// EntryReader is a generalized interface for reading Ordered Structured Data
+type EntryReader interface {
 	// Structure gives the structure being read
 	Structure() *dataset.Structure
 	// ReadVal reads one row of structured data from the reader
-	ReadValue() (vals.Value, error)
+	ReadEntry() (Entry, error)
 }
 
-// ValueReadWriter combines ValueWriter and ValueReader behaviors
-type ValueReadWriter interface {
+// EntryReadWriter combines EntryWriter and EntryReader behaviors
+type EntryReadWriter interface {
 	// Structure gives the structure being read and written
 	Structure() *dataset.Structure
 	// ReadVal reads one row of structured data from the reader
-	ReadValue() (vals.Value, error)
-	// WriteValue writes one row of structured data to the ReadWriter
-	WriteValue(val vals.Value) error
+	ReadEntry() (Entry, error)
+	// WriteEntry writes one row of structured data to the ReadWriter
+	WriteEntry(Entry) error
 	// Close finalizes the ReadWriter, indicating all entries
 	// have been written
 	Close() error
@@ -44,8 +43,8 @@ type ValueReadWriter interface {
 	Bytes() []byte
 }
 
-// NewValueReader allocates a ValueReader based on a given structure
-func NewValueReader(st *dataset.Structure, r io.Reader) (ValueReader, error) {
+// NewEntryReader allocates a EntryReader based on a given structure
+func NewEntryReader(st *dataset.Structure, r io.Reader) (EntryReader, error) {
 	switch st.Format {
 	case dataset.CBORDataFormat:
 		return NewCBORReader(st, r)
@@ -60,8 +59,8 @@ func NewValueReader(st *dataset.Structure, r io.Reader) (ValueReader, error) {
 	}
 }
 
-// NewValueWriter allocates a ValueWriter based on a given structure
-func NewValueWriter(st *dataset.Structure, w io.Writer) (ValueWriter, error) {
+// NewEntryWriter allocates a EntryWriter based on a given structure
+func NewEntryWriter(st *dataset.Structure, w io.Writer) (EntryWriter, error) {
 	switch st.Format {
 	case dataset.CBORDataFormat:
 		return NewCBORWriter(st, w)
@@ -88,9 +87,13 @@ func schemaScanMode(sc *jsonschema.RootSchema) (scanMode, error) {
 	if vt, ok := sc.Validators["type"]; ok {
 		// TODO - lol go PR jsonschema to export access to this instead of this
 		// silly validation hack
-		if errs := vt.Validate(map[string]interface{}{}); len(errs) == 0 {
+		obj := []jsonschema.ValError{}
+		arr := []jsonschema.ValError{}
+		vt.Validate("", map[string]interface{}{}, &obj)
+		vt.Validate("", []interface{}{}, &arr)
+		if len(obj) == 0 {
 			return smObject, nil
-		} else if errs := vt.Validate([]interface{}{}); len(errs) == 0 {
+		} else if len(arr) == 0 {
 			return smArray, nil
 		}
 	}

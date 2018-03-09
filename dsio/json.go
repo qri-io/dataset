@@ -8,7 +8,6 @@ import (
 	"io"
 
 	"github.com/qri-io/dataset"
-	"github.com/qri-io/dataset/vals"
 )
 
 // JSONReader implements the RowReader interface for the JSON data format
@@ -32,7 +31,7 @@ func NewJSONReader(st *dataset.Structure, r io.Reader) (*JSONReader, error) {
 		st: st,
 		sc: sc,
 	}
-	sc.Split(jr.scanJSONValue)
+	sc.Split(jr.scanJSONEntry)
 	// TODO - this is an interesting edge case. Need a big buffer for truly huge tokens.
 	// let's create an issue to discuss. It might make sense to store the size of the largest
 	// entry in the dataset as a structure definition
@@ -48,34 +47,34 @@ func (r *JSONReader) Structure() *dataset.Structure {
 	return r.st
 }
 
-// ReadValue reads one JSON record from the reader
-func (r *JSONReader) ReadValue() (vals.Value, error) {
+// ReadEntry reads one JSON record from the reader
+func (r *JSONReader) ReadEntry() (Entry, error) {
+	ent := Entry{}
 	more := r.sc.Scan()
 	if !more {
-		return nil, fmt.Errorf("EOF")
+		return ent, fmt.Errorf("EOF")
 	}
 	r.rowsRead++
 
 	if r.sc.Err() != nil {
-		return nil, r.sc.Err()
+		return ent, r.sc.Err()
 	}
 
-	val, err := vals.UnmarshalJSON(r.sc.Bytes())
-	if err != nil {
-		return nil, err
+	if err := json.Unmarshal(r.sc.Bytes(), &ent.Value); err != nil {
+		return ent, err
 	}
 
 	if r.scanMode == smObject {
-		return vals.NewObjectValue(r.objKey, val), nil
+		ent.Key = r.objKey
 	}
 
-	return val, nil
+	return ent, nil
 }
 
 // initialIndex sets the scanner up to read data, advancing until the first
 // entry in the top level array & setting the scanner split func to scan objects
 func initialIndex(data []byte) (md scanMode, skip int, err error) {
-	typ := vals.JSONArrayOrObject(data)
+	typ := JSONArrayOrObject(data)
 	if typ == "" {
 		// might not have initial closure, request more data
 		return smArray, -1, err
@@ -94,10 +93,26 @@ func initialIndex(data []byte) (md scanMode, skip int, err error) {
 	return smArray, idx + 1, nil
 }
 
+// JSONArrayOrObject examines bytes checking if the outermost
+// closure is an array or object
+func JSONArrayOrObject(value []byte) string {
+	for _, b := range value {
+		switch b {
+		case '"':
+			return ""
+		case '{':
+			return "object"
+		case '[':
+			return "array"
+		}
+	}
+	return ""
+}
+
 var moars = 0
 
-// scanJSONValue scans according to json value types (object, array, string, boolean, number, null, and integer)
-func (r *JSONReader) scanJSONValue(data []byte, atEOF bool) (advance int, token []byte, err error) {
+// scanJSONEntry scans according to json value types (object, array, string, boolean, number, null, and integer)
+func (r *JSONReader) scanJSONEntry(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	if atEOF && len(data) == 0 {
 		return 0, nil, nil
 	}
@@ -116,13 +131,13 @@ func (r *JSONReader) scanJSONValue(data []byte, atEOF bool) (advance int, token 
 	}
 
 	if r.scanMode == smObject {
-		return r.scanObjectValue(data, atEOF)
+		return r.scanObjectEntry(data, atEOF)
 	}
 
-	return scanValue(data, atEOF)
+	return scanEntry(data, atEOF)
 }
 
-func (r *JSONReader) scanObjectValue(data []byte, atEOF bool) (advance int, token []byte, err error) {
+func (r *JSONReader) scanObjectEntry(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	for _, b := range data {
 		if b == ':' {
 			break
@@ -141,7 +156,7 @@ func (r *JSONReader) scanObjectValue(data []byte, atEOF bool) (advance int, toke
 	}
 	r.objKey = string(key)
 
-	vadv, val, e := scanValue(data[stradv:], atEOF)
+	vadv, val, e := scanEntry(data[stradv:], atEOF)
 	if val == nil || e != nil {
 		return vadv, val, e
 	}
@@ -149,7 +164,7 @@ func (r *JSONReader) scanObjectValue(data []byte, atEOF bool) (advance int, toke
 	return stradv + vadv, val, e
 }
 
-func scanValue(data []byte, atEOF bool) (advance int, token []byte, err error) {
+func scanEntry(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	for _, b := range data {
 		switch b {
 		case '"':
@@ -389,8 +404,8 @@ func (w *JSONWriter) ContainerType() string {
 	return "array"
 }
 
-// WriteValue writes one JSON record to the writer
-func (w *JSONWriter) WriteValue(val vals.Value) error {
+// WriteEntry writes one JSON record to the writer
+func (w *JSONWriter) WriteEntry(ent Entry) error {
 	defer func() {
 		w.rowsWritten++
 	}()
@@ -404,7 +419,7 @@ func (w *JSONWriter) WriteValue(val vals.Value) error {
 		}
 	}
 
-	data, err := w.valBytes(val)
+	data, err := w.valBytes(ent)
 	if err != nil {
 		return err
 	}
@@ -418,37 +433,36 @@ func (w *JSONWriter) WriteValue(val vals.Value) error {
 	return err
 }
 
-func (w *JSONWriter) valBytes(val vals.Value) ([]byte, error) {
+func (w *JSONWriter) valBytes(ent Entry) ([]byte, error) {
 	if w.scanMode == smArray {
-		return json.Marshal(val)
+		// TODO - add test that checks this is recording values & not entries
+		return json.Marshal(ent.Value)
 	}
 
-	if ov, ok := val.(vals.ObjectValue); ok {
-		if w.keysWritten[ov.Key] == true {
-			return nil, fmt.Errorf("key already written: \"%s\"", ov.Key)
-		}
-		w.keysWritten[ov.Key] = true
-
-		data, err := json.Marshal(ov.Key)
-		if err != nil {
-			return data, err
-		}
-		data = append(data, ':')
-		val, err := json.Marshal(ov.Value)
-		if err != nil {
-			return data, err
-		}
-		data = append(data, val...)
-		return data, nil
+	if ent.Key == "" {
+		return nil, fmt.Errorf("entry key cannot be empty")
+	} else if w.keysWritten[ent.Key] == true {
+		return nil, fmt.Errorf("key already written: \"%s\"", ent.Key)
 	}
+	w.keysWritten[ent.Key] = true
 
-	return nil, fmt.Errorf("only vals.ObjectValue can be written to a JSON object writer")
+	data, err := json.Marshal(ent.Key)
+	if err != nil {
+		return data, err
+	}
+	data = append(data, ':')
+	val, err := json.Marshal(ent.Value)
+	if err != nil {
+		return data, err
+	}
+	data = append(data, val...)
+	return data, nil
 }
 
 // Close finalizes the writer, indicating no more records
 // will be written
 func (w *JSONWriter) Close() error {
-	// if WriteValue is never called, write an empty array
+	// if WriteEntry is never called, write an empty array
 	if w.rowsWritten == 0 {
 		data := []byte("[]")
 		if w.scanMode == smObject {
