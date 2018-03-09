@@ -87,9 +87,13 @@ func schemaScanMode(sc *jsonschema.RootSchema) (scanMode, error) {
 	if vt, ok := sc.Validators["type"]; ok {
 		// TODO - lol go PR jsonschema to export access to this instead of this
 		// silly validation hack
-		if errs := vt.Validate(map[string]interface{}{}); len(errs) == 0 {
+		obj := []jsonschema.ValError{}
+		arr := []jsonschema.ValError{}
+		vt.Validate("", map[string]interface{}{}, &obj)
+		vt.Validate("", []interface{}{}, &arr)
+		if len(obj) == 0 {
 			return smObject, nil
-		} else if errs := vt.Validate([]interface{}{}); len(errs) == 0 {
+		} else if len(arr) == 0 {
 			return smArray, nil
 		}
 	}

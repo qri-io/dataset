@@ -145,13 +145,13 @@ func TestCreateDataset(t *testing.T) {
 		{"invalid",
 			"", 0, "commit is required"},
 		{"cities",
-			"/map/QmYHjqM9EFJhxW5u2W4CZ76kVFxF98pBkYvjBY9WpRYxa3", 7, ""},
+			"/map/QmU6iHxzLB8sL2Qjh8H1Q2vin5g9jX3hcQMSS7H3F6TjR8", 7, ""},
 		{"complete",
-			"/map/QmZ98pNQKSR2mRP466K7eZLttU8fx4FPp4QEaDTMZ8BonD", 15, ""},
+			"/map/QmQ2mRe5V83CjKBV5urUY2fSnENjnZyKPGBP5PiPgfr5aS", 15, ""},
 		{"cities_no_commit_title",
-			"/map/QmafoKFW7VVaUJszdwEidyQNmrcJ1oBdKhLt9Xnf2KLEFn", 17, ""},
+			"/map/QmUFienw6JdA71JwF1ptjcjSQXFV6qsJjdEt1b9uedG5BN", 17, ""},
 		{"craigslist",
-			"/map/QmRLpDXcrccTzNCwWXyyHRZCmSzDxPoMX91KtLW3szmmkX", 21, ""},
+			"/map/QmU5Tx7ZA3WUB4Yd3nMnUgAjCb1NVp323uLYi9q5AQYFg8", 21, ""},
 	}
 
 	for _, c := range cases {

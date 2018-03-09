@@ -1,0 +1,8 @@
+{
+  "structure": {
+    "format": "json",
+    "schema": {
+      "type": "object"
+    }
+  }
+}

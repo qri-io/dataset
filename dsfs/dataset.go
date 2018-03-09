@@ -296,18 +296,27 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 	ds.Structure.Length = len(data)
 
 	// set error count
-	validationErrors := ds.Structure.Schema.ValidateBytes(data)
+
+	er, err := dsio.NewEntryReader(ds.Structure, memfs.NewMemfileBytes("data", data))
+	if err != nil {
+		return nil, "", fmt.Errorf("error reading data values: %s", err.Error())
+	}
+
+	validationErrors, err := validate.EntryReader(er)
+	if err != nil {
+		return nil, "", fmt.Errorf("error validating data: %s", err.Error())
+	}
 	ds.Structure.ErrCount = len(validationErrors)
 
 	// TODO - add a dsio.RowCount function that avoids actually arranging data into rows
-	rr, err := dsio.NewEntryReader(ds.Structure, memfs.NewMemfileBytes("data", data))
+	er, err = dsio.NewEntryReader(ds.Structure, memfs.NewMemfileBytes("data", data))
 	if err != nil {
 		return nil, "", fmt.Errorf("error reading data values: %s", err.Error())
 	}
 
 	entries := 0
 	for {
-		if _, err = rr.ReadEntry(); err != nil {
+		if _, err = er.ReadEntry(); err != nil {
 			break
 		}
 		entries++
