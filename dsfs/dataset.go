@@ -335,7 +335,8 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 	ds.Structure.Checksum = shasum.B58String()
 
 	// generate abstract form of dataset
-	ds.Abstract = dataset.Abstract(ds)
+	// ds.Abstract = dataset.Abstract(ds)
+
 	//get auto commit message if necessary
 	diffDescription, err := generateCommitMsg(store, ds)
 	if err != nil {

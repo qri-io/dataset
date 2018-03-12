@@ -145,13 +145,13 @@ func TestCreateDataset(t *testing.T) {
 		{"invalid",
 			"", 0, "commit is required"},
 		{"cities",
-			"/map/QmU6iHxzLB8sL2Qjh8H1Q2vin5g9jX3hcQMSS7H3F6TjR8", 7, ""},
+			"/map/QmViLcZ6Yu4Yi4bQe7zcfntHNdDes5xwQp3fbxq3iUouWS", 6, ""},
 		{"complete",
-			"/map/QmQ2mRe5V83CjKBV5urUY2fSnENjnZyKPGBP5PiPgfr5aS", 15, ""},
+			"/map/QmRSc1VTBQnoWdH8dV3M9cLt6e1639SVN1L8CMZ7ipCc8F", 15, ""},
 		{"cities_no_commit_title",
-			"/map/QmUFienw6JdA71JwF1ptjcjSQXFV6qsJjdEt1b9uedG5BN", 17, ""},
+			"/map/QmPHmSFoxBn73t61M3E9SYNZvqD1BdFriTn3fVWjfG4seN", 17, ""},
 		{"craigslist",
-			"/map/QmU5Tx7ZA3WUB4Yd3nMnUgAjCb1NVp323uLYi9q5AQYFg8", 21, ""},
+			"/map/QmdV6TqbjvwDqZrqPDyXeMYujEZaiaG18YjXVRhD66VFfZ", 20, ""},
 	}
 
 	for _, c := range cases {
@@ -221,8 +221,8 @@ func TestCreateDataset(t *testing.T) {
 	if err.Error() != expectedErr {
 		t.Errorf("case nil datafile and no PreviousPath, error mismatch: expected '%s', got '%s'", expectedErr, err.Error())
 	}
-	if len(store.(memfs.MapStore)) != 21 {
-		t.Errorf("case nil datafile and PreviousPath, expected invalid number of entries: %d != %d", 21, len(store.(memfs.MapStore)))
+	if len(store.(memfs.MapStore)) != 20 {
+		t.Errorf("case nil datafile and PreviousPath, expected invalid number of entries: %d != %d", 20, len(store.(memfs.MapStore)))
 		_, err := store.(memfs.MapStore).Print()
 		if err != nil {
 			panic(err)
