@@ -6,7 +6,6 @@ import (
 
 	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/cafs"
-	"github.com/qri-io/cafs/memfs"
 	"github.com/qri-io/dataset"
 )
 
@@ -83,7 +82,7 @@ func SaveAbstractTransform(store cafs.Filestore, t *dataset.Transform, pin bool)
 			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset abstract to json: %s", err.Error())
 		}
 
-		path, err := store.Put(memfs.NewMemfileBytes(fmt.Sprintf("%s_abst.json", key), absdata), pin)
+		path, err := store.Put(cafs.NewMemfileBytes(fmt.Sprintf("%s_abst.json", key), absdata), pin)
 		if err != nil {
 			return datastore.NewKey(""), fmt.Errorf("error placing abstract dataset '%s' in store: %s", key, err.Error())
 		}
@@ -96,5 +95,5 @@ func SaveAbstractTransform(store cafs.Filestore, t *dataset.Transform, pin bool)
 		return datastore.NewKey(""), fmt.Errorf("error marshaling dataset abstract transform to json: %s", err.Error())
 	}
 
-	return store.Put(memfs.NewMemfileBytes(PackageFileAbstractTransform.String(), data), pin)
+	return store.Put(cafs.NewMemfileBytes(PackageFileAbstractTransform.String(), data), pin)
 }

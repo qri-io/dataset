@@ -12,7 +12,6 @@ import (
 	"github.com/mr-tron/base58/base58"
 	"github.com/multiformats/go-multihash"
 	"github.com/qri-io/cafs"
-	"github.com/qri-io/cafs/memfs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsio"
 	"github.com/qri-io/dataset/validate"
@@ -297,7 +296,7 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 
 	// set error count
 
-	er, err := dsio.NewEntryReader(ds.Structure, memfs.NewMemfileBytes("data", data))
+	er, err := dsio.NewEntryReader(ds.Structure, cafs.NewMemfileBytes("data", data))
 	if err != nil {
 		return nil, "", fmt.Errorf("error reading data values: %s", err.Error())
 	}
@@ -309,7 +308,7 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 	ds.Structure.ErrCount = len(validationErrors)
 
 	// TODO - add a dsio.RowCount function that avoids actually arranging data into rows
-	er, err = dsio.NewEntryReader(ds.Structure, memfs.NewMemfileBytes("data", data))
+	er, err = dsio.NewEntryReader(ds.Structure, cafs.NewMemfileBytes("data", data))
 	if err != nil {
 		return nil, "", fmt.Errorf("error reading data values: %s", err.Error())
 	}
@@ -363,7 +362,7 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 	}
 	ds.Commit.Signature = base58.Encode(signedBytes)
 
-	return memfs.NewMemfileBytes("data."+ds.Structure.Format.String(), data), diffDescription, nil
+	return cafs.NewMemfileBytes("data."+ds.Structure.Format.String(), data), diffDescription, nil
 }
 
 // WriteDataset writes a dataset to a cafs, replacing subcomponents of a dataset with path references
@@ -434,7 +433,7 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File,
 			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset transform to json: %s", err.Error())
 		}
 		fileTasks++
-		adder.AddFile(memfs.NewMemfileBytes(PackageFileTransform.String(), qdata))
+		adder.AddFile(cafs.NewMemfileBytes(PackageFileTransform.String(), qdata))
 	}
 
 	if ds.Commit != nil {
@@ -514,7 +513,7 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File,
 						return
 					}
 
-					adder.AddFile(memfs.NewMemfileBytes(PackageFileDataset.String(), dsdata))
+					adder.AddFile(cafs.NewMemfileBytes(PackageFileDataset.String(), dsdata))
 				}
 				//
 				if err := adder.Close(); err != nil {

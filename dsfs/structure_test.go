@@ -3,11 +3,11 @@ package dsfs
 import (
 	"testing"
 
-	"github.com/qri-io/cafs/memfs"
+	"github.com/qri-io/cafs"
 )
 
 func TestLoadStructure(t *testing.T) {
-	store := memfs.NewMapstore()
+	store := cafs.NewMapstore()
 	a, err := SaveStructure(store, AirportCodesStructure, true)
 	if err != nil {
 		t.Errorf(err.Error())

@@ -8,7 +8,6 @@ import (
 
 	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/cafs"
-	"github.com/qri-io/cafs/memfs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/jsonschema"
 )
@@ -148,7 +147,7 @@ var HoursStructure = &dataset.Structure{
 }
 
 func makeFilestore() (map[string]datastore.Key, cafs.Filestore, error) {
-	fs := memfs.NewMapstore()
+	fs := cafs.NewMapstore()
 
 	datasets := map[string]datastore.Key{
 		"movies": datastore.NewKey(""),
@@ -172,7 +171,7 @@ func makeFilestore() (map[string]datastore.Key, cafs.Filestore, error) {
 			return datasets, nil, err
 		}
 
-		df := memfs.NewMemfileBytes(filepath.Base(dataPath), data)
+		df := cafs.NewMemfileBytes(filepath.Base(dataPath), data)
 
 		dskey, err := WriteDataset(fs, ds, df, true)
 		if err != nil {

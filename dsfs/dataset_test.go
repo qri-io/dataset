@@ -10,7 +10,7 @@ import (
 
 	"github.com/ipfs/go-datastore"
 	"github.com/libp2p/go-libp2p-crypto"
-	"github.com/qri-io/cafs/memfs"
+	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dstest"
 )
@@ -27,7 +27,7 @@ func init() {
 }
 
 func TestLoadDataset(t *testing.T) {
-	store := memfs.NewMapstore()
+	store := cafs.NewMapstore()
 	dsData, err := ioutil.ReadFile("testdata/complete/input.dataset.json")
 	if err != nil {
 		t.Errorf("error loading test dataset: %s", err.Error())
@@ -44,7 +44,7 @@ func TestLoadDataset(t *testing.T) {
 		return
 	}
 
-	df := memfs.NewMemfileBytes("complete.csv", data)
+	df := cafs.NewMemfileBytes("complete.csv", data)
 
 	apath, err := WriteDataset(store, ds, df, true)
 	if err != nil {
@@ -109,7 +109,7 @@ func TestLoadDataset(t *testing.T) {
 }
 
 func TestCreateDataset(t *testing.T) {
-	store := memfs.NewMapstore()
+	store := cafs.NewMapstore()
 	prev := Timestamp
 	// shameless call to timestamp to get the coverge points
 	Timestamp()
@@ -161,7 +161,7 @@ func TestCreateDataset(t *testing.T) {
 			continue
 		}
 
-		df := memfs.NewMemfileBytes(tc.DataFilename, tc.Data)
+		df := cafs.NewMemfileBytes(tc.DataFilename, tc.Data)
 		path, err := CreateDataset(store, tc.Input, df, privKey, false)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("%s: error mismatch. expected: '%s', got: '%s'", tc.Name, c.err, err)
@@ -174,9 +174,9 @@ func TestCreateDataset(t *testing.T) {
 				t.Errorf("%s: result path mismatch: expected: '%s', got: '%s'", tc.Name, resultPath, path)
 			}
 
-			if len(store.(memfs.MapStore)) != c.repoFiles {
-				t.Errorf("%s: invalid number of mapstore entries: %d != %d", tc.Name, c.repoFiles, len(store.(memfs.MapStore)))
-				_, err := store.(memfs.MapStore).Print()
+			if len(store.(cafs.MapStore)) != c.repoFiles {
+				t.Errorf("%s: invalid number of mapstore entries: %d != %d", tc.Name, c.repoFiles, len(store.(cafs.MapStore)))
+				_, err := store.(cafs.MapStore).Print()
 				if err != nil {
 					panic(err)
 				}
@@ -221,9 +221,9 @@ func TestCreateDataset(t *testing.T) {
 	if err.Error() != expectedErr {
 		t.Errorf("case nil datafile and no PreviousPath, error mismatch: expected '%s', got '%s'", expectedErr, err.Error())
 	}
-	if len(store.(memfs.MapStore)) != 20 {
-		t.Errorf("case nil datafile and PreviousPath, expected invalid number of entries: %d != %d", 20, len(store.(memfs.MapStore)))
-		_, err := store.(memfs.MapStore).Print()
+	if len(store.(cafs.MapStore)) != 20 {
+		t.Errorf("case nil datafile and PreviousPath, expected invalid number of entries: %d != %d", 20, len(store.(cafs.MapStore)))
+		_, err := store.(cafs.MapStore).Print()
 		if err != nil {
 			panic(err)
 		}
@@ -231,7 +231,7 @@ func TestCreateDataset(t *testing.T) {
 }
 
 func TestWriteDataset(t *testing.T) {
-	store := memfs.NewMapstore()
+	store := cafs.NewMapstore()
 	prev := Timestamp
 	defer func() { Timestamp = prev }()
 	Timestamp = func() time.Time { return time.Date(2001, 01, 01, 01, 01, 01, 01, time.UTC) }
@@ -266,7 +266,7 @@ func TestWriteDataset(t *testing.T) {
 			t.Errorf("case %d error reading data file: %s", i, err.Error())
 			continue
 		}
-		df := memfs.NewMemfileBytes(filepath.Base(c.dataPath), data)
+		df := cafs.NewMemfileBytes(filepath.Base(c.dataPath), data)
 
 		ds := &dataset.Dataset{}
 		if err := ds.UnmarshalJSON(indata); err != nil {
@@ -287,9 +287,9 @@ func TestWriteDataset(t *testing.T) {
 		// }
 
 		// total count expected of files in repo after test execution
-		if len(store.(memfs.MapStore)) != c.repoFiles {
-			t.Errorf("case expected %d invalid number of entries: %d != %d", i, c.repoFiles, len(store.(memfs.MapStore)))
-			str, err := store.(memfs.MapStore).Print()
+		if len(store.(cafs.MapStore)) != c.repoFiles {
+			t.Errorf("case expected %d invalid number of entries: %d != %d", i, c.repoFiles, len(store.(cafs.MapStore)))
+			str, err := store.(cafs.MapStore).Print()
 			if err != nil {
 				panic(err)
 			}

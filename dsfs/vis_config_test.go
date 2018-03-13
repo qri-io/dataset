@@ -3,7 +3,7 @@ package dsfs
 import (
 	"testing"
 
-	"github.com/qri-io/cafs/memfs"
+	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
 )
 
@@ -20,7 +20,7 @@ var VisConfig1 = &dataset.VisConfig{
 }
 
 func TestLoadVisConfig(t *testing.T) {
-	store := memfs.NewMapstore()
+	store := cafs.NewMapstore()
 	a, err := SaveVisConfig(store, VisConfig1, true)
 	if err != nil {
 		t.Errorf(err.Error())

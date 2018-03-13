@@ -5,11 +5,11 @@ import (
 	"testing"
 
 	"github.com/ipfs/go-datastore"
-	"github.com/qri-io/cafs/memfs"
+	"github.com/qri-io/cafs"
 )
 
 func TestSaveCommit(t *testing.T) {
-	store := memfs.NewMapstore()
+	store := cafs.NewMapstore()
 	path, err := SaveCommit(store, AirportCodesCommit, true)
 	if err != nil {
 		t.Errorf(err.Error())
@@ -39,7 +39,7 @@ func TestSaveCommit(t *testing.T) {
 }
 
 func TestLoadCommit(t *testing.T) {
-	store := memfs.NewMapstore()
+	store := cafs.NewMapstore()
 	a, err := SaveCommit(store, AirportCodesCommit, true)
 	if err != nil {
 		t.Errorf(err.Error())
