@@ -10,7 +10,6 @@ import (
 
 	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/cafs"
-	"github.com/qri-io/cafs/memfs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsfs"
 )
@@ -87,12 +86,12 @@ func TestWriteDir(t *testing.T) {
 }
 
 func testStore() (cafs.Filestore, map[string]datastore.Key, error) {
-	fs := memfs.NewMapstore()
+	fs := cafs.NewMapstore()
 	ns := map[string]datastore.Key{
 		"movies": datastore.NewKey(""),
 	}
 
-	dataf := memfs.NewMemfileBytes("movies.csv", []byte("movie\nup\nthe incredibles"))
+	dataf := cafs.NewMemfileBytes("movies.csv", []byte("movie\nup\nthe incredibles"))
 
 	ds := &dataset.Dataset{
 		Structure: &dataset.Structure{

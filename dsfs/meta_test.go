@@ -3,11 +3,11 @@ package dsfs
 import (
 	"testing"
 
-	"github.com/qri-io/cafs/memfs"
+	"github.com/qri-io/cafs"
 )
 
 func TestLoadMeta(t *testing.T) {
-	store := memfs.NewMapstore()
+	store := cafs.NewMapstore()
 	a, err := SaveMeta(store, AirportCodes.Meta, true)
 	if err != nil {
 		t.Errorf(err.Error())

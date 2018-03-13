@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/ipfs/go-datastore"
-	"github.com/qri-io/cafs/memfs"
+	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/jsonschema"
 )
 
 func TestLoadTransform(t *testing.T) {
 	// TODO - restore
-	// store := memfs.NewMapstore()
+	// store := cafs.NewMapstore()
 	// q := &dataset.AbstractTransform{Statement: "select * from whatever booooooo go home"}
 	// a, err := SaveAbstractTransform(store, q, true)
 	// if err != nil {
@@ -35,7 +35,7 @@ func TestSaveTransform(t *testing.T) {
 	dsa := dataset.NewDatasetRef(datastore.NewKey("/path/to/dataset/a"))
 	dsa.Assign(&dataset.Dataset{Meta: &dataset.Meta{Title: "now dataset isn't empty"}})
 
-	store := memfs.NewMapstore()
+	store := cafs.NewMapstore()
 	q := &dataset.Transform{
 		Syntax: "sweet syntax",
 		Structure: &dataset.Structure{
@@ -60,8 +60,8 @@ func TestSaveTransform(t *testing.T) {
 	}
 
 	expectedEntries := 2
-	if len(store.(memfs.MapStore)) != expectedEntries {
-		t.Errorf("invalid number of entries added to store: %d != %d", expectedEntries, len(store.(memfs.MapStore)))
+	if len(store.(cafs.MapStore)) != expectedEntries {
+		t.Errorf("invalid number of entries added to store: %d != %d", expectedEntries, len(store.(cafs.MapStore)))
 		return
 	}
 
@@ -95,7 +95,7 @@ func TestSaveAbstractTransform(t *testing.T) {
 		Schema: jsonschema.Must(`true`),
 	}
 
-	store := memfs.NewMapstore()
+	store := cafs.NewMapstore()
 	q := &dataset.Transform{
 		Syntax: "sweet syntax",
 		Structure: &dataset.Structure{
@@ -120,8 +120,8 @@ func TestSaveAbstractTransform(t *testing.T) {
 	}
 
 	expectedEntries := 3
-	if len(store.(memfs.MapStore)) != expectedEntries {
-		t.Errorf("invalid number of entries added to store: %d != %d", expectedEntries, len(store.(memfs.MapStore)))
+	if len(store.(cafs.MapStore)) != expectedEntries {
+		t.Errorf("invalid number of entries added to store: %d != %d", expectedEntries, len(store.(cafs.MapStore)))
 		return
 	}
 

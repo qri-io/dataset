@@ -8,7 +8,6 @@ import (
 	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/cafs"
 	ipfsfs "github.com/qri-io/cafs/ipfs"
-	"github.com/qri-io/cafs/memfs"
 )
 
 func TestPackageFilepath(t *testing.T) {
@@ -19,7 +18,7 @@ func TestPackageFilepath(t *testing.T) {
 	}
 	defer destroy()
 
-	mem := memfs.NewMapstore()
+	mem := cafs.NewMapstore()
 
 	cases := []struct {
 		store cafs.Filestore
@@ -48,7 +47,7 @@ func TestPackageFilepath(t *testing.T) {
 }
 
 func TestPackageKeyPath(t *testing.T) {
-	mem := memfs.NewMapstore()
+	mem := cafs.NewMapstore()
 	p := datastore.NewKey("/mem/foo")
 	got := PackageKeypath(mem, p, PackageFileDataset)
 	if !got.Equal(p) {
