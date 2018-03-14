@@ -133,7 +133,9 @@ func UnmarshalVisConfig(v interface{}) (*VisConfig, error) {
 		err := json.Unmarshal(q, visConfig)
 		return visConfig, err
 	default:
-		return nil, fmt.Errorf("couldn't parse VisConfig, value is invalid type")
+		err := fmt.Errorf("couldn't parse VisConfig, value is invalid type")
+		log.Debug(err.Error())
+		return nil, err
 	}
 }
 

@@ -12,6 +12,7 @@ import (
 func SaveStructure(store cafs.Filestore, s *dataset.Structure, pin bool) (path datastore.Key, err error) {
 	file, err := JSONFile(PackageFileStructure.String(), s)
 	if err != nil {
+		log.Debug(err.Error())
 		return datastore.NewKey(""), fmt.Errorf("error saving json structure file: %s", err.Error())
 	}
 	return store.Put(file, pin)
@@ -27,6 +28,7 @@ func LoadStructure(store cafs.Filestore, path datastore.Key) (st *dataset.Struct
 func loadStructure(store cafs.Filestore, path datastore.Key) (st *dataset.Structure, err error) {
 	data, err := fileBytes(store.Get(path))
 	if err != nil {
+		log.Debug(err.Error())
 		return nil, fmt.Errorf("error loading structure file: %s", err.Error())
 	}
 	return dataset.UnmarshalStructure(data)

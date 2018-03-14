@@ -12,20 +12,13 @@ import (
 	"os"
 	"path/filepath"
 
+	logger "github.com/ipfs/go-log"
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsfs"
 )
 
-// TODO - make sure a provided path is valid
-// func ValidPath(path datastore.Key) (datastore.Key, error) {
-// 	return path, nil
-// }
-
-// TODO - clean & find valid path to dataset
-// func ValidDatasetPath(path datastore.Key) (datastore.Key, error) {
-// 	return path, nil
-// }
+var log = logger.Logger("dsutil")
 
 // WriteZipArchive generates a zip archive of a dataset and writes it to w
 func WriteZipArchive(store cafs.Filestore, ds *dataset.Dataset, w io.Writer) error {
@@ -33,6 +26,7 @@ func WriteZipArchive(store cafs.Filestore, ds *dataset.Dataset, w io.Writer) err
 
 	dsf, err := zw.Create(dsfs.PackageFileDataset.String())
 	if err != nil {
+		log.Debug(err.Error())
 		return err
 	}
 	dsdata, err := json.MarshalIndent(ds, "", "  ")
@@ -41,20 +35,24 @@ func WriteZipArchive(store cafs.Filestore, ds *dataset.Dataset, w io.Writer) err
 	}
 	_, err = dsf.Write(dsdata)
 	if err != nil {
+		log.Debug(err.Error())
 		return err
 	}
 
 	datadst, err := zw.Create(fmt.Sprintf("data.%s", ds.Structure.Format.String()))
 	if err != nil {
+		log.Debug(err.Error())
 		return err
 	}
 
 	datasrc, err := dsfs.LoadData(store, ds)
 	if err != nil {
+		log.Debug(err.Error())
 		return err
 	}
 
 	if _, err = io.Copy(datadst, datasrc); err != nil {
+		log.Debug(err.Error())
 		return err
 	}
 
@@ -64,28 +62,34 @@ func WriteZipArchive(store cafs.Filestore, ds *dataset.Dataset, w io.Writer) err
 // WriteDir loads a dataset & writes all contents to a directory specified by path
 func WriteDir(store cafs.Filestore, ds *dataset.Dataset, path string) error {
 	if err := os.MkdirAll(path, os.ModePerm); err != nil {
+		log.Debug(err.Error())
 		return err
 	}
 
 	dsdata, err := json.MarshalIndent(ds, "", "  ")
 	if err != nil {
+		log.Debug(err.Error())
 		return err
 	}
 	err = ioutil.WriteFile(filepath.Join(path, dsfs.PackageFileDataset.String()), dsdata, os.ModePerm)
 	if err != nil {
+		log.Debug(err.Error())
 		return err
 	}
 
 	datasrc, err := dsfs.LoadData(store, ds)
 	if err != nil {
+		log.Debug(err.Error())
 		return err
 	}
 
 	datadst, err := os.Create(filepath.Join(path, fmt.Sprintf("data.%s", ds.Structure.Format.String())))
 	if err != nil {
+		log.Debug(err.Error())
 		return err
 	}
 	if _, err = io.Copy(datadst, datasrc); err != nil {
+		log.Debug(err.Error())
 		return err
 	}
 

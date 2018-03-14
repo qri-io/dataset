@@ -9,9 +9,12 @@ import (
 	"path/filepath"
 	"testing"
 
+	logger "github.com/ipfs/go-log"
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
 )
+
+var log = logger.Logger("dstest")
 
 const (
 	// InputDatasetFilename is the filename to use for an input dataset
@@ -54,18 +57,23 @@ func NewTestCaseFromDir(dir string, t *testing.T) (tc TestCase, err error) {
 	tc.Data, tc.DataFilename, err = ReadInputData(dir)
 	if err != nil {
 		err = fmt.Errorf("error reading test case data for directory %s: %s", dir, err.Error())
+		log.Debug(err.Error())
 		return
 	}
 
 	tc.Input, err = ReadDataset(dir, InputDatasetFilename)
 	if err != nil && !os.IsNotExist(err) && t != nil {
-		t.Logf("%s: error loading input dataset: %s", tc.Name, err)
+		msg := fmt.Sprintf("%s: error loading input dataset: %s", tc.Name, err)
+		log.Debugf(msg)
+		t.Logf(msg)
 	}
 	err = nil
 
 	tc.Expect, err = ReadDataset(dir, ExpectDatasetFilename)
 	if err != nil && !os.IsNotExist(err) && t != nil {
-		t.Logf("%s: error loading expect dataset: %s", tc.Name, err)
+		msg := fmt.Sprintf("%s: error loading expect dataset: %s", tc.Name, err)
+		t.Logf(msg)
+		log.Debug(msg)
 	}
 	err = nil
 
@@ -76,6 +84,7 @@ func NewTestCaseFromDir(dir string, t *testing.T) (tc TestCase, err error) {
 func ReadDataset(dir, filename string) (*dataset.Dataset, error) {
 	data, err := ioutil.ReadFile(filepath.Join(dir, filename))
 	if err != nil {
+		log.Debug(err.Error())
 		return nil, err
 	}
 

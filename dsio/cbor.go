@@ -31,11 +31,14 @@ var (
 // NewCBORReader creates a reader from a structure and read source
 func NewCBORReader(st *dataset.Structure, r io.Reader) (*CBORReader, error) {
 	if st.Schema == nil {
-		return nil, fmt.Errorf("schema required for CBOR reader")
+		err := fmt.Errorf("schema required for CBOR reader")
+		log.Debug(err.Error())
+		return nil, err
 	}
 
 	sm, err := schemaScanMode(st.Schema)
 	if err != nil {
+		log.Debug(err.Error())
 		return nil, err
 	}
 
@@ -74,6 +77,9 @@ func (r *CBORReader) ReadEntry() (ent Entry, err error) {
 	if r.readingMap {
 		err = r.decodeToken(&ent.Key)
 		if err != nil {
+			if err.Error() != "EOF" {
+				log.Debug(err.Error())
+			}
 			return
 		}
 	}
@@ -159,6 +165,7 @@ func (r *CBORReader) decodeToken(dst interface{}) (err error) {
 	}
 
 	if err = codec.NewDecoderBytes(r.token.Bytes(), r.handle).Decode(dst); err != nil {
+		log.Debug(err.Error())
 		return
 	}
 
@@ -170,6 +177,9 @@ func (r *CBORReader) readToken() error {
 
 	bd, err := r.rdr.ReadByte()
 	if err != nil {
+		if err.Error() != io.EOF.Error() {
+			log.Debug(err.Error())
+		}
 		return err
 	}
 

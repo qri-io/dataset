@@ -21,6 +21,7 @@ var testPk = []byte(`CAASpgkwggSiAgEAAoIBAQC/7Q7fILQ8hc9g07a4HAiDKE4FahzL2eO8OlB
 func init() {
 	data, err := base64.StdEncoding.DecodeString(string(testPk))
 	if err != nil {
+		log.Error(err.Error())
 		panic(err)
 	}
 	testPk = data

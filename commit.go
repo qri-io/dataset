@@ -132,6 +132,7 @@ func (cm *Commit) UnmarshalJSON(data []byte) error {
 
 	m := _commitMsg{}
 	if err := json.Unmarshal(data, &m); err != nil {
+		log.Debug(err.Error())
 		return fmt.Errorf("error unmarshling dataset: %s", err.Error())
 	}
 
@@ -152,6 +153,8 @@ func UnmarshalCommit(v interface{}) (*Commit, error) {
 		err := json.Unmarshal(r, cm)
 		return cm, err
 	default:
-		return nil, fmt.Errorf("couldn't parse commitMsg, value is invalid type")
+		err := fmt.Errorf("couldn't parse commitMsg, value is invalid type")
+		log.Debug(err.Error())
+		return nil, err
 	}
 }

@@ -200,6 +200,8 @@ func UnmarshalTransform(v interface{}) (*Transform, error) {
 		err := json.Unmarshal(q, transform)
 		return transform, err
 	default:
-		return nil, fmt.Errorf("couldn't parse transform")
+		err := fmt.Errorf("couldn't parse transform")
+		log.Debug(err.Error())
+		return nil, err
 	}
 }
