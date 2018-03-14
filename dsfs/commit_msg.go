@@ -12,6 +12,7 @@ import (
 func SaveCommit(store cafs.Filestore, s *dataset.Commit, pin bool) (path datastore.Key, err error) {
 	file, err := JSONFile(PackageFileCommit.String(), s)
 	if err != nil {
+		log.Debug(err.Error())
 		return datastore.NewKey(""), fmt.Errorf("error saving json commit file: %s", err.Error())
 	}
 	return store.Put(file, pin)
@@ -27,6 +28,7 @@ func LoadCommit(store cafs.Filestore, path datastore.Key) (st *dataset.Commit, e
 func loadCommit(store cafs.Filestore, path datastore.Key) (st *dataset.Commit, err error) {
 	data, err := fileBytes(store.Get(path))
 	if err != nil {
+		log.Debug(err.Error())
 		return nil, fmt.Errorf("error loading commit file: %s", err.Error())
 	}
 	return dataset.UnmarshalCommit(data)

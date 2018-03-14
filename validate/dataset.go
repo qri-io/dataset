@@ -21,12 +21,18 @@ func Dataset(ds *dataset.Dataset) error {
 	// }
 
 	if ds.Commit == nil {
-		return fmt.Errorf("commit is required")
+		err := fmt.Errorf("commit is required")
+		log.Debug(err.Error())
+		return err
 	} else if err := Commit(ds.Commit); err != nil {
-		return fmt.Errorf("commit: %s", err.Error())
+		err := fmt.Errorf("commit: %s", err.Error())
+		log.Debug(err.Error())
+		return err
 	}
 	if ds.Structure == nil {
-		return fmt.Errorf("structure is required")
+		err := fmt.Errorf("structure is required")
+		log.Debug(err.Error())
+		return err
 	} else if err := Structure(ds.Structure); err != nil {
 		return fmt.Errorf("structure: %s", err.Error())
 	}

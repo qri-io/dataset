@@ -165,12 +165,14 @@ func (s *Structure) UnmarshalJSON(data []byte) (err error) {
 
 	_s := &_structure{}
 	if err := json.Unmarshal(data, _s); err != nil {
+		log.Debug(err.Error())
 		return fmt.Errorf("error unmarshaling dataset structure from json: %s", err.Error())
 	}
 
 	if _s.FormatConfig != nil {
 		fmtCfg, err = ParseFormatConfigMap(_s.Format, _s.FormatConfig)
 		if err != nil {
+			log.Debug(err.Error())
 			return fmt.Errorf("error parsing structure formatConfig: %s", err.Error())
 		}
 
@@ -276,7 +278,9 @@ func UnmarshalStructure(v interface{}) (*Structure, error) {
 		err := json.Unmarshal(r, structure)
 		return structure, err
 	default:
-		return nil, fmt.Errorf("couldn't parse structure, value is invalid type")
+		err := fmt.Errorf("couldn't parse structure, value is invalid type")
+		log.Debug(err.Error())
+		return nil, err
 	}
 }
 

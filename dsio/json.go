@@ -23,7 +23,9 @@ type JSONReader struct {
 // NewJSONReader creates a reader from a structure and read source
 func NewJSONReader(st *dataset.Structure, r io.Reader) (*JSONReader, error) {
 	if st.Schema == nil {
-		return nil, fmt.Errorf("schema required for JSON reader")
+		err := fmt.Errorf("schema required for JSON reader")
+		log.Debug(err.Error())
+		return nil, err
 	}
 
 	sc := bufio.NewScanner(r)
@@ -57,10 +59,12 @@ func (r *JSONReader) ReadEntry() (Entry, error) {
 	r.rowsRead++
 
 	if r.sc.Err() != nil {
+		log.Debug(r.sc.Err())
 		return ent, r.sc.Err()
 	}
 
 	if err := json.Unmarshal(r.sc.Bytes(), &ent.Value); err != nil {
+		log.Debug(err.Error())
 		return ent, err
 	}
 
@@ -196,7 +200,9 @@ func strTokScanner(tok string) func([]byte, bool) (int, []byte, error) {
 	return func(data []byte, atEOF bool) (advance int, token []byte, err error) {
 		start := bytes.Index(data, []byte(tok))
 		if start == -1 {
-			return 0, nil, fmt.Errorf("unexpected error scanning %s value", tok)
+			err := fmt.Errorf("unexpected error scanning %s value", tok)
+			log.Debug(err.Error())
+			return 0, nil, err
 		}
 		stop := start + len(tok)
 
@@ -374,7 +380,9 @@ type JSONWriter struct {
 // NewJSONWriter creates a Writer from a structure and write destination
 func NewJSONWriter(st *dataset.Structure, w io.Writer) (*JSONWriter, error) {
 	if st.Schema == nil {
-		return nil, fmt.Errorf("schema required for JSON writer")
+		err := fmt.Errorf("schema required for JSON writer")
+		log.Debug(err.Error())
+		return nil, err
 	}
 
 	jw := &JSONWriter{
@@ -415,12 +423,14 @@ func (w *JSONWriter) WriteEntry(ent Entry) error {
 			open = []byte{'{'}
 		}
 		if _, err := w.wr.Write(open); err != nil {
+			log.Debug(err.Error())
 			return fmt.Errorf("error writing initial `%s`: %s", string(open), err.Error())
 		}
 	}
 
 	data, err := w.valBytes(ent)
 	if err != nil {
+		log.Debug(err.Error())
 		return err
 	}
 
@@ -440,19 +450,23 @@ func (w *JSONWriter) valBytes(ent Entry) ([]byte, error) {
 	}
 
 	if ent.Key == "" {
+		log.Debug("write empty key")
 		return nil, fmt.Errorf("entry key cannot be empty")
 	} else if w.keysWritten[ent.Key] == true {
-		return nil, fmt.Errorf("key already written: \"%s\"", ent.Key)
+		log.Debugf(`key already written: "%s"`, ent.Key)
+		return nil, fmt.Errorf(`key already written: "%s"`, ent.Key)
 	}
 	w.keysWritten[ent.Key] = true
 
 	data, err := json.Marshal(ent.Key)
 	if err != nil {
+		log.Debug(err.Error())
 		return data, err
 	}
 	data = append(data, ':')
 	val, err := json.Marshal(ent.Value)
 	if err != nil {
+		log.Debug(err.Error())
 		return data, err
 	}
 	data = append(data, val...)
@@ -470,6 +484,7 @@ func (w *JSONWriter) Close() error {
 		}
 
 		if _, err := w.wr.Write(data); err != nil {
+			log.Debug(err.Error())
 			return fmt.Errorf("error writing empty closure '%s': %s", string(data), err.Error())
 		}
 		return nil
@@ -481,6 +496,7 @@ func (w *JSONWriter) Close() error {
 	}
 	_, err := w.wr.Write(cloze)
 	if err != nil {
+		log.Debug(err.Error())
 		return fmt.Errorf("error closing writer: %s", err.Error())
 	}
 	return nil

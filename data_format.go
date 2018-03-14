@@ -100,11 +100,13 @@ func (f DataFormat) MarshalJSON() ([]byte, error) {
 func (f *DataFormat) UnmarshalJSON(data []byte) error {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
+		log.Debug(err.Error())
 		return fmt.Errorf("Data Format type should be a string, got %s", data)
 	}
 
 	df, err := ParseDataFormatString(s)
 	if err != nil {
+		log.Debug(err.Error())
 		return err
 	}
 

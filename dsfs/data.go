@@ -20,21 +20,25 @@ func LoadRows(store cafs.Filestore, ds *dataset.Dataset, limit, offset int) ([]b
 
 	datafile, err := LoadData(store, ds)
 	if err != nil {
+		log.Debug(err.Error())
 		return nil, fmt.Errorf("error loading dataset data: %s", err.Error())
 	}
 
 	added := 0
 	buf, err := dsio.NewEntryBuffer(ds.Structure)
 	if err != nil {
+		log.Debug(err.Error())
 		return nil, fmt.Errorf("error loading dataset data: %s", err.Error())
 	}
 
 	rr, err := dsio.NewEntryReader(ds.Structure, datafile)
 	if err != nil {
+		log.Debug(err.Error())
 		return nil, fmt.Errorf("error loading dataset data: %s", err.Error())
 	}
 	err = dsio.EachEntry(rr, func(i int, ent dsio.Entry, err error) error {
 		if err != nil {
+			log.Debugf("error reading entry: %s", err.Error())
 			return err
 		}
 

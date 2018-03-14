@@ -5,7 +5,10 @@ import (
 	"fmt"
 
 	"github.com/ipfs/go-datastore"
+	logger "github.com/ipfs/go-log"
 )
+
+var log = logger.Logger("dataset")
 
 // Dataset is a description of a single structured data resource. with the following properties:
 // * A Dataset must resolve to one and only one entity, specified by a `data` property.
@@ -182,6 +185,7 @@ func (ds *Dataset) UnmarshalJSON(data []byte) error {
 	// TODO - I'm guessing what follows could be better
 	d := _dataset{}
 	if err := json.Unmarshal(data, &d); err != nil {
+		log.Debug(err.Error())
 		return fmt.Errorf("error unmarshaling dataset: %s", err.Error())
 	}
 	*ds = Dataset(d)
@@ -201,6 +205,8 @@ func UnmarshalDataset(v interface{}) (*Dataset, error) {
 		err := json.Unmarshal(r, dataset)
 		return dataset, err
 	default:
-		return nil, fmt.Errorf("couldn't parse dataset, value is invalid type")
+		err := fmt.Errorf("couldn't parse dataset, value is invalid type")
+		log.Debug(err.Error())
+		return nil, err
 	}
 }

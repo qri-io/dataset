@@ -45,6 +45,7 @@ func (r *CSVReader) ReadEntry() (Entry, error) {
 				if err.Error() == "EOF" {
 					return Entry{}, nil
 				}
+				log.Debug(err.Error())
 				return Entry{}, err
 			}
 		}
@@ -53,11 +54,13 @@ func (r *CSVReader) ReadEntry() (Entry, error) {
 
 	data, err := r.r.Read()
 	if err != nil {
+		log.Debug(err.Error())
 		return Entry{}, err
 	}
 
 	value, err := r.decode(data)
 	if err != nil {
+		log.Debug(err.Error())
 		return Entry{}, err
 	}
 
@@ -160,6 +163,7 @@ func terribleHackToGetHeaderRowAndTypes(st *dataset.Structure) ([]string, []stri
 	}
 	sch := map[string]interface{}{}
 	if err := json.Unmarshal(data, &sch); err != nil {
+		log.Debug(err.Error())
 		return nil, nil, err
 	}
 	if itemObj, ok := sch["items"].(map[string]interface{}); ok {
@@ -188,6 +192,7 @@ func terribleHackToGetHeaderRowAndTypes(st *dataset.Structure) ([]string, []stri
 			return titles, types, nil
 		}
 	}
+	log.Debug("that terrible hack to detect header row & types just failed")
 	return nil, nil, fmt.Errorf("nope")
 }
 
@@ -201,6 +206,7 @@ func (w *CSVWriter) WriteEntry(ent Entry) error {
 	if arr, ok := ent.Value.([]interface{}); ok {
 		strs, err := encode(arr)
 		if err != nil {
+			log.Debug(err.Error())
 			return fmt.Errorf("error encoding entry: %s", err.Error())
 		}
 		return w.w.Write(strs)
@@ -282,6 +288,7 @@ func (c crlfReplaceReader) Read(p []byte) (n int, err error) {
 
 		p[n], err = c.rdr.ReadByte()
 		if err != nil {
+			log.Debug(err.Error())
 			return
 		}
 

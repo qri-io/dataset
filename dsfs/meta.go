@@ -12,6 +12,7 @@ import (
 func SaveMeta(store cafs.Filestore, s *dataset.Meta, pin bool) (path datastore.Key, err error) {
 	file, err := JSONFile(PackageFileMeta.String(), s)
 	if err != nil {
+		log.Debug(err.Error())
 		return datastore.NewKey(""), fmt.Errorf("error saving json metadata file: %s", err.Error())
 	}
 	return store.Put(file, pin)
@@ -27,6 +28,7 @@ func LoadMeta(store cafs.Filestore, path datastore.Key) (md *dataset.Meta, err e
 func loadMeta(store cafs.Filestore, path datastore.Key) (md *dataset.Meta, err error) {
 	data, err := fileBytes(store.Get(path))
 	if err != nil {
+		log.Debug(err.Error())
 		return nil, fmt.Errorf("error loading metadata file: %s", err.Error())
 	}
 	return dataset.UnmarshalMeta(data)

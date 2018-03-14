@@ -12,6 +12,7 @@ import (
 func SaveVisConfig(store cafs.Filestore, v *dataset.VisConfig, pin bool) (path datastore.Key, err error) {
 	file, err := JSONFile(PackageFileVisConfig.String(), v)
 	if err != nil {
+		log.Debug(err.Error())
 		return datastore.NewKey(""), fmt.Errorf("error saving json visconfig file: %s", err.Error())
 	}
 	return store.Put(file, pin)
@@ -27,6 +28,7 @@ func LoadVisConfig(store cafs.Filestore, path datastore.Key) (st *dataset.VisCon
 func loadVisConfig(store cafs.Filestore, path datastore.Key) (st *dataset.VisConfig, err error) {
 	data, err := fileBytes(store.Get(path))
 	if err != nil {
+		log.Debug(err.Error())
 		return nil, fmt.Errorf("error loading visconfig file: %s", err.Error())
 	}
 	return dataset.UnmarshalVisConfig(data)

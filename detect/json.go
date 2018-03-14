@@ -15,6 +15,7 @@ func JSONSchema(resource *dataset.Structure, data io.Reader) (schema *jsonschema
 	rd := bufio.NewReader(data)
 	lin, err := rd.ReadSlice('{')
 	if err != nil && err != io.EOF {
+		log.Debugf(err.Error())
 		return nil, fmt.Errorf("error reading data: %s", err.Error())
 	}
 

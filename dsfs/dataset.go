@@ -24,9 +24,11 @@ func LoadDataset(store cafs.Filestore, path datastore.Key) (*dataset.Dataset, er
 	path = PackageKeypath(store, path, PackageFileDataset)
 	ds, err := LoadDatasetRefs(store, path)
 	if err != nil {
+		log.Debug(err.Error())
 		return nil, fmt.Errorf("error loading dataset: %s", err.Error())
 	}
 	if err := DerefDataset(store, ds); err != nil {
+		log.Debug(err.Error())
 		return nil, err
 	}
 
@@ -49,12 +51,14 @@ func LoadDatasetRefs(store cafs.Filestore, path datastore.Key) (*dataset.Dataset
 	if err != nil || len(data) == 0 {
 		data, err = fileBytes(store.Get(path))
 		if err != nil {
+			log.Debug(err.Error())
 			return nil, fmt.Errorf("error getting file bytes: %s", err.Error())
 		}
 	}
 
 	ds, err = dataset.UnmarshalDataset(data)
 	if err != nil {
+		log.Debug(err.Error())
 		return nil, fmt.Errorf("error unmarshaling %s file: %s", PackageFileDataset.String(), err.Error())
 	}
 
@@ -88,6 +92,7 @@ func DerefDatasetStructure(store cafs.Filestore, ds *dataset.Dataset) error {
 	if ds.Structure != nil && ds.Structure.IsEmpty() && ds.Structure.Path().String() != "" {
 		st, err := loadStructure(store, ds.Structure.Path())
 		if err != nil {
+			log.Debug(err.Error())
 			return fmt.Errorf("error loading dataset structure: %s", err.Error())
 		}
 		// assign path to retain internal reference to path
@@ -103,6 +108,7 @@ func DerefDatasetVisConfig(store cafs.Filestore, ds *dataset.Dataset) error {
 	if ds.VisConfig != nil && ds.VisConfig.IsEmpty() && ds.VisConfig.Path().String() != "" {
 		st, err := loadVisConfig(store, ds.VisConfig.Path())
 		if err != nil {
+			log.Debug(err.Error())
 			return fmt.Errorf("error loading dataset visconfig: %s", err.Error())
 		}
 		// assign path to retain internal reference to path
@@ -118,6 +124,7 @@ func DerefDatasetTransform(store cafs.Filestore, ds *dataset.Dataset) error {
 	if ds.Transform != nil && ds.Transform.IsEmpty() && ds.Transform.Path().String() != "" {
 		t, err := loadTransform(store, ds.Transform.Path())
 		if err != nil {
+			log.Debug(err.Error())
 			return fmt.Errorf("error loading dataset transform: %s", err.Error())
 		}
 		// assign path to retain internal reference to path
@@ -133,6 +140,7 @@ func DerefDatasetMeta(store cafs.Filestore, ds *dataset.Dataset) error {
 	if ds.Meta != nil && ds.Meta.IsEmpty() && ds.Meta.Path().String() != "" {
 		md, err := loadMeta(store, ds.Meta.Path())
 		if err != nil {
+			log.Debug(err.Error())
 			return fmt.Errorf("error loading dataset metadata: %s", err.Error())
 		}
 		// assign path to retain internal reference to path
@@ -148,6 +156,7 @@ func DerefDatasetCommit(store cafs.Filestore, ds *dataset.Dataset) error {
 	if ds.Commit != nil && ds.Commit.IsEmpty() && ds.Commit.Path().String() != "" {
 		cm, err := loadCommit(store, ds.Commit.Path())
 		if err != nil {
+			log.Debug(err.Error())
 			return fmt.Errorf("error loading dataset commit: %s", err.Error())
 		}
 		// assign path to retain internal reference to path
@@ -163,32 +172,41 @@ func DerefDatasetCommit(store cafs.Filestore, ds *dataset.Dataset) error {
 // Pin the dataset if the underlying store supports the pinning interface
 func CreateDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pk crypto.PrivKey, pin bool) (path datastore.Key, err error) {
 	// var diffDescription string
+	log.Info("word")
 
 	if pk == nil {
 		err = fmt.Errorf("private key is required to create a dataset")
 		return
 	}
 	if err = DerefDataset(store, ds); err != nil {
+		log.Debug(err.Error())
 		return
 	}
 	if err = validate.Dataset(ds); err != nil {
+		log.Debug(err.Error())
 		return
 	}
 	df, _, err = prepareDataset(store, ds, df, pk)
 	if err != nil {
+		log.Debug(err.Error())
 		return
 	}
+
+	// TODO - figure out where we stand on this
 	// if diffDescription == "" {
 	// 	err = fmt.Errorf("cannot record changes if no changes occured")
 	// 	return
 	// }
 
+	// TODO - figure out where we stand on this
 	// if err = confirmChangesOccurred(store, ds, df); err != nil {
 	//   err = fmt.Errorf("cannot record changes if no changes occured")
 	// 	 return
 	// }
+
 	path, err = WriteDataset(store, ds, df, pin)
 	if err != nil {
+		log.Debug(err.Error())
 		err = fmt.Errorf("error writing dataset: %s", err.Error())
 	}
 	return
@@ -278,18 +296,23 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 	if df == nil && ds.PreviousPath == "" {
 		return nil, "", fmt.Errorf("datafile or dataset PreviousPath needed")
 	}
+
 	if df == nil && ds.PreviousPath != "" {
 		prev, err := LoadDataset(store, datastore.NewKey(ds.PreviousPath))
 		if err != nil {
+			log.Debug(err.Error())
 			return nil, "", fmt.Errorf("error loading previous dataset: %s", err)
 		}
 		df, err = LoadData(store, prev)
 		if err != nil {
+			log.Debug(err.Error())
 			return nil, "", fmt.Errorf("error loading previous dataset data: %s", err)
 		}
 	}
+
 	data, err := ioutil.ReadAll(df)
 	if err != nil {
+		log.Debug(err.Error())
 		return nil, "", fmt.Errorf("error reading file: %s", err.Error())
 	}
 	ds.Structure.Length = len(data)
@@ -298,11 +321,13 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 
 	er, err := dsio.NewEntryReader(ds.Structure, cafs.NewMemfileBytes("data", data))
 	if err != nil {
+		log.Debug(err.Error())
 		return nil, "", fmt.Errorf("error reading data values: %s", err.Error())
 	}
 
 	validationErrors, err := validate.EntryReader(er)
 	if err != nil {
+		log.Debug(err.Error())
 		return nil, "", fmt.Errorf("error validating data: %s", err.Error())
 	}
 	ds.Structure.ErrCount = len(validationErrors)
@@ -310,12 +335,14 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 	// TODO - add a dsio.RowCount function that avoids actually arranging data into rows
 	er, err = dsio.NewEntryReader(ds.Structure, cafs.NewMemfileBytes("data", data))
 	if err != nil {
+		log.Debug(err.Error())
 		return nil, "", fmt.Errorf("error reading data values: %s", err.Error())
 	}
 
 	entries := 0
 	for {
 		if _, err = er.ReadEntry(); err != nil {
+			log.Debug(err.Error())
 			break
 		}
 		entries++
@@ -329,6 +356,7 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 	// TODO - set hash
 	shasum, err := multihash.Sum(data, multihash.SHA2_256, -1)
 	if err != nil {
+		log.Debug(err.Error())
 		return nil, "", fmt.Errorf("error calculating hash: %s", err.Error())
 	}
 	ds.Structure.Checksum = shasum.B58String()
@@ -339,6 +367,7 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 	//get auto commit message if necessary
 	diffDescription, err := generateCommitMsg(store, ds)
 	if err != nil {
+		log.Debug(err.Error())
 		return nil, "", fmt.Errorf("%s", err.Error())
 	}
 	if diffDescription == "" {
@@ -358,6 +387,7 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 	ds.Commit.Timestamp = Timestamp()
 	signedBytes, err := privKey.Sign(ds.Commit.SignableBytes())
 	if err != nil {
+		log.Debug(err.Error())
 		return nil, "", fmt.Errorf("error signing commit title: %s", err.Error())
 	}
 	ds.Commit.Signature = base58.Encode(signedBytes)

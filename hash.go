@@ -30,11 +30,13 @@ func HashBytes(data []byte) (hash string, err error) {
 	h := sha256.New()
 
 	if _, err = h.Write(data); err != nil {
+		log.Debug(err.Error())
 		return
 	}
 
 	mhBuf, err := multihash.Encode(h.Sum(nil), multihash.SHA2_256)
 	if err != nil {
+		log.Debug(err.Error())
 		err = fmt.Errorf("error allocating multihash buffer: %s", err.Error())
 		return
 	}

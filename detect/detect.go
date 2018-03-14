@@ -8,12 +8,14 @@ import (
 	"path/filepath"
 	"regexp"
 
+	logger "github.com/ipfs/go-log"
 	"github.com/qri-io/dataset"
 )
 
 var (
 	spaces   = regexp.MustCompile(`[\s-]+`)
 	nonAlpha = regexp.MustCompile(`[^a-zA-z0-9_]`)
+	log      = logger.Logger("detect")
 )
 
 // FromFile takes a filepath & tries to work out the corresponding dataset

@@ -19,6 +19,7 @@ func LoadTransform(store cafs.Filestore, path datastore.Key) (q *dataset.Transfo
 func loadTransform(store cafs.Filestore, path datastore.Key) (q *dataset.Transform, err error) {
 	data, err := fileBytes(store.Get(path))
 	if err != nil {
+		log.Debug(err.Error())
 		return nil, fmt.Errorf("error loading transform raw data: %s", err.Error())
 	}
 
@@ -35,6 +36,7 @@ func SaveTransform(store cafs.Filestore, q *dataset.Transform, pin bool) (path d
 	if q.Structure != nil && !q.Structure.IsEmpty() {
 		path, err := SaveStructure(store, q.Structure, pin)
 		if err != nil {
+			log.Debug(err.Error())
 			return datastore.NewKey(""), err
 		}
 		save.Structure = dataset.NewStructureRef(path)
@@ -51,6 +53,7 @@ func SaveTransform(store cafs.Filestore, q *dataset.Transform, pin bool) (path d
 
 	tf, err := JSONFile(PackageFileTransform.String(), save)
 	if err != nil {
+		log.Debug(err.Error())
 		return datastore.NewKey(""), fmt.Errorf("error marshaling transform data to json: %s", err.Error())
 	}
 
@@ -71,6 +74,7 @@ func SaveAbstractTransform(store cafs.Filestore, t *dataset.Transform, pin bool)
 	save.Structure = save.Structure.Abstract()
 	stpath, err := SaveStructure(store, save.Structure, pin)
 	if err != nil {
+		log.Debug(err.Error())
 		return datastore.NewKey(""), err
 	}
 	save.Structure = dataset.NewStructureRef(stpath)
@@ -79,11 +83,13 @@ func SaveAbstractTransform(store cafs.Filestore, t *dataset.Transform, pin bool)
 	for key, r := range save.Resources {
 		absdata, err := json.Marshal(dataset.Abstract(r))
 		if err != nil {
+			log.Debug(err.Error())
 			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset abstract to json: %s", err.Error())
 		}
 
 		path, err := store.Put(cafs.NewMemfileBytes(fmt.Sprintf("%s_abst.json", key), absdata), pin)
 		if err != nil {
+			log.Debug(err.Error())
 			return datastore.NewKey(""), fmt.Errorf("error placing abstract dataset '%s' in store: %s", key, err.Error())
 		}
 
@@ -92,6 +98,7 @@ func SaveAbstractTransform(store cafs.Filestore, t *dataset.Transform, pin bool)
 
 	data, err := json.Marshal(save)
 	if err != nil {
+		log.Debug(err.Error())
 		return datastore.NewKey(""), fmt.Errorf("error marshaling dataset abstract transform to json: %s", err.Error())
 	}
 

@@ -26,10 +26,12 @@ func NewEntryBuffer(st *dataset.Structure) (*EntryBuffer, error) {
 	buf := &bytes.Buffer{}
 	r, err := NewEntryReader(st, buf)
 	if err != nil {
+		log.Debug(err.Error())
 		return nil, err
 	}
 	w, err := NewEntryWriter(st, buf)
 	if err != nil {
+		log.Debug(err.Error())
 		return nil, err
 	}
 

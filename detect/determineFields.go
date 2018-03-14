@@ -3,7 +3,6 @@ package detect
 import (
 	"encoding/csv"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"regexp"
@@ -23,7 +22,9 @@ var (
 // Schema determines the schema of a given reader for a given structure
 func Schema(r *dataset.Structure, data io.Reader) (schema *jsonschema.RootSchema, err error) {
 	if r.Format == dataset.UnknownDataFormat {
-		return nil, errors.New("dataset format must be specified to determine schema")
+		err = fmt.Errorf("dataset format must be specified to determine schema")
+		log.Infof(err.Error())
+		return
 	}
 
 	switch r.Format {

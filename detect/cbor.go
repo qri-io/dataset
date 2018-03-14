@@ -22,6 +22,7 @@ func CBORSchema(resource *dataset.Structure, data io.Reader) (schema *jsonschema
 	rd := bufio.NewReader(data)
 	bd, err := rd.ReadByte()
 	if err != nil && err != io.EOF {
+		log.Debugf(err.Error())
 		return nil, fmt.Errorf("error reading data: %s", err.Error())
 	}
 
@@ -31,6 +32,8 @@ func CBORSchema(resource *dataset.Structure, data io.Reader) (schema *jsonschema
 	case bd >= cborBaseMap && bd < cborBaseTag, bd == cborBdIndefiniteMap:
 		return dataset.BaseSchemaObject, nil
 	default:
-		return nil, fmt.Errorf("invalid top-level type for CBOR data. cbor datasets must begin with either an array or map")
+		err = fmt.Errorf("invalid top-level type for CBOR data. cbor datasets must begin with either an array or map")
+		log.Debugf(err.Error())
+		return
 	}
 }
