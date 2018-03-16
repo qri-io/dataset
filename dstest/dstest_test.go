@@ -6,8 +6,22 @@ import (
 	"testing"
 )
 
+func TestLoadTestCases(t *testing.T) {
+	tcs, err := LoadTestCases("testdata")
+	if err != nil {
+		t.Error(err)
+	}
+	t.Logf("%d cases", len(tcs))
+}
+
 func TestNewTestCaseFromDir(t *testing.T) {
-	tc, err := NewTestCaseFromDir("testdata/complete", t)
+
+	if _, err := NewTestCaseFromDir("testdata"); err == nil {
+		t.Errorf("expected error")
+		return
+	}
+
+	tc, err := NewTestCaseFromDir("testdata/complete")
 	if err != nil {
 		t.Errorf("error reading test dir: %s", err.Error())
 		return

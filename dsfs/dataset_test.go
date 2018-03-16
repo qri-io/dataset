@@ -156,7 +156,7 @@ func TestCreateDataset(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		tc, err := dstest.NewTestCaseFromDir("testdata/"+c.casePath, t)
+		tc, err := dstest.NewTestCaseFromDir("testdata/" + c.casePath)
 		if err != nil {
 			t.Errorf("%s: error creating test case: %s", c.casePath, err)
 			continue

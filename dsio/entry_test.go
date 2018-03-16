@@ -7,7 +7,7 @@ import (
 )
 
 func TestEachEntry(t *testing.T) {
-	tc, err := dstest.NewTestCaseFromDir("testdata/json/city", t)
+	tc, err := dstest.NewTestCaseFromDir("testdata/json/city")
 	if err != nil {
 		t.Errorf("error reading test case: %s", err.Error())
 		return

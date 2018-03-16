@@ -55,7 +55,7 @@ func TestJSONReader(t *testing.T) {
 	}
 
 	for i, c := range cases {
-		tc, err := dstest.NewTestCaseFromDir(fmt.Sprintf("testdata/json/%s", c.name), t)
+		tc, err := dstest.NewTestCaseFromDir(fmt.Sprintf("testdata/json/%s", c.name))
 		if err != nil {
 			t.Errorf("case %d:%s error reading test case: %s", i, c.name, err.Error())
 			continue
