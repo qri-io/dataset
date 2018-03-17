@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"testing"
 
 	logger "github.com/ipfs/go-log"
 	"github.com/qri-io/cafs"
@@ -47,33 +46,48 @@ func (t TestCase) DataFile() cafs.File {
 	return cafs.NewMemfileBytes(t.DataFilename, t.Data)
 }
 
+// LoadTestCases loads a directory of case directories
+func LoadTestCases(dir string) (tcs map[string]TestCase, err error) {
+	tcs = map[string]TestCase{}
+	fis, err := ioutil.ReadDir(dir)
+	if err != nil {
+		return
+	}
+	for _, fi := range fis {
+		if fi.IsDir() {
+			if tc, err := NewTestCaseFromDir(filepath.Join(dir, fi.Name())); err == nil {
+				tcs[fi.Name()] = tc
+			}
+		}
+	}
+	return
+}
+
 // NewTestCaseFromDir creates a test case from a directory of static test files
 // dir should be the path to the directory to check, and any parsing errors will
 // be logged using t.Log methods
-func NewTestCaseFromDir(dir string, t *testing.T) (tc TestCase, err error) {
+func NewTestCaseFromDir(dir string) (tc TestCase, err error) {
 	tc = TestCase{
 		Name: filepath.Base(dir),
 	}
 	tc.Data, tc.DataFilename, err = ReadInputData(dir)
 	if err != nil {
 		err = fmt.Errorf("error reading test case data for directory %s: %s", dir, err.Error())
-		log.Debug(err.Error())
+		log.Info(err.Error())
 		return
 	}
 
 	tc.Input, err = ReadDataset(dir, InputDatasetFilename)
-	if err != nil && !os.IsNotExist(err) && t != nil {
+	if err != nil && !os.IsNotExist(err) {
 		msg := fmt.Sprintf("%s: error loading input dataset: %s", tc.Name, err)
-		log.Debugf(msg)
-		t.Logf(msg)
+		log.Infof(msg)
 	}
 	err = nil
 
 	tc.Expect, err = ReadDataset(dir, ExpectDatasetFilename)
-	if err != nil && !os.IsNotExist(err) && t != nil {
+	if err != nil && !os.IsNotExist(err) {
 		msg := fmt.Sprintf("%s: error loading expect dataset: %s", tc.Name, err)
-		t.Logf(msg)
-		log.Debug(msg)
+		log.Info(msg)
 	}
 	err = nil
 
@@ -84,7 +98,7 @@ func NewTestCaseFromDir(dir string, t *testing.T) (tc TestCase, err error) {
 func ReadDataset(dir, filename string) (*dataset.Dataset, error) {
 	data, err := ioutil.ReadFile(filepath.Join(dir, filename))
 	if err != nil {
-		log.Debug(err.Error())
+		log.Info(err.Error())
 		return nil, err
 	}
 

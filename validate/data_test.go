@@ -22,7 +22,7 @@ func TestEntryReader(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		tc, err := dstest.NewTestCaseFromDir(fmt.Sprintf("testdata/%s", c.name), t)
+		tc, err := dstest.NewTestCaseFromDir(fmt.Sprintf("testdata/%s", c.name))
 		if err != nil {
 			t.Errorf("%s: error loading %s", c.name, err.Error())
 			continue

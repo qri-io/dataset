@@ -9,7 +9,7 @@ import (
 )
 
 func TestEntryBuffer(t *testing.T) {
-	tc, err := dstest.NewTestCaseFromDir("testdata/csv/movies", t)
+	tc, err := dstest.NewTestCaseFromDir("testdata/csv/movies")
 	if err != nil {
 		t.Errorf("error loading test case: %s", err.Error())
 		return
