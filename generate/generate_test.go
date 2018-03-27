@@ -2,6 +2,7 @@ package generate
 
 import (
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/dataset/dsio"
 	"math/rand"
 	"testing"
 )

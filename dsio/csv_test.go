@@ -125,3 +125,33 @@ func TestReplaceSoloCarriageReturns(t *testing.T) {
 		t.Errorf("byte mismatch. expected:\n%v\ngot:\n%v", expect, got)
 	}
 }
+
+func BenchmarkCSVWriterArrays(b *testing.B) {
+	const NumWrites = 1000
+	st := &dataset.Structure{Format: dataset.CSVDataFormat, Schema: dataset.BaseSchemaObject}
+
+	for n := 0; n < b.N; n++ {
+		buf := &bytes.Buffer{}
+		w := NewCSVWriter(st, buf)
+		for i := 0; i < NumWrites; i++ {
+			// Write an array entry.
+			arrayEntry := Entry{Index: i, Value: "test"}
+			w.WriteEntry(arrayEntry)
+		}
+	}
+}
+
+func BenchmarkCSVWriterObjects(b *testing.B) {
+	const NumWrites = 1000
+	st := &dataset.Structure{Format: dataset.CSVDataFormat, Schema: dataset.BaseSchemaObject}
+
+	for n := 0; n < b.N; n++ {
+		buf := &bytes.Buffer{}
+		w := NewCSVWriter(st, buf)
+		for i := 0; i < NumWrites; i++ {
+			// Write an object entry.
+			objectEntry := Entry{Key: "key", Value: "test"}
+			w.WriteEntry(objectEntry)
+		}
+	}
+}
