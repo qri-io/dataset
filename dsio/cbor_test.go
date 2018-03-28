@@ -385,3 +385,43 @@ func TestCBORWriterCanonical(t *testing.T) {
 		buf.Reset()
 	}
 }
+
+func BenchmarkCBORWriterArrays(b *testing.B) {
+	const NumWrites = 1000
+	st := &dataset.Structure{Format: dataset.CBORDataFormat, Schema: dataset.BaseSchemaObject}
+
+	for n := 0; n < b.N; n++ {
+		buf := &bytes.Buffer{}
+		w, err := NewCBORWriter(st, buf)
+		if err != nil {
+			b.Errorf("unexpected error creating writer: %s", err.Error())
+			return
+		}
+
+		for i := 0; i < NumWrites; i++ {
+			// Write an array entry.
+			arrayEntry := Entry{Index: i, Value: "test"}
+			w.WriteEntry(arrayEntry)
+		}
+	}
+}
+
+func BenchmarkCBORWriterObjects(b *testing.B) {
+	const NumWrites = 1000
+	st := &dataset.Structure{Format: dataset.CBORDataFormat, Schema: dataset.BaseSchemaObject}
+
+	for n := 0; n < b.N; n++ {
+		buf := &bytes.Buffer{}
+		w, err := NewCBORWriter(st, buf)
+		if err != nil {
+			b.Errorf("unexpected error creating writer: %s", err.Error())
+			return
+		}
+
+		for i := 0; i < NumWrites; i++ {
+			// Write an object entry.
+			objectEntry := Entry{Key: "key", Value: "test"}
+			w.WriteEntry(objectEntry)
+		}
+	}
+}
