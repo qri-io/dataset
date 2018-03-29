@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/qri-io/dataset"
@@ -261,6 +262,27 @@ func BenchmarkJSONWriterObjects(b *testing.B) {
 			// Write an object entry.
 			objectEntry := Entry{Key: "key", Value: "test"}
 			w.WriteEntry(objectEntry)
+		}
+	}
+}
+
+func BenchmarkJSONReader(b *testing.B) {
+	st := &dataset.Structure{Format: dataset.JSONDataFormat, Schema: dataset.BaseSchemaArray}
+
+	for n := 0; n < b.N; n++ {
+		file, err := os.Open("testdata/movies/data.json")
+		if err != nil {
+			b.Errorf("unexpected error: %s", err.Error())
+		}
+		r, err := NewJSONReader(st, file)
+		if err != nil {
+			b.Errorf("unexpected error: %s", err.Error())
+		}
+		for {
+			_, err = r.ReadEntry()
+			if err != nil {
+				break
+			}
 		}
 	}
 }
