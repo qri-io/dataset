@@ -2,6 +2,7 @@ package dsio
 
 import (
 	"bytes"
+	"os"
 	"testing"
 
 	"github.com/qri-io/dataset"
@@ -152,6 +153,24 @@ func BenchmarkCSVWriterObjects(b *testing.B) {
 			// Write an object entry.
 			objectEntry := Entry{Key: "key", Value: "test"}
 			w.WriteEntry(objectEntry)
+		}
+	}
+}
+
+func BenchmarkCSVReader(b *testing.B) {
+	st := &dataset.Structure{Format: dataset.CSVDataFormat, Schema: dataset.BaseSchemaArray}
+
+	for n := 0; n < b.N; n++ {
+		file, err := os.Open("testdata/movies/data.csv")
+		if err != nil {
+			b.Errorf("unexpected error: %s", err.Error())
+		}
+		r := NewCSVReader(st, file)
+		for {
+			_, err = r.ReadEntry()
+			if err != nil {
+				break
+			}
 		}
 	}
 }
