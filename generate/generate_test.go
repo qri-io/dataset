@@ -3,20 +3,11 @@ package generate
 import (
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsio"
-	"math/rand"
 	"testing"
 )
 
 // Compile time check that Generator satisfies the EntryReader interace.
 var _ dsio.EntryReader = (*Generator)(nil)
-
-func AssignSeed(cfg *Config) {
-	cfg.random = rand.New(rand.NewSource(4))
-}
-
-func AssignMaxLen(cfg *Config) {
-	cfg.maxLen = 8
-}
 
 func TestGeneratorForBaseSchemaArray(t *testing.T) {
 	sta := dataset.Structure{Format: dataset.JSONDataFormat, Schema: dataset.BaseSchemaArray}
@@ -26,9 +17,9 @@ func TestGeneratorForBaseSchemaArray(t *testing.T) {
 		key   string
 		value string
 	}{
-		{0, "", "p"},
-		{1, "", "nfgDsc2"},
-		{2, "", "D8F2qN"},
+		{0, "", "gltBH"},
+		{1, "", "VJQV"},
+		{2, "", "dv8A"},
 	}
 
 	for i, c := range cases {
@@ -53,9 +44,9 @@ func TestGeneratorForBaseSchemaObject(t *testing.T) {
 		key   string
 		value string
 	}{
-		{0, "HK5a8", "jj"},
-		{0, "kwzDkh9", "2fhfU"},
-		{0, "uS9jZ", "uVbhV3"},
+		{0, "VJQV", "gltBH"},
+		{0, "0", "dv8A"},
+		{0, "", ""},
 	}
 
 	for i, c := range cases {

@@ -22,17 +22,39 @@ type Generator struct {
 	count int
 	// only two possible structures for now are "array" or "object"
 	schemaIsArray bool
+	// whether to produce random types of values, or always use strings
+	useRandomType bool
 }
 
 // ReadEntry implements the dsio.EntryReader interface
 func (g *Generator) ReadEntry() (dsio.Entry, error) {
+	var value interface{}
+	if g.useRandomType {
+		// Produce different types of values, using completely arbitrary odds.
+		typeChoice := g.random.Intn(64)
+		if typeChoice == 0 {
+			value = nil
+		} else if typeChoice == 1 {
+			value = false
+		} else if typeChoice == 2 {
+			value = true
+		} else if typeChoice < 24 {
+			value = g.randString()
+		} else if typeChoice < 44 {
+			value = g.random.Float64()
+		} else {
+			value = g.random.Int()
+		}
+	} else {
+		value = g.randString()
+	}
 	// TODO: Actually inspect the structure more deeply than simply "array" vs "object".
 	if g.schemaIsArray {
 		index := g.count
 		g.count++
-		return dsio.Entry{Index: index, Value: g.randString()}, nil
+		return dsio.Entry{Index: index, Value: value}, nil
 	}
-	return dsio.Entry{Key: g.randString(), Value: g.randString()}, nil
+	return dsio.Entry{Key: g.randString(), Value: value}, nil
 }
 
 // Structure implements the dsio.EntryReader interface
@@ -44,26 +66,43 @@ var alphaNumericRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUV
 
 // randString generates a random string of alpha numeric characters up to maxLen runes long.
 func (g Generator) randString() string {
-	n := rand.Intn(g.maxLen)
+	n := g.random.Intn(g.maxLen)
 	bytes := make([]rune, n)
 	for i := range bytes {
-		bytes[i] = alphaNumericRunes[rand.Intn(len(alphaNumericRunes))]
+		bytes[i] = alphaNumericRunes[g.random.Intn(len(alphaNumericRunes))]
 	}
 	return string(bytes)
 }
 
 // Config stores settings for the generate package.
 type Config struct {
-	random *rand.Rand
-	maxLen int
+	random        *rand.Rand
+	maxLen        int
+	useRandomType bool
 }
 
 // DefaultConfig returns the default configuration for a Generator.
 func DefaultConfig() *Config {
 	return &Config{
-		random: rand.New(rand.NewSource(time.Now().UnixNano())),
-		maxLen: 64,
+		random:        rand.New(rand.NewSource(time.Now().UnixNano())),
+		maxLen:        64,
+		useRandomType: false,
 	}
+}
+
+// AssignSeed sets a specific random seed to be used.
+func AssignSeed(cfg *Config) {
+	cfg.random = rand.New(rand.NewSource(4))
+}
+
+// AssignMaxLen sets a maximum length for generated values.
+func AssignMaxLen(cfg *Config) {
+	cfg.maxLen = 8
+}
+
+// AssignUseRandomType causes generator to generate random types of values.
+func AssignUseRandomType(cfg *Config) {
+	cfg.useRandomType = true
 }
 
 // NewGenerator creates a generator with the given configuration options
@@ -84,5 +123,6 @@ func NewGenerator(st *dataset.Structure, options ...func(*Config)) (*Generator, 
 		structure:     st,
 		maxLen:        cfg.maxLen,
 		random:        cfg.random,
-		schemaIsArray: schemaIsArray}, nil
+		schemaIsArray: schemaIsArray,
+		useRandomType: false}, nil
 }
