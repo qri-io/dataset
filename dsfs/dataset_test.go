@@ -148,11 +148,11 @@ func TestCreateDataset(t *testing.T) {
 		{"cities",
 			"/map/QmViLcZ6Yu4Yi4bQe7zcfntHNdDes5xwQp3fbxq3iUouWS", 6, ""},
 		{"complete",
-			"/map/QmRSc1VTBQnoWdH8dV3M9cLt6e1639SVN1L8CMZ7ipCc8F", 15, ""},
+			"/map/QmPbJ8wrbVbBGQBkPqJTcAnrhQVAxZ9KTeZNv1wnjN7kDw", 12, ""},
 		{"cities_no_commit_title",
-			"/map/QmPHmSFoxBn73t61M3E9SYNZvqD1BdFriTn3fVWjfG4seN", 17, ""},
+			"/map/QmPHmSFoxBn73t61M3E9SYNZvqD1BdFriTn3fVWjfG4seN", 14, ""},
 		{"craigslist",
-			"/map/QmdV6TqbjvwDqZrqPDyXeMYujEZaiaG18YjXVRhD66VFfZ", 20, ""},
+			"/map/QmdV6TqbjvwDqZrqPDyXeMYujEZaiaG18YjXVRhD66VFfZ", 17, ""},
 	}
 
 	for _, c := range cases {
@@ -222,8 +222,8 @@ func TestCreateDataset(t *testing.T) {
 	if err.Error() != expectedErr {
 		t.Errorf("case nil datafile and no PreviousPath, error mismatch: expected '%s', got '%s'", expectedErr, err.Error())
 	}
-	if len(store.(cafs.MapStore)) != 20 {
-		t.Errorf("case nil datafile and PreviousPath, expected invalid number of entries: %d != %d", 20, len(store.(cafs.MapStore)))
+	if len(store.(cafs.MapStore)) != 17 {
+		t.Errorf("case nil datafile and PreviousPath, invalid number of entries: %d != %d", 17, len(store.(cafs.MapStore)))
 		_, err := store.(cafs.MapStore).Print()
 		if err != nil {
 			panic(err)
@@ -252,7 +252,7 @@ func TestWriteDataset(t *testing.T) {
 		err       string
 	}{
 		{"testdata/cities/input.dataset.json", "testdata/cities/data.csv", "/map/", 6, ""},
-		{"testdata/complete/input.dataset.json", "testdata/complete/data.csv", "/map/", 15, ""},
+		{"testdata/complete/input.dataset.json", "testdata/complete/data.csv", "/map/", 12, ""},
 	}
 
 	for i, c := range cases {
@@ -310,26 +310,11 @@ func TestWriteDataset(t *testing.T) {
 			continue
 		}
 
-		if ref.Abstract != nil {
-			if !ref.Abstract.IsEmpty() {
-				t.Errorf("expected stored dataset.Abstract to be a reference")
-			}
-			// Abstract paths shouldnt' be loaded
-			ds.Abstract = dataset.NewDatasetRef(ref.Abstract.Path())
-		}
-
 		if ref.Transform != nil {
 			if !ref.Transform.IsEmpty() {
 				t.Errorf("expected stored dataset.Transform to be a reference")
 			}
 			ds.Transform.Assign(dataset.NewTransformRef(ref.Transform.Path()))
-		}
-		if ref.AbstractTransform != nil {
-			if !ref.AbstractTransform.IsEmpty() {
-				t.Errorf("expected stored dataset.AbstractTransform to be a reference")
-			}
-			// Abstract transforms aren't loaded
-			ds.AbstractTransform = dataset.NewTransformRef(ref.AbstractTransform.Path())
 		}
 		if ref.Meta != nil {
 			if !ref.Meta.IsEmpty() {

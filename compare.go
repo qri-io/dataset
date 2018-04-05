@@ -36,14 +36,8 @@ func CompareDatasets(a, b *Dataset) error {
 	if err := CompareStructures(a.Structure, b.Structure); err != nil {
 		return fmt.Errorf("Structure: %s", err.Error())
 	}
-	if err := CompareDatasets(a.Abstract, b.Abstract); err != nil {
-		return fmt.Errorf("Abstract: %s", err.Error())
-	}
 	if err := CompareTransforms(a.Transform, b.Transform); err != nil {
 		return fmt.Errorf("Transform: %s", err.Error())
-	}
-	if err := CompareTransforms(a.AbstractTransform, b.AbstractTransform); err != nil {
-		return fmt.Errorf("AbstractTransform: %s", err.Error())
 	}
 	if err := CompareCommits(a.Commit, b.Commit); err != nil {
 		return fmt.Errorf("Commit: %s", err.Error())

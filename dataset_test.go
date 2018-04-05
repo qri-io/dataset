@@ -35,9 +35,7 @@ func TestDatasetAssign(t *testing.T) {
 	}{
 		{&Dataset{path: datastore.NewKey("/a")}},
 		{&Dataset{Structure: &Structure{Format: CSVDataFormat}}},
-		// {&Dataset{Abstract: &Dataset{Title: "I'm an abstract dataset"}}},
 		{&Dataset{Transform: &Transform{Data: "I'm transform data!"}}},
-		{&Dataset{AbstractTransform: &Transform{Data: "I'm abstract transform data?"}}},
 		{&Dataset{Commit: &Commit{Title: "foo"}}},
 		{&Dataset{DataPath: "foo"}},
 		{&Dataset{PreviousPath: "stuff"}},
@@ -57,20 +55,16 @@ func TestDatasetAssign(t *testing.T) {
 
 	// test model assignment
 	mads := &Dataset{
-		Abstract:          &Dataset{},
-		Transform:         &Transform{},
-		AbstractTransform: &Transform{},
-		Structure:         &Structure{},
-		Commit:            &Commit{},
-		VisConfig:         &VisConfig{},
+		Transform: &Transform{},
+		Structure: &Structure{},
+		Commit:    &Commit{},
+		VisConfig: &VisConfig{},
 	}
 	madsa := &Dataset{
-		Abstract:          &Dataset{Structure: &Structure{}},
-		Transform:         &Transform{Data: "I'm transform data!"},
-		AbstractTransform: &Transform{Data: "I'm abstract transform data?"},
-		Structure:         &Structure{Format: CSVDataFormat},
-		Commit:            &Commit{Title: "dy.no.mite."},
-		VisConfig:         &VisConfig{Qri: KindVisConfig},
+		Transform: &Transform{Data: "I'm transform data!"},
+		Structure: &Structure{Format: CSVDataFormat},
+		Commit:    &Commit{Title: "dy.no.mite."},
+		VisConfig: &VisConfig{Qri: KindVisConfig},
 	}
 	mads.Assign(madsa)
 
@@ -175,8 +169,6 @@ func TestDatasetIsEmpty(t *testing.T) {
 	cases := []struct {
 		ds *Dataset
 	}{
-		{&Dataset{Abstract: &Dataset{}}},
-		{&Dataset{AbstractTransform: &Transform{}}},
 		{&Dataset{Commit: &Commit{}}},
 		{&Dataset{DataPath: "foo"}},
 		{&Dataset{Meta: &Meta{}}},
