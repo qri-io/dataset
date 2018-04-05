@@ -21,7 +21,6 @@ func TestCompareDatasets(t *testing.T) {
 		{&Dataset{DataPath: "a"}, &Dataset{DataPath: "b"}, "DataPath: a != b"},
 		{&Dataset{}, &Dataset{Structure: &Structure{}}, "Structure: nil: <nil> != <not nil>"},
 		{&Dataset{}, &Dataset{Transform: &Transform{}}, "Transform: nil: <nil> != <not nil>"},
-		{&Dataset{}, &Dataset{AbstractTransform: &Transform{}}, "AbstractTransform: nil: <nil> != <not nil>"},
 		{&Dataset{}, &Dataset{Commit: &Commit{}}, "Commit: nil: <nil> != <not nil>"},
 	}
 
@@ -92,40 +91,6 @@ func TestCompareStructures(t *testing.T) {
 	}
 }
 
-// TODO - restore
-// func TestCompareSchemas(t *testing.T) {
-// 	cases := []struct {
-// 		a, b *Schema
-// 		err  string
-// 	}{
-// 		{nil, nil, ""},
-// 		{AirportCodes.Structure.Schema, AirportCodes.Structure.Schema, ""},
-// 		{&Schema{}, nil, "nil: <not nil> != <nil>"},
-// 		{nil, &Schema{}, "nil: <nil> != <not nil>"},
-// 		{&Schema{PrimaryKey: FieldKey{"a"}}, &Schema{PrimaryKey: FieldKey{"b"}}, "PrimaryKey: element 0: a != b"},
-// 		{&Schema{}, &Schema{Fields: []*Field{}}, "Fields: [] != []"},
-// 		{&Schema{}, &Schema{Fields: []*Field{&Field{Name: "a"}}}, "Fields: [] != [%!s(*dataset.Field=&{a 0 <nil>  <nil>  })]"},
-// 		{&Schema{Fields: []*Field{&Field{Name: "a"}}}, &Schema{Fields: []*Field{&Field{Name: "b"}}}, "Fields: element 0: name: a != b"},
-// 	}
-
-// 	for i, c := range cases {
-// 		err := CompareSchemas(c.a, c.b)
-// 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
-// 			t.Errorf("case %d error: expected: '%s', got: '%s'", i, c.err, err)
-// 		}
-// 	}
-// }
-
-// func TestCompareFields(t *testing.T) {
-// 	f := &Field{
-// 		Name:         "a",
-// 		Type:         datatypes.String,
-// 		MissingValue: "foo",
-// 		Format:       "fmt",
-// 		Title:        "a",
-// 		Description:  "a",
-// 	}
-
 func TestCompareVisConfigs(t *testing.T) {
 	cases := []struct {
 		a, b *VisConfig
@@ -148,24 +113,6 @@ func TestCompareVisConfigs(t *testing.T) {
 		}
 	}
 }
-
-// 	cases := []struct {
-// 		a, b *Field
-// 		err  string
-// 	}{
-// 		{nil, nil, ""},
-// 		{f, f, ""},
-// 		{nil, f, "nil: <nil> != <not nil>"},
-// 		{f, nil, "nil: <not nil> != <nil>"},
-// 	}
-
-// 	for i, c := range cases {
-// 		err := CompareFields(c.a, c.b)
-// 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
-// 			t.Errorf("case %d error: expected: '%s', got: '%s'", i, c.err, err)
-// 		}
-// 	}
-// }
 
 func TestCompareCommits(t *testing.T) {
 	c1 := &Commit{

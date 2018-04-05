@@ -171,8 +171,6 @@ func DerefDatasetCommit(store cafs.Filestore, ds *dataset.Dataset) error {
 // Dataset to be saved
 // Pin the dataset if the underlying store supports the pinning interface
 func CreateDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pk crypto.PrivKey, pin bool) (path datastore.Key, err error) {
-	// var diffDescription string
-	log.Info("word")
 
 	if pk == nil {
 		err = fmt.Errorf("private key is required to create a dataset")
@@ -193,6 +191,7 @@ func CreateDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pk c
 	}
 
 	// TODO - figure out where we stand on this
+	// var diffDescription string
 	// if diffDescription == "" {
 	// 	err = fmt.Errorf("cannot record changes if no changes occured")
 	// 	return
@@ -417,25 +416,6 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File,
 		return datastore.NewKey(""), fmt.Errorf("error creating new adder: %s", err.Error())
 	}
 
-	if ds.AbstractTransform != nil {
-		// convert abstract transform to abstract references
-		for name, ref := range ds.AbstractTransform.Resources {
-			absrf, err := JSONFile(fmt.Sprintf("ref_%s.json", name), dataset.Abstract(ref))
-			if err != nil {
-				return datastore.NewKey(""), fmt.Errorf("error marshaling dataset resource '%s' to json: %s", name, err.Error())
-			}
-			fileTasks++
-			adder.AddFile(absrf)
-		}
-		abstff, err := JSONFile(PackageFileAbstractTransform.String(), ds.AbstractTransform)
-		if err != nil {
-			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset abstract transform to json: %s", err.Error())
-		}
-
-		fileTasks++
-		adder.AddFile(abstff)
-	}
-
 	if ds.Meta != nil {
 		mdf, err := JSONFile(PackageFileMeta.String(), ds.Meta)
 		if err != nil {
@@ -484,15 +464,6 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File,
 		adder.AddFile(stf)
 	}
 
-	if ds.Abstract != nil {
-		abf, err := JSONFile(PackageFileAbstract.String(), ds.Abstract)
-		if err != nil {
-			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset abstract to json: %s", err.Error())
-		}
-		fileTasks++
-		adder.AddFile(abf)
-	}
-
 	if ds.VisConfig != nil {
 		vc, err := JSONFile(PackageFileVisConfig.String(), ds.VisConfig)
 		if err != nil {
@@ -510,12 +481,8 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File,
 			switch ao.Name {
 			case PackageFileStructure.String():
 				ds.Structure = dataset.NewStructureRef(ao.Path)
-			case PackageFileAbstract.String():
-				ds.Abstract = dataset.NewDatasetRef(ao.Path)
 			case PackageFileTransform.String():
 				ds.Transform = dataset.NewTransformRef(ao.Path)
-			case PackageFileAbstractTransform.String():
-				ds.AbstractTransform = dataset.NewTransformRef(ao.Path)
 			case PackageFileMeta.String():
 				ds.Meta = dataset.NewMetaRef(ao.Path)
 			case PackageFileCommit.String():
@@ -524,14 +491,6 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File,
 				ds.VisConfig = dataset.NewVisConfigRef(ao.Path)
 			case dataFile.FileName():
 				ds.DataPath = ao.Path.String()
-			default:
-				if ds.AbstractTransform != nil {
-					for name := range ds.AbstractTransform.Resources {
-						if ao.Name == fmt.Sprintf("ref_%s.json", name) {
-							ds.AbstractTransform.Resources[name] = dataset.NewDatasetRef(ao.Path)
-						}
-					}
-				}
 			}
 
 			fileTasks--
@@ -557,18 +516,5 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File,
 
 	err = <-done
 
-	// ok, this is a horrible hack to deal with the fact that the location of
-	// the actual dataset.json on ipfs will be /[hash]/dataset.json, a property
-	// that may or may not apply to other cafs implementations.
-	// We want to store the reference to the directory hash, so the
-	// /[hash]/dataset.json form is desirable, because we can do stuff like
-	// /[hash]/abstract_structure.json, and so on, but it's hard to extract
-	// in a clean way. maybe a function that re-extracts this info on either
-	// the cafs interface, or the concrete cafs/ipfs implementation?
-	// TODO - remove this in favour of some sort of method on filestores
-	// that generate path roots
-	// if store.PathPrefix() == "ipfs" {
-	// 	path = datastore.NewKey(path.String() + "/" + PackageFileDataset.String())
-	// }
 	return path, err
 }

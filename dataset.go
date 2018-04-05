@@ -29,11 +29,6 @@ type Dataset struct {
 	// private storage for reference to this object
 	path datastore.Key
 
-	// Abstract is the abstract form of this dataset
-	Abstract *Dataset `json:"abstract,omitempty"`
-	// AbstractTransform is a reference to the general form of the transformation
-	// that resulted in this dataset
-	AbstractTransform *Transform `json:"abstractTransform,omitempty"`
 	// Commit contains author & change message information
 	Commit *Commit `json:"commit,omitempty"`
 	// DataPath is the path to the hash of raw data as it resolves on the network.
@@ -54,9 +49,7 @@ type Dataset struct {
 
 // IsEmpty checks to see if dataset has any fields other than the internal path
 func (ds *Dataset) IsEmpty() bool {
-	return ds.Abstract == nil &&
-		ds.AbstractTransform == nil &&
-		ds.Commit == nil &&
+	return ds.Commit == nil &&
 		ds.Structure == nil &&
 		ds.DataPath == "" &&
 		ds.Meta == nil &&
@@ -119,20 +112,10 @@ func (ds *Dataset) Assign(datasets ...*Dataset) {
 		} else if ds.Meta != nil {
 			ds.Meta.Assign(d.Meta)
 		}
-		if ds.Abstract == nil && d.Abstract != nil {
-			ds.Abstract = d.Abstract
-		} else if ds.Abstract != nil {
-			ds.Abstract.Assign(d.Abstract)
-		}
 		if ds.Transform == nil && d.Transform != nil {
 			ds.Transform = d.Transform
 		} else if ds.Transform != nil {
 			ds.Transform.Assign(d.Transform)
-		}
-		if ds.AbstractTransform == nil && d.AbstractTransform != nil {
-			ds.AbstractTransform = d.AbstractTransform
-		} else if ds.AbstractTransform != nil {
-			ds.AbstractTransform.Assign(d.AbstractTransform)
 		}
 		if ds.Commit == nil && d.Commit != nil {
 			ds.Commit = d.Commit
