@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strconv"
 
 	"github.com/qri-io/dataset"
 )
@@ -16,29 +17,30 @@ type JSONReader struct {
 	initialized bool
 	scanMode    scanMode // are we scanning an object or an array? default: array.
 	st          *dataset.Structure
-	sc          *bufio.Scanner
 	objKey      string
+	reader      *bufio.Reader
+	begin       int
 }
 
 // NewJSONReader creates a reader from a structure and read source
 func NewJSONReader(st *dataset.Structure, r io.Reader) (*JSONReader, error) {
+	// Huge buffer (a quarter of a MB) to speed up string reads.
+	return NewJSONReaderSize(st, r, 256*1024)
+}
+
+// NewJSONReaderSize creates a reader from a structure, read source, and buffer size
+func NewJSONReaderSize(st *dataset.Structure, r io.Reader, size int) (*JSONReader, error) {
 	if st.Schema == nil {
 		err := fmt.Errorf("schema required for JSON reader")
 		log.Debug(err.Error())
 		return nil, err
 	}
 
-	sc := bufio.NewScanner(r)
+	reader := bufio.NewReaderSize(r, size)
 	jr := &JSONReader{
-		st: st,
-		sc: sc,
+		st:     st,
+		reader: reader,
 	}
-	sc.Split(jr.scanJSONEntry)
-	// TODO - this is an interesting edge case. Need a big buffer for truly huge tokens.
-	// let's create an issue to discuss. It might make sense to store the size of the largest
-	// entry in the dataset as a structure definition
-	sc.Buffer(nil, 256*1024)
-
 	sm, err := schemaScanMode(st.Schema)
 	jr.scanMode = sm
 	return jr, err
@@ -49,322 +51,300 @@ func (r *JSONReader) Structure() *dataset.Structure {
 	return r.st
 }
 
+const blockSize = 4096
+
 // ReadEntry reads one JSON record from the reader
 func (r *JSONReader) ReadEntry() (Entry, error) {
 	ent := Entry{}
-	more := r.sc.Scan()
-	if !more {
-		return ent, fmt.Errorf("EOF")
+
+	// Fill up buffer.
+	_, _ = r.reader.Peek(blockSize)
+
+	// Open JSON container the first time this is called.
+	if !r.initialized {
+		if r.scanMode == smObject {
+			if !r.readTokenChar('{') {
+				return ent, fmt.Errorf("Expected: opening object '{'")
+			}
+		} else {
+			if !r.readTokenChar('[') {
+				return ent, fmt.Errorf("Expected: opening array '['")
+			}
+		}
+	}
+
+	// Close JSON container if it is complete, signaling EOF.
+	if r.scanMode == smObject {
+		if r.readTokenChar('}') {
+			return ent, fmt.Errorf("EOF")
+		}
+	} else {
+		if r.readTokenChar(']') {
+			return ent, fmt.Errorf("EOF")
+		}
+	}
+
+	// Need a separator between elements, but not before the very first.
+	if r.initialized {
+		if !r.readTokenChar(',') {
+			return ent, fmt.Errorf("Expected: separator ','")
+		}
+	}
+	r.initialized = true
+
+	// Read actual entry, format depends depends upon mode.
+	if r.scanMode == smObject {
+		key, val, err := r.readKeyValuePair()
+		ent.Key = key
+		ent.Value = val
+		if err != nil {
+			return ent, err
+		}
+	} else {
+		val, err := r.readValue()
+		ent.Index = r.rowsRead
+		ent.Value = val
+		if err != nil {
+			return ent, err
+		}
 	}
 	r.rowsRead++
-
-	if r.sc.Err() != nil {
-		log.Debug(r.sc.Err())
-		return ent, r.sc.Err()
-	}
-
-	if err := json.Unmarshal(r.sc.Bytes(), &ent.Value); err != nil {
-		log.Debug(err.Error())
-		return ent, err
-	}
-
-	if r.scanMode == smObject {
-		ent.Key = r.objKey
-	}
-
 	return ent, nil
 }
 
-// initialIndex sets the scanner up to read data, advancing until the first
-// entry in the top level array & setting the scanner split func to scan objects
-func initialIndex(data []byte) (md scanMode, skip int, err error) {
-	typ := JSONArrayOrObject(data)
-	if typ == "" {
-		// might not have initial closure, request more data
-		return smArray, -1, err
-	}
-
-	if typ == "object" {
-		// grab first opening curly brace index to advance past
-		// initial object closure
-		idx := bytes.IndexByte(data, '{')
-		return smObject, idx + 1, nil
-	}
-
-	// grab first opening bracket index to advance past
-	// initial array closure
-	idx := bytes.IndexByte(data, '[')
-	return smArray, idx + 1, nil
+func isWhitespace(ch byte) bool {
+	return ch == ' ' || ch == '\n' || ch == '\r' || ch == '\t'
 }
 
-// JSONArrayOrObject examines bytes checking if the outermost
-// closure is an array or object
-func JSONArrayOrObject(value []byte) string {
-	for _, b := range value {
-		switch b {
-		case '"':
-			return ""
-		case '{':
-			return "object"
-		case '[':
-			return "array"
-		}
+func (r *JSONReader) readTokenChar(ch byte) bool {
+	buff := r.currentBuffer()
+	i := 0
+	for i < len(buff) && isWhitespace(buff[i]) {
+		i++
 	}
-	return ""
+	if i < len(buff) && buff[i] == ch {
+		i++
+		_, _ = r.reader.Discard(i)
+		return true
+	}
+	return false
 }
 
-var moars = 0
-
-// scanJSONEntry scans according to json value types (object, array, string, boolean, number, null, and integer)
-func (r *JSONReader) scanJSONEntry(data []byte, atEOF bool) (advance int, token []byte, err error) {
-	if atEOF && len(data) == 0 {
-		return 0, nil, nil
+func (r *JSONReader) readLiteralToken(tok []byte) bool {
+	buff := r.currentBuffer()
+	i := 0
+	for i < len(buff) && isWhitespace(buff[i]) {
+		i++
 	}
-
-	if !r.initialized {
-		sm, skip, err := initialIndex(data)
-		if err != nil {
-			return 0, nil, err
-		}
-		if skip > 0 {
-			r.scanMode = sm
-			r.initialized = true
-			data = data[skip:]
-		}
-		return skip, nil, nil
+	if i+len(tok) < len(buff) && bytes.Compare(tok, buff[i:i+len(tok)]) == 0 {
+		i += len(tok)
+		_, _ = r.reader.Discard(i)
+		return true
 	}
-
-	if r.scanMode == smObject {
-		return r.scanObjectEntry(data, atEOF)
-	}
-
-	return scanEntry(data, atEOF)
+	return false
 }
 
-func (r *JSONReader) scanObjectEntry(data []byte, atEOF bool) (advance int, token []byte, err error) {
-	for _, b := range data {
-		if b == ':' {
+func (r *JSONReader) peekNextChar() byte {
+	buff := r.currentBuffer()
+	i := 0
+	for i < len(buff) && isWhitespace(buff[i]) {
+		i++
+	}
+	if i < len(buff) {
+		_, _ = r.reader.Discard(i)
+		return buff[i]
+	}
+	return 0
+}
+
+func (r *JSONReader) readValue() (interface{}, error) {
+	b := r.peekNextChar()
+	switch b {
+	case 'n':
+		if r.readLiteralToken([]byte("null")) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("Expected: null")
+	case 't':
+		if r.readLiteralToken([]byte("true")) {
+			return true, nil
+		}
+		return nil, fmt.Errorf("Expected: true")
+	case 'f':
+		if r.readLiteralToken([]byte("false")) {
+			return false, nil
+		}
+		return nil, fmt.Errorf("Expected: false")
+	case '"':
+		return r.readString()
+	case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+		return r.readNumber()
+	case '{':
+		return r.readObject()
+	case '[':
+		return r.readArray()
+	default:
+		return nil, nil
+	}
+}
+
+func (r *JSONReader) currentBuffer() []byte {
+	buff, _ := r.reader.Peek(r.reader.Buffered())
+	r.begin = 0
+	return buff
+}
+
+func (r *JSONReader) extendBuffer(orig []byte) ([]byte, bool) {
+	// Preserve the contents of the existing buffer.
+	preserve := append([]byte(nil), orig...)
+	// Keep track of buffer extension, to figure out how much to discard later.
+	size := r.reader.Buffered()
+	r.begin += size
+	// Clear the reader's buffer, fill it back up.
+	_, _ = r.reader.Discard(size)
+	_, _ = r.reader.Peek(blockSize)
+	size = r.reader.Buffered()
+	if size > 0 {
+		// If successful, append buffers.
+		extend, _ := r.reader.Peek(size)
+		return append(preserve, extend...), true
+	}
+	return orig, false
+}
+
+func (r *JSONReader) readString() (string, error) {
+	buff := r.currentBuffer()
+	s := 0
+	for s < len(buff) && isWhitespace(buff[s]) {
+		s++
+	}
+	i := s
+	if i < len(buff) && buff[i] == '"' {
+		i++
+	} else {
+		return "", fmt.Errorf("Expected: string")
+	}
+
+	for {
+		if i >= len(buff) {
+			var more bool
+			buff, more = r.extendBuffer(buff)
+			if !more {
+				break
+			}
+		}
+		if buff[i] == '\\' {
+			i++
+		} else if buff[i] == '"' {
+			i++
+			_, _ = r.reader.Discard(i - r.begin)
+			return strconv.Unquote(string(buff[s:i]))
+		}
+		i++
+	}
+	return "", fmt.Errorf("Expected: closing '\"' for string")
+}
+
+func (r *JSONReader) readNumber() (interface{}, error) {
+	buff := r.currentBuffer()
+	isFloat := false
+	i := 0
+	for i < len(buff) {
+		if buff[i] >= '0' && buff[i] <= '9' {
+			i++
+		} else if buff[i] == '.' || buff[i] == 'e' || buff[i] == 'E' || buff[i] == '+' {
+			isFloat = true
+			i++
+		} else if buff[i] == '-' {
+			i++
+		} else {
 			break
-		} else if b == '}' {
-			if atEOF {
-				return len(data), nil, nil
-			}
-			return 0, nil, nil
 		}
 	}
-
-	// scan key
-	stradv, key, e := scanString(data, atEOF)
-	if key == nil || e != nil {
-		return stradv, key, e
+	if i > 0 {
+		if isFloat {
+			_, _ = r.reader.Discard(i)
+			return strconv.ParseFloat(string(buff[0:i]), 64)
+		}
+		_, _ = r.reader.Discard(i)
+		return strconv.Atoi(string(buff[0:i]))
 	}
-	r.objKey = string(key)
-
-	vadv, val, e := scanEntry(data[stradv:], atEOF)
-	if val == nil || e != nil {
-		return vadv, val, e
-	}
-
-	return stradv + vadv, val, e
+	return 0, fmt.Errorf("Expected: number")
 }
 
-func scanEntry(data []byte, atEOF bool) (advance int, token []byte, err error) {
-	for _, b := range data {
-		switch b {
-		case '"':
-			return scanString(data, atEOF)
-		case 'n':
-			return scanNull(data, atEOF)
-		case 't':
-			return scanTrue(data, atEOF)
-		case 'f':
-			return scanFalse(data, atEOF)
-		case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'e':
-			return scanNumber(data, atEOF)
-		case '{':
-			return scanObject(data, atEOF)
-		case '[':
-			return scanArray(data, atEOF)
-		case '}', ']':
-			// if we encounter a closing bracket
-			// before any depth, it's the end of the closure
-			return len(data), nil, nil
-		}
+func (r *JSONReader) readObject() (interface{}, error) {
+	if !r.readTokenChar('{') {
+		return nil, fmt.Errorf("Expected: opening '{' for object")
 	}
-
-	// Request more data.
-	return 0, nil, nil
+	obj := make(map[string]interface{})
+	if r.readTokenChar('}') {
+		return obj, nil
+	}
+	// Read first key, value pair
+	key, val, err := r.readKeyValuePair()
+	if err != nil {
+		return nil, err
+	}
+	obj[key] = val
+	// Read other key, value pairs
+	for {
+		if r.readTokenChar('}') {
+			break
+		} else if !r.readTokenChar(',') {
+			return nil, fmt.Errorf("Expected: ',' to separate elements")
+		}
+		key, val, err := r.readKeyValuePair()
+		if err != nil {
+			return obj, err
+		}
+		obj[key] = val
+	}
+	return obj, nil
 }
 
-func strTokScanner(tok string) func([]byte, bool) (int, []byte, error) {
-	return func(data []byte, atEOF bool) (advance int, token []byte, err error) {
-		start := bytes.Index(data, []byte(tok))
-		if start == -1 {
-			err := fmt.Errorf("unexpected error scanning %s value", tok)
-			log.Debug(err.Error())
-			return 0, nil, err
-		}
-		stop := start + len(tok)
-
-		return advSep(stop, data), data[start:stop], nil
+func (r *JSONReader) readArray() ([]interface{}, error) {
+	if !r.readTokenChar('[') {
+		return nil, fmt.Errorf("Expected: opening '[' for array")
 	}
+	array := make([]interface{}, 0)
+	if r.readTokenChar(']') {
+		return array, nil
+	}
+	// Read first element.
+	val, err := r.readValue()
+	if err != nil {
+		return array, nil
+	}
+	array = append(array, val)
+	// Read the rest of the elements.
+	for {
+		if r.readTokenChar(']') {
+			break
+		} else if !r.readTokenChar(',') {
+			return nil, fmt.Errorf("Expected: ',' to separate elements")
+		}
+		val, err := r.readValue()
+		if err != nil {
+			return array, err
+		}
+		array = append(array, val)
+	}
+	return array, nil
 }
 
-var (
-	scanNull  = strTokScanner("null")
-	scanTrue  = strTokScanner("true")
-	scanFalse = strTokScanner("false")
-)
-
-func scanNumber(data []byte, atEOF bool) (advance int, token []byte, err error) {
-	start := -1
-	stop := -1
-
-LOOP:
-	for i, b := range data {
-		switch b {
-		case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'e':
-			if start == -1 {
-				start = i
-			}
-		default:
-			if start != -1 {
-				stop = i
-				break LOOP
-			}
-		}
+func (r *JSONReader) readKeyValuePair() (string, interface{}, error) {
+	key, err := r.readString()
+	if err != nil {
+		return "", nil, err
 	}
-
-	if stop == -1 || start == -1 {
-		return 0, nil, nil
+	if !r.readTokenChar(':') {
+		return "", nil, fmt.Errorf("Expected: ':' to separate key and value")
 	}
-
-	return advSep(stop, data), data[start:stop], nil
-}
-
-func scanString(data []byte, atEOF bool) (advance int, token []byte, err error) {
-	start := -1
-	stop := -1
-
-LOOP:
-	for i, b := range data {
-		switch b {
-		case '"':
-
-			if start == -1 {
-				start = i
-			} else {
-				// skip escaped quote characters
-				if data[i-1] == '\\' {
-					break
-				}
-
-				stop = i + 1
-				break LOOP
-			}
-		}
+	val, err := r.readValue()
+	if err != nil {
+		return "", nil, err
 	}
-
-	if stop == -1 || start == -1 {
-		return 0, nil, nil
-	}
-
-	return advSep(stop, data), data[start:stop], nil
-}
-
-func scanObject(data []byte, atEOF bool) (advance int, token []byte, err error) {
-	starti, stopi, depth := -1, -1, 0
-	instring := false
-
-LOOP:
-	for i, b := range data {
-		switch b {
-		case '"':
-			// skip escaped quote characters
-			if instring && data[i-1] == '\\' {
-				break
-			}
-			instring = !instring
-		case '{':
-			if !instring {
-				if depth == 0 {
-					starti = i
-				}
-				depth++
-			}
-		case '}':
-			if !instring {
-				depth--
-				if depth == 0 {
-					stopi = i + 1
-					break LOOP
-				}
-			}
-		}
-	}
-
-	if stopi == -1 || starti == -1 {
-		return 0, nil, nil
-	}
-
-	// return sliced data
-	if starti < stopi {
-		return advSep(stopi, data), data[starti:stopi], nil
-	}
-
-	return 0, nil, nil
-}
-
-func scanArray(data []byte, atEOF bool) (advance int, token []byte, err error) {
-	starti, stopi, depth := -1, -1, 0
-	instring := false
-
-LOOP:
-	for i, b := range data {
-		switch b {
-		case '"':
-			// skip escaped quote chars
-			if instring && data[i-1] == '\\' {
-				break
-			}
-			instring = !instring
-		case '[':
-			if !instring {
-				if depth == 0 {
-					starti = i
-				}
-				depth++
-			}
-		case ']':
-			if !instring {
-				depth--
-				if depth == 0 {
-					stopi = i + 1
-					break LOOP
-				}
-			}
-		}
-	}
-
-	if stopi == -1 || starti == -1 {
-		return 0, nil, nil
-	}
-	// return sliced data
-	if starti < stopi {
-		return advSep(stopi, data), data[starti:stopi], nil
-	}
-	return 0, nil, nil
-}
-
-func advSep(start int, data []byte) int {
-	if start > 0 {
-		for i := start; i < len(data); i++ {
-			if data[i] == ',' || data[i] == ':' {
-				return i + 1
-			}
-		}
-	}
-	return start
+	return key, val, nil
 }
 
 // JSONWriter implements the RowWriter interface for

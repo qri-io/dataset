@@ -3,6 +3,7 @@ package dsio
 import (
 	"testing"
 
+	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dstest"
 )
 
@@ -13,7 +14,11 @@ func TestEachEntry(t *testing.T) {
 		return
 	}
 
-	r, err := NewEntryReader(tc.Input.Structure, tc.DataFile())
+	st := &dataset.Structure{
+		Format: dataset.JSONDataFormat,
+		Schema: dataset.BaseSchemaArray,
+	}
+	r, err := NewEntryReader(st, tc.DataFile())
 	if err != nil {
 		t.Errorf("error allocating RowReader: %s", err.Error())
 		return
