@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/qri-io/dataset"
@@ -96,31 +97,232 @@ func TestJSONReader(t *testing.T) {
 			t.Log(vs)
 			continue
 		}
+	}
+}
 
-		// for _, ent := range c.entries {
-		// 	if err := r.ReadRow(ent); err != nil {
-		// 		t.Errorf("case %d WriteRow error: %s", i, err.Error())
-		// 		break
-		// 	}
-		// }
-		// if err := w.Close(); err != nil {
-		// 	t.Errorf("case %d Close error: %s", i, err.Error())
-		// }
+func TestJSONReaderBasicParsing(t *testing.T) {
+	cases := []struct {
+		text      string
+		structure *dataset.Structure
+		expect    interface{}
+	}{
+		{"{\"a\":1}", &dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaObject,
+		}, 1},
+		{"{\"a\": 1}", &dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaObject,
+		}, 1},
+		{"{\"a\":\"abc\"}", &dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaObject,
+		}, "abc"},
+		{"{\"a\":4.56}", &dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaObject,
+		}, 4.56},
+		{"{\"a\":\"\"}", &dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaObject,
+		}, ""},
+		{"{\"a\":null}", &dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaObject,
+		}, nil},
+		{"{\"a\":true}", &dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaObject,
+		}, true},
+		{"{\"a\":false}", &dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaObject,
+		}, false},
+		{"{\"a\":\"\xe7\x8a\xac\"}", &dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaObject,
+		}, "\xe7\x8a\xac"},
+		{"{\"a\":\"say \\\"dog\\\"\"}", &dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaObject,
+		}, "say \"dog\""},
+		{"{\"a\":\"say \\\"\\u72ac\\\"\"}", &dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaObject,
+		}, "say \"\xe7\x8a\xac\""},
+		{"{\n  \"a\" : \"b\" }", &dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaObject,
+		}, "b"},
+	}
 
-		// if string(buf.Bytes()) != c.out {
-		// 	t.Errorf("case %d result mismatch. expected:\n%s\ngot:\n%s", i, c.out, string(buf.Bytes()))
-		// }
+	for i, c := range cases {
+		r, _ := NewJSONReader(c.structure, strings.NewReader(c.text))
+		ent, err := r.ReadEntry()
+		if err != nil {
+			t.Errorf("case %d error: %s", i, err)
+		}
+		if ent.Value != c.expect {
+			t.Errorf("case %d value mismatch: %v <> %v", i, ent.Value, c.expect)
+		}
+	}
+}
 
-		// var v interface{}
-		// if cfg, ok := c.structure.FormatConfig.(*dataset.JSONOptions); ok && cfg.ArrayEntries {
-		// 	v = []interface{}{}
-		// } else {
-		// 	v = map[string]interface{}{}
-		// }
+func TestJSONReaderSmallerBufferForHugeToken(t *testing.T) {
+	cases := []struct {
+		name      string
+		structure *dataset.Structure
+		count     int
+		err       string
+	}{
+		{"craigslist", &dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaArray,
+		}, 1200, ""},
+	}
 
-		// if err := json.Unmarshal(buf.Bytes(), &v); err != nil {
-		// 	t.Errorf("unmarshal error: %s", err.Error())
-		// }
+	for i, c := range cases {
+		tc, err := dstest.NewTestCaseFromDir(fmt.Sprintf("testdata/json/%s", c.name))
+		if err != nil {
+			t.Errorf("case %d:%s error reading test case: %s", i, c.name, err.Error())
+			continue
+		}
+
+		r, err := NewJSONReaderSize(c.structure, tc.DataFile(), 4096)
+		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
+			t.Errorf("case %d:%s error mismatch. expected: %s. got: %s", i, c.name, c.err, err)
+			continue
+		} else if c.err != "" {
+			continue
+		}
+
+		if r.Structure() == nil {
+			t.Errorf("nil structure?")
+			return
+		}
+
+		j := 0
+		vs := []Entry{}
+		for {
+			// TODO - inspect row output for well formed json
+			ent, err := r.ReadEntry()
+			if err != nil {
+				if err.Error() == "EOF" {
+					break
+				}
+				t.Errorf("case %d error reading row %d: %s", i, j, err.Error())
+				break
+			}
+			vs = append(vs, ent)
+			j++
+		}
+
+		if c.count != j {
+			t.Errorf("case %d count mismatch. expected: %d, got: %d", i, c.count, j)
+			t.Log(vs)
+			continue
+		}
+	}
+}
+
+func TestJSONReaderErrors(t *testing.T) {
+	cases := []struct {
+		text      string
+		structure *dataset.Structure
+		count     int
+		err       string
+	}{
+		{"{\"a\":1}", &dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaObject,
+		}, 1, ""},
+		{"{\"a\"\"b\":1}", &dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaObject,
+		}, 0, "Expected: ':' to separate key and value"},
+		{"{:\"a\"1}", &dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaObject,
+		}, 0, "Expected: string"},
+		{"{\"abc:def\"1}", &dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaObject,
+		}, 0, "Expected: ':' to separate key and value"},
+		{"{\"a\"\x01:\x02\"b\"}", &dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaObject,
+		}, 0, "Expected: ':' to separate key and value"},
+		{"{\"abc\",1,,,,,\"def\",2,,\"ghi\",3,,,\"jkl\"4:}", &dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaObject,
+		}, 0, "Expected: ':' to separate key and value"},
+		{"{\"abc\":{\"inner\":1}}", &dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaObject,
+		}, 1, ""},
+		{"{\"abc\":[1,2,3]}", &dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaObject,
+		}, 1, ""},
+		{"{\"abc\":{\"inner\":[1,2,3]}}", &dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaObject,
+		}, 1, ""},
+		{"{\"abc\":1,", &dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaObject,
+		}, 1, "Expected: string"},
+		{"{\"abc\":1", &dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaObject,
+		}, 1, "Expected: separator ','"},
+		{"[\"abc\",1]", &dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaArray,
+		}, 2, ""},
+		{"[]", &dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaArray,
+		}, 0, ""},
+		{"[{}]", &dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaArray,
+		}, 1, ""},
+		{"[\"abc\",1", &dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaArray,
+		}, 2, "Expected: separator ','"},
+		{"[\"abc\",1,", &dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaArray,
+		}, 3, "Expected: separator ','"},
+	}
+
+	for i, c := range cases {
+		r, _ := NewJSONReader(c.structure, strings.NewReader(c.text))
+		j := 0
+		vs := []Entry{}
+		for {
+			ent, err := r.ReadEntry()
+			if err != nil {
+				if err.Error() == "EOF" {
+					break
+				}
+				if c.err == "" {
+					t.Errorf("case %d error reading row %d: %s", i, j, err.Error())
+				} else if c.err != err.Error() {
+					t.Errorf("case %d error mismatch row %d: {%s} <> {%s}", i, j, c.err, err.Error())
+				}
+				break
+			}
+			vs = append(vs, ent)
+			j++
+		}
+		if c.count != j {
+			t.Errorf("case %d count mismatch. expected: %d, got: %d", i, c.count, j)
+			t.Log(vs)
+			continue
+		}
 	}
 }
 
