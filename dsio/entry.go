@@ -30,7 +30,7 @@ func EachEntry(rr EntryReader, fn DataIteratorFunc) error {
 			if err.Error() == io.EOF.Error() {
 				return nil
 			}
-			err := fmt.Errorf("error reading row: %s", err.Error())
+			err := fmt.Errorf("error reading row %d: %s", num, err.Error())
 			log.Debug(err.Error())
 			return err
 		}

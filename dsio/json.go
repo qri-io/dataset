@@ -13,7 +13,7 @@ import (
 
 // JSONReader implements the RowReader interface for the JSON data format
 type JSONReader struct {
-	rowsRead    int
+	entriesRead int
 	initialized bool
 	scanMode    scanMode // are we scanning an object or an array? default: array.
 	st          *dataset.Structure
@@ -102,13 +102,13 @@ func (r *JSONReader) ReadEntry() (Entry, error) {
 		}
 	} else {
 		val, err := r.readValue()
-		ent.Index = r.rowsRead
+		ent.Index = r.entriesRead
 		ent.Value = val
 		if err != nil {
 			return ent, err
 		}
 	}
-	r.rowsRead++
+	r.entriesRead++
 	return ent, nil
 }
 
@@ -288,6 +288,11 @@ func (r *JSONReader) readObject() (interface{}, error) {
 	obj[key] = val
 	// Read other key, value pairs
 	for {
+		// ensure a sufficent amount of data is buffered
+		if r.reader.Buffered() < r.reader.Size() {
+			r.reader.Peek(r.reader.Size())
+		}
+
 		if r.readTokenChar('}') {
 			break
 		} else if !r.readTokenChar(',') {
@@ -318,9 +323,16 @@ func (r *JSONReader) readArray() ([]interface{}, error) {
 	array = append(array, val)
 	// Read the rest of the elements.
 	for {
+		// ensure a sufficent amount of data is buffered
+		if r.reader.Buffered() < r.reader.Size() {
+			r.reader.Peek(r.reader.Size())
+		}
+
 		if r.readTokenChar(']') {
 			break
 		} else if !r.readTokenChar(',') {
+			buff := r.currentBuffer()
+			log.Error(string(buff))
 			return nil, fmt.Errorf("Expected: ',' to separate elements")
 		}
 		val, err := r.readValue()
