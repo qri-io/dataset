@@ -19,7 +19,7 @@ type JSONReader struct {
 	st          *dataset.Structure
 	objKey      string
 	reader      *bufio.Reader
-	begin       int
+	prevSize    int // when buffer is extended, remember how much of the old buffer to discard
 }
 
 // NewJSONReader creates a reader from a structure and read source
@@ -118,13 +118,9 @@ func isWhitespace(ch byte) bool {
 
 func (r *JSONReader) readTokenChar(ch byte) bool {
 	buff := r.currentBuffer()
-	i := 0
-	for i < len(buff) && isWhitespace(buff[i]) {
-		i++
-	}
-	if i < len(buff) && buff[i] == ch {
-		i++
-		_, _ = r.reader.Discard(i)
+	if len(buff) > 0 && buff[0] == ch {
+		// Either 0 or 1 characters are matched, only need to discard 1.
+		_, _ = r.reader.Discard(1)
 		return true
 	}
 	return false
@@ -132,13 +128,17 @@ func (r *JSONReader) readTokenChar(ch byte) bool {
 
 func (r *JSONReader) readLiteralToken(tok []byte) bool {
 	buff := r.currentBuffer()
-	i := 0
-	for i < len(buff) && isWhitespace(buff[i]) {
-		i++
+	if len(tok) > len(buff) {
+		// Buffer may contain a partial match, try reading ahead.
+		var more bool
+		buff, more = r.extendBuffer(buff)
+		if !more {
+			return false
+		}
 	}
-	if i+len(tok) < len(buff) && bytes.Compare(tok, buff[i:i+len(tok)]) == 0 {
-		i += len(tok)
-		_, _ = r.reader.Discard(i)
+	if len(tok) <= len(buff) && bytes.Compare(tok, buff[0:len(tok)]) == 0 {
+		// If the buffer was extended, only discard the new bytes.
+		_, _ = r.reader.Discard(len(tok) - r.prevSize)
 		return true
 	}
 	return false
@@ -146,13 +146,8 @@ func (r *JSONReader) readLiteralToken(tok []byte) bool {
 
 func (r *JSONReader) peekNextChar() byte {
 	buff := r.currentBuffer()
-	i := 0
-	for i < len(buff) && isWhitespace(buff[i]) {
-		i++
-	}
-	if i < len(buff) {
-		_, _ = r.reader.Discard(i)
-		return buff[i]
+	if len(buff) > 0 {
+		return buff[0]
 	}
 	return 0
 }
@@ -190,7 +185,29 @@ func (r *JSONReader) readValue() (interface{}, error) {
 
 func (r *JSONReader) currentBuffer() []byte {
 	buff, _ := r.reader.Peek(r.reader.Buffered())
-	r.begin = 0
+	r.prevSize = 0
+	// Skip whitespace, returned buffer will start with non-whitepsace.
+	skip := 0
+	for {
+		if skip >= len(buff) {
+			var more bool
+			buff, more = r.extendBuffer(buff)
+			if !more {
+				break
+			}
+		}
+		if isWhitespace(buff[skip]) {
+			skip++
+		} else {
+			break
+		}
+	}
+	// Discard whitespace characters, move the buffer forward.
+	if skip > 0 {
+		_, _ = r.reader.Discard(skip - r.prevSize)
+		r.prevSize = 0
+		buff = buff[skip:]
+	}
 	return buff
 }
 
@@ -199,7 +216,7 @@ func (r *JSONReader) extendBuffer(orig []byte) ([]byte, bool) {
 	preserve := append([]byte(nil), orig...)
 	// Keep track of buffer extension, to figure out how much to discard later.
 	size := r.reader.Buffered()
-	r.begin += size
+	r.prevSize += size
 	// Clear the reader's buffer, fill it back up.
 	_, _ = r.reader.Discard(size)
 	_, _ = r.reader.Peek(blockSize)
@@ -212,13 +229,16 @@ func (r *JSONReader) extendBuffer(orig []byte) ([]byte, bool) {
 	return orig, false
 }
 
+func (r *JSONReader) extractFromBuffer(buffer []byte, i int) string {
+	text := string(buffer[0:i])
+	_, _ = r.reader.Discard(i - r.prevSize)
+	r.prevSize = 0
+	return text
+}
+
 func (r *JSONReader) readString() (string, error) {
 	buff := r.currentBuffer()
-	s := 0
-	for s < len(buff) && isWhitespace(buff[s]) {
-		s++
-	}
-	i := s
+	i := 0
 	if i < len(buff) && buff[i] == '"' {
 		i++
 	} else {
@@ -237,8 +257,7 @@ func (r *JSONReader) readString() (string, error) {
 			i++
 		} else if buff[i] == '"' {
 			i++
-			_, _ = r.reader.Discard(i - r.begin)
-			return strconv.Unquote(string(buff[s:i]))
+			return strconv.Unquote(r.extractFromBuffer(buff, i))
 		}
 		i++
 	}
@@ -249,7 +268,14 @@ func (r *JSONReader) readNumber() (interface{}, error) {
 	buff := r.currentBuffer()
 	isFloat := false
 	i := 0
-	for i < len(buff) {
+	for {
+		if i >= len(buff) {
+			var more bool
+			buff, more = r.extendBuffer(buff)
+			if !more {
+				break
+			}
+		}
 		if buff[i] >= '0' && buff[i] <= '9' {
 			i++
 		} else if buff[i] == '.' || buff[i] == 'e' || buff[i] == 'E' || buff[i] == '+' {
@@ -263,11 +289,9 @@ func (r *JSONReader) readNumber() (interface{}, error) {
 	}
 	if i > 0 {
 		if isFloat {
-			_, _ = r.reader.Discard(i)
-			return strconv.ParseFloat(string(buff[0:i]), 64)
+			return strconv.ParseFloat(r.extractFromBuffer(buff, i), 64)
 		}
-		_, _ = r.reader.Discard(i)
-		return strconv.Atoi(string(buff[0:i]))
+		return strconv.Atoi(r.extractFromBuffer(buff, i))
 	}
 	return 0, fmt.Errorf("Expected: number")
 }
@@ -288,11 +312,6 @@ func (r *JSONReader) readObject() (interface{}, error) {
 	obj[key] = val
 	// Read other key, value pairs
 	for {
-		// ensure a sufficent amount of data is buffered
-		if r.reader.Buffered() < r.reader.Size() {
-			r.reader.Peek(r.reader.Size())
-		}
-
 		if r.readTokenChar('}') {
 			break
 		} else if !r.readTokenChar(',') {
@@ -323,11 +342,6 @@ func (r *JSONReader) readArray() ([]interface{}, error) {
 	array = append(array, val)
 	// Read the rest of the elements.
 	for {
-		// ensure a sufficent amount of data is buffered
-		if r.reader.Buffered() < r.reader.Size() {
-			r.reader.Peek(r.reader.Size())
-		}
-
 		if r.readTokenChar(']') {
 			break
 		} else if !r.readTokenChar(',') {

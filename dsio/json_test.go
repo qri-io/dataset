@@ -238,7 +238,23 @@ func TestJSONSizeReader(t *testing.T) {
 		{&dataset.Structure{
 			Format: dataset.JSONDataFormat,
 			Schema: dataset.BaseSchemaArray,
+		}, 16, `[[12345,67890,12345,67890]]`},
+		{&dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaArray,
 		}, 18, `[{"a":"b","c":"d","e":"f"}]`},
+		{&dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaArray,
+		}, 16, `[[  "a"  ,  "b"  ,  "c"  ,  "d"  ]]`},
+		{&dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaArray,
+		}, 16, `[[false, false, false , false]]`},
+		{&dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaArray,
+		}, 16, `[[true, true, true, true]]`},
 	}
 
 	for i, c := range cases {
