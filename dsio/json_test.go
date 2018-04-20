@@ -225,6 +225,60 @@ func TestJSONReaderSmallerBufferForHugeToken(t *testing.T) {
 	}
 }
 
+func TestJSONSizeReader(t *testing.T) {
+	cases := []struct {
+		structure *dataset.Structure
+		size      int
+		data      string
+	}{
+		{&dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaArray,
+		}, 16, `[["a","b","cdef"]]`},
+		{&dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaArray,
+		}, 16, `[[12345,67890,12345,67890]]`},
+		{&dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaArray,
+		}, 18, `[{"a":"b","c":"d","e":"f"}]`},
+		{&dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaArray,
+		}, 16, `[[  "a"  ,  "b"  ,  "c"  ,  "d"  ]]`},
+		{&dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaArray,
+		}, 16, `[[false, false, false , false]]`},
+		{&dataset.Structure{
+			Format: dataset.JSONDataFormat,
+			Schema: dataset.BaseSchemaArray,
+		}, 16, `[[true, true, true, true]]`},
+	}
+
+	for i, c := range cases {
+		r, err := NewJSONReaderSize(c.structure, strings.NewReader(c.data), c.size)
+		if err != nil {
+			t.Errorf("case %d unexpected error creating reader: %s", i, err.Error())
+			continue
+		}
+
+		err = EachEntry(r, func(i int, ent Entry, e error) error {
+			if e != nil {
+				return e
+			}
+			return nil
+		})
+
+		if err != nil {
+			t.Errorf("case %d: unexpected error: %s", i, err.Error())
+			continue
+		}
+
+	}
+}
+
 func TestJSONReaderErrors(t *testing.T) {
 	cases := []struct {
 		text      string

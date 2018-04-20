@@ -26,7 +26,11 @@ func EntryReader(r dsio.EntryReader) ([]jsonschema.ValError, error) {
 		if err != nil {
 			return fmt.Errorf("error reading row %d: %s", i, err.Error())
 		}
-		return buf.WriteEntry(ent)
+		err = buf.WriteEntry(ent)
+		if err != nil {
+			return fmt.Errorf("error writing row %d: %s", i, err.Error())
+		}
+		return nil
 	})
 
 	if err != nil {
