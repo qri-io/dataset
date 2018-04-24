@@ -127,11 +127,11 @@ func TestDatasetUnmarshalJSON(t *testing.T) {
 	cases := []struct {
 		FileName string
 		result   *Dataset
-		err      error
+		err      string
 	}{
-		{"testdata/datasets/airport-codes.json", AirportCodes, nil},
-		{"testdata/datasets/continent-codes.json", ContinentCodes, nil},
-		{"testdata/datasets/hours.json", Hours, nil},
+		{"testdata/datasets/airport-codes.json", AirportCodes, ""},
+		{"testdata/datasets/continent-codes.json", ContinentCodes, ""},
+		{"testdata/datasets/hours.json", Hours, ""},
 	}
 
 	for i, c := range cases {
@@ -141,7 +141,8 @@ func TestDatasetUnmarshalJSON(t *testing.T) {
 		}
 
 		ds := &Dataset{}
-		if err := json.Unmarshal(data, ds); err != c.err {
+		err = ds.UnmarshalJSON(data)
+		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
 			continue
 		}
@@ -162,6 +163,13 @@ func TestDatasetUnmarshalJSON(t *testing.T) {
 	if strds.path.String() != path {
 		t.Errorf("unmarshal didn't set proper path: %s != %s", path, strds.path)
 		return
+	}
+
+	errDs := &Dataset{}
+	if err := errDs.UnmarshalJSON([]byte(`{{{{`)); err != nil && err.Error() != "unmarshaling dataset: invalid character '{' looking for beginning of object key string" {
+		t.Errorf("unexpected error: %s", err.Error())
+	} else if err == nil {
+		t.Errorf("expected error")
 	}
 }
 
@@ -238,6 +246,56 @@ func TestUnmarshalDataset(t *testing.T) {
 		}
 		if err := CompareDatasets(c.out, got); err != nil {
 			t.Errorf("case %d dataset mismatch: %s", i, err.Error())
+			continue
+		}
+	}
+}
+
+func TestDatasetCoding(t *testing.T) {
+	cases := []*Dataset{
+		{},
+		{Commit: &Commit{Title: "foo"}},
+		{DataPath: "foo"},
+		{Meta: &Meta{Title: "foo"}},
+		{PreviousPath: "foo"},
+		{Qri: KindDataset},
+		{Structure: &Structure{Format: CBORDataFormat}},
+		{Transform: &Transform{AppVersion: "foo"}},
+		{VisConfig: &VisConfig{Format: "foo"}},
+	}
+
+	for i, c := range cases {
+		cd := c.Encode()
+		got := &Dataset{}
+		err := got.Decode(cd)
+		if err != nil {
+			t.Errorf("case %d unexpected error: '%s'", i, err.Error())
+			continue
+		}
+
+		if err := CompareDatasets(c, got); err != nil {
+			t.Errorf("case %d dataset mismatch: %s", i, err.Error())
+			continue
+		}
+	}
+}
+
+func TestDatasetDecode(t *testing.T) {
+	cases := []struct {
+		cd  *CodingDataset
+		err string
+	}{
+		{&CodingDataset{}, ""},
+		{&CodingDataset{Commit: &CodingCommit{Qri: "foo"}}, "invalid commit 'qri' value: foo"},
+		{&CodingDataset{Structure: &CodingStructure{Format: "foo"}}, "invalid data format: `foo`"},
+		{&CodingDataset{Transform: &CodingTransform{Resources: []byte("foo")}}, "decoding transform resources: invalid character 'o' in literal false (expecting 'a')"},
+	}
+
+	for i, c := range cases {
+		got := &Dataset{}
+		err := got.Decode(c.cd)
+		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
+			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
 			continue
 		}
 	}

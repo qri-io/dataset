@@ -285,3 +285,56 @@ func TestUnmarshalStructure(t *testing.T) {
 		}
 	}
 }
+
+func TestStructureCoding(t *testing.T) {
+	cases := []*Structure{
+		{},
+		{Checksum: "foo"},
+		{Compression: compression.None},
+		{Encoding: "foo"},
+		{ErrCount: 1},
+		{Entries: 1},
+		{Format: CBORDataFormat},
+		{Format: CSVDataFormat, FormatConfig: &CSVOptions{HeaderRow: true}},
+		{Length: 1},
+		{Qri: KindStructure},
+		{Schema: jsonschema.Must(`{"type":"object"}`)},
+	}
+
+	for i, c := range cases {
+		cs := c.Encode()
+		got := &Structure{}
+		if err := got.Decode(cs); err != nil {
+			t.Errorf("case %d unexpected error '%s'", i, err)
+			continue
+		}
+
+		if err := CompareStructures(c, got); err != nil {
+			t.Errorf("case %d mismatch: %s", i, err.Error())
+			continue
+		}
+	}
+}
+
+func TestStructureDecode(t *testing.T) {
+	cases := []struct {
+		cst *CodingStructure
+		err string
+	}{
+		{&CodingStructure{}, ""},
+		{&CodingStructure{Format: "foo"}, "invalid data format: `foo`"},
+		{&CodingStructure{FormatConfig: map[string]interface{}{}}, "cannot parse configuration for format: "},
+		{&CodingStructure{Schema: []byte("foo")}, "invalid character 'o' in literal false (expecting 'a')"},
+	}
+
+	for i, c := range cases {
+		got := &Structure{}
+		err := got.Decode(c.cst)
+		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
+			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
+			continue
+		} else if c.err != "" {
+			continue
+		}
+	}
+}

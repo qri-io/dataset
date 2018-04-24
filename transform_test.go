@@ -208,3 +208,51 @@ func TestTransformIsEmpty(t *testing.T) {
 		}
 	}
 }
+
+func TestTransformCoding(t *testing.T) {
+	cases := []*Transform{
+		{},
+		{AppVersion: "foo"},
+		{Config: map[string]interface{}{"foo": "foo"}},
+		{Data: "foo"},
+		{path: datastore.NewKey("/foo")},
+		{Qri: KindTransform},
+		{Resources: map[string]*Dataset{"foo": &Dataset{DataPath: "foo"}}},
+		{Syntax: "foo"},
+		{Structure: &Structure{Format: CBORDataFormat}},
+	}
+
+	for i, c := range cases {
+		cd := c.Encode()
+		got := &Transform{}
+		if err := got.Decode(cd); err != nil {
+			t.Errorf("case %d unexpected error '%s'", i, err)
+			continue
+		}
+
+		if err := CompareTransforms(c, got); err != nil {
+			t.Errorf("case %d dataset mismatch: %s", i, err.Error())
+			continue
+		}
+	}
+}
+
+func TestTransformDecode(t *testing.T) {
+	cases := []struct {
+		ct  *CodingTransform
+		err string
+	}{
+		{&CodingTransform{}, ""},
+		{&CodingTransform{Resources: []byte("foo")}, "decoding transform resources: invalid character 'o' in literal false (expecting 'a')"},
+		{&CodingTransform{Structure: &CodingStructure{Format: "foo"}}, "invalid data format: `foo`"},
+	}
+
+	for i, c := range cases {
+		got := &Transform{}
+		err := got.Decode(c.ct)
+		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
+			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
+			continue
+		}
+	}
+}

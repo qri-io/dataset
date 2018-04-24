@@ -205,3 +205,80 @@ func UnmarshalTransform(v interface{}) (*Transform, error) {
 		return nil, err
 	}
 }
+
+// Encode creates a CodingTransform from a Transform instance
+func (q Transform) Encode() *CodingTransform {
+	var (
+		rsc []byte
+		err error
+	)
+
+	if q.Resources != nil {
+		rsc, err = json.Marshal(q.Resources)
+		if err != nil {
+			rsc = []byte{}
+		}
+	}
+
+	ct := &CodingTransform{
+		AppVersion: q.AppVersion,
+		Config:     q.Config,
+		Data:       q.Data,
+		Path:       q.Path().String(),
+		Qri:        q.Qri.String(),
+		Resources:  rsc,
+		Syntax:     q.Syntax,
+	}
+
+	if q.Structure != nil {
+		ct.Structure = q.Structure.Encode()
+	}
+
+	return ct
+}
+
+// Decode creates a Transform from a CodingTransform instance
+func (q *Transform) Decode(ct *CodingTransform) error {
+	t := Transform{
+		AppVersion: ct.AppVersion,
+		Config:     ct.Config,
+		Data:       ct.Data,
+		path:       datastore.NewKey(ct.Path),
+		Syntax:     ct.Syntax,
+	}
+
+	if ct.Qri != "" {
+		t.Qri = KindTransform
+	}
+
+	if ct.Resources != nil {
+		t.Resources = map[string]*Dataset{}
+		if err := json.Unmarshal(ct.Resources, &t.Resources); err != nil {
+			return fmt.Errorf("decoding transform resources: %s", err.Error())
+		}
+	}
+
+	if ct.Structure != nil {
+		t.Structure = &Structure{}
+		if err := t.Structure.Decode(ct.Structure); err != nil {
+			return err
+		}
+	}
+
+	*q = t
+	return nil
+}
+
+// CodingTransform is a variant of Transform safe for serialization (encoding & decoding)
+// to static formats. It uses only simple go types
+type CodingTransform struct {
+	AppVersion string                 `json:"appVersion,omitempty"`
+	Config     map[string]interface{} `json:"config,omitempty"`
+	Data       string                 `json:"data,omitempty"`
+	Path       string                 `json:"path,omitempty"`
+	Qri        string                 `json:"qri,omitempty"`
+	// resources are respresented as JSON-bytes
+	Resources []byte           `json:"resources,omitempty"`
+	Syntax    string           `json:"syntax,omitempty"`
+	Structure *CodingStructure `json:"structure,omitempty"`
+}
