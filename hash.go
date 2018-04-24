@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/jbenet/go-base58"
+	"github.com/mr-tron/base58/base58"
 	"github.com/multiformats/go-multihash"
 )
 

@@ -133,7 +133,7 @@ func (cm *Commit) UnmarshalJSON(data []byte) error {
 	m := _commitMsg{}
 	if err := json.Unmarshal(data, &m); err != nil {
 		log.Debug(err.Error())
-		return fmt.Errorf("error unmarshling dataset: %s", err.Error())
+		return fmt.Errorf("error unmarshling commit: %s", err.Error())
 	}
 
 	*cm = Commit(m)
@@ -157,4 +157,51 @@ func UnmarshalCommit(v interface{}) (*Commit, error) {
 		log.Debug(err.Error())
 		return nil, err
 	}
+}
+
+// Encode creates a CodingCommit from a Commit instance
+func (cm Commit) Encode() *CodingCommit {
+	return &CodingCommit{
+		Author:    cm.Author,
+		Message:   cm.Message,
+		Path:      cm.Path().String(),
+		Qri:       cm.Qri.String(),
+		Signature: cm.Signature,
+		Timestamp: cm.Timestamp,
+		Title:     cm.Title,
+	}
+}
+
+// Decode creates a Commit from a CodingCommit instance
+func (cm *Commit) Decode(cc *CodingCommit) error {
+	c := Commit{
+		path:      datastore.NewKey(cc.Path),
+		Author:    cc.Author,
+		Message:   cc.Message,
+		Signature: cc.Signature,
+		Timestamp: cc.Timestamp,
+		Title:     cc.Title,
+	}
+
+	if cc.Qri == KindCommit.String() {
+		// TODO - this should respond to changes in CodingCommit
+		c.Qri = KindCommit
+	} else if cc.Qri != "" {
+		return fmt.Errorf("invalid commit 'qri' value: %s", cc.Qri)
+	}
+
+	*cm = c
+	return nil
+}
+
+// CodingCommit is a variant of Commit safe for serialization (encoding & decoding)
+// to static formats. It uses only simple go types
+type CodingCommit struct {
+	Author    *User     `json:"author,omitempty"`
+	Message   string    `json:"message,omitempty"`
+	Path      string    `json:"path,omitempty"`
+	Qri       string    `json:"qri,omitempty"`
+	Signature string    `json:"signature,omitempty"`
+	Timestamp time.Time `json:"timestamp"`
+	Title     string    `json:"title"`
 }

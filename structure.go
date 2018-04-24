@@ -321,3 +321,91 @@ func base26(d int) (s string) {
 	}
 	return s
 }
+
+// Encode creates a CodingStructure from a Structure instance
+func (s Structure) Encode() *CodingStructure {
+	var (
+		sch []byte
+		err error
+	)
+
+	if s.Schema != nil {
+		sch, err = json.Marshal(s.Schema)
+		if err != nil {
+			sch = nil
+		}
+	}
+
+	cs := &CodingStructure{
+		Checksum:    s.Checksum,
+		Compression: s.Compression.String(),
+		Encoding:    s.Encoding,
+		ErrCount:    s.ErrCount,
+		Entries:     s.Entries,
+		Format:      s.Format.String(),
+		Length:      s.Length,
+		Path:        s.Path().String(),
+		Qri:         s.Qri.String(),
+		Schema:      sch,
+	}
+
+	if s.FormatConfig != nil {
+		cs.FormatConfig = s.FormatConfig.Map()
+	}
+
+	return cs
+}
+
+// Decode creates a Stucture from a CodingStructre instance
+func (s *Structure) Decode(cs *CodingStructure) (err error) {
+	dst := Structure{
+		Checksum: cs.Checksum,
+		Encoding: cs.Encoding,
+		ErrCount: cs.ErrCount,
+		Entries:  cs.Entries,
+		Length:   cs.Length,
+	}
+
+	if cs.Qri != "" {
+		// TODO - this should respond to changes in cs
+		dst.Qri = KindStructure
+	}
+
+	if dst.Format, err = ParseDataFormatString(cs.Format); err != nil {
+		return err
+	}
+
+	if cs.FormatConfig != nil {
+		if dst.FormatConfig, err = ParseFormatConfigMap(dst.Format, cs.FormatConfig); err != nil {
+			return err
+		}
+	}
+
+	if cs.Schema != nil {
+		sch := &jsonschema.RootSchema{}
+		if err = json.Unmarshal(cs.Schema, sch); err != nil {
+			return
+		}
+		dst.Schema = sch
+	}
+
+	*s = dst
+	return nil
+}
+
+// CodingStructure is a variant of Structure safe for serialization (encoding & decoding)
+// to static formats. It uses only simple go types
+type CodingStructure struct {
+	Checksum     string                 `json:"checksum,omitempty"`
+	Compression  string                 `json:"compression,omitempty"`
+	Encoding     string                 `json:"encoding,omitempty"`
+	ErrCount     int                    `json:"errCount"`
+	Entries      int                    `json:"entries,omitempty"`
+	Format       string                 `json:"format"`
+	FormatConfig map[string]interface{} `json:"formatConfig,omitempty"`
+	Length       int                    `json:"length,omitempty"`
+	Path         string                 `json:"path,omitempty"`
+	Qri          string                 `json:"qri"`
+	// Schema is stored as json-encoded bytes
+	Schema []byte `json:"schema,omitempty"`
+}

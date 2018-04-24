@@ -169,7 +169,7 @@ func (ds *Dataset) UnmarshalJSON(data []byte) error {
 	d := _dataset{}
 	if err := json.Unmarshal(data, &d); err != nil {
 		log.Debug(err.Error())
-		return fmt.Errorf("error unmarshaling dataset: %s", err.Error())
+		return fmt.Errorf("unmarshaling dataset: %s", err.Error())
 	}
 	*ds = Dataset(d)
 	return nil
@@ -192,4 +192,82 @@ func UnmarshalDataset(v interface{}) (*Dataset, error) {
 		log.Debug(err.Error())
 		return nil, err
 	}
+}
+
+// Encode creates a CodingDataset from a Dataset instance
+func (ds Dataset) Encode() *CodingDataset {
+	cd := &CodingDataset{
+		DataPath:     ds.DataPath,
+		Meta:         ds.Meta,
+		Path:         ds.Path().String(),
+		PreviousPath: ds.PreviousPath,
+		Qri:          ds.Qri.String(),
+		VisConfig:    ds.VisConfig,
+	}
+
+	if ds.Commit != nil {
+		cd.Commit = ds.Commit.Encode()
+	}
+	if ds.Structure != nil {
+		cd.Structure = ds.Structure.Encode()
+	}
+	if ds.Transform != nil {
+		cd.Transform = ds.Transform.Encode()
+	}
+
+	return cd
+}
+
+// Decode creates a Dataset from a CodingDataset instance
+func (ds *Dataset) Decode(cd *CodingDataset) error {
+	d := Dataset{
+		path:         datastore.NewKey(cd.Path),
+		DataPath:     cd.DataPath,
+		PreviousPath: cd.PreviousPath,
+		Meta:         cd.Meta,
+		VisConfig:    cd.VisConfig,
+	}
+
+	if cd.Qri != "" {
+		// TODO - this should react to changes in cd
+		d.Qri = KindDataset
+	}
+
+	if cd.Commit != nil {
+		d.Commit = &Commit{}
+		if err := d.Commit.Decode(cd.Commit); err != nil {
+			return err
+		}
+	}
+
+	if cd.Structure != nil {
+		d.Structure = &Structure{}
+		if err := d.Structure.Decode(cd.Structure); err != nil {
+			return err
+		}
+	}
+
+	if cd.Transform != nil {
+		d.Transform = &Transform{}
+		if err := d.Transform.Decode(cd.Transform); err != nil {
+			return err
+		}
+	}
+
+	*ds = d
+	return nil
+}
+
+// CodingDataset is a variant of Dataset safe for serialization (encoding & decoding)
+// to static formats. It uses only simple go types
+type CodingDataset struct {
+	Commit       *CodingCommit    `json:"commit,omitempty"`
+	DataPath     string           `json:"dataPath,omitempty"`
+	Meta         *Meta            `json:"meta,omitempty"`
+	Path         string           `json:"path,omitempty"`
+	PreviousPath string           `json:"previousPath,omitempty"`
+	Qri          string           `json:"qri"`
+	Structure    *CodingStructure `json:"structure"`
+	Transform    *CodingTransform `json:"transform,omitempty"`
+	VisConfig    *VisConfig       `json:"visconfig,omitempty"`
 }

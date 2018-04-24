@@ -183,16 +183,18 @@ func TestCommitUnmarshalJSON(t *testing.T) {
 	cases := []struct {
 		data   string
 		result *Commit
-		err    error
+		err    string
 	}{
-		{`{}`, &Commit{}, nil},
-		{`{ "title": "title", "message": "message"}`, &Commit{Title: "title", Message: "message"}, nil},
-		{`{ "author" : { "id": "id", "email": "email@email.com"} }`, &Commit{Author: &User{ID: "id", Email: "email@email.com"}}, nil},
+		{`{}`, &Commit{}, ""},
+		{`{ "title": "title", "message": "message"}`, &Commit{Title: "title", Message: "message"}, ""},
+		{`{ "author" : { "id": "id", "email": "email@email.com"} }`, &Commit{Author: &User{ID: "id", Email: "email@email.com"}}, ""},
+		{`{`, &Commit{Author: &User{ID: "id", Email: "email@email.com"}}, "error unmarshling commit: unexpected end of JSON input"},
 	}
 
 	for i, c := range cases {
 		cm := &Commit{}
-		if err := json.Unmarshal([]byte(c.data), cm); err != c.err {
+		err := cm.UnmarshalJSON([]byte(c.data))
+		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
 			continue
 		}
@@ -237,6 +239,52 @@ func TestUnmarshalCommit(t *testing.T) {
 		}
 		if err := CompareCommits(c.out, got); err != nil {
 			t.Errorf("case %d dataset mismatch: %s", i, err.Error())
+			continue
+		}
+	}
+}
+
+func TestCommitCoding(t *testing.T) {
+	cases := []*Commit{
+		{},
+		{Author: &User{Email: "foo"}},
+		{Message: "foo"},
+		{path: datastore.NewKey("/foo")},
+		{Qri: KindCommit},
+		{Signature: "foo"},
+		{Timestamp: time.Date(2001, 1, 1, 1, 1, 1, 1, time.UTC)},
+		{Title: "foo"},
+	}
+
+	for i, c := range cases {
+		cd := c.Encode()
+		got := &Commit{}
+		if err := got.Decode(cd); err != nil {
+			t.Errorf("case %d unexpected error '%s'", i, err)
+			continue
+		}
+
+		if err := CompareCommits(c, got); err != nil {
+			t.Errorf("case %d mismatch: %s", i, err.Error())
+			continue
+		}
+	}
+}
+
+func TestCommitDecode(t *testing.T) {
+	cases := []struct {
+		cm  *CodingCommit
+		err string
+	}{
+		{&CodingCommit{}, ""},
+		{&CodingCommit{Qri: "foo"}, "invalid commit 'qri' value: foo"},
+	}
+
+	for i, c := range cases {
+		got := &Commit{}
+		err := got.Decode(c.cm)
+		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
+			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
 			continue
 		}
 	}
