@@ -324,7 +324,7 @@ func TestStructureDecode(t *testing.T) {
 		{&CodingStructure{}, ""},
 		{&CodingStructure{Format: "foo"}, "invalid data format: `foo`"},
 		{&CodingStructure{FormatConfig: map[string]interface{}{}}, "cannot parse configuration for format: "},
-		{&CodingStructure{Schema: []byte("foo")}, "invalid character 'o' in literal false (expecting 'a')"},
+		{&CodingStructure{Schema: map[string]interface{}{"foo": "bar"}}, "error unmarshaling foo from json: json: cannot unmarshal string into Go value of type jsonschema._schema"},
 	}
 
 	for i, c := range cases {

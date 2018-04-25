@@ -325,13 +325,18 @@ func base26(d int) (s string) {
 // Encode creates a CodingStructure from a Structure instance
 func (s Structure) Encode() *CodingStructure {
 	var (
-		sch []byte
-		err error
+		sch  map[string]interface{}
+		schd []byte
+		err  error
 	)
 
 	if s.Schema != nil {
-		sch, err = json.Marshal(s.Schema)
+		sch = map[string]interface{}{}
+		schd, err = json.Marshal(s.Schema)
 		if err != nil {
+			sch = nil
+		}
+		if err = json.Unmarshal(schd, &sch); err != nil {
 			sch = nil
 		}
 	}
@@ -383,7 +388,11 @@ func (s *Structure) Decode(cs *CodingStructure) (err error) {
 
 	if cs.Schema != nil {
 		sch := &jsonschema.RootSchema{}
-		if err = json.Unmarshal(cs.Schema, sch); err != nil {
+		data, e := json.Marshal(cs.Schema)
+		if e != nil {
+			return e
+		}
+		if err = json.Unmarshal(data, sch); err != nil {
 			return
 		}
 		dst.Schema = sch
@@ -406,6 +415,5 @@ type CodingStructure struct {
 	Length       int                    `json:"length,omitempty"`
 	Path         string                 `json:"path,omitempty"`
 	Qri          string                 `json:"qri"`
-	// Schema is stored as json-encoded bytes
-	Schema []byte `json:"schema,omitempty"`
+	Schema       map[string]interface{} `json:"schema,omitempty"`
 }
