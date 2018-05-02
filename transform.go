@@ -206,8 +206,8 @@ func UnmarshalTransform(v interface{}) (*Transform, error) {
 	}
 }
 
-// Encode creates a CodingTransform from a Transform instance
-func (q Transform) Encode() *CodingTransform {
+// Encode creates a TransformPod from a Transform instance
+func (q Transform) Encode() *TransformPod {
 	var (
 		rsc []byte
 		err error
@@ -220,7 +220,7 @@ func (q Transform) Encode() *CodingTransform {
 		}
 	}
 
-	ct := &CodingTransform{
+	ct := &TransformPod{
 		AppVersion: q.AppVersion,
 		Config:     q.Config,
 		Data:       q.Data,
@@ -237,8 +237,8 @@ func (q Transform) Encode() *CodingTransform {
 	return ct
 }
 
-// Decode creates a Transform from a CodingTransform instance
-func (q *Transform) Decode(ct *CodingTransform) error {
+// Decode creates a Transform from a TransformPod instance
+func (q *Transform) Decode(ct *TransformPod) error {
 	t := Transform{
 		AppVersion: ct.AppVersion,
 		Config:     ct.Config,
@@ -269,16 +269,16 @@ func (q *Transform) Decode(ct *CodingTransform) error {
 	return nil
 }
 
-// CodingTransform is a variant of Transform safe for serialization (encoding & decoding)
+// TransformPod is a variant of Transform safe for serialization (encoding & decoding)
 // to static formats. It uses only simple go types
-type CodingTransform struct {
+type TransformPod struct {
 	AppVersion string                 `json:"appVersion,omitempty"`
 	Config     map[string]interface{} `json:"config,omitempty"`
 	Data       string                 `json:"data,omitempty"`
 	Path       string                 `json:"path,omitempty"`
 	Qri        string                 `json:"qri,omitempty"`
 	// resources are respresented as JSON-bytes
-	Resources []byte           `json:"resources,omitempty"`
-	Syntax    string           `json:"syntax,omitempty"`
-	Structure *CodingStructure `json:"structure,omitempty"`
+	Resources []byte        `json:"resources,omitempty"`
+	Syntax    string        `json:"syntax,omitempty"`
+	Structure *StructurePod `json:"structure,omitempty"`
 }

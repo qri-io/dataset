@@ -260,11 +260,11 @@ func TestCommitCoding(t *testing.T) {
 
 func TestCommitDecode(t *testing.T) {
 	cases := []struct {
-		cm  *CodingCommit
+		cm  *CommitPod
 		err string
 	}{
-		{&CodingCommit{}, ""},
-		{&CodingCommit{Qri: "foo"}, "invalid commit 'qri' value: foo"},
+		{&CommitPod{}, ""},
+		{&CommitPod{Qri: "foo"}, "invalid commit 'qri' value: foo"},
 	}
 
 	for i, c := range cases {

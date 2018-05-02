@@ -28,7 +28,7 @@ jobs:
             github.com/ugorji/go/codec
       - run: 
           name: Run Lint Tests
-          command: golint -set_exit_status ./...
+          command: golint ./...
       - restore_cache:
           key: dependency-cache-{{ checksum "package.json" }}
       - run: 

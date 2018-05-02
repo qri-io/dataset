@@ -316,13 +316,13 @@ func TestDatasetCoding(t *testing.T) {
 
 func TestDatasetDecode(t *testing.T) {
 	cases := []struct {
-		cd  *CodingDataset
+		cd  *DatasetPod
 		err string
 	}{
-		{&CodingDataset{}, ""},
-		{&CodingDataset{Commit: &CodingCommit{Qri: "foo"}}, "invalid commit 'qri' value: foo"},
-		{&CodingDataset{Structure: &CodingStructure{Format: "foo"}}, "invalid data format: `foo`"},
-		{&CodingDataset{Transform: &CodingTransform{Resources: []byte("foo")}}, "decoding transform resources: invalid character 'o' in literal false (expecting 'a')"},
+		{&DatasetPod{}, ""},
+		{&DatasetPod{Commit: &CommitPod{Qri: "foo"}}, "invalid commit 'qri' value: foo"},
+		{&DatasetPod{Structure: &StructurePod{Format: "foo"}}, "invalid data format: `foo`"},
+		{&DatasetPod{Transform: &TransformPod{Resources: []byte("foo")}}, "decoding transform resources: invalid character 'o' in literal false (expecting 'a')"},
 	}
 
 	for i, c := range cases {
