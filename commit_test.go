@@ -103,19 +103,6 @@ func TestCommitIsEmpty(t *testing.T) {
 	}
 }
 
-func TestCommitSignableBytes(t *testing.T) {
-	expect := []byte("2001-01-01T01:01:01Z\nI'm a commit message")
-	cm := &Commit{
-		Timestamp: time.Date(2001, 01, 01, 01, 01, 01, 0, time.UTC),
-		Title:     "I'm a commit message",
-	}
-	got := cm.SignableBytes()
-
-	if !bytes.Equal(expect, got) {
-		t.Errorf("mismatch. expected:\n'%s',got:\n'%s'", string(expect), string(got))
-	}
-}
-
 func TestCommitMarshalJSON(t *testing.T) {
 	ts := time.Date(2001, 01, 01, 01, 01, 01, 0, time.UTC)
 	cases := []struct {

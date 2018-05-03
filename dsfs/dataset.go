@@ -212,9 +212,9 @@ func CreateDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pk c
 }
 
 // Timestamp is an function for getting commit timestamps
-// we replace this with a static function for testing purposes
+// timestamps MUST be stored in UTC time zone
 var Timestamp = func() time.Time {
-	return time.Now()
+	return time.Now().UTC()
 }
 
 func generateCommitMsg(store cafs.Filestore, ds *dataset.Dataset) (string, error) {
@@ -384,7 +384,8 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 	cleanTitleAndMessage(&ds.Commit.Title, &ds.Commit.Message)
 
 	ds.Commit.Timestamp = Timestamp()
-	signedBytes, err := privKey.Sign(ds.Commit.SignableBytes())
+	sb, _ := ds.SignableBytes()
+	signedBytes, err := privKey.Sign(sb)
 	if err != nil {
 		log.Debug(err.Error())
 		return nil, "", fmt.Errorf("error signing commit title: %s", err.Error())
