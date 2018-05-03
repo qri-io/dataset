@@ -1,6 +1,7 @@
 package dsfs
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -390,7 +391,7 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 		log.Debug(err.Error())
 		return nil, "", fmt.Errorf("error signing commit title: %s", err.Error())
 	}
-	ds.Commit.Signature = base58.Encode(signedBytes)
+	ds.Commit.Signature = base64.StdEncoding.EncodeToString(signedBytes)
 
 	return cafs.NewMemfileBytes("data."+ds.Structure.Format.String(), data), diffDescription, nil
 }
