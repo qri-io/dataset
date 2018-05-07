@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"testing"
+	"time"
 
 	"github.com/ipfs/go-datastore"
 )
@@ -72,6 +73,39 @@ func TestDatasetAssign(t *testing.T) {
 		t.Errorf("error testing assigning to existing substructs: %s", err.Error())
 		return
 	}
+}
+
+func TestDatasetSignableBytes(t *testing.T) {
+	loc, err := time.LoadLocation("America/Toronto")
+	if err != nil {
+		t.Errorf("error getting timezone: %s", err.Error())
+		return
+	}
+
+	cases := []struct {
+		ds     *Dataset
+		expect []byte
+		err    string
+	}{
+		{&Dataset{}, nil, "commit is required"},
+		{&Dataset{Commit: &Commit{}}, nil, "structure is required"},
+		{&Dataset{Commit: &Commit{}, Structure: &Structure{}}, []byte("0001-01-01T00:00:00Z\n"), ""},
+		{&Dataset{Commit: &Commit{Timestamp: time.Date(2001, 01, 01, 01, 01, 01, 0, time.UTC)}, Structure: &Structure{Checksum: "checksum"}}, []byte("2001-01-01T01:01:01Z\nchecksum"), ""},
+		{&Dataset{Commit: &Commit{Timestamp: time.Date(2001, 01, 01, 01, 01, 01, 0, loc)}, Structure: &Structure{Checksum: "checksum"}}, []byte("2001-01-01T06:01:01Z\nchecksum"), ""},
+	}
+
+	for i, c := range cases {
+		got, err := c.ds.SignableBytes()
+		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
+			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
+			continue
+		}
+
+		if c.err == "" && !bytes.Equal(got, c.expect) {
+			t.Errorf("case %d result mismatch. expected: '%s'\n got: '%s'", i, string(c.expect), string(got))
+		}
+	}
+
 }
 
 func TestDatasetMarshalJSON(t *testing.T) {

@@ -3,6 +3,7 @@ package dataset
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/ipfs/go-datastore"
 	logger "github.com/ipfs/go-log"
@@ -89,6 +90,22 @@ func (ds *Dataset) SetPath(path string) {
 	} else {
 		ds.path = datastore.NewKey(path)
 	}
+}
+
+// SignableBytes produces the portion of a commit message used for signing
+// the format for signable bytes is:
+// *  commit timestamp in RFC3339 format, UTC timezone
+// *  newline character
+// *  dataset structure checksum string
+// checksum string should be a base58-encoded multihash of the dataset data
+func (ds *Dataset) SignableBytes() ([]byte, error) {
+	if ds.Commit == nil {
+		return nil, fmt.Errorf("commit is required")
+	}
+	if ds.Structure == nil {
+		return nil, fmt.Errorf("structure is required")
+	}
+	return []byte(fmt.Sprintf("%s\n%s", ds.Commit.Timestamp.UTC().Format(time.RFC3339), ds.Structure.Checksum)), nil
 }
 
 // Assign collapses all properties of a group of datasets onto one.

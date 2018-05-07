@@ -43,11 +43,6 @@ func (cm *Commit) Path() datastore.Key {
 	return cm.path
 }
 
-// SignableBytes produces the portion of a commit message used for signing
-func (cm *Commit) SignableBytes() []byte {
-	return []byte(fmt.Sprintf("%s\n%s", cm.Timestamp.Format(time.RFC3339), cm.Title))
-}
-
 // SetPath sets the internal path property of a commit
 // Use with caution. most callers should never need to call SetPath
 func (cm *Commit) SetPath(path string) {
