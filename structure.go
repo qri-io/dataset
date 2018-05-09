@@ -322,8 +322,8 @@ func base26(d int) (s string) {
 	return s
 }
 
-// Encode creates a CodingStructure from a Structure instance
-func (s Structure) Encode() *CodingStructure {
+// Encode creates a StructurePod from a Structure instance
+func (s Structure) Encode() *StructurePod {
 	var (
 		sch  map[string]interface{}
 		schd []byte
@@ -341,7 +341,7 @@ func (s Structure) Encode() *CodingStructure {
 		}
 	}
 
-	cs := &CodingStructure{
+	cs := &StructurePod{
 		Checksum:    s.Checksum,
 		Compression: s.Compression.String(),
 		Encoding:    s.Encoding,
@@ -362,7 +362,7 @@ func (s Structure) Encode() *CodingStructure {
 }
 
 // Decode creates a Stucture from a CodingStructre instance
-func (s *Structure) Decode(cs *CodingStructure) (err error) {
+func (s *Structure) Decode(cs *StructurePod) (err error) {
 	dst := Structure{
 		Checksum: cs.Checksum,
 		Encoding: cs.Encoding,
@@ -402,9 +402,9 @@ func (s *Structure) Decode(cs *CodingStructure) (err error) {
 	return nil
 }
 
-// CodingStructure is a variant of Structure safe for serialization (encoding & decoding)
+// StructurePod is a variant of Structure safe for serialization (encoding & decoding)
 // to static formats. It uses only simple go types
-type CodingStructure struct {
+type StructurePod struct {
 	Checksum     string                 `json:"checksum,omitempty"`
 	Compression  string                 `json:"compression,omitempty"`
 	Encoding     string                 `json:"encoding,omitempty"`

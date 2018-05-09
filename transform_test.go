@@ -239,12 +239,12 @@ func TestTransformCoding(t *testing.T) {
 
 func TestTransformDecode(t *testing.T) {
 	cases := []struct {
-		ct  *CodingTransform
+		ct  *TransformPod
 		err string
 	}{
-		{&CodingTransform{}, ""},
-		{&CodingTransform{Resources: []byte("foo")}, "decoding transform resources: invalid character 'o' in literal false (expecting 'a')"},
-		{&CodingTransform{Structure: &CodingStructure{Format: "foo"}}, "invalid data format: `foo`"},
+		{&TransformPod{}, ""},
+		{&TransformPod{Resources: []byte("foo")}, "decoding transform resources: invalid character 'o' in literal false (expecting 'a')"},
+		{&TransformPod{Structure: &StructurePod{Format: "foo"}}, "invalid data format: `foo`"},
 	}
 
 	for i, c := range cases {

@@ -154,9 +154,9 @@ func UnmarshalCommit(v interface{}) (*Commit, error) {
 	}
 }
 
-// Encode creates a CodingCommit from a Commit instance
-func (cm Commit) Encode() *CodingCommit {
-	return &CodingCommit{
+// Encode creates a CommitPod from a Commit instance
+func (cm Commit) Encode() *CommitPod {
+	return &CommitPod{
 		Author:    cm.Author,
 		Message:   cm.Message,
 		Path:      cm.Path().String(),
@@ -167,8 +167,8 @@ func (cm Commit) Encode() *CodingCommit {
 	}
 }
 
-// Decode creates a Commit from a CodingCommit instance
-func (cm *Commit) Decode(cc *CodingCommit) error {
+// Decode creates a Commit from a CommitPod instance
+func (cm *Commit) Decode(cc *CommitPod) error {
 	c := Commit{
 		path:      datastore.NewKey(cc.Path),
 		Author:    cc.Author,
@@ -179,7 +179,7 @@ func (cm *Commit) Decode(cc *CodingCommit) error {
 	}
 
 	if cc.Qri == KindCommit.String() {
-		// TODO - this should respond to changes in CodingCommit
+		// TODO - this should respond to changes in CommitPod
 		c.Qri = KindCommit
 	} else if cc.Qri != "" {
 		return fmt.Errorf("invalid commit 'qri' value: %s", cc.Qri)
@@ -189,9 +189,9 @@ func (cm *Commit) Decode(cc *CodingCommit) error {
 	return nil
 }
 
-// CodingCommit is a variant of Commit safe for serialization (encoding & decoding)
+// CommitPod is a variant of Commit safe for serialization (encoding & decoding)
 // to static formats. It uses only simple go types
-type CodingCommit struct {
+type CommitPod struct {
 	Author    *User     `json:"author,omitempty"`
 	Message   string    `json:"message,omitempty"`
 	Path      string    `json:"path,omitempty"`

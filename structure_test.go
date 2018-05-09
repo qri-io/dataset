@@ -318,13 +318,13 @@ func TestStructureCoding(t *testing.T) {
 
 func TestStructureDecode(t *testing.T) {
 	cases := []struct {
-		cst *CodingStructure
+		cst *StructurePod
 		err string
 	}{
-		{&CodingStructure{}, ""},
-		{&CodingStructure{Format: "foo"}, "invalid data format: `foo`"},
-		{&CodingStructure{FormatConfig: map[string]interface{}{}}, "cannot parse configuration for format: "},
-		{&CodingStructure{Schema: map[string]interface{}{"foo": "bar"}}, "error unmarshaling foo from json: json: cannot unmarshal string into Go value of type jsonschema._schema"},
+		{&StructurePod{}, ""},
+		{&StructurePod{Format: "foo"}, "invalid data format: `foo`"},
+		{&StructurePod{FormatConfig: map[string]interface{}{}}, "cannot parse configuration for format: "},
+		{&StructurePod{Schema: map[string]interface{}{"foo": "bar"}}, "error unmarshaling foo from json: json: cannot unmarshal string into Go value of type jsonschema._schema"},
 	}
 
 	for i, c := range cases {

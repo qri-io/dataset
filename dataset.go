@@ -211,9 +211,9 @@ func UnmarshalDataset(v interface{}) (*Dataset, error) {
 	}
 }
 
-// Encode creates a CodingDataset from a Dataset instance
-func (ds Dataset) Encode() *CodingDataset {
-	cd := &CodingDataset{
+// Encode creates a DatasetPod from a Dataset instance
+func (ds Dataset) Encode() *DatasetPod {
+	cd := &DatasetPod{
 		DataPath:     ds.DataPath,
 		Meta:         ds.Meta,
 		Path:         ds.Path().String(),
@@ -235,8 +235,8 @@ func (ds Dataset) Encode() *CodingDataset {
 	return cd
 }
 
-// Decode creates a Dataset from a CodingDataset instance
-func (ds *Dataset) Decode(cd *CodingDataset) error {
+// Decode creates a Dataset from a DatasetPod instance
+func (ds *Dataset) Decode(cd *DatasetPod) error {
 	d := Dataset{
 		path:         datastore.NewKey(cd.Path),
 		DataPath:     cd.DataPath,
@@ -275,16 +275,16 @@ func (ds *Dataset) Decode(cd *CodingDataset) error {
 	return nil
 }
 
-// CodingDataset is a variant of Dataset safe for serialization (encoding & decoding)
+// DatasetPod is a variant of Dataset safe for serialization (encoding & decoding)
 // to static formats. It uses only simple go types
-type CodingDataset struct {
-	Commit       *CodingCommit    `json:"commit,omitempty"`
-	DataPath     string           `json:"dataPath,omitempty"`
-	Meta         *Meta            `json:"meta,omitempty"`
-	Path         string           `json:"path,omitempty"`
-	PreviousPath string           `json:"previousPath,omitempty"`
-	Qri          string           `json:"qri"`
-	Structure    *CodingStructure `json:"structure"`
-	Transform    *CodingTransform `json:"transform,omitempty"`
-	VisConfig    *VisConfig       `json:"visconfig,omitempty"`
+type DatasetPod struct {
+	Commit       *CommitPod    `json:"commit,omitempty"`
+	DataPath     string        `json:"dataPath,omitempty"`
+	Meta         *Meta         `json:"meta,omitempty"`
+	Path         string        `json:"path,omitempty"`
+	PreviousPath string        `json:"previousPath,omitempty"`
+	Qri          string        `json:"qri"`
+	Structure    *StructurePod `json:"structure"`
+	Transform    *TransformPod `json:"transform,omitempty"`
+	VisConfig    *VisConfig    `json:"visconfig,omitempty"`
 }
