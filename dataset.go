@@ -277,14 +277,33 @@ func (ds *Dataset) Decode(cd *DatasetPod) error {
 
 // DatasetPod is a variant of Dataset safe for serialization (encoding & decoding)
 // to static formats. It uses only simple go types
+// DatasetPod can contain values that only exist after a dataset has been stored in
+// a content-addressed system, such as path, and fields that implicitly on dataset having
+// a path, like Peername & Name
+// There are also two fields that may contain dataset data: Data & DataBytes.
+// In practice these are only populated in special situations, and often only one of the two Data
+// fields is populated at a time.
 type DatasetPod struct {
-	Commit       *CommitPod    `json:"commit,omitempty"`
-	DataPath     string        `json:"dataPath,omitempty"`
-	Meta         *Meta         `json:"meta,omitempty"`
-	Path         string        `json:"path,omitempty"`
-	PreviousPath string        `json:"previousPath,omitempty"`
-	Qri          string        `json:"qri"`
-	Structure    *StructurePod `json:"structure"`
-	Transform    *TransformPod `json:"transform,omitempty"`
-	VisConfig    *VisConfig    `json:"visconfig,omitempty"`
+	Commit *CommitPod `json:"commit,omitempty"`
+	// Data is the designated field for representing dataset data with native go types
+	// this will often not be populated
+	Data interface{} `json:"data,omitempty"`
+	// DataBytes is the designated field for representing dataset data as a slice of bytes
+	// this will often not be populated
+	DataBytes []byte `json:"dataBytes,omitempty"`
+	// DataPath is the path to retrieve this dataset
+	DataPath string `json:"dataPath,omitempty"`
+	// Unique name reference for this dataset
+	Name string `json:"name,omitempty"`
+	Meta *Meta  `json:"meta,omitempty"`
+	Path string `json:"path,omitempty"`
+	// Peername of dataset owner
+	Peername     string `json:"peername,omitempty"`
+	PreviousPath string `json:"previousPath,omitempty"`
+	// ProfileID of dataset owner
+	ProfileID string        `json:"profileID,omitempty"`
+	Qri       string        `json:"qri"`
+	Structure *StructurePod `json:"structure"`
+	Transform *TransformPod `json:"transform,omitempty"`
+	VisConfig *VisConfig    `json:"visconfig,omitempty"`
 }
