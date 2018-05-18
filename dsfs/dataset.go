@@ -251,6 +251,7 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 	entryR, entryW := io.Pipe()
 	hashR, hashW := io.Pipe()
 	done := make(chan error)
+	tasks := 3
 
 	go setErrCount(ds, cafs.NewMemfileReader(df.FileName(), errR), mu, done)
 	go setEntryCount(ds, cafs.NewMemfileReader(df.FileName(), entryR), mu, done)
@@ -269,7 +270,7 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 		io.Copy(mw, df)
 	}()
 
-	for i := 3; i > 0; i-- {
+	for i := 0; i < tasks; i++ {
 		if err := <-done; err != nil {
 			return nil, "", err
 		}
@@ -279,21 +280,13 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 	diffDescription, err := generateCommitMsg(store, ds)
 	if err != nil {
 		log.Debug(err.Error())
-		return nil, "", fmt.Errorf("%s", err.Error())
+		return nil, "", err
 	}
 	if diffDescription == "" {
 		return nil, "", fmt.Errorf("error saving: no changes detected")
 	}
 
-	if ds.Commit.Title == "" && ds.Commit.Message != "" {
-		ds.Commit.Title = ds.Commit.Message
-		ds.Commit.Message = ""
-	}
-
-	if ds.Commit.Title == "" {
-		ds.Commit.Title = diffDescription
-	}
-	cleanTitleAndMessage(&ds.Commit.Title, &ds.Commit.Message)
+	cleanTitleAndMessage(&ds.Commit.Title, &ds.Commit.Message, diffDescription)
 
 	ds.Commit.Timestamp = Timestamp()
 	sb, _ := ds.SignableBytes()
@@ -382,6 +375,8 @@ func setChecksumAndStats(ds *dataset.Dataset, data cafs.File, buf *bytes.Buffer,
 }
 
 func generateCommitMsg(store cafs.Filestore, ds *dataset.Dataset) (string, error) {
+	// placeholder for when no previous commit exists
+	const placeholder = `abc`
 	// check for user-supplied commit message
 	var prev *dataset.Dataset
 	if ds.PreviousPath != "" {
@@ -395,11 +390,10 @@ func generateCommitMsg(store cafs.Filestore, ds *dataset.Dataset) (string, error
 		prev = &dataset.Dataset{
 			Commit: &dataset.Commit{},
 			Structure: &dataset.Structure{
-				Checksum: base58.Encode([]byte(`abc`)),
+				Checksum: base58.Encode([]byte(placeholder)),
 				Format:   ds.Structure.Format,
 			},
-			DataPath: "abc",
-			// Meta:     nil,
+			DataPath: placeholder,
 		}
 	}
 
@@ -420,11 +414,13 @@ func generateCommitMsg(store cafs.Filestore, ds *dataset.Dataset) (string, error
 // cleanTitleAndMessage adjusts the title to include no more
 // than 70 characters and no more than one line.  Text following
 // a line break or this limit will be prepended to the message
-func cleanTitleAndMessage(sTitle, sMsg *string) {
+func cleanTitleAndMessage(sTitle, sMsg *string, diffDescription string) {
 	st := *sTitle
 	sm := *sMsg
-	// if title is blank move pass message up to title
-	if st == "" {
+	if st == "" && diffDescription != "" {
+		st = diffDescription
+	} else if st == "" {
+		// if title is *still* blank move pass message up to title
 		st = sm
 		sm = ""
 	}
