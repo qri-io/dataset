@@ -1,11 +1,13 @@
 package dsfs
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/ipfs/go-datastore"
@@ -172,7 +174,6 @@ func DerefDatasetCommit(store cafs.Filestore, ds *dataset.Dataset) error {
 // Dataset to be saved
 // Pin the dataset if the underlying store supports the pinning interface
 func CreateDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pk crypto.PrivKey, pin bool) (path datastore.Key, err error) {
-
 	if pk == nil {
 		err = fmt.Errorf("private key is required to create a dataset")
 		return
@@ -218,7 +219,164 @@ var Timestamp = func() time.Time {
 	return time.Now().UTC()
 }
 
+// prepareDataset modifies a dataset in preparation for adding to a dsfs
+// it returns a new data file for use in WriteDataset
+func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, privKey crypto.PrivKey) (cafs.File, string, error) {
+	var (
+		err error
+		// lock for parallel edits to ds pointer
+		mu sync.Mutex
+		// accumulate reader into a buffer for shasum calculation & passing out another cafs.File
+		buf bytes.Buffer
+	)
+
+	if df == nil && ds.PreviousPath == "" {
+		return nil, "", fmt.Errorf("datafile or dataset PreviousPath needed")
+	}
+
+	if df == nil && ds.PreviousPath != "" {
+		prev, err := LoadDataset(store, datastore.NewKey(ds.PreviousPath))
+		if err != nil {
+			log.Debug(err.Error())
+			return nil, "", fmt.Errorf("error loading previous dataset: %s", err)
+		}
+		df, err = LoadData(store, prev)
+		if err != nil {
+			log.Debug(err.Error())
+			return nil, "", fmt.Errorf("error loading previous dataset data: %s", err)
+		}
+	}
+
+	errR, errW := io.Pipe()
+	entryR, entryW := io.Pipe()
+	hashR, hashW := io.Pipe()
+	done := make(chan error)
+	tasks := 3
+
+	go setErrCount(ds, cafs.NewMemfileReader(df.FileName(), errR), mu, done)
+	go setEntryCount(ds, cafs.NewMemfileReader(df.FileName(), entryR), mu, done)
+	go setChecksumAndStats(ds, cafs.NewMemfileReader(df.FileName(), hashR), &buf, mu, done)
+
+	go func() {
+		// pipes must be manually closed to trigger EOF
+		defer errW.Close()
+		defer entryW.Close()
+		defer hashW.Close()
+
+		// allocate a multiwriter that writes to each pipe when
+		// mw.Write() is called
+		mw := io.MultiWriter(errW, entryW, hashW)
+		// copy file bytes to multiwriter from input file
+		io.Copy(mw, df)
+	}()
+
+	for i := 0; i < tasks; i++ {
+		if err := <-done; err != nil {
+			return nil, "", err
+		}
+	}
+
+	//get auto commit message if necessary
+	diffDescription, err := generateCommitMsg(store, ds)
+	if err != nil {
+		log.Debug(err.Error())
+		return nil, "", err
+	}
+	if diffDescription == "" {
+		return nil, "", fmt.Errorf("error saving: no changes detected")
+	}
+
+	cleanTitleAndMessage(&ds.Commit.Title, &ds.Commit.Message, diffDescription)
+
+	ds.Commit.Timestamp = Timestamp()
+	sb, _ := ds.SignableBytes()
+	signedBytes, err := privKey.Sign(sb)
+	if err != nil {
+		log.Debug(err.Error())
+		return nil, "", fmt.Errorf("error signing commit title: %s", err.Error())
+	}
+	ds.Commit.Signature = base64.StdEncoding.EncodeToString(signedBytes)
+
+	return cafs.NewMemfileBytes("data."+ds.Structure.Format.String(), buf.Bytes()), diffDescription, nil
+}
+
+// setErrCount consumes sets the ErrCount field of a dataset's Structure
+func setErrCount(ds *dataset.Dataset, data cafs.File, mu sync.Mutex, done chan error) {
+	er, err := dsio.NewEntryReader(ds.Structure, data)
+	if err != nil {
+		log.Debug(err.Error())
+		done <- fmt.Errorf("reading data values: %s", err.Error())
+		return
+	}
+
+	validationErrors, err := validate.EntryReader(er)
+	if err != nil {
+		log.Debug(err.Error())
+		done <- fmt.Errorf("validating data: %s", err.Error())
+		return
+	}
+
+	mu.Lock()
+	ds.Structure.ErrCount = len(validationErrors)
+	mu.Unlock()
+
+	done <- nil
+}
+
+// setEntryCount set the Entries field of a ds.Structure
+func setEntryCount(ds *dataset.Dataset, data cafs.File, mu sync.Mutex, done chan error) {
+	er, err := dsio.NewEntryReader(ds.Structure, data)
+	if err != nil {
+		log.Debug(err.Error())
+		done <- fmt.Errorf("error reading data values: %s", err.Error())
+		return
+	}
+
+	entries := 0
+	for {
+		if _, err = er.ReadEntry(); err != nil {
+			log.Debug(err.Error())
+			break
+		}
+		entries++
+	}
+	if err.Error() != "EOF" {
+		done <- fmt.Errorf("error reading values: %s", err.Error())
+		return
+	}
+
+	mu.Lock()
+	ds.Structure.Entries = entries
+	mu.Unlock()
+
+	done <- nil
+}
+
+// setChecksumAndStats
+func setChecksumAndStats(ds *dataset.Dataset, data cafs.File, buf *bytes.Buffer, mu sync.Mutex, done chan error) {
+	if _, err := io.Copy(buf, data); err != nil {
+		done <- err
+		return
+	}
+
+	shasum, err := multihash.Sum(buf.Bytes(), multihash.SHA2_256, -1)
+	if err != nil {
+		log.Debug(err.Error())
+		done <- fmt.Errorf("error calculating hash: %s", err.Error())
+		return
+	}
+
+	mu.Lock()
+	ds.Structure.Checksum = shasum.B58String()
+	ds.Structure.Length = len(buf.Bytes())
+	mu.Unlock()
+
+	done <- nil
+}
+
 func generateCommitMsg(store cafs.Filestore, ds *dataset.Dataset) (string, error) {
+	// placeholder for when no previous commit exists
+	const placeholder = `abc`
 	// check for user-supplied commit message
 	var prev *dataset.Dataset
 	if ds.PreviousPath != "" {
@@ -232,11 +390,10 @@ func generateCommitMsg(store cafs.Filestore, ds *dataset.Dataset) (string, error
 		prev = &dataset.Dataset{
 			Commit: &dataset.Commit{},
 			Structure: &dataset.Structure{
-				Checksum: base58.Encode([]byte(`abc`)),
+				Checksum: base58.Encode([]byte(placeholder)),
 				Format:   ds.Structure.Format,
 			},
-			DataPath: "abc",
-			// Meta:     nil,
+			DataPath: placeholder,
 		}
 	}
 
@@ -257,11 +414,13 @@ func generateCommitMsg(store cafs.Filestore, ds *dataset.Dataset) (string, error
 // cleanTitleAndMessage adjusts the title to include no more
 // than 70 characters and no more than one line.  Text following
 // a line break or this limit will be prepended to the message
-func cleanTitleAndMessage(sTitle, sMsg *string) {
+func cleanTitleAndMessage(sTitle, sMsg *string, diffDescription string) {
 	st := *sTitle
 	sm := *sMsg
-	// if title is blank move pass message up to title
-	if st == "" {
+	if st == "" && diffDescription != "" {
+		st = diffDescription
+	} else if st == "" {
+		// if title is *still* blank move pass message up to title
 		st = sm
 		sm = ""
 	}
@@ -284,116 +443,6 @@ func cleanTitleAndMessage(sTitle, sMsg *string) {
 	}
 	*sTitle = st
 	*sMsg = sm
-}
-
-// prepareDataset modifies a dataset in preparation for adding to a dsfs
-// it returns a new data file for use in WriteDataset
-func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, privKey crypto.PrivKey) (cafs.File, string, error) {
-	// TODO - need a better strategy for huge files. I think that strategy is to split
-	// the reader into multiple consumers that are all performing their task on a stream
-	// of byte slices
-	var err error
-	if df == nil && ds.PreviousPath == "" {
-		return nil, "", fmt.Errorf("datafile or dataset PreviousPath needed")
-	}
-
-	if df == nil && ds.PreviousPath != "" {
-		prev, err := LoadDataset(store, datastore.NewKey(ds.PreviousPath))
-		if err != nil {
-			log.Debug(err.Error())
-			return nil, "", fmt.Errorf("error loading previous dataset: %s", err)
-		}
-		df, err = LoadData(store, prev)
-		if err != nil {
-			log.Debug(err.Error())
-			return nil, "", fmt.Errorf("error loading previous dataset data: %s", err)
-		}
-	}
-
-	data, err := ioutil.ReadAll(df)
-	if err != nil {
-		log.Debug(err.Error())
-		return nil, "", fmt.Errorf("error reading file: %s", err.Error())
-	}
-	ds.Structure.Length = len(data)
-
-	// set error count
-
-	er, err := dsio.NewEntryReader(ds.Structure, cafs.NewMemfileBytes("data", data))
-	if err != nil {
-		log.Debug(err.Error())
-		return nil, "", fmt.Errorf("error reading data values: %s", err.Error())
-	}
-
-	validationErrors, err := validate.EntryReader(er)
-	if err != nil {
-		log.Debug(err.Error())
-		return nil, "", fmt.Errorf("error validating data: %s", err.Error())
-	}
-	ds.Structure.ErrCount = len(validationErrors)
-
-	// TODO - add a dsio.RowCount function that avoids actually arranging data into rows
-	er, err = dsio.NewEntryReader(ds.Structure, cafs.NewMemfileBytes("data", data))
-	if err != nil {
-		log.Debug(err.Error())
-		return nil, "", fmt.Errorf("error reading data values: %s", err.Error())
-	}
-
-	entries := 0
-	for {
-		if _, err = er.ReadEntry(); err != nil {
-			log.Debug(err.Error())
-			break
-		}
-		entries++
-	}
-	if err.Error() != "EOF" {
-		return nil, "", fmt.Errorf("error reading values: %s", err.Error())
-	}
-
-	ds.Structure.Entries = entries
-
-	// TODO - set hash
-	shasum, err := multihash.Sum(data, multihash.SHA2_256, -1)
-	if err != nil {
-		log.Debug(err.Error())
-		return nil, "", fmt.Errorf("error calculating hash: %s", err.Error())
-	}
-	ds.Structure.Checksum = shasum.B58String()
-
-	// generate abstract form of dataset
-	// ds.Abstract = dataset.Abstract(ds)
-
-	//get auto commit message if necessary
-	diffDescription, err := generateCommitMsg(store, ds)
-	if err != nil {
-		log.Debug(err.Error())
-		return nil, "", fmt.Errorf("%s", err.Error())
-	}
-	if diffDescription == "" {
-		return nil, "", fmt.Errorf("error saving: no changes detected")
-	}
-
-	if ds.Commit.Title == "" && ds.Commit.Message != "" {
-		ds.Commit.Title = ds.Commit.Message
-		ds.Commit.Message = ""
-	}
-
-	if ds.Commit.Title == "" {
-		ds.Commit.Title = diffDescription
-	}
-	cleanTitleAndMessage(&ds.Commit.Title, &ds.Commit.Message)
-
-	ds.Commit.Timestamp = Timestamp()
-	sb, _ := ds.SignableBytes()
-	signedBytes, err := privKey.Sign(sb)
-	if err != nil {
-		log.Debug(err.Error())
-		return nil, "", fmt.Errorf("error signing commit title: %s", err.Error())
-	}
-	ds.Commit.Signature = base64.StdEncoding.EncodeToString(signedBytes)
-
-	return cafs.NewMemfileBytes("data."+ds.Structure.Format.String(), data), diffDescription, nil
 }
 
 // WriteDataset writes a dataset to a cafs, replacing subcomponents of a dataset with path references
