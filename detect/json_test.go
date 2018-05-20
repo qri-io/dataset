@@ -13,7 +13,7 @@ func TestJSONSchema(t *testing.T) {
 
 	pr, _ := io.Pipe()
 	pr.Close()
-	_, err := JSONSchema(&dataset.Structure{}, pr)
+	_, _, err := JSONSchema(&dataset.Structure{}, pr)
 	if err == nil {
 		t.Error("expected error when reading bad reader")
 		return
@@ -35,7 +35,7 @@ func TestJSONSchema(t *testing.T) {
 	for i, c := range cases {
 		rdr := strings.NewReader(c.data)
 
-		got, err := JSONSchema(c.st, rdr)
+		got, _, err := JSONSchema(c.st, rdr)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
 			return

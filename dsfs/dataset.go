@@ -341,7 +341,7 @@ func setEntryCount(ds *dataset.Dataset, data cafs.File, mu sync.Mutex, done chan
 		entries++
 	}
 	if err.Error() != "EOF" {
-		done <- fmt.Errorf("error reading values: %s", err.Error())
+		done <- fmt.Errorf("error reading values at entry %d: %s", entries, err.Error())
 		return
 	}
 

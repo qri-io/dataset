@@ -12,27 +12,43 @@ import (
 // This is currently a suuuuuuuuper simple interpretation that spits out a generic schema that'll work. In the future
 // we can do all sorts of stuff here to make better inferences about the shape of a dataset, but for now, this'll work,
 // and we'll instead focus on making it easier for users to provide hand-built schemas
-func JSONSchema(resource *dataset.Structure, data io.Reader) (schema *jsonschema.RootSchema, err error) {
-	buf := make([]byte, 100)
+func JSONSchema(resource *dataset.Structure, data io.Reader) (schema *jsonschema.RootSchema, n int, err error) {
+	var (
+		count = 0
+		buf   = make([]byte, 100)
+	)
+
 	for {
-		if _, err := data.Read(buf); err != nil {
+		count, err = data.Read(buf)
+		n += count
+		if err != nil {
 			if err == io.EOF {
-				return nil, fmt.Errorf("invalid json data")
+				// possible that data length is less than 100 bytes,
+				// if we've read more than 0 bytes, we should check it
+				if count > 0 {
+					err = nil
+				} else {
+					err = fmt.Errorf("invalid json data")
+					return
+				}
+			} else {
+				log.Debugf(err.Error())
+				err = fmt.Errorf("error reading data: %s", err.Error())
+				return
 			}
-			log.Debugf(err.Error())
-			return nil, fmt.Errorf("error reading data: %s", err.Error())
 		}
 
 		for _, b := range buf {
 			switch b {
 			case '[':
-				return dataset.BaseSchemaArray, nil
+				return dataset.BaseSchemaArray, n, nil
 			case '{':
-				return dataset.BaseSchemaObject, nil
+				return dataset.BaseSchemaObject, n, nil
 			case ' ', '\t', '\n', '\r':
 				continue
 			default:
-				return nil, fmt.Errorf("invalid json data")
+				err = fmt.Errorf("invalid json data")
+				return
 			}
 		}
 	}
