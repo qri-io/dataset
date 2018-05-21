@@ -25,13 +25,13 @@ func FromFile(path string) (st *dataset.Structure, err error) {
 	if err != nil {
 		return nil, err
 	}
+	defer f.Close()
 
 	format, err := ExtensionDataFormat(path)
 	if err != nil {
 		return nil, err
 	}
 
-	defer f.Close()
 	st, _, err = FromReader(format, f)
 	return st, err
 }
