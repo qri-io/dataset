@@ -18,19 +18,21 @@ const (
 )
 
 // CBORSchema determines the field names and types of an io.Reader of CBOR-formatted data, returning a json schema
-func CBORSchema(resource *dataset.Structure, data io.Reader) (schema *jsonschema.RootSchema, err error) {
+func CBORSchema(resource *dataset.Structure, data io.Reader) (schema *jsonschema.RootSchema, n int, err error) {
 	rd := bufio.NewReader(data)
 	bd, err := rd.ReadByte()
+	n++
 	if err != nil && err != io.EOF {
 		log.Debugf(err.Error())
-		return nil, fmt.Errorf("error reading data: %s", err.Error())
+		err = fmt.Errorf("error reading data: %s", err.Error())
+		return
 	}
 
 	switch {
 	case bd >= cborBaseArray && bd < cborBaseMap, bd == cborBdIndefiniteArray:
-		return dataset.BaseSchemaArray, nil
+		return dataset.BaseSchemaArray, n, nil
 	case bd >= cborBaseMap && bd < cborBaseTag, bd == cborBdIndefiniteMap:
-		return dataset.BaseSchemaObject, nil
+		return dataset.BaseSchemaObject, n, nil
 	default:
 		err = fmt.Errorf("invalid top-level type for CBOR data. cbor datasets must begin with either an array or map")
 		log.Debugf(err.Error())

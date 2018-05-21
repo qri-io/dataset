@@ -20,7 +20,7 @@ var (
 )
 
 // Schema determines the schema of a given reader for a given structure
-func Schema(r *dataset.Structure, data io.Reader) (schema *jsonschema.RootSchema, err error) {
+func Schema(r *dataset.Structure, data io.Reader) (schema *jsonschema.RootSchema, n int, err error) {
 	if r.Format == dataset.UnknownDataFormat {
 		err = fmt.Errorf("dataset format must be specified to determine schema")
 		log.Infof(err.Error())
@@ -35,7 +35,8 @@ func Schema(r *dataset.Structure, data io.Reader) (schema *jsonschema.RootSchema
 	case dataset.CSVDataFormat:
 		return CSVSchema(r, data)
 	default:
-		return nil, fmt.Errorf("'%s' is not supported for field detection", r.Format.String())
+		err = fmt.Errorf("'%s' is not supported for field detection", r.Format.String())
+		return
 	}
 }
 
@@ -45,13 +46,15 @@ type field struct {
 }
 
 // CSVSchema determines the field names and types of an io.Reader of CSV-formatted data, returning a json schema
-func CSVSchema(resource *dataset.Structure, data io.Reader) (schema *jsonschema.RootSchema, err error) {
-	r := csv.NewReader(dsio.ReplaceSoloCarriageReturns(data))
+func CSVSchema(resource *dataset.Structure, data io.Reader) (schema *jsonschema.RootSchema, n int, err error) {
+	tr := dsio.NewTrackedReader(data)
+	r := csv.NewReader(dsio.ReplaceSoloCarriageReturns(tr))
 	r.FieldsPerRecord = -1
 	r.TrimLeadingSpace = true
+
 	header, err := r.Read()
 	if err != nil {
-		return nil, err
+		return nil, tr.BytesRead(), err
 	}
 
 	fields := make([]*field, len(header))
@@ -91,7 +94,7 @@ func CSVSchema(resource *dataset.Structure, data io.Reader) (schema *jsonschema.
 			if err.Error() == "EOF" {
 				break
 			}
-			return nil, fmt.Errorf("error reading csv file: %s", err.Error())
+			return nil, tr.BytesRead(), fmt.Errorf("error reading csv file: %s", err.Error())
 		}
 
 		if len(rec) == len(types) {
@@ -114,16 +117,16 @@ func CSVSchema(resource *dataset.Structure, data io.Reader) (schema *jsonschema.
 	// TODO - lol what a hack. fix everything, put it in jsonschema.
 	items, err := json.Marshal(fields)
 	if err != nil {
-		return nil, fmt.Errorf("error marshaling csv fields to json: %s", err.Error())
+		return nil, tr.BytesRead(), fmt.Errorf("error marshaling csv fields to json: %s", err.Error())
 	}
 	schstr := fmt.Sprintf(`{"type":"array","items":{"type":"array","items":%s}}`, string(items))
 
 	rs := &jsonschema.RootSchema{}
 	if err := rs.UnmarshalJSON([]byte(schstr)); err != nil {
-		return nil, err
+		return nil, tr.BytesRead(), err
 	}
 
-	return rs, nil
+	return rs, tr.BytesRead(), nil
 }
 
 // PossibleHeaderRow makes an educated guess about weather or not this csv file has a header row.

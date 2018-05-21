@@ -65,7 +65,7 @@ func Structure(s *dataset.Structure) error {
 	}
 
 	if s.Format == dataset.UnknownDataFormat {
-		return fmt.Errorf("dataFormat is required")
+		return fmt.Errorf("format is required")
 	} else if s.Format == dataset.CSVDataFormat {
 		if s.Schema == nil {
 			return fmt.Errorf("csv data format requires a schema")
