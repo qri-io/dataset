@@ -14,6 +14,17 @@ func TestLoadTestCases(t *testing.T) {
 	t.Logf("%d cases", len(tcs))
 }
 
+func TestDataFilepath(t *testing.T) {
+	fp, err := DataFilepath("testdata/complete")
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+	if fp != "testdata/complete/data.csv" {
+		t.Errorf("%s != %s", "testdata/complete/data.csv", fp)
+	}
+}
+
 func TestNewTestCaseFromDir(t *testing.T) {
 
 	if _, err := NewTestCaseFromDir("testdata"); err == nil {

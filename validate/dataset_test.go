@@ -21,7 +21,7 @@ func TestDataset(t *testing.T) {
 		// {&dataset.Dataset{Commit: &dataset.Commit{}}, "commit: title is required"},
 		{&dataset.Dataset{Commit: &dataset.Commit{}}, "structure is required"},
 		{&dataset.Dataset{Commit: cm}, "structure is required"},
-		{&dataset.Dataset{Commit: cm, Structure: &dataset.Structure{Schema: jsonschema.Must(`true`)}}, "structure: dataFormat is required"},
+		{&dataset.Dataset{Commit: cm, Structure: &dataset.Structure{Schema: jsonschema.Must(`true`)}}, "structure: format is required"},
 		// {&dataset.Dataset{Commit: cm, Abstract: &dataset.Dataset{Metadata: &dataset.Metadata{}}}, "abstract field is not an abstract dataset. Metadata: nil: <not nil> != <nil>"},
 		{&dataset.Dataset{Commit: cm, Structure: st}, ""},
 	}
@@ -61,7 +61,7 @@ func TestStructure(t *testing.T) {
 		err string
 	}{
 		{nil, ""},
-		{&dataset.Structure{}, "dataFormat is required"},
+		{&dataset.Structure{}, "format is required"},
 		{&dataset.Structure{Format: dataset.CSVDataFormat}, "csv data format requires a schema"},
 		// {&dataset.Structure{Format: dataset.CSVDataFormat, Schema: jsonschema.Must(`true`)}, "schema: fields are required"},
 		{&dataset.Structure{Format: dataset.JSONDataFormat, Schema: jsonschema.Must(`{ "type" : "array" }`)}, ""},

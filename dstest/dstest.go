@@ -27,6 +27,7 @@ const (
 // All files are optional for TestCase, but may be required
 // by the test itself.
 type TestCase struct {
+	path string
 	// Name is the casename, should match directory name
 	Name string
 	// 	 data.csv,data.json, etc
@@ -44,6 +45,17 @@ type TestCase struct {
 // DataFile creates a new in-memory file from data & filename properties
 func (t TestCase) DataFile() cafs.File {
 	return cafs.NewMemfileBytes(t.DataFilename, t.Data)
+}
+
+// DataFilepath retuns the path to the first valid data
+func DataFilepath(dir string) (string, error) {
+	for _, df := range dataset.SupportedDataFormats() {
+		path := fmt.Sprintf("%s/data.%s", dir, df)
+		if _, err := os.Stat(path); !os.IsNotExist(err) {
+			return path, nil
+		}
+	}
+	return "", os.ErrNotExist
 }
 
 // LoadTestCases loads a directory of case directories
@@ -68,6 +80,7 @@ func LoadTestCases(dir string) (tcs map[string]TestCase, err error) {
 // be logged using t.Log methods
 func NewTestCaseFromDir(dir string) (tc TestCase, err error) {
 	tc = TestCase{
+		path: dir,
 		Name: filepath.Base(dir),
 	}
 	tc.Data, tc.DataFilename, err = ReadInputData(dir)
