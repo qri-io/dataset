@@ -56,6 +56,13 @@ func TestNewCSVOptions(t *testing.T) {
 		{map[string]interface{}{}, &CSVOptions{}, ""},
 		{map[string]interface{}{"headerRow": true}, &CSVOptions{HeaderRow: true}, ""},
 		{map[string]interface{}{"headerRow": "foo"}, nil, "invalid headerRow value: foo"},
+		{map[string]interface{}{"lazyQuotes": true}, &CSVOptions{LazyQuotes: true}, ""},
+		{map[string]interface{}{"lazyQuotes": "foo"}, nil, "invalid lazyQuotes value: foo"},
+		{map[string]interface{}{"separator": "\t"}, &CSVOptions{Separator: '\t'}, ""},
+		{map[string]interface{}{"separator": "\t\t"}, nil, "separator must be a single character"},
+		{map[string]interface{}{"separator": true}, nil, "invalid separator value: true"},
+		{map[string]interface{}{"variadicFields": true}, &CSVOptions{VariadicFields: true}, ""},
+		{map[string]interface{}{"variadicFields": "foo"}, nil, "invalid variadicFields value: foo"},
 	}
 
 	for i, c := range cases {

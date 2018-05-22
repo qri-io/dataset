@@ -175,9 +175,9 @@ func TestCreateDataset(t *testing.T) {
 				t.Errorf("%s: result path mismatch: expected: '%s', got: '%s'", tc.Name, resultPath, path)
 			}
 
-			if len(store.(cafs.MapStore)) != c.repoFiles {
-				t.Errorf("%s: invalid number of mapstore entries: %d != %d", tc.Name, c.repoFiles, len(store.(cafs.MapStore)))
-				_, err := store.(cafs.MapStore).Print()
+			if len(store.(*cafs.MapStore).Files) != c.repoFiles {
+				t.Errorf("%s: invalid number of mapstore entries: %d != %d", tc.Name, c.repoFiles, len(store.(*cafs.MapStore).Files))
+				_, err := store.(*cafs.MapStore).Print()
 				if err != nil {
 					panic(err)
 				}
@@ -222,9 +222,9 @@ func TestCreateDataset(t *testing.T) {
 	if err.Error() != expectedErr {
 		t.Errorf("case nil datafile and no PreviousPath, error mismatch: expected '%s', got '%s'", expectedErr, err.Error())
 	}
-	if len(store.(cafs.MapStore)) != 18 {
-		t.Errorf("case nil datafile and PreviousPath, invalid number of entries: %d != %d", 18, len(store.(cafs.MapStore)))
-		_, err := store.(cafs.MapStore).Print()
+	if len(store.(*cafs.MapStore).Files) != 18 {
+		t.Errorf("case nil datafile and PreviousPath, invalid number of entries: %d != %d", 18, len(store.(*cafs.MapStore).Files))
+		_, err := store.(*cafs.MapStore).Print()
 		if err != nil {
 			panic(err)
 		}
@@ -288,9 +288,9 @@ func TestWriteDataset(t *testing.T) {
 		// }
 
 		// total count expected of files in repo after test execution
-		if len(store.(cafs.MapStore)) != c.repoFiles {
-			t.Errorf("case expected %d invalid number of entries: %d != %d", i, c.repoFiles, len(store.(cafs.MapStore)))
-			str, err := store.(cafs.MapStore).Print()
+		if len(store.(*cafs.MapStore).Files) != c.repoFiles {
+			t.Errorf("case expected %d invalid number of entries: %d != %d", i, c.repoFiles, len(store.(*cafs.MapStore).Files))
+			str, err := store.(*cafs.MapStore).Print()
 			if err != nil {
 				panic(err)
 			}
