@@ -390,11 +390,11 @@ func (s *Structure) Decode(cs *StructurePod) (err error) {
 		sch := &jsonschema.RootSchema{}
 		data, e := json.Marshal(cs.Schema)
 		if e != nil {
-			log.Errorf("marshaling schema data: %s", e.Error())
+			log.Debugf("marshaling schema data: %s", e.Error())
 			return e
 		}
 		if err = json.Unmarshal(data, sch); err != nil {
-			log.Errorf("unmarshaling schema: %s", err.Error())
+			log.Debugf("unmarshaling schema: %s", err.Error())
 			return
 		}
 		dst.Schema = sch

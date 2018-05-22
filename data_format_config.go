@@ -50,6 +50,9 @@ func NewCSVOptions(opts map[string]interface{}) (FormatConfig, error) {
 
 	if opts["separator"] != nil {
 		if sep, ok := opts["separator"].(string); ok {
+			if len(sep) != 1 {
+				return nil, fmt.Errorf("separator must be a single character")
+			}
 			o.Separator = rune(sep[0])
 		} else {
 			return nil, fmt.Errorf("invalid separator value: %v", opts["separator"])
