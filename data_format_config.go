@@ -31,11 +31,36 @@ func NewCSVOptions(opts map[string]interface{}) (FormatConfig, error) {
 	if opts == nil {
 		return o, nil
 	}
+
 	if opts["headerRow"] != nil {
 		if headerRow, ok := opts["headerRow"].(bool); ok {
 			o.HeaderRow = headerRow
 		} else {
 			return nil, fmt.Errorf("invalid headerRow value: %s", opts["headerRow"])
+		}
+	}
+
+	if opts["lazyQuotes"] != nil {
+		if lq, ok := opts["lazyQuotes"].(bool); ok {
+			o.HeaderRow = lq
+		} else {
+			return nil, fmt.Errorf("invalid lazyQuotes value: %s", opts["lazyQuotes"])
+		}
+	}
+
+	if opts["separator"] != nil {
+		if sep, ok := opts["separator"].(string); ok {
+			o.Separator = rune(sep[0])
+		} else {
+			return nil, fmt.Errorf("invalid separator value: %v", opts["separator"])
+		}
+	}
+
+	if opts["variadicFields"] != nil {
+		if vf, ok := opts["variadicFields"].(bool); ok {
+			o.VariadicFields = vf
+		} else {
+			return nil, fmt.Errorf("invalid variadicFields value: %s", opts["variadicFields"])
 		}
 	}
 
@@ -47,6 +72,17 @@ func NewCSVOptions(opts map[string]interface{}) (FormatConfig, error) {
 type CSVOptions struct {
 	// HeaderRow specifies weather this csv file has a header row or not
 	HeaderRow bool `json:"headerRow"`
+	// If LazyQuotes is true, a quote may appear in an unquoted field and a
+	// non-doubled quote may appear in a quoted field.
+	LazyQuotes bool `json:"lazyQuotes"`
+	// Separator is the field delimiter.
+	// It is set to comma (',') by NewReader.
+	// Comma must be a valid rune and must not be \r, \n,
+	// or the Unicode replacement character (0xFFFD).
+	Separator rune `json:"separator"`
+	// VariadicFields sets permits records to have a variable number of fields
+	// avoid using this
+	VariadicFields bool `json:"variadicFields"`
 }
 
 // Format announces the CSV Data Format for the FormatConfig interface

@@ -25,9 +25,21 @@ func NewCSVReader(st *dataset.Structure, r io.Reader) *CSVReader {
 	// TODO - handle error
 	_, types, _ := terribleHackToGetHeaderRowAndTypes(st)
 
+	csvr := csv.NewReader(ReplaceSoloCarriageReturns(r))
+
+	if opts, ok := st.FormatConfig.(*dataset.CSVOptions); ok {
+		csvr.LazyQuotes = opts.LazyQuotes
+		if opts.VariadicFields == true {
+			csvr.FieldsPerRecord = -1
+		}
+		if opts.Separator != rune(0) {
+			csvr.Comma = opts.Separator
+		}
+	}
+
 	return &CSVReader{
 		st:    st,
-		r:     csv.NewReader(ReplaceSoloCarriageReturns(r)),
+		r:     csvr,
 		types: types,
 	}
 }
@@ -140,6 +152,12 @@ func NewCSVWriter(st *dataset.Structure, w io.Writer) *CSVWriter {
 	titles, types, _ := terribleHackToGetHeaderRowAndTypes(st)
 
 	writer := csv.NewWriter(w)
+	if opts, ok := st.FormatConfig.(*dataset.CSVOptions); ok {
+		if opts.Separator != rune(0) {
+			writer.Comma = opts.Separator
+		}
+	}
+
 	wr := &CSVWriter{
 		st:    st,
 		w:     writer,

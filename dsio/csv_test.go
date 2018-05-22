@@ -38,6 +38,27 @@ var csvStruct = &dataset.Structure{
 	}`),
 }
 
+var tsvStruct = &dataset.Structure{
+	Format: dataset.CSVDataFormat,
+	FormatConfig: &dataset.CSVOptions{
+		HeaderRow:      true,
+		Separator:      '\t',
+		LazyQuotes:     true,
+		VariadicFields: true,
+	},
+	Schema: jsonschema.Must(`{
+		"type":"array",
+		"items": {
+			"type":"array",
+			"items": [
+				{"title": "a", "type": "number"},
+				{"title": "a", "type": "number"},
+				{"title": "a", "type": "number"}
+			]
+		}
+	}`),
+}
+
 func TestCSVReader(t *testing.T) {
 	buf := bytes.NewBuffer([]byte(csvData))
 	rdr, err := NewEntryReader(csvStruct, buf)
@@ -70,6 +91,45 @@ func TestCSVReader(t *testing.T) {
 	}
 	if count != 5 {
 		t.Errorf("expected: %d rows, got: %d", 5, count)
+	}
+}
+
+func TestTSVReader(t *testing.T) {
+	// data separated with tabs, has variadic fields per record, and odd quoting
+	// bascially, a trash TSV file that can still parse with lots of CSVOption relaxing
+	const oddTSVData = `a	b	c
+1	2	""	""""
+1
+1	2	3	4
+`
+
+	buf := bytes.NewBuffer([]byte(oddTSVData))
+	rdr, err := NewEntryReader(tsvStruct, buf)
+	if err != nil {
+		t.Errorf("error allocating EntryReader: %s", err.Error())
+		return
+	}
+	count := 0
+
+	for {
+		ent, err := rdr.ReadEntry()
+		if err != nil {
+			if err.Error() == "EOF" {
+				break
+			}
+			t.Errorf("unexpected error: %s", err.Error())
+			return
+		}
+
+		if _, ok := ent.Value.([]interface{}); !ok {
+			t.Errorf("expected value to []interface{}. got: %#v", ent.Value)
+			continue
+		}
+
+		count++
+	}
+	if count != 3 {
+		t.Errorf("expected: %d rows, got: %d", 3, count)
 	}
 }
 
@@ -107,6 +167,44 @@ func TestCSVWriter(t *testing.T) {
 	}
 	if bytes.Equal(buf.Bytes(), []byte(csvData)) {
 		t.Errorf("output mismatch. %s != %s", buf.String(), csvData)
+	}
+}
+
+func TestTSVWriter(t *testing.T) {
+	rows := []Entry{
+		// TODO - vary up test input
+		{Value: []interface{}{"a", float64(12), 23, nil}},
+		{Value: []interface{}{"a", float64(12), 23, []interface{}{"foo", "bar"}}},
+	}
+
+	expect := `a	b	c
+a	12	23	
+a	12	23	"[""foo"",""bar""]"`
+
+	buf := &bytes.Buffer{}
+	rw, err := NewEntryWriter(tsvStruct, buf)
+	if err != nil {
+		t.Errorf("error allocating EntryWriter: %s", err.Error())
+		return
+	}
+	st := rw.Structure()
+	if err := dataset.CompareStructures(st, tsvStruct); err != nil {
+		t.Errorf("structure mismatch: %s", err.Error())
+		return
+	}
+
+	for i, row := range rows {
+		if err := rw.WriteEntry(row); err != nil {
+			t.Errorf("row %d write error: %s", i, err.Error())
+		}
+	}
+
+	if err := rw.Close(); err != nil {
+		t.Errorf("close reader error: %s", err.Error())
+		return
+	}
+	if bytes.Equal(buf.Bytes(), []byte(expect)) {
+		t.Errorf("output mismatch. %s != %s", buf.String(), expect)
 	}
 }
 
