@@ -1,9 +1,9 @@
 package dataset
 
 import (
-	"io"
 	"encoding/json"
 	"fmt"
+	"io"
 
 	"github.com/ipfs/go-datastore"
 )
@@ -270,9 +270,11 @@ type TransformPod struct {
 	Path          string                 `json:"path,omitempty"`
 	Qri           string                 `json:"qri,omitempty"`
 	// resources are respresented as JSON-bytes
-	Resources     []byte        `json:"resources,omitempty"`
-	Structure     *StructurePod `json:"structure,omitempty"`
-	ScriptPath    string        `json:"scriptPath,omitempty"`
-	Syntax        string        `json:"syntax,omitempty"`
-	SyntaxVersion string        `json:"syntaxVersion,omitempty"`
+	Resources []byte `json:"resources,omitempty"`
+	// Secrets doesn't exsit on Transform, only here for select use cases
+	Secrets       map[string]string `json:"secrets,omitempty"`
+	Structure     *StructurePod     `json:"structure,omitempty"`
+	ScriptPath    string            `json:"scriptPath,omitempty"`
+	Syntax        string            `json:"syntax,omitempty"`
+	SyntaxVersion string            `json:"syntaxVersion,omitempty"`
 }

@@ -1,9 +1,9 @@
 package dstest
 
 import (
-"os"
 	"bytes"
 	"io/ioutil"
+	"os"
 	"testing"
 )
 
@@ -27,9 +27,9 @@ func TestDataFilepath(t *testing.T) {
 }
 
 func TestReadInputTransformScript(t *testing.T) {
-  if _, _, err := ReadInputTransformScript("bad_dir"); err != os.ErrNotExist {
-    t.Error("expected os.ErrNotExist on bad tf script read")
-  }
+	if _, _, err := ReadInputTransformScript("bad_dir"); err != os.ErrNotExist {
+		t.Error("expected os.ErrNotExist on bad tf script read")
+	}
 }
 
 func TestNewTestCaseFromDir(t *testing.T) {
@@ -70,17 +70,17 @@ raleigh,250000,50.65,true
 		t.Errorf("filename mismatch: %s != %s", mf.FileName(), tc.DataFilename)
 	}
 
-  if ts, ok := tc.TransformScriptFile(); !ok {
-    t.Errorf("expected tranform script to load")
-  } else {
-    if ts.FileName() != "transform.sky" {
-      t.Errorf("expected TransformScript filename to be transform.sky")
-    }
-  }
-  tc.TransformScript = nil
-  if _, ok := tc.TransformScriptFile(); ok {
-    t.Error("shouldn't generate TransformScript File if bytes are nil")
-  }
+	if ts, ok := tc.TransformScriptFile(); !ok {
+		t.Errorf("expected tranform script to load")
+	} else {
+		if ts.FileName() != "transform.sky" {
+			t.Errorf("expected TransformScript filename to be transform.sky")
+		}
+	}
+	tc.TransformScript = nil
+	if _, ok := tc.TransformScriptFile(); ok {
+		t.Error("shouldn't generate TransformScript File if bytes are nil")
+	}
 
 	mfdata, err := ioutil.ReadAll(mf)
 	if err != nil {

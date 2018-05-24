@@ -154,7 +154,7 @@ func TestCompareCommits(t *testing.T) {
 func TestCompareTransforms(t *testing.T) {
 	t1 := &Transform{
 		Qri:           KindTransform,
-		Syntax:        "sql",
+		Syntax:        "skylark",
 		SyntaxVersion: "1000.0.0",
 		ScriptPath:    "foo.sky",
 		Structure:     AirportCodes.Structure,

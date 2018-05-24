@@ -52,7 +52,7 @@ func (t TestCase) DataFile() cafs.File {
 	return cafs.NewMemfileBytes(t.DataFilename, t.Data)
 }
 
-// TransformScriptFile creates a cafs.File from testCase tranform script data
+// TransformScriptFile creates a cafs.File from testCase transform script data
 func (t TestCase) TransformScriptFile() (cafs.File, bool) {
 	if t.TransformScript == nil {
 		return nil, false
