@@ -148,11 +148,11 @@ func TestCreateDataset(t *testing.T) {
 		{"cities",
 			"/map/QmYXMg6gqMAT8seUFhgAagknFvfs71auFWbnSfVcg1NTd8", 6, ""},
 		{"complete",
-			"/map/QmPXQeoW82Jy9uZK5a6GSbG6JFBQcnfdp6hvf428kBg244", 12, ""},
+			"/map/QmZPqhESomGtMcetWPdMNfeGgSkFeeKkj3tpzMqin1i8m1", 13, ""},
 		{"cities_no_commit_title",
-			"/map/QmNNtXBcv5Lp6rwHKFuLH4A7epnbgPVfBTUeMtZ7PFJiGL", 14, ""},
+			"/map/QmNNtXBcv5Lp6rwHKFuLH4A7epnbgPVfBTUeMtZ7PFJiGL", 15, ""},
 		{"craigslist",
-			"/map/QmayiyvRGkS8R6ifLRmHBKGd8ro9UWgXigrwsQU8vYFemg", 18, ""},
+			"/map/QmayiyvRGkS8R6ifLRmHBKGd8ro9UWgXigrwsQU8vYFemg", 19, ""},
 	}
 
 	for _, c := range cases {
@@ -162,8 +162,15 @@ func TestCreateDataset(t *testing.T) {
 			continue
 		}
 
-		df := cafs.NewMemfileBytes(tc.DataFilename, tc.Data)
-		path, err := CreateDataset(store, tc.Input, df, privKey, false)
+		// TODO - this should probs be auto-populated by dstest package
+		if ts, ok := tc.TransformScriptFile(); ok {
+			if tc.Input.Transform == nil {
+				tc.Input.Transform = &dataset.Transform{}
+			}
+			tc.Input.Transform.Script = ts
+		}
+
+		path, err := CreateDataset(store, tc.Input, tc.DataFile(), privKey, false)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("%s: error mismatch. expected: '%s', got: '%s'", tc.Name, c.err, err)
 			continue
@@ -175,9 +182,9 @@ func TestCreateDataset(t *testing.T) {
 				t.Errorf("%s: result path mismatch: expected: '%s', got: '%s'", tc.Name, resultPath, path)
 			}
 
-			if len(store.(*cafs.MapStore).Files) != c.repoFiles {
-				t.Errorf("%s: invalid number of mapstore entries: %d != %d", tc.Name, c.repoFiles, len(store.(*cafs.MapStore).Files))
-				_, err := store.(*cafs.MapStore).Print()
+			if len(store.Files) != c.repoFiles {
+				t.Errorf("%s: invalid number of mapstore entries: %d != %d", tc.Name, c.repoFiles, len(store.Files))
+				_, err := store.Print()
 				if err != nil {
 					panic(err)
 				}
@@ -222,9 +229,9 @@ func TestCreateDataset(t *testing.T) {
 	if err.Error() != expectedErr {
 		t.Errorf("case nil datafile and no PreviousPath, error mismatch: expected '%s', got '%s'", expectedErr, err.Error())
 	}
-	if len(store.(*cafs.MapStore).Files) != 18 {
-		t.Errorf("case nil datafile and PreviousPath, invalid number of entries: %d != %d", 18, len(store.(*cafs.MapStore).Files))
-		_, err := store.(*cafs.MapStore).Print()
+	if len(store.Files) != 19 {
+		t.Errorf("case nil datafile and PreviousPath, invalid number of entries: %d != %d", 19, len(store.Files))
+		_, err := store.Print()
 		if err != nil {
 			panic(err)
 		}
@@ -288,9 +295,9 @@ func TestWriteDataset(t *testing.T) {
 		// }
 
 		// total count expected of files in repo after test execution
-		if len(store.(*cafs.MapStore).Files) != c.repoFiles {
-			t.Errorf("case expected %d invalid number of entries: %d != %d", i, c.repoFiles, len(store.(*cafs.MapStore).Files))
-			str, err := store.(*cafs.MapStore).Print()
+		if len(store.Files) != c.repoFiles {
+			t.Errorf("case expected %d invalid number of entries: %d != %d", i, c.repoFiles, len(store.Files))
+			str, err := store.Print()
 			if err != nil {
 				panic(err)
 			}

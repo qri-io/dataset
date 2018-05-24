@@ -60,8 +60,8 @@ func TestSaveTransform(t *testing.T) {
 	}
 
 	expectedEntries := 2
-	if len(store.(*cafs.MapStore).Files) != expectedEntries {
-		t.Errorf("invalid number of entries added to store: %d != %d", expectedEntries, len(store.(*cafs.MapStore).Files))
+	if len(store.Files) != expectedEntries {
+		t.Errorf("invalid number of entries added to store: %d != %d", expectedEntries, len(store.Files))
 		return
 	}
 
@@ -120,8 +120,8 @@ func TestSaveAbstractTransform(t *testing.T) {
 	}
 
 	expectedEntries := 3
-	if len(store.(*cafs.MapStore).Files) != expectedEntries {
-		t.Errorf("invalid number of entries added to store: %d != %d", expectedEntries, len(store.(*cafs.MapStore).Files))
+	if len(store.Files) != expectedEntries {
+		t.Errorf("invalid number of entries added to store: %d != %d", expectedEntries, len(store.Files))
 		return
 	}
 

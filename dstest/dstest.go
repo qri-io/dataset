@@ -35,6 +35,10 @@ type TestCase struct {
 	DataFilename string
 	// test data in expected data format
 	Data []byte
+	// Filename of Transform Script
+	TransformScriptFilename string
+	// TransformScript bytes if one exists
+	TransformScript []byte
 	// Input is intended file for test input
 	// loads from input.dataset.json
 	Input *dataset.Dataset
@@ -46,6 +50,14 @@ type TestCase struct {
 // DataFile creates a new in-memory file from data & filename properties
 func (t TestCase) DataFile() cafs.File {
 	return cafs.NewMemfileBytes(t.DataFilename, t.Data)
+}
+
+// TransformScriptFile creates a cafs.File from testCase transform script data
+func (t TestCase) TransformScriptFile() (cafs.File, bool) {
+	if t.TransformScript == nil {
+		return nil, false
+	}
+	return cafs.NewMemfileBytes(t.TransformScriptFilename, t.TransformScript), true
 }
 
 // DataFilepath retuns the path to the first valid data file it can find,
@@ -92,6 +104,15 @@ func NewTestCaseFromDir(dir string) (tc TestCase, err error) {
 		return
 	}
 
+	if tc.TransformScript, tc.TransformScriptFilename, err = ReadInputTransformScript(dir); err != nil {
+		if err == os.ErrNotExist {
+			// TransformScript is optional, so if this errors, let's bail
+			err = nil
+		} else {
+			return tc, fmt.Errorf("reading transform script: %s", err.Error())
+		}
+	}
+
 	tc.Input, err = ReadDataset(dir, InputDatasetFilename)
 	if err != nil && !os.IsNotExist(err) {
 		msg := fmt.Sprintf("%s: error loading input dataset: %s", tc.Name, err)
@@ -129,6 +150,16 @@ func ReadInputData(dir string) ([]byte, string, error) {
 			data, err := ioutil.ReadAll(f)
 			return data, fmt.Sprintf("data.%s", df), err
 		}
+	}
+	return nil, "", os.ErrNotExist
+}
+
+// ReadInputTransformScript grabs input transform bytes
+func ReadInputTransformScript(dir string) ([]byte, string, error) {
+	path := filepath.Join(dir, "transform.sky")
+	if f, err := os.Open(path); err == nil {
+		data, err := ioutil.ReadAll(f)
+		return data, "transform.sky", err
 	}
 	return nil, "", os.ErrNotExist
 }

@@ -7,7 +7,9 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// UnmarshalYAMLDatasetPod reads yaml bytes into a DatasetPod
+// UnmarshalYAMLDatasetPod reads yaml bytes into a DatasetPod, dealing with the issue that
+// YAML likes to unmarshal unknown values to map[interface{}]interface{} instead of
+// map[string]interface{}
 func UnmarshalYAMLDatasetPod(data []byte, ds *dataset.DatasetPod) error {
 	if err := yaml.Unmarshal(data, ds); err != nil {
 		return err
@@ -17,25 +19,13 @@ func UnmarshalYAMLDatasetPod(data []byte, ds *dataset.DatasetPod) error {
 			ds.Structure.Schema[key] = cleanupMapValue(val)
 		}
 	}
+	if ds.Transform != nil && ds.Transform.Config != nil {
+		for key, val := range ds.Transform.Config {
+			ds.Transform.Config[key] = cleanupMapValue(val)
+		}
+	}
 	return nil
 }
-
-// Unmarshal YAML to map[string]interface{} instead of map[interface{}]interface{}.
-// func Unmarshal(in []byte, out interface{}) error {
-// 	var res interface{}
-
-// 	if err := yaml.Unmarshal(in, &res); err != nil {
-// 		return err
-// 	}
-// 	*out.(*interface{}) = cleanupMapValue(res)
-
-// 	return nil
-// }
-
-// Marshal YAML wrapper function.
-// func Marshal(in interface{}) ([]byte, error) {
-// 	return yaml.Marshal(in)
-// }
 
 func cleanupInterfaceArray(in []interface{}) []interface{} {
 	res := make([]interface{}, len(in))

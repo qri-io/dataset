@@ -36,7 +36,7 @@ func TestDatasetAssign(t *testing.T) {
 	}{
 		{&Dataset{path: datastore.NewKey("/a")}},
 		{&Dataset{Structure: &Structure{Format: CSVDataFormat}}},
-		{&Dataset{Transform: &Transform{Data: "I'm transform data!"}}},
+		{&Dataset{Transform: &Transform{ScriptPath: "some_transform_script.sky"}}},
 		{&Dataset{Commit: &Commit{Title: "foo"}}},
 		{&Dataset{DataPath: "foo"}},
 		{&Dataset{PreviousPath: "stuff"}},
@@ -62,7 +62,7 @@ func TestDatasetAssign(t *testing.T) {
 		VisConfig: &VisConfig{},
 	}
 	madsa := &Dataset{
-		Transform: &Transform{Data: "I'm transform data!"},
+		Transform: &Transform{ScriptPath: "some_transform_script.sky"},
 		Structure: &Structure{Format: CSVDataFormat},
 		Commit:    &Commit{Title: "dy.no.mite."},
 		VisConfig: &VisConfig{Qri: KindVisConfig},
@@ -294,7 +294,7 @@ func TestDatasetCoding(t *testing.T) {
 		{PreviousPath: "foo"},
 		{Qri: KindDataset},
 		{Structure: &Structure{Format: CBORDataFormat}},
-		{Transform: &Transform{AppVersion: "foo"}},
+		{Transform: &Transform{SyntaxVersion: "foo"}},
 		{VisConfig: &VisConfig{Format: "foo"}},
 	}
 

@@ -269,11 +269,11 @@ func CompareTransforms(a, b *Transform) error {
 	if a.Syntax != b.Syntax {
 		return fmt.Errorf("Syntax: %s != %s", a.Syntax, b.Syntax)
 	}
-	if a.AppVersion != b.AppVersion {
-		return fmt.Errorf("AppVersion: %s != %s", a.AppVersion, b.AppVersion)
+	if a.SyntaxVersion != b.SyntaxVersion {
+		return fmt.Errorf("SyntaxVersion: %s != %s", a.SyntaxVersion, b.SyntaxVersion)
 	}
-	if a.Data != b.Data {
-		return fmt.Errorf("Data: %s != %s", a.Data, b.Data)
+	if a.ScriptPath != b.ScriptPath {
+		return fmt.Errorf("ScriptPath: %s != %s", a.ScriptPath, b.ScriptPath)
 	}
 	if err := CompareStructures(a.Structure, b.Structure); err != nil {
 		return fmt.Errorf("Structure: %s", err.Error())

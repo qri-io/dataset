@@ -10,6 +10,12 @@ const yamlData = `---
 meta:
   title: EPA TRI Basic Summary
   description: A few key fields pulled from EPA TRI Basic data for 2016
+transform:
+  config:
+    foo: bar
+  secrets:
+    a: b
+    c: d
 structure:
   format: json
   schema:
@@ -35,6 +41,11 @@ func TestUnmarshalYAMLDatasetPod(t *testing.T) {
 	dsp := &dataset.DatasetPod{}
 	if err := UnmarshalYAMLDatasetPod([]byte(yamlData), dsp); err != nil {
 		t.Error(err.Error())
+		return
+	}
+
+	if dsp.Transform.Secrets["a"] != "b" {
+		t.Error("expected transform.secrets.a to equal 'b'")
 		return
 	}
 
