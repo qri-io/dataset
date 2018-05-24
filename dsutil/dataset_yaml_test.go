@@ -10,6 +10,9 @@ const yamlData = `---
 meta:
   title: EPA TRI Basic Summary
   description: A few key fields pulled from EPA TRI Basic data for 2016
+transform:
+  config:
+    foo: bar
 structure:
   format: json
   schema:

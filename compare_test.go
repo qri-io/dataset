@@ -153,11 +153,11 @@ func TestCompareCommits(t *testing.T) {
 
 func TestCompareTransforms(t *testing.T) {
 	t1 := &Transform{
-		Qri:        KindTransform,
-		Syntax:     "sql",
-		AppVersion: "1000.0.0",
-		Data:       "select * from airports limit 10",
-		Structure:  AirportCodes.Structure,
+		Qri:           KindTransform,
+		Syntax:        "sql",
+		SyntaxVersion: "1000.0.0",
+		ScriptPath:    "foo.sky",
+		Structure:     AirportCodes.Structure,
 		Resources: map[string]*Dataset{
 			"airports": AirportCodes,
 		},
@@ -173,8 +173,8 @@ func TestCompareTransforms(t *testing.T) {
 		{&Transform{}, &Transform{}, ""},
 		{&Transform{Qri: "a"}, &Transform{Qri: "b"}, "Qri: a != b"},
 		{&Transform{Syntax: "a"}, &Transform{Syntax: "b"}, "Syntax: a != b"},
-		{&Transform{AppVersion: "a"}, &Transform{AppVersion: "b"}, "AppVersion: a != b"},
-		{&Transform{Data: "a"}, &Transform{Data: "b"}, "Data: a != b"},
+		{&Transform{SyntaxVersion: "a"}, &Transform{SyntaxVersion: "b"}, "SyntaxVersion: a != b"},
+		{&Transform{ScriptPath: "a"}, &Transform{ScriptPath: "b"}, "ScriptPath: a != b"},
 		{&Transform{}, &Transform{Structure: AirportCodes.Structure}, "Structure: nil: <nil> != <not nil>"},
 		{&Transform{}, &Transform{Resources: map[string]*Dataset{}}, "Resources: map[] != map[]"},
 		{&Transform{Resources: map[string]*Dataset{

@@ -29,9 +29,9 @@ func TestTransformSetPath(t *testing.T) {
 
 func TestTransformAssign(t *testing.T) {
 	expect := &Transform{
-		path:       datastore.NewKey("path"),
-		Syntax:     "a",
-		AppVersion: "change",
+		path:          datastore.NewKey("path"),
+		Syntax:        "a",
+		SyntaxVersion: "change",
 		Config: map[string]interface{}{
 			"foo": "bar",
 		},
@@ -43,8 +43,8 @@ func TestTransformAssign(t *testing.T) {
 		},
 	}
 	got := &Transform{
-		Syntax:     "no",
-		AppVersion: "b",
+		Syntax:        "no",
+		SyntaxVersion: "b",
 		Config: map[string]interface{}{
 			"foo": "baz",
 		},
@@ -53,8 +53,8 @@ func TestTransformAssign(t *testing.T) {
 	}
 
 	got.Assign(&Transform{
-		Syntax:     "a",
-		AppVersion: "change",
+		Syntax:        "a",
+		SyntaxVersion: "change",
 		Config: map[string]interface{}{
 			"foo": "bar",
 		},
@@ -130,7 +130,7 @@ func TestTransformMarshalJSONObject(t *testing.T) {
 		err error
 	}{
 		{&Transform{}, `{"qri":"tf:0"}`, nil},
-		{&Transform{Syntax: "sql", Data: "select a from b"}, `{"data":"select a from b","qri":"tf:0","syntax":"sql"}`, nil},
+		{&Transform{Syntax: "sql", ScriptPath: "foo.sky"}, `{"qri":"tf:0","scriptPath":"foo.sky","syntax":"sql"}`, nil},
 	}
 
 	for i, c := range cases {
@@ -163,7 +163,7 @@ func TestTransformMarshalJSON(t *testing.T) {
 		err error
 	}{
 		{&Transform{}, `{"qri":"tf:0"}`, nil},
-		{&Transform{Syntax: "sql", Data: "select a from b"}, `{"data":"select a from b","qri":"tf:0","syntax":"sql"}`, nil},
+		{&Transform{Syntax: "sql", ScriptPath: "foo.sky"}, `{"qri":"tf:0","scriptPath":"foo.sky","syntax":"sql"}`, nil},
 	}
 
 	for i, c := range cases {
@@ -191,8 +191,8 @@ func TestTransformIsEmpty(t *testing.T) {
 		{&Transform{path: datastore.NewKey("foo")}, true},
 		{&Transform{}, true},
 		{&Transform{Syntax: "foo"}, false},
-		{&Transform{AppVersion: "0"}, false},
-		{&Transform{Data: "foo"}, false},
+		{&Transform{SyntaxVersion: "0"}, false},
+		{&Transform{ScriptPath: "foo"}, false},
 		{&Transform{Structure: nil}, true},
 		{&Transform{Structure: &Structure{}}, false},
 		{&Transform{Config: nil}, true},
@@ -212,9 +212,9 @@ func TestTransformIsEmpty(t *testing.T) {
 func TestTransformCoding(t *testing.T) {
 	cases := []*Transform{
 		{},
-		{AppVersion: "foo"},
+		{SyntaxVersion: "foo"},
 		{Config: map[string]interface{}{"foo": "foo"}},
-		{Data: "foo"},
+		{ScriptPath: "foo"},
 		{path: datastore.NewKey("/foo")},
 		{Qri: KindTransform},
 		{Resources: map[string]*Dataset{"foo": &Dataset{DataPath: "foo"}}},

@@ -41,11 +41,11 @@
     }
   },
   "transform": {
-    "data": "select * from foo",
     "qri": "tf:0",
     "resources": {
       "foo": "/not/a/real/path"
     },
+    "scriptPath": "/map/QmYDSctXURLDvXGnhTrDdbbP3nZCrgVGUrU49tXP96eDge",
     "structure": {
       "errCount": 0,
       "format": "csv",

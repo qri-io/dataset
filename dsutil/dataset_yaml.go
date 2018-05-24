@@ -17,6 +17,11 @@ func UnmarshalYAMLDatasetPod(data []byte, ds *dataset.DatasetPod) error {
 			ds.Structure.Schema[key] = cleanupMapValue(val)
 		}
 	}
+	if ds.Transform != nil && ds.Transform.Config != nil {
+		for key, val := range ds.Transform.Config {
+			ds.Transform.Config[key] = cleanupMapValue(val)
+		}
+	}
 	return nil
 }
 

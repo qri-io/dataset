@@ -11,7 +11,7 @@
   "transform": {
     "qri": "tf:0",
     "syntax": "sql",
-    "data": "select * from foo",
+    "scriptPath": "foo.sky",
     "structure": {
       "qri": "st:0",
       "format": "csv",
