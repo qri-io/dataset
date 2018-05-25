@@ -93,6 +93,86 @@ func TestMetaAssign(t *testing.T) {
 	}
 }
 
+func TestMetaSet(t *testing.T) {
+	cases := []struct {
+		key  string
+		val  interface{}
+		err  string
+		meta *Meta
+	}{
+		{" TITLE  ", 0, "type must be a string", nil},
+		{" TITLE", "title", "", &Meta{Title: "title"}},
+		{" TITLE", nil, "", &Meta{}},
+		{"accesspath", 0, "type must be a string", nil},
+		{"accesspath", "foo", "", &Meta{AccessPath: "foo"}},
+		{"accrualperiodicity", 0, "type must be a string", nil},
+		{"accrualperiodicity", "foo", "", &Meta{AccrualPeriodicity: "foo"}},
+		{"description", 0, "type must be a string", nil},
+		{"description", "foo", "", &Meta{Description: "foo"}},
+		{"downloadpath", 0, "type must be a string", nil},
+		{"downloadpath", "foo", "", &Meta{DownloadPath: "foo"}},
+		{"homepath", 0, "type must be a string", nil},
+		{"homepath", "foo", "", &Meta{HomePath: "foo"}},
+		{"identifier", 0, "type must be a string", nil},
+		{"identifier", "foo", "", &Meta{Identifier: "foo"}},
+		{"readmepath", 0, "type must be a string", nil},
+		{"readmepath", "foo", "", &Meta{ReadmePath: "foo"}},
+		{"title", 0, "type must be a string", nil},
+		{"title", "foo", "", &Meta{Title: "foo"}},
+		{"version", 0, "type must be a string", nil},
+		{"version", "foo", "", &Meta{Version: "foo"}},
+
+		{"keywords", 0, "type must be a set of strings", nil},
+		{"keywords", nil, "", &Meta{}},
+		{"keywords", []interface{}{0}, "index 0: type must be a string", nil},
+		{"keywords", []interface{}{"foo"}, "", &Meta{Keywords: []string{"foo"}}},
+		{"language", 0, "type must be a set of strings", nil},
+		{"language", []interface{}{"foo"}, "", &Meta{Language: []string{"foo"}}},
+		{"theme", 0, "type must be a set of strings", nil},
+		{"theme", []interface{}{"foo"}, "", &Meta{Theme: []string{"foo"}}},
+
+		{"citations", 0, "citation: expected interface slice", nil},
+		{"citations", []interface{}{0}, "parsing citations index 0: expected map[string]interface{}", nil},
+		{"citations", []interface{}{
+			map[string]interface{}{
+				"name": "foo",
+				"url":  "bar",
+			},
+		}, "", &Meta{Citations: []*Citation{&Citation{Name: "foo", URL: "bar"}}}},
+
+		{"contributors", 0, "contributors: expected interface slice", nil},
+		{"contributors", []interface{}{0}, "parsing contributors index 0: expected map[string]interface{}", nil},
+		{"contributors", []interface{}{
+			map[string]interface{}{
+				"id":    "steve",
+				"email": "email@steve.com",
+			}}, "", &Meta{Contributors: []*User{&User{ID: "steve", Email: "email@steve.com"}}}},
+
+		{"license", 0, "expected map[string]interface{}", nil},
+		{"license", map[string]interface{}{
+			"type": "foo",
+			"url":  "bar",
+		}, "", &Meta{License: &License{Type: "foo", URL: "bar"}}},
+
+		{"@id", "foo", "", &Meta{meta: map[string]interface{}{"@id": "foo"}}},
+	}
+
+	for i, c := range cases {
+		m := &Meta{}
+		err := m.Set(c.key, c.val)
+		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
+			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
+			continue
+		}
+		if c.meta != nil {
+			if err := CompareMetas(m, c.meta); err != nil {
+				t.Errorf("case %d meta mismatch: %s", i, err.Error())
+				continue
+			}
+		}
+	}
+}
+
 func TestMetaMarshalJSON(t *testing.T) {
 	cases := []struct {
 		in  *Meta
@@ -208,6 +288,42 @@ func TestUnmarshalMeta(t *testing.T) {
 			t.Errorf("case %d metadata mismatch: %s", i, err.Error())
 			continue
 		}
+	}
+}
+
+func TestCitationDecode(t *testing.T) {
+	c := &Citation{}
+	if err := c.Decode(map[string]interface{}{"name": 0}); err == nil {
+		t.Errorf("expected error")
+	}
+	if err := c.Decode(map[string]interface{}{"url": 0}); err == nil {
+		t.Errorf("expected error")
+	}
+	if err := c.Decode(map[string]interface{}{"email": 0}); err == nil {
+		t.Errorf("expected error")
+	}
+}
+
+func TestLicenseDecode(t *testing.T) {
+	l := &License{}
+	if err := l.Decode(map[string]interface{}{"type": 0}); err == nil {
+		t.Errorf("expected error")
+	}
+	if err := l.Decode(map[string]interface{}{"url": 0}); err == nil {
+		t.Errorf("expected error")
+	}
+}
+
+func TestUserDecode(t *testing.T) {
+	u := &User{}
+	if err := u.Decode(map[string]interface{}{"id": 0}); err == nil {
+		t.Errorf("expected error")
+	}
+	if err := u.Decode(map[string]interface{}{"name": 0}); err == nil {
+		t.Errorf("expected error")
+	}
+	if err := u.Decode(map[string]interface{}{"email": 0}); err == nil {
+		t.Errorf("expected error")
 	}
 }
 
