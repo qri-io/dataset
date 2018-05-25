@@ -3,6 +3,7 @@ package dataset
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/ipfs/go-datastore"
@@ -108,13 +109,125 @@ func UnmarshalMeta(v interface{}) (*Meta, error) {
 }
 
 // SetPath sets the internal path property of a Meta
-// Use with caution. most callers should never need to call SetPath
+// Use with caution. most users should never need to call SetPath
 func (md *Meta) SetPath(path string) {
 	if path == "" {
 		md.path = datastore.Key{}
 	} else {
 		md.path = datastore.NewKey(path)
 	}
+}
+
+// strVal confirms an interface is a string
+func strVal(val interface{}) (s string, err error) {
+	var ok bool
+	if val == nil {
+		return "", nil
+	}
+
+	if s, ok = val.(string); !ok {
+		err = fmt.Errorf("type must be a string")
+	}
+	return
+}
+
+// strVal confirms an interface is a []string
+func strSliceVal(val interface{}) (s []string, err error) {
+	var ok bool
+	if val == nil {
+		return nil, nil
+	}
+
+	si, ok := val.([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("type must be a set of strings")
+	}
+
+	for i, stri := range si {
+		str, e := strVal(stri)
+		if e != nil {
+			return nil, fmt.Errorf("index %d: %s", i, e.Error())
+		}
+		s = append(s, str)
+	}
+	return
+}
+
+// Set writes value to key in metadata, erroring if the type is invalid
+// input values are expected to be json.Unmarshal types
+func (md *Meta) Set(key string, val interface{}) (err error) {
+
+	switch strings.TrimSpace(strings.ToLower(key)) {
+	// string meta fields
+	case "accesspath":
+		md.AccessPath, err = strVal(val)
+	case "accrualperiodicity":
+		md.AccrualPeriodicity, err = strVal(val)
+	case "description":
+		md.Description, err = strVal(val)
+	case "downloadpath":
+		md.DownloadPath, err = strVal(val)
+	case "homepath":
+		md.HomePath, err = strVal(val)
+	case "identifier":
+		md.Identifier, err = strVal(val)
+	case "readmepath":
+		md.ReadmePath, err = strVal(val)
+	case "title":
+		md.Title, err = strVal(val)
+	case "version":
+		md.Version, err = strVal(val)
+
+	// []string meta fields
+	case "keywords":
+		md.Keywords, err = strSliceVal(val)
+	case "language":
+		md.Language, err = strSliceVal(val)
+	case "theme":
+		md.Theme, err = strSliceVal(val)
+
+	// "exotic" meta fields
+	case "citations":
+		if sl, ok := val.([]interface{}); ok {
+			md.Citations = make([]*Citation, len(sl))
+			for i, ci := range sl {
+				c := &Citation{}
+				if err = c.Decode(ci); err != nil {
+					err = fmt.Errorf("parsing citations index %d: %s", i, err.Error())
+					return
+				}
+				md.Citations[i] = c
+			}
+		} else {
+			err = fmt.Errorf("citation: expected interface slice")
+		}
+	case "contributors":
+		if sl, ok := val.([]interface{}); ok {
+			md.Contributors = make([]*User, len(sl))
+			for i, ci := range sl {
+				c := &User{}
+				if err = c.Decode(ci); err != nil {
+					err = fmt.Errorf("parsing contributors index %d: %s", i, err.Error())
+					return
+				}
+				md.Contributors[i] = c
+			}
+		} else {
+			err = fmt.Errorf("contributors: expected interface slice")
+		}
+	case "license":
+		md.License = &License{}
+		err = md.License.Decode(val)
+
+	// everything else
+	default:
+		if md.meta == nil {
+			md.meta = map[string]interface{}{}
+		}
+		md.meta[key] = val
+	}
+
+	return
 }
 
 // Assign collapses all properties of a group of metadata structs onto one.
@@ -309,10 +422,44 @@ type User struct {
 	Email    string `json:"email,omitempty"`
 }
 
+// Decode reads json.Umarshal-style data into a User
+func (u *User) Decode(val interface{}) (err error) {
+	msi, ok := val.(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("expected map[string]interface{}")
+	}
+	if u.ID, err = strVal(msi["id"]); err != nil {
+		return
+	}
+	if u.Fullname, err = strVal(msi["name"]); err != nil {
+		return
+	}
+	if u.Email, err = strVal(msi["email"]); err != nil {
+		return
+	}
+	return
+}
+
 // License represents a legal licensing agreement
 type License struct {
 	Type string `json:"type"`
 	URL  string `json:"url"`
+}
+
+// Decode reads json.Umarshal-style data into a License
+func (l *License) Decode(val interface{}) (err error) {
+	msi, ok := val.(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("expected map[string]interface{}")
+	}
+	if l.Type, err = strVal(msi["type"]); err != nil {
+		return
+	}
+	if l.URL, err = strVal(msi["url"]); err != nil {
+		return
+	}
+
+	return
 }
 
 // private struct for marshaling
@@ -349,6 +496,24 @@ type Citation struct {
 	Name  string `json:"name,omitempty"`
 	URL   string `json:"url,omitempty"`
 	Email string `json:"email,omitempty"`
+}
+
+// Decode reads json.Umarshal-style data into a Citation
+func (c *Citation) Decode(val interface{}) (err error) {
+	msi, ok := val.(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("expected map[string]interface{}")
+	}
+	if c.Name, err = strVal(msi["name"]); err != nil {
+		return
+	}
+	if c.URL, err = strVal(msi["url"]); err != nil {
+		return
+	}
+	if c.Email, err = strVal(msi["email"]); err != nil {
+		return
+	}
+	return
 }
 
 // Theme is pulled from the Project Open Data Schema version 1.1
