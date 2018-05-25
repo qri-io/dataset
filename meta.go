@@ -66,6 +66,7 @@ func (md *Meta) IsEmpty() bool {
 		md.Identifier == "" &&
 		md.Keywords == nil &&
 		md.Language == nil &&
+		md.License == nil &&
 		md.ReadmePath == "" &&
 		md.Title == "" &&
 		md.Theme == nil &&
@@ -467,21 +468,11 @@ type _license License
 
 // MarshalJSON satisfies the json.Marshaller interface
 func (l License) MarshalJSON() ([]byte, error) {
-	if l.Type != "" && l.URL == "" {
-		return []byte(fmt.Sprintf(`"%s"`, l.Type)), nil
-	}
-
 	return json.Marshal(_license(l))
 }
 
 // UnmarshalJSON satisfies the json.Unmarshaller interface
 func (l *License) UnmarshalJSON(data []byte) error {
-	var s string
-	if err := json.Unmarshal(data, &s); err == nil {
-		*l = License{Type: s}
-		return nil
-	}
-
 	_l := &_license{}
 	if err := json.Unmarshal(data, _l); err != nil {
 		return fmt.Errorf("error parsing license from json: %s", err.Error())
