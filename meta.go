@@ -66,6 +66,7 @@ func (md *Meta) IsEmpty() bool {
 		md.Identifier == "" &&
 		md.Keywords == nil &&
 		md.Language == nil &&
+		md.License == nil &&
 		md.ReadmePath == "" &&
 		md.Title == "" &&
 		md.Theme == nil &&
@@ -374,10 +375,9 @@ func (md *Meta) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
-	// TODO - I'm guessing what follows could be better
 	d := _metadata{}
 	if err := json.Unmarshal(data, &d); err != nil {
-		return fmt.Errorf("error unmarshling dataset: %s", err.Error())
+		return fmt.Errorf("error unmarshling dataset metadata: %s", err.Error())
 	}
 
 	meta := map[string]interface{}{}
@@ -442,8 +442,8 @@ func (u *User) Decode(val interface{}) (err error) {
 
 // License represents a legal licensing agreement
 type License struct {
-	Type string `json:"type"`
-	URL  string `json:"url"`
+	Type string `json:"type,omitempty"`
+	URL  string `json:"url,omitempty"`
 }
 
 // Decode reads json.Umarshal-style data into a License
@@ -460,35 +460,6 @@ func (l *License) Decode(val interface{}) (err error) {
 	}
 
 	return
-}
-
-// private struct for marshaling
-type _license License
-
-// MarshalJSON satisfies the json.Marshaller interface
-func (l License) MarshalJSON() ([]byte, error) {
-	if l.Type != "" && l.URL == "" {
-		return []byte(fmt.Sprintf(`"%s"`, l.Type)), nil
-	}
-
-	return json.Marshal(_license(l))
-}
-
-// UnmarshalJSON satisfies the json.Unmarshaller interface
-func (l *License) UnmarshalJSON(data []byte) error {
-	var s string
-	if err := json.Unmarshal(data, &s); err == nil {
-		*l = License{Type: s}
-		return nil
-	}
-
-	_l := &_license{}
-	if err := json.Unmarshal(data, _l); err != nil {
-		return fmt.Errorf("error parsing license from json: %s", err.Error())
-	}
-	*l = License(*_l)
-
-	return nil
 }
 
 // Citation is a place that this dataset drew it's information from

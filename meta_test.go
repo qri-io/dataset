@@ -180,7 +180,7 @@ func TestMetaMarshalJSON(t *testing.T) {
 		err error
 	}{
 		{&Meta{}, []byte(`{"qri":"md:0"}`), nil},
-		{AirportCodes.Meta, []byte(`{"citations":[{"name":"Our Airports","url":"http://ourairports.com/data/"}],"homePath":"http://www.ourairports.com/","license":"PDDL-1.0","qri":"md:0","title":"Airport Codes"}`), nil},
+		{AirportCodes.Meta, []byte(`{"citations":[{"name":"Our Airports","url":"http://ourairports.com/data/"}],"homePath":"http://www.ourairports.com/","license":{"type":"PDDL-1.0"},"qri":"md:0","title":"Airport Codes"}`), nil},
 		{Hours.Meta, []byte(`{"accessPath":"https://example.com/not/a/url","downloadPath":"https://example.com/not/a/url","qri":"md:0","readmePath":"/ipfs/notahash","title":"hours"}`), nil},
 	}
 
@@ -192,7 +192,7 @@ func TestMetaMarshalJSON(t *testing.T) {
 		}
 
 		if !bytes.Equal(c.out, got) {
-			t.Errorf("case %d error mismatch. %s != %s", i, string(c.out), string(got))
+			t.Errorf("case %d mismatch. expected != got: %s != %s", i, string(c.out), string(got))
 			continue
 		}
 	}
@@ -242,7 +242,7 @@ func TestMetaUnmarshalJSON(t *testing.T) {
 
 		ds := &Meta{}
 		if err := json.Unmarshal(data, ds); err != c.err {
-			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
+			t.Errorf("case %d error mismatch (expected: '%s', got): '%s'", i, c.err, err)
 			continue
 		}
 
