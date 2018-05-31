@@ -378,7 +378,7 @@ func (md *Meta) UnmarshalJSON(data []byte) error {
 	// TODO - I'm guessing what follows could be better
 	d := _metadata{}
 	if err := json.Unmarshal(data, &d); err != nil {
-		return fmt.Errorf("error unmarshling dataset: %s", err.Error())
+		return fmt.Errorf("error unmarshling dataset metadata: %s", err.Error())
 	}
 
 	meta := map[string]interface{}{}
@@ -443,8 +443,8 @@ func (u *User) Decode(val interface{}) (err error) {
 
 // License represents a legal licensing agreement
 type License struct {
-	Type string `json:"type"`
-	URL  string `json:"url"`
+	Type string `json:"type,omitempty"`
+	URL  string `json:"url,omitempty"`
 }
 
 // Decode reads json.Umarshal-style data into a License

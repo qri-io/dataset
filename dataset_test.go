@@ -105,7 +105,6 @@ func TestDatasetSignableBytes(t *testing.T) {
 			t.Errorf("case %d result mismatch. expected: '%s'\n got: '%s'", i, string(c.expect), string(got))
 		}
 	}
-
 }
 
 func TestDatasetMarshalJSON(t *testing.T) {
@@ -126,7 +125,7 @@ func TestDatasetMarshalJSON(t *testing.T) {
 		}
 
 		if !bytes.Equal(c.out, got) {
-			t.Errorf("case %d error mismatch. %s != %s", i, string(c.out), string(got))
+			t.Errorf("case %d mismatch. (expected != got) %s != %s", i, string(c.out), string(got))
 			continue
 		}
 	}
