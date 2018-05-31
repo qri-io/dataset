@@ -182,7 +182,7 @@ func (ds *Dataset) UnmarshalJSON(data []byte) error {
 		*ds = Dataset{path: datastore.NewKey(path)}
 		return nil
 	}
-	// TODO - I'm guessing what follows could be better
+
 	d := _dataset{}
 	if err := json.Unmarshal(data, &d); err != nil {
 		log.Debug(err.Error())
