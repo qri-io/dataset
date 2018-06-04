@@ -76,11 +76,11 @@ func (r *JSONReader) ReadEntry() (Entry, error) {
 	// Close JSON container if it is complete, signaling EOF.
 	if r.scanMode == smObject {
 		if r.readTokenChar('}') {
-			return ent, ErrEOF
+			return ent, io.EOF
 		}
 	} else {
 		if r.readTokenChar(']') {
-			return ent, ErrEOF
+			return ent, io.EOF
 		}
 	}
 
