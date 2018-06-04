@@ -2,6 +2,7 @@ package dsio
 
 import (
 	"fmt"
+	"io"
 
 	"github.com/qri-io/dataset"
 )
@@ -30,7 +31,7 @@ func (r *PagedReader) ReadEntry() (Entry, error) {
 		r.Offset--
 	}
 	if r.Limit == 0 {
-		return Entry{}, ErrEOF
+		return Entry{}, io.EOF
 	}
 	r.Limit--
 	return r.Reader.ReadEntry()
@@ -42,7 +43,7 @@ func Copy(reader EntryReader, writer EntryWriter) error {
 	for {
 		val, err := reader.ReadEntry()
 		if err != nil {
-			if err == ErrEOF {
+			if err == io.EOF {
 				break
 			}
 			return fmt.Errorf("row iteration error: %s", err.Error())

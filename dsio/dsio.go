@@ -12,9 +12,6 @@ import (
 
 var log = logger.Logger("dsio")
 
-// ErrEOF represents the End of a File
-var ErrEOF = fmt.Errorf("EOF")
-
 // EntryWriter is a generalized interface for writing structured data
 type EntryWriter interface {
 	// Structure gives the structure being written
