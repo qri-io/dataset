@@ -38,7 +38,6 @@ func (r *PagedReader) ReadEntry() (Entry, error) {
 }
 
 // Copy reads all entries from the reader and writes them to the writer
-// TODO: Tests
 func Copy(reader EntryReader, writer EntryWriter) error {
 	for {
 		val, err := reader.ReadEntry()
