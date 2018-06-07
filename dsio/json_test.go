@@ -424,7 +424,7 @@ func TestJSONWriter(t *testing.T) {
 		}
 
 		var v interface{}
-		if w.ContainerType() == "object" {
+		if w.tlt == "object" {
 			v = []interface{}{}
 		} else {
 			v = map[string]interface{}{}

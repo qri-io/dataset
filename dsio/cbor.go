@@ -20,7 +20,7 @@ type CBORReader struct {
 	st         *dataset.Structure
 	token      *bytes.Buffer
 	readingMap bool
-	sm         scanMode
+	tlt        string
 	handle     *codec.CborHandle
 }
 
@@ -36,7 +36,7 @@ func NewCBORReader(st *dataset.Structure, r io.Reader) (*CBORReader, error) {
 		return nil, err
 	}
 
-	sm, err := schemaScanMode(st.Schema)
+	tlt, err := GetTopLevelType(st)
 	if err != nil {
 		log.Debug(err.Error())
 		return nil, err
@@ -46,7 +46,7 @@ func NewCBORReader(st *dataset.Structure, r io.Reader) (*CBORReader, error) {
 		st:    st,
 		rdr:   bufio.NewReader(r),
 		token: &bytes.Buffer{},
-		sm:    sm,
+		tlt:   tlt,
 		handle: &codec.CborHandle{
 			TimeRFC3339: true,
 			BasicHandle: codec.BasicHandle{
@@ -328,7 +328,7 @@ func (r *CBORReader) tokAdduInt(bd byte) (i int, err error) {
 // CBOR-formatted data
 type CBORWriter struct {
 	rowsWritten int
-	scanMode    scanMode
+	tlt         string
 	st          *dataset.Structure
 	wr          io.Writer
 	arr         []interface{}
@@ -341,33 +341,28 @@ func NewCBORWriter(st *dataset.Structure, w io.Writer) (*CBORWriter, error) {
 		return nil, fmt.Errorf("schema required for CBOR writer")
 	}
 
+	tlt, err := GetTopLevelType(st)
+	if err != nil {
+		return nil, err
+	}
 	cw := &CBORWriter{
-		st: st,
-		wr: w,
+		st:  st,
+		wr:  w,
+		tlt: tlt,
 	}
 
-	sm, err := schemaScanMode(st.Schema)
-	cw.scanMode = sm
-	if sm == smObject {
+	if cw.tlt == "object" {
 		cw.obj = map[string]interface{}{}
 	} else {
 		cw.arr = []interface{}{}
 	}
 
-	return cw, err
+	return cw, nil
 }
 
 // Structure gives this writer's structure
 func (w *CBORWriter) Structure() *dataset.Structure {
 	return w.st
-}
-
-// ContainerType gives weather this writer is writing an array or an object
-func (w *CBORWriter) ContainerType() string {
-	if w.scanMode == smObject {
-		return "object"
-	}
-	return "array"
 }
 
 // WriteEntry writes one CBOR record to the writer
@@ -376,7 +371,7 @@ func (w *CBORWriter) WriteEntry(ent Entry) error {
 		w.rowsWritten++
 	}()
 
-	if w.scanMode == smObject {
+	if w.tlt == "object" {
 		if ent.Key == "" {
 			return fmt.Errorf("Key cannot be empty")
 		}
@@ -399,7 +394,7 @@ func (w *CBORWriter) Close() error {
 	h.Canonical = true
 	enc := codec.NewEncoder(w.wr, h)
 
-	if w.scanMode == smObject {
+	if w.tlt == "object" {
 		return enc.Encode(w.obj)
 	}
 
