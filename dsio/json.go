@@ -15,7 +15,7 @@ import (
 type JSONReader struct {
 	entriesRead int
 	initialized bool
-	scanMode    scanMode // are we scanning an object or an array? default: array.
+	tlt         string
 	st          *dataset.Structure
 	objKey      string
 	reader      *bufio.Reader
@@ -37,13 +37,16 @@ func NewJSONReaderSize(st *dataset.Structure, r io.Reader, size int) (*JSONReade
 	}
 
 	reader := bufio.NewReaderSize(r, size)
+	tlt, err := GetTopLevelType(st)
+	if err != nil {
+		return nil, err
+	}
 	jr := &JSONReader{
 		st:     st,
 		reader: reader,
+		tlt:    tlt,
 	}
-	sm, err := schemaScanMode(st.Schema)
-	jr.scanMode = sm
-	return jr, err
+	return jr, nil
 }
 
 // Structure gives this writer's structure
@@ -62,7 +65,7 @@ func (r *JSONReader) ReadEntry() (Entry, error) {
 
 	// Open JSON container the first time this is called.
 	if !r.initialized {
-		if r.scanMode == smObject {
+		if r.tlt == "object" {
 			if !r.readTokenChar('{') {
 				return ent, fmt.Errorf("Expected: opening object '{'")
 			}
@@ -74,7 +77,7 @@ func (r *JSONReader) ReadEntry() (Entry, error) {
 	}
 
 	// Close JSON container if it is complete, signaling EOF.
-	if r.scanMode == smObject {
+	if r.tlt == "object" {
 		if r.readTokenChar('}') {
 			return ent, io.EOF
 		}
@@ -93,7 +96,7 @@ func (r *JSONReader) ReadEntry() (Entry, error) {
 	r.initialized = true
 
 	// Read actual entry, format depends depends upon mode.
-	if r.scanMode == smObject {
+	if r.tlt == "object" {
 		key, val, err := r.readKeyValuePair()
 		ent.Key = key
 		ent.Value = val
@@ -377,7 +380,7 @@ func (r *JSONReader) readKeyValuePair() (string, interface{}, error) {
 // JSON-formatted data
 type JSONWriter struct {
 	rowsWritten int
-	scanMode    scanMode
+	tlt         string
 	st          *dataset.Structure
 	wr          io.Writer
 	keysWritten map[string]bool
@@ -391,31 +394,25 @@ func NewJSONWriter(st *dataset.Structure, w io.Writer) (*JSONWriter, error) {
 		return nil, err
 	}
 
+	tlt, err := GetTopLevelType(st)
+	if err != nil {
+		return nil, err
+	}
 	jw := &JSONWriter{
-		st: st,
-		wr: w,
+		st:  st,
+		wr:  w,
+		tlt: tlt,
 	}
 
-	sm, err := schemaScanMode(st.Schema)
-	jw.scanMode = sm
-	if sm == smObject {
+	if jw.tlt == "object" {
 		jw.keysWritten = map[string]bool{}
 	}
-
-	return jw, err
+	return jw, nil
 }
 
 // Structure gives this writer's structure
 func (w *JSONWriter) Structure() *dataset.Structure {
 	return w.st
-}
-
-// ContainerType gives weather this writer is writing an array or an object
-func (w *JSONWriter) ContainerType() string {
-	if w.scanMode == smObject {
-		return "object"
-	}
-	return "array"
 }
 
 // WriteEntry writes one JSON record to the writer
@@ -425,7 +422,7 @@ func (w *JSONWriter) WriteEntry(ent Entry) error {
 	}()
 	if w.rowsWritten == 0 {
 		open := []byte{'['}
-		if w.scanMode == smObject {
+		if w.tlt == "object" {
 			open = []byte{'{'}
 		}
 		if _, err := w.wr.Write(open); err != nil {
@@ -450,7 +447,7 @@ func (w *JSONWriter) WriteEntry(ent Entry) error {
 }
 
 func (w *JSONWriter) valBytes(ent Entry) ([]byte, error) {
-	if w.scanMode == smArray {
+	if w.tlt == "array" {
 		// TODO - add test that checks this is recording values & not entries
 		return json.Marshal(ent.Value)
 	}
@@ -485,7 +482,7 @@ func (w *JSONWriter) Close() error {
 	// if WriteEntry is never called, write an empty array
 	if w.rowsWritten == 0 {
 		data := []byte("[]")
-		if w.scanMode == smObject {
+		if w.tlt == "object" {
 			data = []byte("{}")
 		}
 
@@ -497,7 +494,7 @@ func (w *JSONWriter) Close() error {
 	}
 
 	cloze := []byte{']'}
-	if w.scanMode == smObject {
+	if w.tlt == "object" {
 		cloze = []byte{'}'}
 	}
 	_, err := w.wr.Write(cloze)

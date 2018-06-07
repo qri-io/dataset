@@ -7,7 +7,6 @@ import (
 
 	logger "github.com/ipfs/go-log"
 	"github.com/qri-io/dataset"
-	"github.com/qri-io/jsonschema"
 )
 
 var log = logger.Logger("dsio")
@@ -86,29 +85,13 @@ func NewEntryWriter(st *dataset.Structure, w io.Writer) (EntryWriter, error) {
 	}
 }
 
-type scanMode int
-
-const (
-	smArray scanMode = iota
-	smObject
-)
-
-// schemaScanMode determines weather the top level is an array or object
-func schemaScanMode(sc *jsonschema.RootSchema) (scanMode, error) {
-	if vt, ok := sc.Validators["type"]; ok {
-		// TODO - lol go PR jsonschema to export access to this instead of this
-		// silly validation hack
-		obj := []jsonschema.ValError{}
-		arr := []jsonschema.ValError{}
-		vt.Validate("", map[string]interface{}{}, &obj)
-		vt.Validate("", []interface{}{}, &arr)
-		if len(obj) == 0 {
-			return smObject, nil
-		} else if len(arr) == 0 {
-			return smArray, nil
-		}
+// GetTopLevelType returns the top-level type of the structure, only if it is
+// a valid type ("array" or "object"), otherwise returns an error
+func GetTopLevelType(st *dataset.Structure) (string, error) {
+	tlt := st.Schema.TopLevelType()
+	if tlt != "array" && tlt != "object" {
+		return "", fmt.Errorf("invalid schema. root must be either an array or object type")
 	}
-	err := fmt.Errorf("invalid schema. root must be either an array or object type")
-	log.Debug(err.Error())
-	return smArray, err
+	return tlt, nil
 }
+
