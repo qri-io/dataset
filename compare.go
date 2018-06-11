@@ -26,8 +26,8 @@ func CompareDatasets(a, b *Dataset) error {
 	if a.PreviousPath != b.PreviousPath {
 		return fmt.Errorf("PreviousPath: %s != %s", a.PreviousPath, b.PreviousPath)
 	}
-	if a.DataPath != b.DataPath {
-		return fmt.Errorf("DataPath: %s != %s", a.DataPath, b.DataPath)
+	if a.BodyPath != b.BodyPath {
+		return fmt.Errorf("BodyPath: %s != %s", a.BodyPath, b.BodyPath)
 	}
 
 	if err := CompareMetas(a.Meta, b.Meta); err != nil {
@@ -176,8 +176,8 @@ func CompareVisConfigs(a, b *VisConfig) error {
 	if a.Format != b.Format {
 		return fmt.Errorf("Format: %s != %s", a.Format, b.Format)
 	}
-	// if a.DataPath != b.DataPath {
-	// 	return fmt.Errorf("DataPath: %s != %s", a.DataPath, b.DataPath)
+	// if a.BodyPath != b.BodyPath {
+	// 	return fmt.Errorf("BodyPath: %s != %s", a.BodyPath, b.BodyPath)
 	// }
 	if !reflect.DeepEqual(a.Visualizations, b.Visualizations) {
 		return fmt.Errorf("Visualizations not equal")

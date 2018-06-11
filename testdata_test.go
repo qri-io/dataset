@@ -126,7 +126,7 @@ var Hours = &Dataset{
 		DownloadPath: "https://example.com/not/a/url",
 		ReadmePath:   "/ipfs/notahash",
 	},
-	DataPath: "/ipfs/QmS1dVa1xemo7gQzJgjimj1WwnVBF3TwRTGsyKa1uEBWbJ",
+	BodyPath: "/ipfs/QmS1dVa1xemo7gQzJgjimj1WwnVBF3TwRTGsyKa1uEBWbJ",
 }
 
 var HoursStructure = &Structure{

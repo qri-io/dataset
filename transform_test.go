@@ -217,7 +217,7 @@ func TestTransformCoding(t *testing.T) {
 		{ScriptPath: "foo"},
 		{path: datastore.NewKey("/foo")},
 		{Qri: KindTransform},
-		{Resources: map[string]*Dataset{"foo": &Dataset{DataPath: "foo"}}},
+		{Resources: map[string]*Dataset{"foo": &Dataset{BodyPath: "foo"}}},
 		{Syntax: "foo"},
 		{Structure: &Structure{Format: CBORDataFormat}},
 	}
