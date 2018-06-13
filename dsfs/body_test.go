@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestLoadData(t *testing.T) {
+func TestLoadBody(t *testing.T) {
 	datasets, store, err := makeFilestore()
 	if err != nil {
 		t.Errorf("error creating test filestore: %s", err.Error())
@@ -19,7 +19,7 @@ func TestLoadData(t *testing.T) {
 		return
 	}
 
-	f, err := LoadData(store, ds)
+	f, err := LoadBody(store, ds)
 	if err != nil {
 		t.Errorf("error loading data: %s", err.Error())
 		return
@@ -31,7 +31,7 @@ func TestLoadData(t *testing.T) {
 		return
 	}
 
-	eq, err := ioutil.ReadFile("testdata/movies/data.csv")
+	eq, err := ioutil.ReadFile("testdata/movies/body.csv")
 	if err != nil {
 		t.Errorf("error reading test file: %s", err.Error())
 		return

@@ -10,15 +10,15 @@ import (
 	"github.com/qri-io/dataset/dsio"
 )
 
-// LoadData loads the data this dataset points to from the store
-func LoadData(store cafs.Filestore, ds *dataset.Dataset) (cafs.File, error) {
+// LoadBody loads the data this dataset points to from the store
+func LoadBody(store cafs.Filestore, ds *dataset.Dataset) (cafs.File, error) {
 	return store.Get(datastore.NewKey(ds.BodyPath))
 }
 
 // LoadRows loads a slice of raw bytes inside a limit/offset row range
 func LoadRows(store cafs.Filestore, ds *dataset.Dataset, limit, offset int) ([]byte, error) {
 
-	datafile, err := LoadData(store, ds)
+	datafile, err := LoadBody(store, ds)
 	if err != nil {
 		log.Debug(err.Error())
 		return nil, fmt.Errorf("error loading dataset data: %s", err.Error())

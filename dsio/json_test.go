@@ -63,7 +63,7 @@ func TestJSONReader(t *testing.T) {
 			continue
 		}
 
-		r, err := NewJSONReader(c.structure, tc.DataFile())
+		r, err := NewJSONReader(c.structure, tc.BodyFile())
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("case %d:%s error mismatch. expected: %s. got: %s", i, c.name, c.err, err)
 			continue
@@ -188,7 +188,7 @@ func TestJSONReaderSmallerBufferForHugeToken(t *testing.T) {
 			continue
 		}
 
-		r, err := NewJSONReaderSize(c.structure, tc.DataFile(), 4096)
+		r, err := NewJSONReaderSize(c.structure, tc.BodyFile(), 4096)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("case %d:%s error mismatch. expected: %s. got: %s", i, c.name, c.err, err)
 			continue

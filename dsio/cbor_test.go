@@ -216,7 +216,7 @@ func TestCBORReaderFile(t *testing.T) {
 			continue
 		}
 
-		r, err := NewCBORReader(c.structure, tc.DataFile())
+		r, err := NewCBORReader(c.structure, tc.BodyFile())
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("case %d:%s error mismatch. expected: %s. got: %s", i, c.name, c.err, err)
 			continue

@@ -39,13 +39,13 @@ func TestLoadDataset(t *testing.T) {
 		t.Errorf("error unmarshaling test dataset: %s", err.Error())
 		return
 	}
-	data, err := ioutil.ReadFile("testdata/complete/data.csv")
+	body, err := ioutil.ReadFile("testdata/complete/body.csv")
 	if err != nil {
-		t.Errorf("error loading test data: %s", err.Error())
+		t.Errorf("error loading test body: %s", err.Error())
 		return
 	}
 
-	df := cafs.NewMemfileBytes("complete.csv", data)
+	df := cafs.NewMemfileBytes("complete.csv", body)
 
 	apath, err := WriteDataset(store, ds, df, true)
 	if err != nil {
@@ -170,7 +170,7 @@ func TestCreateDataset(t *testing.T) {
 			tc.Input.Transform.Script = ts
 		}
 
-		path, err := CreateDataset(store, tc.Input, tc.DataFile(), privKey, false)
+		path, err := CreateDataset(store, tc.Input, tc.BodyFile(), privKey, false)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("%s: error mismatch. expected: '%s', got: '%s'", tc.Name, c.err, err)
 			continue
@@ -253,13 +253,13 @@ func TestWriteDataset(t *testing.T) {
 
 	cases := []struct {
 		infile    string
-		dataPath  string
+		bodyPath  string
 		path      string
 		repoFiles int // expected total count of files in repo after test execution
 		err       string
 	}{
-		{"testdata/cities/input.dataset.json", "testdata/cities/data.csv", "/map/", 6, ""},
-		{"testdata/complete/input.dataset.json", "testdata/complete/data.csv", "/map/", 12, ""},
+		{"testdata/cities/input.dataset.json", "testdata/cities/body.csv", "/map/", 6, ""},
+		{"testdata/complete/input.dataset.json", "testdata/complete/body.csv", "/map/", 12, ""},
 	}
 
 	for i, c := range cases {
@@ -269,12 +269,12 @@ func TestWriteDataset(t *testing.T) {
 			continue
 		}
 
-		data, err := ioutil.ReadFile(c.dataPath)
+		body, err := ioutil.ReadFile(c.bodyPath)
 		if err != nil {
-			t.Errorf("case %d error reading data file: %s", i, err.Error())
+			t.Errorf("case %d error reading body file: %s", i, err.Error())
 			continue
 		}
-		df := cafs.NewMemfileBytes(filepath.Base(c.dataPath), data)
+		df := cafs.NewMemfileBytes(filepath.Base(c.bodyPath), body)
 
 		ds := &dataset.Dataset{}
 		if err := ds.UnmarshalJSON(indata); err != nil {
