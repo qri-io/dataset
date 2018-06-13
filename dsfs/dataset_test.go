@@ -146,13 +146,13 @@ func TestCreateDataset(t *testing.T) {
 		{"invalid",
 			"", 0, "commit is required"},
 		{"cities",
-			"/map/QmYXMg6gqMAT8seUFhgAagknFvfs71auFWbnSfVcg1NTd8", 6, ""},
+			"/map/QmXjDWV4D9FPrU7p3bdBz2tFjtu8KG78hZtKf4FZo9uhAb", 6, ""},
 		{"complete",
-			"/map/QmZPqhESomGtMcetWPdMNfeGgSkFeeKkj3tpzMqin1i8m1", 13, ""},
+			"/map/QmX5thqsJJ6yk7swticKYwrjC7BKdyFiLx7ZRAPFa3kUPo", 13, ""},
 		{"cities_no_commit_title",
-			"/map/QmNNtXBcv5Lp6rwHKFuLH4A7epnbgPVfBTUeMtZ7PFJiGL", 15, ""},
+			"/map/QmbiPVhUKJNqC9cA5QNq83SwaXgkt98fgo74TYkeiPem4L", 15, ""},
 		{"craigslist",
-			"/map/QmayiyvRGkS8R6ifLRmHBKGd8ro9UWgXigrwsQU8vYFemg", 19, ""},
+			"/map/QmP55iAnLkPpqqnhfg1mcRBqz7tKckm6bdW4kGhT1kRpP1", 19, ""},
 	}
 
 	for _, c := range cases {
@@ -342,7 +342,7 @@ func TestWriteDataset(t *testing.T) {
 			}
 			ds.VisConfig.Assign(dataset.NewVisConfigRef(ref.VisConfig.Path()))
 		}
-		ds.DataPath = ref.DataPath
+		ds.BodyPath = ref.BodyPath
 
 		ds.Assign(dataset.NewDatasetRef(got))
 		result, err := LoadDataset(store, got)

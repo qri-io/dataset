@@ -38,7 +38,7 @@ func TestDatasetAssign(t *testing.T) {
 		{&Dataset{Structure: &Structure{Format: CSVDataFormat}}},
 		{&Dataset{Transform: &Transform{ScriptPath: "some_transform_script.sky"}}},
 		{&Dataset{Commit: &Commit{Title: "foo"}}},
-		{&Dataset{DataPath: "foo"}},
+		{&Dataset{BodyPath: "foo"}},
 		{&Dataset{PreviousPath: "stuff"}},
 		{&Dataset{Meta: &Meta{Title: "foo"}}},
 		{&Dataset{VisConfig: &VisConfig{Qri: KindVisConfig}}},
@@ -211,7 +211,7 @@ func TestDatasetIsEmpty(t *testing.T) {
 		ds *Dataset
 	}{
 		{&Dataset{Commit: &Commit{}}},
-		{&Dataset{DataPath: "foo"}},
+		{&Dataset{BodyPath: "foo"}},
 		{&Dataset{Meta: &Meta{}}},
 		{&Dataset{PreviousPath: "nope"}},
 		{&Dataset{Structure: &Structure{}}},
@@ -288,7 +288,7 @@ func TestDatasetCoding(t *testing.T) {
 	cases := []*Dataset{
 		{},
 		{Commit: &Commit{Title: "foo"}},
-		{DataPath: "foo"},
+		{BodyPath: "foo"},
 		{Meta: &Meta{Title: "foo"}},
 		{PreviousPath: "foo"},
 		{Qri: KindDataset},

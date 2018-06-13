@@ -393,7 +393,7 @@ func generateCommitMsg(store cafs.Filestore, ds *dataset.Dataset) (string, error
 				Checksum: base58.Encode([]byte(placeholder)),
 				Format:   ds.Structure.Format,
 			},
-			DataPath: placeholder,
+			BodyPath: placeholder,
 		}
 	}
 
@@ -553,7 +553,7 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File,
 			case PackageFileVisConfig.String():
 				ds.VisConfig = dataset.NewVisConfigRef(ao.Path)
 			case dataFile.FileName():
-				ds.DataPath = ao.Path.String()
+				ds.BodyPath = ao.Path.String()
 			case "transform_script":
 				ds.Transform.ScriptPath = ao.Path.String()
 				tfdata, err := json.Marshal(ds.Transform)

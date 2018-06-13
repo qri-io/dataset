@@ -7,7 +7,7 @@
     "timestamp": "2001-01-01T01:01:01.000000001Z",
     "title": "I'm a commit"
   },
-  "dataPath": "/map/QmcCcPTqmckdXLBwPQXxfyW2BbFcUT6gqv9oGeWDkrNTyD",
+  "bodyPath": "/map/QmcCcPTqmckdXLBwPQXxfyW2BbFcUT6gqv9oGeWDkrNTyD",
   "meta": {
     "qri": "md:0",
     "title": "dataset with all submodels example"

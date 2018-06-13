@@ -7,5 +7,5 @@
     "downloadPath": "https://example.com/not/a/url",
     "readmePath": "/ipfs/notahash"
   },
-  "dataPath": "/ipfs/QmS1dVa1xemo7gQzJgjimj1WwnVBF3TwRTGsyKa1uEBWbJ"
+  "bodyPath": "/ipfs/QmS1dVa1xemo7gQzJgjimj1WwnVBF3TwRTGsyKa1uEBWbJ"
 }

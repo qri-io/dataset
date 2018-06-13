@@ -18,7 +18,7 @@ func TestCompareDatasets(t *testing.T) {
 		{AirportCodes, AirportCodes, ""},
 		{&Dataset{Qri: "a"}, &Dataset{Qri: "b"}, "Qri: a != b"},
 		{&Dataset{PreviousPath: "a"}, &Dataset{PreviousPath: "b"}, "PreviousPath: a != b"},
-		{&Dataset{DataPath: "a"}, &Dataset{DataPath: "b"}, "DataPath: a != b"},
+		{&Dataset{BodyPath: "a"}, &Dataset{BodyPath: "b"}, "BodyPath: a != b"},
 		{&Dataset{}, &Dataset{Structure: &Structure{}}, "Structure: nil: <nil> != <not nil>"},
 		{&Dataset{}, &Dataset{Transform: &Transform{}}, "Transform: nil: <nil> != <not nil>"},
 		{&Dataset{}, &Dataset{Commit: &Commit{}}, "Commit: nil: <nil> != <not nil>"},

@@ -32,8 +32,8 @@ type Dataset struct {
 
 	// Commit contains author & change message information
 	Commit *Commit `json:"commit,omitempty"`
-	// DataPath is the path to the hash of raw data as it resolves on the network.
-	DataPath string `json:"dataPath,omitempty"`
+	// BodyPath is the path to the hash of raw data as it resolves on the network.
+	BodyPath string `json:"bodyPath,omitempty"`
 	// Meta contains all human-readable meta about this dataset
 	Meta *Meta `json:"meta,omitempty"`
 	// PreviousPath connects datasets to form a historical DAG
@@ -52,7 +52,7 @@ type Dataset struct {
 func (ds *Dataset) IsEmpty() bool {
 	return ds.Commit == nil &&
 		ds.Structure == nil &&
-		ds.DataPath == "" &&
+		ds.BodyPath == "" &&
 		ds.Meta == nil &&
 		ds.PreviousPath == "" &&
 		ds.Transform == nil &&
@@ -145,8 +145,8 @@ func (ds *Dataset) Assign(datasets ...*Dataset) {
 			ds.VisConfig.Assign(d.VisConfig)
 		}
 
-		if d.DataPath != "" {
-			ds.DataPath = d.DataPath
+		if d.BodyPath != "" {
+			ds.BodyPath = d.BodyPath
 		}
 		if d.PreviousPath != "" {
 			ds.PreviousPath = d.PreviousPath
@@ -214,7 +214,7 @@ func UnmarshalDataset(v interface{}) (*Dataset, error) {
 // Encode creates a DatasetPod from a Dataset instance
 func (ds Dataset) Encode() *DatasetPod {
 	cd := &DatasetPod{
-		DataPath:     ds.DataPath,
+		BodyPath:     ds.BodyPath,
 		Meta:         ds.Meta,
 		Path:         ds.Path().String(),
 		PreviousPath: ds.PreviousPath,
@@ -239,7 +239,7 @@ func (ds Dataset) Encode() *DatasetPod {
 func (ds *Dataset) Decode(cd *DatasetPod) error {
 	d := Dataset{
 		path:         datastore.NewKey(cd.Path),
-		DataPath:     cd.DataPath,
+		BodyPath:     cd.BodyPath,
 		PreviousPath: cd.PreviousPath,
 		Meta:         cd.Meta,
 		VisConfig:    cd.VisConfig,
@@ -285,14 +285,14 @@ func (ds *Dataset) Decode(cd *DatasetPod) error {
 // fields is populated at a time.
 type DatasetPod struct {
 	Commit *CommitPod `json:"commit,omitempty"`
-	// Data is the designated field for representing dataset data with native go types
+	// Body is the designated field for representing dataset data with native go types
 	// this will often not be populated
-	Data interface{} `json:"data,omitempty"`
-	// DataBytes is the designated field for representing dataset data as a slice of bytes
+	Body interface{} `json:"data,omitempty"`
+	// BodyBytes is fpr representing dataset data as a slice of bytes
 	// this will often not be populated
-	DataBytes []byte `json:"dataBytes,omitempty"`
-	// DataPath is the path to retrieve this dataset
-	DataPath string `json:"dataPath,omitempty"`
+	BodyBytes []byte `json:"dataBytes,omitempty"`
+	// BodyPath is the path to retrieve this dataset
+	BodyPath string `json:"bodyPath,omitempty"`
 	// Unique name reference for this dataset
 	Name string `json:"name,omitempty"`
 	Meta *Meta  `json:"meta,omitempty"`
