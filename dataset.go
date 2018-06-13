@@ -287,10 +287,10 @@ type DatasetPod struct {
 	Commit *CommitPod `json:"commit,omitempty"`
 	// Body is the designated field for representing dataset data with native go types
 	// this will often not be populated
-	Body interface{} `json:"data,omitempty"`
+	Body interface{} `json:"body,omitempty"`
 	// BodyBytes is fpr representing dataset data as a slice of bytes
 	// this will often not be populated
-	BodyBytes []byte `json:"dataBytes,omitempty"`
+	BodyBytes []byte `json:"bodyBytes,omitempty"`
 	// BodyPath is the path to retrieve this dataset
 	BodyPath string `json:"bodyPath,omitempty"`
 	// Unique name reference for this dataset
