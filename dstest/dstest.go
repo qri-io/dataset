@@ -33,8 +33,8 @@ type TestCase struct {
 	Name string
 	// body.csv,body.json, etc
 	BodyFilename string
-	// test data in expected data format
-	Data []byte
+	// test body in expected data format
+	Body []byte
 	// Filename of Transform Script
 	TransformScriptFilename string
 	// TransformScript bytes if one exists
@@ -49,7 +49,7 @@ type TestCase struct {
 
 // BodyFile creates a new in-memory file from data & filename properties
 func (t TestCase) BodyFile() cafs.File {
-	return cafs.NewMemfileBytes(t.BodyFilename, t.Data)
+	return cafs.NewMemfileBytes(t.BodyFilename, t.Body)
 }
 
 // TransformScriptFile creates a cafs.File from testCase transform script data
@@ -97,7 +97,7 @@ func NewTestCaseFromDir(dir string) (tc TestCase, err error) {
 		Path: dir,
 		Name: filepath.Base(dir),
 	}
-	tc.Data, tc.BodyFilename, err = ReadBodyData(dir)
+	tc.Body, tc.BodyFilename, err = ReadBodyData(dir)
 	if err != nil {
 		err = fmt.Errorf("error reading test case body for directory %s: %s", dir, err.Error())
 		log.Info(err.Error())

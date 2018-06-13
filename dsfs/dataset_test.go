@@ -39,13 +39,13 @@ func TestLoadDataset(t *testing.T) {
 		t.Errorf("error unmarshaling test dataset: %s", err.Error())
 		return
 	}
-	data, err := ioutil.ReadFile("testdata/complete/body.csv")
+	body, err := ioutil.ReadFile("testdata/complete/body.csv")
 	if err != nil {
 		t.Errorf("error loading test body: %s", err.Error())
 		return
 	}
 
-	df := cafs.NewMemfileBytes("complete.csv", data)
+	df := cafs.NewMemfileBytes("complete.csv", body)
 
 	apath, err := WriteDataset(store, ds, df, true)
 	if err != nil {
@@ -253,7 +253,7 @@ func TestWriteDataset(t *testing.T) {
 
 	cases := []struct {
 		infile    string
-		dataPath  string
+		bodyPath  string
 		path      string
 		repoFiles int // expected total count of files in repo after test execution
 		err       string
@@ -269,12 +269,12 @@ func TestWriteDataset(t *testing.T) {
 			continue
 		}
 
-		data, err := ioutil.ReadFile(c.dataPath)
+		body, err := ioutil.ReadFile(c.bodyPath)
 		if err != nil {
 			t.Errorf("case %d error reading body file: %s", i, err.Error())
 			continue
 		}
-		df := cafs.NewMemfileBytes(filepath.Base(c.dataPath), data)
+		df := cafs.NewMemfileBytes(filepath.Base(c.bodyPath), body)
 
 		ds := &dataset.Dataset{}
 		if err := ds.UnmarshalJSON(indata); err != nil {

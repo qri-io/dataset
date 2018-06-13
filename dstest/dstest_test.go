@@ -61,7 +61,7 @@ chicago,300000,44.4,true
 chatham,35000,65.25,true
 raleigh,250000,50.65,true
 `)
-	if !bytes.Equal(tc.Data, data) {
+	if !bytes.Equal(tc.Body, data) {
 		t.Errorf("data mismatch")
 	}
 

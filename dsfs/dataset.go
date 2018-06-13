@@ -243,7 +243,7 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 		df, err = LoadBody(store, prev)
 		if err != nil {
 			log.Debug(err.Error())
-			return nil, "", fmt.Errorf("error loading previous dataset data: %s", err)
+			return nil, "", fmt.Errorf("error loading previous dataset body: %s", err)
 		}
 	}
 
