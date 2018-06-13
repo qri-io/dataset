@@ -15,14 +15,14 @@ func TestLoadTestCases(t *testing.T) {
 	t.Logf("%d cases", len(tcs))
 }
 
-func TestDataFilepath(t *testing.T) {
-	fp, err := DataFilepath("testdata/complete")
+func TestBodyFilepath(t *testing.T) {
+	fp, err := BodyFilepath("testdata/complete")
 	if err != nil {
 		t.Error(err.Error())
 		return
 	}
-	if fp != "testdata/complete/data.csv" {
-		t.Errorf("%s != %s", "testdata/complete/data.csv", fp)
+	if fp != "testdata/complete/body.csv" {
+		t.Errorf("%s != %s", "testdata/complete/body.csv", fp)
 	}
 }
 
@@ -49,9 +49,9 @@ func TestNewTestCaseFromDir(t *testing.T) {
 		t.Errorf("expected name to equal: %s. got: %s", name, tc.Name)
 	}
 
-	fn := "data.csv"
-	if tc.DataFilename != fn {
-		t.Errorf("expected DataFilename to equal: %s. got: %s", fn, tc.DataFilename)
+	fn := "body.csv"
+	if tc.BodyFilename != fn {
+		t.Errorf("expected BodyFilename to equal: %s. got: %s", fn, tc.BodyFilename)
 	}
 
 	data := []byte(`city,pop,avg_age,in_usa
@@ -65,9 +65,9 @@ raleigh,250000,50.65,true
 		t.Errorf("data mismatch")
 	}
 
-	mf := tc.DataFile()
-	if mf.FileName() != tc.DataFilename {
-		t.Errorf("filename mismatch: %s != %s", mf.FileName(), tc.DataFilename)
+	mf := tc.BodyFile()
+	if mf.FileName() != tc.BodyFilename {
+		t.Errorf("filename mismatch: %s != %s", mf.FileName(), tc.BodyFilename)
 	}
 
 	if ts, ok := tc.TransformScriptFile(); !ok {

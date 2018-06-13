@@ -28,7 +28,7 @@ func TestEntryReader(t *testing.T) {
 			continue
 		}
 
-		r, err := dsio.NewEntryReader(tc.Input.Structure, tc.DataFile())
+		r, err := dsio.NewEntryReader(tc.Input.Structure, tc.BodyFile())
 		if err != nil {
 			t.Errorf("%s: error creating entry reader: %s", c.name, err.Error())
 			continue

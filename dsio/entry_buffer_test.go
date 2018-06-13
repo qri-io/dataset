@@ -28,7 +28,7 @@ func TestEntryBuffer(t *testing.T) {
 		return
 	}
 
-	rr, err := NewEntryReader(ds.Structure, tc.DataFile())
+	rr, err := NewEntryReader(ds.Structure, tc.BodyFile())
 	if err != nil {
 		t.Errorf("error allocating RowReader: %s", err.Error())
 		return

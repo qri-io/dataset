@@ -165,7 +165,7 @@ func makeFilestore() (map[string]datastore.Key, cafs.Filestore, error) {
 			return datasets, nil, err
 		}
 
-		dataPath := fmt.Sprintf("testdata/%s/data.%s", k, ds.Structure.Format.String())
+		dataPath := fmt.Sprintf("testdata/%s/body.%s", k, ds.Structure.Format.String())
 		data, err := ioutil.ReadFile(dataPath)
 		if err != nil {
 			return datasets, nil, err

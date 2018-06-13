@@ -18,7 +18,7 @@ func TestEachEntry(t *testing.T) {
 		Format: dataset.JSONDataFormat,
 		Schema: dataset.BaseSchemaArray,
 	}
-	r, err := NewEntryReader(st, tc.DataFile())
+	r, err := NewEntryReader(st, tc.BodyFile())
 	if err != nil {
 		t.Errorf("error allocating RowReader: %s", err.Error())
 		return

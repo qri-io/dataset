@@ -31,8 +31,8 @@ type TestCase struct {
 	Path string
 	// Name is the casename, should match directory name
 	Name string
-	// 	 data.csv,data.json, etc
-	DataFilename string
+	// body.csv,body.json, etc
+	BodyFilename string
 	// test data in expected data format
 	Data []byte
 	// Filename of Transform Script
@@ -47,9 +47,9 @@ type TestCase struct {
 	Expect *dataset.Dataset
 }
 
-// DataFile creates a new in-memory file from data & filename properties
-func (t TestCase) DataFile() cafs.File {
-	return cafs.NewMemfileBytes(t.DataFilename, t.Data)
+// BodyFile creates a new in-memory file from data & filename properties
+func (t TestCase) BodyFile() cafs.File {
+	return cafs.NewMemfileBytes(t.BodyFilename, t.Data)
 }
 
 // TransformScriptFile creates a cafs.File from testCase transform script data
@@ -60,11 +60,11 @@ func (t TestCase) TransformScriptFile() (cafs.File, bool) {
 	return cafs.NewMemfileBytes(t.TransformScriptFilename, t.TransformScript), true
 }
 
-// DataFilepath retuns the path to the first valid data file it can find,
+// BodyFilepath retuns the path to the first valid data file it can find,
 // which is a file named "data" that ends in an extension we support
-func DataFilepath(dir string) (string, error) {
+func BodyFilepath(dir string) (string, error) {
 	for _, df := range dataset.SupportedDataFormats() {
-		path := fmt.Sprintf("%s/data.%s", dir, df)
+		path := fmt.Sprintf("%s/body.%s", dir, df)
 		if _, err := os.Stat(path); !os.IsNotExist(err) {
 			return path, nil
 		}
@@ -97,9 +97,9 @@ func NewTestCaseFromDir(dir string) (tc TestCase, err error) {
 		Path: dir,
 		Name: filepath.Base(dir),
 	}
-	tc.Data, tc.DataFilename, err = ReadInputData(dir)
+	tc.Data, tc.BodyFilename, err = ReadBodyData(dir)
 	if err != nil {
-		err = fmt.Errorf("error reading test case data for directory %s: %s", dir, err.Error())
+		err = fmt.Errorf("error reading test case body for directory %s: %s", dir, err.Error())
 		log.Info(err.Error())
 		return
 	}
@@ -142,13 +142,13 @@ func ReadDataset(dir, filename string) (*dataset.Dataset, error) {
 	return ds, ds.UnmarshalJSON(data)
 }
 
-// ReadInputData grabs input data
-func ReadInputData(dir string) ([]byte, string, error) {
+// ReadBodyData grabs input data
+func ReadBodyData(dir string) ([]byte, string, error) {
 	for _, df := range dataset.SupportedDataFormats() {
-		path := fmt.Sprintf("%s/data.%s", dir, df)
+		path := fmt.Sprintf("%s/body.%s", dir, df)
 		if f, err := os.Open(path); err == nil {
 			data, err := ioutil.ReadAll(f)
-			return data, fmt.Sprintf("data.%s", df), err
+			return data, fmt.Sprintf("body.%s", df), err
 		}
 	}
 	return nil, "", os.ErrNotExist
