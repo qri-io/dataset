@@ -8,12 +8,15 @@ import (
 	"github.com/ipfs/go-datastore"
 )
 
-// Commit encapsulates information about changes to a dataset in
-// relation to other entries in a given history. Commit is intended
-// to be directly analogous to the concept of a Commit Message in the
-// git version control system
+// Commit encapsulates information about changes to a dataset in relation to
+// other entries in a given history. Commit is directly analogous to the concept
+// of a Commit Message in the git version control system. A full commit defines
+// the administrative metadata of a dataset, answering "who made this
+// dataset, when, and why"
 type Commit struct {
-	path   datastore.Key
+	path datastore.Key
+
+	// Author of this commit
 	Author *User `json:"author,omitempty"`
 	// Message is an optional
 	Message string `json:"message,omitempty"`
@@ -95,7 +98,8 @@ func (cm *Commit) MarshalJSON() ([]byte, error) {
 	return cm.MarshalJSONObject()
 }
 
-// MarshalJSONObject always marshals to a json Object, even if meta is empty or a reference
+// MarshalJSONObject always marshals to a json Object, even if meta is empty or
+// a reference
 func (cm *Commit) MarshalJSONObject() ([]byte, error) {
 	kind := cm.Qri
 	if kind == "" {
