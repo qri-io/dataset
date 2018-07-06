@@ -303,8 +303,8 @@ func (ds *Dataset) Decode(cd *DatasetPod) error {
 // DatasetPod is a variant of Dataset safe for encoding & decoding to static
 // formats, using only simple go types
 // DatasetPod can contain values that only exist after a dataset has been stored
-// in a content-addressed system, such as path, and fields that implicitly on
-// dataset having a path, like Peername & Name
+// in a content-addressed system, such as path, and fields that implicitly rely
+// on dataset having a path, like Peername & Name
 // There are also two fields that may contain dataset data: Data & DataBytes.
 // In practice these are only populated in special situations, and often only
 // one of the two Data fields is populated at a time.

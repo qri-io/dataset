@@ -14,12 +14,12 @@ import (
 // Well-defined Meta should aid in making datasets Findable by describing a
 // dataset in generalizable taxonomies that can aggregate across other dataset
 // documents. Because dataset documents are intended to interoperate with many
-// other data stroage and cataloging systems, meta fields and conventions are
+// other data storage and cataloging systems, meta fields and conventions are
 // derived from existing metadata formats whenever possible
 type Meta struct {
 	// private storage for reference to this object
 	path datastore.Key
-	// meta holds additional arbitrarty metadata not covered by the spec when
+	// meta holds additional arbitrary metadata not covered by the spec when
 	// encoding & decoding json values here will be hoisted into the meta object
 	meta map[string]interface{}
 
@@ -507,7 +507,7 @@ type Theme struct {
 }
 
 // AccuralDuration takes an ISO 8601 periodicity measure & returns a
-// time.Duration.invalid periodicities return time.Duration(0)
+// time.Duration invalid periodicities return time.Duration(0)
 func AccuralDuration(p string) time.Duration {
 	switch p {
 	// Decennial
