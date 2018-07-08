@@ -10,23 +10,28 @@ import (
 )
 
 var (
-	// BaseSchemaArray is a minimum schema to constitute a dataset, specifying that the top
-	// level of the document is an array
+	// BaseSchemaArray is a minimum schema to constitute a dataset, specifying
+	// the top level of the document is an array
 	BaseSchemaArray = jsonschema.Must(`{"type":"array"}`)
-	// BaseSchemaObject is a minimum schema to constitute a dataset, specifying that the top level
-	// of the document is an object
+	// BaseSchemaObject is a minimum schema to constitute a dataset, specifying
+	// the top level of the document is an object
 	BaseSchemaObject = jsonschema.Must(`{"type":"object"}`)
 )
 
-// Structure designates a deterministic definition for working with a discrete dataset.
-// Structure is a concrete handle that provides precise details about how to interpret a given
-// piece of data (the reference to the data itself is provided elsewhere, specifically in the dataset struct )
-// These techniques provide mechanisms for joining & traversing multiple structures.
-// This example is shown in a human-readable form, for storage on the network the actual
-// output would be in a condensed, non-indented form, with keys sorted by lexographic order.
+// Structure defines the characteristics of a dataset document necessary for a
+// machine to interpret the dataset body.
+// Structure fields are things like the encoding data format (JSON,CSV,etc.),
+// length of the dataset body in bytes, stored in a rigid form intended for
+// machine use. A well defined structure & accompanying software should
+// allow the end user to spend more time focusing on the data itself
+// Two dataset documents that both have a defined structure will have some
+// degree of natural interoperability, depending first on the amount of detail
+// provided in a dataset's structure, and then by the natural comparibilty of
+// the datasets
 type Structure struct {
 	// private storage for reference to this object
 	path datastore.Key
+
 	// Checksum is a bas58-encoded multihash checksum of the entire data
 	// file this structure points to. This is different from IPFS
 	// hashes, which are calculated after breaking the file into blocks
@@ -34,15 +39,13 @@ type Structure struct {
 	// Compression specifies any compression on the source data,
 	// if empty assume no compression
 	Compression compression.Type `json:"compression,omitempty"`
-	// Encoding specifics character encoding
-	// should assume utf-8 if not specified
+	// Encoding specifics character encoding, assume utf-8 if not specified
 	Encoding string `json:"encoding,omitempty"`
 	// ErrCount is the number of errors returned by validating data
 	// against this schema. required
 	ErrCount int `json:"errCount"`
 	// Entries is number of top-level entries in the dataset. With tablular data
-	// this is the same as the number of rows
-	// required when structure is concrete, and must match underlying dataset.
+	// this is the same as the number of "rows"
 	Entries int `json:"entries,omitempty"`
 	// Format specifies the format of the raw data MIME type
 	Format DataFormat `json:"format"`
@@ -54,7 +57,9 @@ type Structure struct {
 	Length int `json:"length,omitempty"`
 	// Qri should always be KindStructure
 	Qri Kind `json:"qri"`
-	// Schema contains the schema definition for the underlying data
+	// Schema contains the schema definition for the underlying data, schemas
+	// are defined using the IETF json-schema specification. for more info
+	// on json-schema see: https://json-schema.org
 	Schema *jsonschema.RootSchema `json:"schema,omitempty"`
 }
 

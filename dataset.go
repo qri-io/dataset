@@ -1,3 +1,26 @@
+// Package dataset contains the qri ("query") dataset document definition
+// This package contains the base definition, as well as a number of
+// subpackages that build from this base to add functionality as necessary
+// Datasets take inspiration from HTML documents, deliniating semantic purpose
+// to predefined tags of the document, but instead of orienting around
+// presentational markup, dataset documents emphasize interoperability and
+// composition. The principle encoding format for a dataset document is JSON.
+//
+// Alpha-Keys:
+// Dataset documents are designed to produce consistent checksums when encoded
+// for storage & transmission. To keep hashing consistent map keys are sorted
+// lexographically for encoding. This applies to all fields of a dataset
+// document except the body of a dataaset, where users may need to dictate the
+// ordering of map keys
+//
+// Pod ("Plain old Data") Pattern:
+// To maintain high interoperability, dataset documents must support encoding &
+// decoding ("coding", or "serialization") to and from many formats, fields of
+// dataset documents that leverage "exotic" custom types are acommpanied by a
+// "Plain Old Data" variant, denoted by a "Pod" suffix in their name
+// Plain-Old-Data variants use only basic go types:
+// string, bool, int, float64, []interface{}, etc.
+// and have methods for clean encoding and decoding to their exotic forms
 package dataset
 
 import (
@@ -9,42 +32,44 @@ import (
 	logger "github.com/ipfs/go-log"
 )
 
+// log is the internal logging mechanism for the dataset package
 var log = logger.Logger("dataset")
 
-// Dataset is a description of a single structured data resource. with the following properties:
-// * A Dataset must resolve to one and only one entity, specified by a `data` property.
-// * All datasets have a structure that defines how to intepret the data.
-// * Datasets contain descriptive metadata
-// * Though software Dataset metadata is interoperable with the DCAT, Project Open Data,
-//   Open Knowledge Foundation DataPackage and JSON-LD specifications,
-//   with the one major exception that content-addressed hashes are acceptable in place of urls.
-// * Datasets have a "PreviousPath" field that forms historical DAGs
-// * Datasets contain a "commit" object that describes changes over time
-// * Dataset Commits can and should be author attributed via keypair signing
-// * Datasets "Transformations" provide determinstic records of the process used to
-//   create a dataset
-// * Dataset Structures & Transformations can have Abstract variants
-//   that describe a general form of their applicability to other datasets
-// Finally, commit messages should also be able to interoperate with git commits
+// Dataset is a document for describing & storing structured data.
+// Dataset documents are designed to satisfy the FAIR principle of being
+// Findable, Accessible, Interoperable, and Reproducible, in relation to other
+// dataset documents, and related-but-separate technologies such as data
+// catalogs, HTTP API's, and data package formats
+// Datasets are designed to be stored and distributed on content-addressed
+// (identify-by-hash) systems
+// The dataset document definition is built from a research-first principle,
+// valuing direct interoperability with existing standards over novel
+// definitions or specifications
 type Dataset struct {
 	// private storage for reference to this object
 	path datastore.Key
 
-	// Commit contains author & change message information
+	// Commit contains author & change message information that describes this
+	// version of a dataset
 	Commit *Commit `json:"commit,omitempty"`
-	// BodyPath is the path to the hash of raw data as it resolves on the network.
+	// BodyPath is the path to the hash of raw data as it resolves on the network
+	// Datasets have at most one body
 	BodyPath string `json:"bodyPath,omitempty"`
-	// Meta contains all human-readable meta about this dataset
+	// Meta contains all human-readable meta about this dataset intended to aid
+	// in discovery and organization of this document
 	Meta *Meta `json:"meta,omitempty"`
-	// PreviousPath connects datasets to form a historical DAG
+	// PreviousPath connects datasets to form a historical merkle-DAG of snapshots
+	// of this document, creating a version history
 	PreviousPath string `json:"previousPath,omitempty"`
-	// Qri is required, must be ds:[version]
+	// Qri is a key for both identifying this document type, and versioning the
+	// dataset document definition itself.
 	Qri Kind `json:"qri"`
 	// Structure of this dataset
 	Structure *Structure `json:"structure"`
 	// Transform is a path to the transformation that generated this resource
 	Transform *Transform `json:"transform,omitempty"`
-	// VisConfig stores configuration data related to representing a dataset as a visualization
+	// VisConfig stores configuration data related to representing a dataset as
+	// a visualization
 	VisConfig *VisConfig `json:"visconfig,omitempty"`
 }
 
@@ -275,18 +300,18 @@ func (ds *Dataset) Decode(cd *DatasetPod) error {
 	return nil
 }
 
-// DatasetPod is a variant of Dataset safe for serialization (encoding & decoding)
-// to static formats. It uses only simple go types
-// DatasetPod can contain values that only exist after a dataset has been stored in
-// a content-addressed system, such as path, and fields that implicitly on dataset having
-// a path, like Peername & Name
+// DatasetPod is a variant of Dataset safe for encoding & decoding to static
+// formats, using only simple go types
+// DatasetPod can contain values that only exist after a dataset has been stored
+// in a content-addressed system, such as path, and fields that implicitly rely
+// on dataset having a path, like Peername & Name
 // There are also two fields that may contain dataset data: Data & DataBytes.
-// In practice these are only populated in special situations, and often only one of the two Data
-// fields is populated at a time.
+// In practice these are only populated in special situations, and often only
+// one of the two Data fields is populated at a time.
 type DatasetPod struct {
 	Commit *CommitPod `json:"commit,omitempty"`
-	// Body is the designated field for representing dataset data with native go types
-	// this will often not be populated
+	// Body is the designated field for representing dataset data with native go
+	// types. this will often not be populated
 	Body interface{} `json:"body,omitempty"`
 	// BodyBytes is fpr representing dataset data as a slice of bytes
 	// this will often not be populated

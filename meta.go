@@ -9,46 +9,54 @@ import (
 	"github.com/ipfs/go-datastore"
 )
 
-// Meta contains all human-readable metadata about a dataset
+// Meta contains human-readable descriptive metadata that qualifies and
+// distinguishes a dataset.
+// Well-defined Meta should aid in making datasets Findable by describing a
+// dataset in generalizable taxonomies that can aggregate across other dataset
+// documents. Because dataset documents are intended to interoperate with many
+// other data storage and cataloging systems, meta fields and conventions are
+// derived from existing metadata formats whenever possible
 type Meta struct {
 	// private storage for reference to this object
 	path datastore.Key
-	// meta holds additional arbitrarty metadata not covered by the spec
-	// when encoding & decoding json values here will be hoisted into the
-	// Dataset object
+	// meta holds additional arbitrary metadata not covered by the spec when
+	// encoding & decoding json values here will be hoisted into the meta object
 	meta map[string]interface{}
 
 	// Url to access the dataset
 	AccessPath string `json:"accessPath,omitempty"`
-	// The frequency with which dataset changes. Must be an ISO 8601 repeating duration
+	// The frequency with which dataset changes. Must be an ISO 8601 repeating
+	// duration
 	AccrualPeriodicity string `json:"accrualPeriodicity,omitempty"`
 	// Citations is a slice of assets used to build this dataset
 	Citations []*Citation `json:"citations"`
 	// Contribute
 	Contributors []*User `json:"contributors,omitempty"`
-	// Description follows the DCAT sense of the word, it should be around a paragraph of
-	// human-readable text
+	// Description follows the DCAT sense of the word, it should be around a
+	// paragraph of human-readable text
 	Description string `json:"description,omitempty"`
 	// Url that should / must lead directly to the data itself
 	DownloadPath string `json:"downloadPath,omitempty"`
 	// HomePath is a path to a "home" resource, either a url or d.web path
 	HomePath string `json:"homePath,omitempty"`
-	// Identifier is for *other* data catalog specifications. Identifier should not be used
-	// or relied on to be unique, because this package does not enforce any of these rules.
+	// Identifier is for *other* data catalog specifications. Identifier should
+	// not be used or relied on to be unique, because this package does not
+	// enforce any of these rules.
 	Identifier string `json:"identifier,omitempty"`
 	// String of Keywords
 	Keywords []string `json:"keywords,omitempty"`
 	// Languages this dataset is written in
 	Language []string `json:"language,omitempty"`
-	// License will automatically parse to & from a string value if provided as a raw string
+	// License will automatically parse to & from a string value if provided as a
+	// raw string
 	License *License `json:"license,omitempty"`
 	// Kind is required, must be qri:md:[version]
 	Qri Kind `json:"qri"`
-	// path to readmePath
+	// path to dataset readme file
 	ReadmePath string `json:"readmePath,omitempty"`
 	// Title of this dataset
 	Title string `json:"title,omitempty"`
-	// Theme
+	//
 	Theme []string `json:"theme,omitempty"`
 	// Version is the semantic version for this dataset
 	Version string `json:"version,omitempty"`
@@ -299,8 +307,8 @@ func (md *Meta) Assign(metas ...*Meta) {
 // MarshalJSON uses a map to combine meta & standard fields.
 // Marshalling a map[string]interface{} automatically alpha-sorts the keys.
 func (md *Meta) MarshalJSON() ([]byte, error) {
-	// if we're dealing with an empty object that has a path specified, marshal to a string instead
-	// TODO - check all fielmd
+	// if we're dealing with an empty object that has a path specified
+	// marshal to a string instead
 	if md.path.String() != "" && md.IsEmpty() {
 		return md.path.MarshalJSON()
 	}
@@ -308,7 +316,8 @@ func (md *Meta) MarshalJSON() ([]byte, error) {
 	return md.MarshalJSONObject()
 }
 
-// MarshalJSONObject always marshals to a json Object, even if meta is empty or a reference
+// MarshalJSONObject always marshals to a json Object, even if meta is empty or
+// a reference
 func (md *Meta) MarshalJSONObject() ([]byte, error) {
 	data := md.Meta()
 
@@ -497,8 +506,8 @@ type Theme struct {
 	Title           string `json:"title,omitempty"`
 }
 
-// AccuralDuration takes an ISO 8601 periodicity measure & returns a time.Duration.
-// invalid periodicities return time.Duration(0)
+// AccuralDuration takes an ISO 8601 periodicity measure & returns a
+// time.Duration invalid periodicities return time.Duration(0)
 func AccuralDuration(p string) time.Duration {
 	switch p {
 	// Decennial
