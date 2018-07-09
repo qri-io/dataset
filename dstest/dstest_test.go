@@ -82,6 +82,18 @@ raleigh,250000,50.65,true
 		t.Error("shouldn't generate TransformScript File if bytes are nil")
 	}
 
+	if vz, ok := tc.VizScriptFile(); !ok {
+		t.Errorf("expected viz script to load")
+	} else {
+		if vz.FileName() != "template.html" {
+			t.Errorf("expected VizScript filename to be template.html")
+		}
+	}
+	tc.VizScript = nil
+	if _, ok := tc.VizScriptFile(); ok {
+		t.Error("shouldn't generate VizScript File if bytes are nil")
+	}
+
 	mfdata, err := ioutil.ReadAll(mf)
 	if err != nil {
 		t.Errorf("error reading file: %s", err.Error())

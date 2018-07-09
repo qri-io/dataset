@@ -39,9 +39,9 @@
       }
     }
   },
-  "visconfig": {
-    "qri": "vc:0",
+  "viz": {
+    "qri": "vz:0",
     "format": "example format",
-    "visualizations": "example visualization"
+    "scriptPath": "/example/path"
   }
 }

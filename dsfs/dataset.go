@@ -83,7 +83,7 @@ func DerefDataset(store cafs.Filestore, ds *dataset.Dataset) error {
 	if err := DerefDatasetTransform(store, ds); err != nil {
 		return err
 	}
-	if err := DerefDatasetVisConfig(store, ds); err != nil {
+	if err := DerefDatasetViz(store, ds); err != nil {
 		return err
 	}
 	return DerefDatasetCommit(store, ds)
@@ -105,18 +105,18 @@ func DerefDatasetStructure(store cafs.Filestore, ds *dataset.Dataset) error {
 	return nil
 }
 
-// DerefDatasetVisConfig derferences a dataset's VisConfig element if required
-// should be a no-op if ds.VisConfig is nil or isn't a reference
-func DerefDatasetVisConfig(store cafs.Filestore, ds *dataset.Dataset) error {
-	if ds.VisConfig != nil && ds.VisConfig.IsEmpty() && ds.VisConfig.Path().String() != "" {
-		st, err := loadVisConfig(store, ds.VisConfig.Path())
+// DerefDatasetViz derferences a dataset's Viz element if required
+// should be a no-op if ds.Viz is nil or isn't a reference
+func DerefDatasetViz(store cafs.Filestore, ds *dataset.Dataset) error {
+	if ds.Viz != nil && ds.Viz.IsEmpty() && ds.Viz.Path().String() != "" {
+		st, err := loadViz(store, ds.Viz.Path())
 		if err != nil {
 			log.Debug(err.Error())
-			return fmt.Errorf("error loading dataset visconfig: %s", err.Error())
+			return fmt.Errorf("error loading dataset viz: %s", err.Error())
 		}
 		// assign path to retain internal reference to path
-		st.Assign(dataset.NewVisConfigRef(ds.VisConfig.Path()))
-		ds.VisConfig = st
+		st.Assign(dataset.NewVizRef(ds.Viz.Path()))
+		ds.Viz = st
 	}
 	return nil
 }
@@ -493,7 +493,7 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File,
 		if ds.Transform.Script != nil {
 			fileTasks++
 			adder.AddFile(cafs.NewMemfileReader("transform_script", ds.Transform.Script))
-			// NOTE - add wg for the transform file itself ahead of time, which isn't completed
+			// NOTE - add wg for the transform.json file ahead of time, which isn't completed
 			// until after scriptPath has been added
 			fileTasks++
 
@@ -527,13 +527,29 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File,
 		adder.AddFile(stf)
 	}
 
-	if ds.VisConfig != nil {
-		vc, err := JSONFile(PackageFileVisConfig.String(), ds.VisConfig)
-		if err != nil {
-			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset visconfig to json: %s", err.Error())
+	if ds.Viz != nil {
+		// vc, err := JSONFile(PackageFileViz.String(), ds.Viz)
+		// if err != nil {
+		// 	return datastore.NewKey(""), fmt.Errorf("error marshaling dataset viz to json: %s", err.Error())
+		// }
+		// fileTasks++
+		// adder.AddFile(vc)
+		if ds.Viz.Script != nil {
+			fileTasks++
+			adder.AddFile(cafs.NewMemfileReader("viz_script", ds.Viz.Script))
+			// NOTE - add wg for the viz.json file ahead of time, which isn't completed
+			// until after scriptPath has been added
+			fileTasks++
+
+		} else {
+			vizdata, err := json.Marshal(ds.Viz)
+			if err != nil {
+				return datastore.NewKey(""), fmt.Errorf("error marshalling dataset viz to json: %s", err.Error())
+			}
+
+			fileTasks++
+			adder.AddFile(cafs.NewMemfileBytes(PackageFileViz.String(), vizdata))
 		}
-		fileTasks++
-		adder.AddFile(vc)
 	}
 
 	var path datastore.Key
@@ -550,8 +566,8 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File,
 				ds.Meta = dataset.NewMetaRef(ao.Path)
 			case PackageFileCommit.String():
 				ds.Commit = dataset.NewCommitRef(ao.Path)
-			case PackageFileVisConfig.String():
-				ds.VisConfig = dataset.NewVisConfigRef(ao.Path)
+			case PackageFileViz.String():
+				ds.Viz = dataset.NewVizRef(ao.Path)
 			case dataFile.FileName():
 				ds.BodyPath = ao.Path.String()
 			case "transform_script":
@@ -563,6 +579,15 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File,
 				}
 				// Add the encoded transform file, decrementing the stray fileTasks from above
 				adder.AddFile(cafs.NewMemfileBytes(PackageFileTransform.String(), tfdata))
+			case "viz_script":
+				ds.Viz.ScriptPath = ao.Path.String()
+				vizdata, err := json.Marshal(ds.Viz)
+				if err != nil {
+					done <- err
+					return
+				}
+				// Add the encoded transform file, decrementing the stray fileTasks from above
+				adder.AddFile(cafs.NewMemfileBytes(PackageFileViz.String(), vizdata))
 			}
 
 			fileTasks--

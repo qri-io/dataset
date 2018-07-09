@@ -68,9 +68,9 @@ type Dataset struct {
 	Structure *Structure `json:"structure"`
 	// Transform is a path to the transformation that generated this resource
 	Transform *Transform `json:"transform,omitempty"`
-	// VisConfig stores configuration data related to representing a dataset as
+	// Viz stores configuration data related to representing a dataset as
 	// a visualization
-	VisConfig *VisConfig `json:"visconfig,omitempty"`
+	Viz *Viz `json:"viz,omitempty"`
 }
 
 // IsEmpty checks to see if dataset has any fields other than the internal path
@@ -81,7 +81,7 @@ func (ds *Dataset) IsEmpty() bool {
 		ds.Meta == nil &&
 		ds.PreviousPath == "" &&
 		ds.Transform == nil &&
-		ds.VisConfig == nil
+		ds.Viz == nil
 }
 
 // Path gives the internal path reference for this dataset
@@ -164,10 +164,10 @@ func (ds *Dataset) Assign(datasets ...*Dataset) {
 		} else if ds.Commit != nil {
 			ds.Commit.Assign(d.Commit)
 		}
-		if ds.VisConfig == nil && d.VisConfig != nil {
-			ds.VisConfig = d.VisConfig
-		} else if ds.VisConfig != nil {
-			ds.VisConfig.Assign(d.VisConfig)
+		if ds.Viz == nil && d.Viz != nil {
+			ds.Viz = d.Viz
+		} else if ds.Viz != nil {
+			ds.Viz.Assign(d.Viz)
 		}
 
 		if d.BodyPath != "" {
@@ -244,7 +244,7 @@ func (ds Dataset) Encode() *DatasetPod {
 		Path:         ds.Path().String(),
 		PreviousPath: ds.PreviousPath,
 		Qri:          ds.Qri.String(),
-		VisConfig:    ds.VisConfig,
+		Viz:          ds.Viz,
 	}
 
 	if ds.Commit != nil {
@@ -267,7 +267,7 @@ func (ds *Dataset) Decode(cd *DatasetPod) error {
 		BodyPath:     cd.BodyPath,
 		PreviousPath: cd.PreviousPath,
 		Meta:         cd.Meta,
-		VisConfig:    cd.VisConfig,
+		Viz:          cd.Viz,
 	}
 
 	if cd.Qri != "" {
@@ -330,5 +330,5 @@ type DatasetPod struct {
 	Qri       string        `json:"qri"`
 	Structure *StructurePod `json:"structure"`
 	Transform *TransformPod `json:"transform,omitempty"`
-	VisConfig *VisConfig    `json:"visconfig,omitempty"`
+	Viz       *Viz          `json:"viz,omitempty"`
 }

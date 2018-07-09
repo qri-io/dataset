@@ -39,62 +39,6 @@
       "foo": "/not/a/real/path"
     }
   },
-  "abstractTransform": {
-    "qri": "tf:0",
-    "data": "select * from a",
-    "structure": {
-      "qri": "st:0",
-      "format": "csv",
-      "formatConfig": {
-        "headerRow": true
-      },
-      "schema": {
-        "type": "array",
-        "items": {
-          "type": "array",
-          "items": [
-            {
-              "title": "a",
-              "type": "string"
-            },
-            {
-              "title": "b",
-              "type": "integer"
-            }
-          ]
-        }
-      }
-    },
-    "resources": {
-      "a": "/fake/path/to/abstract/dataset/"
-    }
-  },
-  "abstract": {
-    "qri": "ds:0",
-    "structure": {
-      "qri": "st:0",
-      "format": "csv",
-      "formatConfig": {
-        "headerRow": true
-      },
-      "schema": {
-        "type": "array",
-        "items": {
-          "type": "array",
-          "items": [
-            {
-              "title": "a",
-              "type": "string"
-            },
-            {
-              "title": "b",
-              "type": "integer"
-            }
-          ]
-        }
-      }
-    }
-  },
   "structure": {
     "qri": "st:0",
     "format": "csv",
@@ -118,15 +62,9 @@
       }
     }
   },
-  "visconfig":{
+  "viz":{
     "format": "foo",
-    "qri": "vc:0",
-    "visualizations": {
-      "type": "bar",
-      "colors": {
-        "bars": "#ffffff",
-        "background": "#000000"
-      }
-    }
+    "qri": "vz:0",
+    "scriptPath": "bar"
   }
 }

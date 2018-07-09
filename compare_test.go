@@ -91,23 +91,22 @@ func TestCompareStructures(t *testing.T) {
 	}
 }
 
-func TestCompareVisConfigs(t *testing.T) {
+func TestCompareVizs(t *testing.T) {
 	cases := []struct {
-		a, b *VisConfig
+		a, b *Viz
 		err  string
 	}{
 		{nil, nil, ""},
-		{&VisConfig{Qri: "a", Format: "b", Visualizations: []interface{}{1, 2, 3}}, &VisConfig{Qri: "a", Format: "b", Visualizations: []interface{}{1, 2, 3}}, ""},
-		{&VisConfig{}, nil, "nil: <not nil> != <nil>"},
-		{nil, &VisConfig{}, "nil: <nil> != <not nil>"},
-		{&VisConfig{Qri: "a"}, &VisConfig{Qri: "b"}, "Qri: a != b"},
-		{&VisConfig{Format: "a"}, &VisConfig{Format: "b"}, "Format: a != b"},
-		{&VisConfig{Visualizations: []interface{}{"hey", "sup"}}, &VisConfig{Visualizations: "test"}, "Visualizations not equal"},
-		{&VisConfig{Visualizations: []interface{}{}}, &VisConfig{Visualizations: []interface{}{}}, ""},
+		{&Viz{Qri: "a", Format: "b", ScriptPath: "c"}, &Viz{Qri: "a", Format: "b", ScriptPath: "c"}, ""},
+		{&Viz{}, nil, "nil: <not nil> != <nil>"},
+		{nil, &Viz{}, "nil: <nil> != <not nil>"},
+		{&Viz{Qri: "a"}, &Viz{Qri: "b"}, "Qri: a != b"},
+		{&Viz{Format: "a"}, &Viz{Format: "b"}, "Format: a != b"},
+    {&Viz{ScriptPath: "a"}, &Viz{ScriptPath: "b"}, "ScriptPath: a != b"},
 	}
 
 	for i, c := range cases {
-		err := CompareVisConfigs(c.a, c.b)
+		err := CompareVizs(c.a, c.b)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("case %d error: expected: '%s', got: '%s'", i, c.err, err)
 		}

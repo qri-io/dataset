@@ -41,7 +41,7 @@ func TestDatasetAssign(t *testing.T) {
 		{&Dataset{BodyPath: "foo"}},
 		{&Dataset{PreviousPath: "stuff"}},
 		{&Dataset{Meta: &Meta{Title: "foo"}}},
-		{&Dataset{VisConfig: &VisConfig{Qri: KindVisConfig}}},
+		{&Dataset{Viz: &Viz{Qri: KindViz}}},
 	}
 
 	for i, c := range cases {
@@ -59,13 +59,13 @@ func TestDatasetAssign(t *testing.T) {
 		Transform: &Transform{},
 		Structure: &Structure{},
 		Commit:    &Commit{},
-		VisConfig: &VisConfig{},
+		Viz: &Viz{},
 	}
 	madsa := &Dataset{
 		Transform: &Transform{ScriptPath: "some_transform_script.sky"},
 		Structure: &Structure{Format: CSVDataFormat},
 		Commit:    &Commit{Title: "dy.no.mite."},
-		VisConfig: &VisConfig{Qri: KindVisConfig},
+		Viz: &Viz{Qri: KindViz},
 	}
 	mads.Assign(madsa)
 
@@ -216,7 +216,7 @@ func TestDatasetIsEmpty(t *testing.T) {
 		{&Dataset{PreviousPath: "nope"}},
 		{&Dataset{Structure: &Structure{}}},
 		{&Dataset{Transform: &Transform{}}},
-		{&Dataset{VisConfig: &VisConfig{}}},
+		{&Dataset{Viz: &Viz{}}},
 	}
 
 	for i, c := range cases {
@@ -294,7 +294,7 @@ func TestDatasetCoding(t *testing.T) {
 		{Qri: KindDataset},
 		{Structure: &Structure{Format: CBORDataFormat}},
 		{Transform: &Transform{SyntaxVersion: "foo"}},
-		{VisConfig: &VisConfig{Format: "foo"}},
+		{Viz: &Viz{Format: "foo"}},
 	}
 
 	for i, c := range cases {
