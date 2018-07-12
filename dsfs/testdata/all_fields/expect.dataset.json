@@ -1,6 +1,4 @@
 {
-  "abstract": "/map/Qmb3n8FvgDbLoU9d7e3vo1UAyVkwV1RnqXUqPKC3Rj2Ej7",
-  "abstractTransform": "/map/QmemJQrK7PTQvD3n8gmo9JhyaByyLmETiNR1Y8wS7hv4sP",
   "commit": {
     "qri": "cm:0",
     "signature": "RZU/18bxxacveMoNvGxINIS9MxvNwtc4OiSCRjCGnospztHNhJfJP0PflrzKG1tqLGi+c4w94BJRmLR/I5YaVqqwm86vGkYhwDRuBEViuT4GlKCzVEFUk63fJsT9YmcUWlabqEnUW2l0O6p+RatfmumlKOleONMYy1woa5PbIzRGoITo4u9piYiV6RVRJ9bURjEU7cr8iVXcwO+YEw6qMCUBKUAok+yttjt+iYm0JLD9hPoQO14Vu4jWMFxByoLvVIEquEqnlgyuQGvelFfuApUI5goTftOcASANuTsnrOe6gq0HJxNN27kAYQujS3swspi7qVrL9X8v341YKu77fQ==",
@@ -45,7 +43,7 @@
     "resources": {
       "foo": "/not/a/real/path"
     },
-    "scriptPath": "/map/QmYDSctXURLDvXGnhTrDdbbP3nZCrgVGUrU49tXP96eDge",
+    "scriptPath": "/map/QmaCHzMEoDKF21Qd3emkT1mWEBS5uZG5BxLeJNbaXxghWc",
     "structure": {
       "errCount": 0,
       "format": "csv",
@@ -72,15 +70,9 @@
     },
     "syntax": "sql"
   },
-  "visconfig": {
+  "viz":{
     "format": "foo",
-    "qri": "vc:0",
-    "visualizations": {
-      "colors": {
-        "background": "#000000",
-        "bars": "#ffffff"
-      },
-      "type": "bar"
-    }
+    "qri": "vz:0",
+    "scriptPath": "bar"
   }
 }

@@ -29,7 +29,7 @@ func init() {
 
 func TestLoadDataset(t *testing.T) {
 	store := cafs.NewMapstore()
-	dsData, err := ioutil.ReadFile("testdata/complete/input.dataset.json")
+	dsData, err := ioutil.ReadFile("testdata/all_fields/input.dataset.json")
 	if err != nil {
 		t.Errorf("error loading test dataset: %s", err.Error())
 		return
@@ -39,13 +39,13 @@ func TestLoadDataset(t *testing.T) {
 		t.Errorf("error unmarshaling test dataset: %s", err.Error())
 		return
 	}
-	body, err := ioutil.ReadFile("testdata/complete/body.csv")
+	body, err := ioutil.ReadFile("testdata/all_fields/body.csv")
 	if err != nil {
 		t.Errorf("error loading test body: %s", err.Error())
 		return
 	}
 
-	df := cafs.NewMemfileBytes("complete.csv", body)
+	df := cafs.NewMemfileBytes("all_fields.csv", body)
 
 	apath, err := WriteDataset(store, ds, df, true)
 	if err != nil {
@@ -81,8 +81,8 @@ func TestLoadDataset(t *testing.T) {
 			Commit: dataset.NewCommitRef(datastore.NewKey("/bad/path")),
 		}, "error loading dataset commit: error loading commit file: datastore: key not found"},
 		{&dataset.Dataset{
-			VisConfig: dataset.NewVisConfigRef(datastore.NewKey("/bad/path")),
-		}, "error loading dataset visconfig: error loading visconfig file: datastore: key not found"},
+			Viz: dataset.NewVizRef(datastore.NewKey("/bad/path")),
+		}, "error loading dataset viz: error loading viz file: datastore: key not found"},
 	}
 
 	for i, c := range cases {
@@ -146,13 +146,13 @@ func TestCreateDataset(t *testing.T) {
 		{"invalid",
 			"", 0, "commit is required"},
 		{"cities",
-			"/map/QmXjDWV4D9FPrU7p3bdBz2tFjtu8KG78hZtKf4FZo9uhAb", 6, ""},
-		{"complete",
-			"/map/QmX5thqsJJ6yk7swticKYwrjC7BKdyFiLx7ZRAPFa3kUPo", 13, ""},
+			"/map/QmZagVwGP1rUo9zEmdYFaJMvWCyoQ6ASpovtirC6owrKd7", 6, ""},
+		{"all_fields",
+			"/map/Qmaz1VR3vFfBh7y9dX7AhFF8S154HrLKCKEXZQmk9aGyFL", 14, ""},
 		{"cities_no_commit_title",
-			"/map/QmbiPVhUKJNqC9cA5QNq83SwaXgkt98fgo74TYkeiPem4L", 15, ""},
+			"/map/QmeuGsnqavk67cziEtDEPmBttCpKJsNwufjLCHUjuLJyLQ", 16, ""},
 		{"craigslist",
-			"/map/QmP55iAnLkPpqqnhfg1mcRBqz7tKckm6bdW4kGhT1kRpP1", 19, ""},
+			"/map/QmP55iAnLkPpqqnhfg1mcRBqz7tKckm6bdW4kGhT1kRpP1", 20, ""},
 	}
 
 	for _, c := range cases {
@@ -168,6 +168,14 @@ func TestCreateDataset(t *testing.T) {
 				tc.Input.Transform = &dataset.Transform{}
 			}
 			tc.Input.Transform.Script = ts
+		}
+
+		// TODO - this should probs be auto-populated by dstest package
+		if vs, ok := tc.VizScriptFile(); ok {
+			if tc.Input.Viz == nil {
+				tc.Input.Viz = &dataset.Viz{}
+			}
+			tc.Input.Viz.Script = vs
 		}
 
 		path, err := CreateDataset(store, tc.Input, tc.BodyFile(), privKey, false)
@@ -229,8 +237,8 @@ func TestCreateDataset(t *testing.T) {
 	if err.Error() != expectedErr {
 		t.Errorf("case nil datafile and no PreviousPath, error mismatch: expected '%s', got '%s'", expectedErr, err.Error())
 	}
-	if len(store.Files) != 19 {
-		t.Errorf("case nil datafile and PreviousPath, invalid number of entries: %d != %d", 19, len(store.Files))
+	if len(store.Files) != 20 {
+		t.Errorf("case nil datafile and PreviousPath, invalid number of entries: %d != %d", 20, len(store.Files))
 		_, err := store.Print()
 		if err != nil {
 			panic(err)
@@ -259,7 +267,7 @@ func TestWriteDataset(t *testing.T) {
 		err       string
 	}{
 		{"testdata/cities/input.dataset.json", "testdata/cities/body.csv", "/map/", 6, ""},
-		{"testdata/complete/input.dataset.json", "testdata/complete/body.csv", "/map/", 12, ""},
+		{"testdata/all_fields/input.dataset.json", "testdata/all_fields/body.csv", "/map/", 12, ""},
 	}
 
 	for i, c := range cases {
@@ -336,11 +344,11 @@ func TestWriteDataset(t *testing.T) {
 			}
 			ds.Structure.Assign(dataset.NewStructureRef(ref.Structure.Path()))
 		}
-		if ref.VisConfig != nil {
-			if !ref.VisConfig.IsEmpty() {
-				t.Errorf("expected stored dataset.VisConfig to be a reference")
+		if ref.Viz != nil {
+			if !ref.Viz.IsEmpty() {
+				t.Errorf("expected stored dataset.Viz to be a reference")
 			}
-			ds.VisConfig.Assign(dataset.NewVisConfigRef(ref.VisConfig.Path()))
+			ds.Viz.Assign(dataset.NewVizRef(ref.Viz.Path()))
 		}
 		ds.BodyPath = ref.BodyPath
 

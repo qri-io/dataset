@@ -159,10 +159,10 @@ func CompareStructures(a, b *Structure) error {
 	return nil
 }
 
-// CompareVisConfigs checks if all fields of two VisConfig pointers are equal,
+// CompareVizs checks if all fields of two Viz pointers are equal,
 // returning an error on the first, nil if equal
 // Note that comparison does not examine the internal path property
-func CompareVisConfigs(a, b *VisConfig) error {
+func CompareVizs(a, b *Viz) error {
 	if a == nil && b == nil {
 		return nil
 	} else if a == nil && b != nil {
@@ -176,11 +176,8 @@ func CompareVisConfigs(a, b *VisConfig) error {
 	if a.Format != b.Format {
 		return fmt.Errorf("Format: %s != %s", a.Format, b.Format)
 	}
-	// if a.BodyPath != b.BodyPath {
-	// 	return fmt.Errorf("BodyPath: %s != %s", a.BodyPath, b.BodyPath)
-	// }
-	if !reflect.DeepEqual(a.Visualizations, b.Visualizations) {
-		return fmt.Errorf("Visualizations not equal")
+	if a.ScriptPath != b.ScriptPath {
+		return fmt.Errorf("ScriptPath: %s != %s", a.ScriptPath, b.ScriptPath)
 	}
 	return nil
 }

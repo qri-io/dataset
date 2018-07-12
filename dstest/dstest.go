@@ -39,6 +39,10 @@ type TestCase struct {
 	TransformScriptFilename string
 	// TransformScript bytes if one exists
 	TransformScript []byte
+	// Filename of Viz Script
+	VizScriptFilename string
+	// VizScript bytes if one exists
+	VizScript []byte
 	// Input is intended file for test input
 	// loads from input.dataset.json
 	Input *dataset.Dataset
@@ -58,6 +62,14 @@ func (t TestCase) TransformScriptFile() (cafs.File, bool) {
 		return nil, false
 	}
 	return cafs.NewMemfileBytes(t.TransformScriptFilename, t.TransformScript), true
+}
+
+// VizScriptFile creates a cafs.File from testCase transform script data
+func (t TestCase) VizScriptFile() (cafs.File, bool) {
+	if t.VizScript == nil {
+		return nil, false
+	}
+	return cafs.NewMemfileBytes(t.VizScriptFilename, t.VizScript), true
 }
 
 // BodyFilepath retuns the path to the first valid data file it can find,
@@ -113,6 +125,15 @@ func NewTestCaseFromDir(dir string) (tc TestCase, err error) {
 		}
 	}
 
+	if tc.VizScript, tc.VizScriptFilename, err = ReadInputVizScript(dir); err != nil {
+		if err == os.ErrNotExist {
+			// VizScript is optional, so if this errors, let's bail
+			err = nil
+		} else {
+			return tc, fmt.Errorf("reading viz script: %s", err.Error())
+		}
+	}
+
 	tc.Input, err = ReadDataset(dir, InputDatasetFilename)
 	if err != nil && !os.IsNotExist(err) {
 		msg := fmt.Sprintf("%s: error loading input dataset: %s", tc.Name, err)
@@ -160,6 +181,16 @@ func ReadInputTransformScript(dir string) ([]byte, string, error) {
 	if f, err := os.Open(path); err == nil {
 		data, err := ioutil.ReadAll(f)
 		return data, "transform.sky", err
+	}
+	return nil, "", os.ErrNotExist
+}
+
+// ReadInputVizScript grabs input viz script bytes
+func ReadInputVizScript(dir string) ([]byte, string, error) {
+	path := filepath.Join(dir, "template.html")
+	if f, err := os.Open(path); err == nil {
+		data, err := ioutil.ReadAll(f)
+		return data, "template.html", err
 	}
 	return nil, "", os.ErrNotExist
 }

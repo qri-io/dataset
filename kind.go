@@ -19,8 +19,8 @@ const (
 	KindTransform = Kind("tf:" + CurrentSpecVersion)
 	// KindCommit is the current kind for dataset transforms
 	KindCommit = Kind("cm:" + CurrentSpecVersion)
-	// KindVisConfig is the current kind for dataset transforms
-	KindVisConfig = Kind("vc:" + CurrentSpecVersion)
+	// KindViz is the current kind for dataset transforms
+	KindViz = Kind("vz:" + CurrentSpecVersion)
 )
 
 // Kind is a short identifier for all types of qri dataset objects

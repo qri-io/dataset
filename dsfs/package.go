@@ -8,6 +8,13 @@ import (
 	"github.com/qri-io/cafs"
 )
 
+const (
+	// transformScriptFilename is the name transform scripts will be written to
+	transformScriptFilename = "transform_script"
+	// vizsScriptFilename is the name transform scripts will be written to
+	vizScriptFilename = "viz_script"
+)
+
 // PackageFile specifies the different types of files that are
 // stored in a package
 type PackageFile int
@@ -42,8 +49,8 @@ const (
 	PackageFileAbstractTransform
 	// PackageFileMeta encapsulates human-readable metadata
 	PackageFileMeta
-	// PackageFileVisConfig isolates the data related to representing a dataset as a visualization
-	PackageFileVisConfig
+	// PackageFileViz isolates the data related to representing a dataset as a visualization
+	PackageFileViz
 )
 
 // filenames maps PackageFile to their filename counterparts
@@ -57,7 +64,7 @@ var filenames = map[PackageFile]string{
 	PackageFileCommit:            "commit.json",
 	PackageFileTransform:         "transform.json",
 	PackageFileMeta:              "meta.json",
-	PackageFileVisConfig:         "vis_config.json",
+	PackageFileViz:               "viz.json",
 }
 
 // String implements the io.Stringer interface for PackageFile
