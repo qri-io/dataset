@@ -492,7 +492,7 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File,
 
 		if ds.Transform.Script != nil {
 			fileTasks++
-			adder.AddFile(cafs.NewMemfileReader("transform_script", ds.Transform.Script))
+			adder.AddFile(cafs.NewMemfileReader(transformScriptFilename, ds.Transform.Script))
 			// NOTE - add wg for the transform.json file ahead of time, which isn't completed
 			// until after scriptPath has been added
 			fileTasks++
@@ -528,15 +528,9 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File,
 	}
 
 	if ds.Viz != nil {
-		// vc, err := JSONFile(PackageFileViz.String(), ds.Viz)
-		// if err != nil {
-		// 	return datastore.NewKey(""), fmt.Errorf("error marshaling dataset viz to json: %s", err.Error())
-		// }
-		// fileTasks++
-		// adder.AddFile(vc)
 		if ds.Viz.Script != nil {
 			fileTasks++
-			adder.AddFile(cafs.NewMemfileReader("viz_script", ds.Viz.Script))
+			adder.AddFile(cafs.NewMemfileReader(vizScriptFilename, ds.Viz.Script))
 			// NOTE - add wg for the viz.json file ahead of time, which isn't completed
 			// until after scriptPath has been added
 			fileTasks++
@@ -570,7 +564,7 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File,
 				ds.Viz = dataset.NewVizRef(ao.Path)
 			case dataFile.FileName():
 				ds.BodyPath = ao.Path.String()
-			case "transform_script":
+			case transformScriptFilename:
 				ds.Transform.ScriptPath = ao.Path.String()
 				tfdata, err := json.Marshal(ds.Transform)
 				if err != nil {
@@ -579,7 +573,7 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File,
 				}
 				// Add the encoded transform file, decrementing the stray fileTasks from above
 				adder.AddFile(cafs.NewMemfileBytes(PackageFileTransform.String(), tfdata))
-			case "viz_script":
+			case vizScriptFilename:
 				ds.Viz.ScriptPath = ao.Path.String()
 				vizdata, err := json.Marshal(ds.Viz)
 				if err != nil {

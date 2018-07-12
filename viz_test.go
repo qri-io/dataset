@@ -8,19 +8,19 @@ import (
 	"testing"
 )
 
-var Viz1 = &Viz{
+var viz1 = &Viz{
 	Format:     "foo",
 	Qri:        KindViz,
 	ScriptPath: "one",
 }
 
-var Viz2 = &Viz{
+var viz2 = &Viz{
 	Format:     "bar",
 	Qri:        KindViz,
 	ScriptPath: "two",
 }
 
-var Viz3 = &Viz{
+var viz3 = &Viz{
 	Format:     "bar",
 	Qri:        KindViz,
 	ScriptPath: "three",
@@ -53,19 +53,19 @@ func TestVizAssign(t *testing.T) {
 		err    string
 	}{
 		{nil, nil, nil, ""},
-		{&Viz{}, Viz1, Viz1, ""},
+		{&Viz{}, viz1, viz1, ""},
 		{&Viz{
 			Format:     "bar",
 			Qri:        KindViz,
 			ScriptPath: "replace me",
 		},
-			Viz2, Viz2, ""},
+			viz2, viz2, ""},
 		{&Viz{
 			Format:     "bar",
 			Qri:        KindViz,
 			ScriptPath: "replace me",
 		},
-			Viz2, Viz3, "ScriptPath: three != two"},
+			viz2, viz3, "ScriptPath: three != two"},
 		{&Viz{
 			path:       datastore.NewKey("foo"),
 			Format:     "foo",
@@ -116,9 +116,9 @@ func TestVizUnmarshalJSON(t *testing.T) {
 		err      string
 	}{
 		{"testdata/vizs/invalidJSON.json", nil, `invalid character 'I' looking for beginning of value`},
-		{"testdata/vizs/visconfig1.json", Viz1, ""},
-		{"testdata/vizs/visconfig2.json", Viz2, ""},
-		{"testdata/vizs/visconfig3.json", Viz3, ""},
+		{"testdata/vizs/visconfig1.json", viz1, ""},
+		{"testdata/vizs/visconfig2.json", viz2, ""},
+		{"testdata/vizs/visconfig3.json", viz3, ""},
 	}
 
 	for i, c := range cases {
@@ -166,7 +166,7 @@ func TestVizMarshalJSON(t *testing.T) {
 		{&Viz{}, []byte(`{"qri":"vz:0"}`), ""},
 		{&Viz{Qri: KindViz}, []byte(`{"qri":"vz:0"}`), ""},
 		{&Viz{Format: "foo", Qri: KindViz}, []byte(`{"format":"foo","qri":"vz:0"}`), ""},
-		{Viz1, []byte(`{"format":"foo","qri":"vz:0","scriptPath":"one"}`), ""},
+		{viz1, []byte(`{"format":"foo","qri":"vz:0","scriptPath":"one"}`), ""},
 		{&Viz{path: datastore.NewKey("/map/QmXo5LE3WVfKZKzTrrgtUUX3nMK4VREKTAoBu5WAGECz4U")}, []byte(`"/map/QmXo5LE3WVfKZKzTrrgtUUX3nMK4VREKTAoBu5WAGECz4U"`), ""},
 		{&Viz{path: datastore.NewKey("/map/QmUaMozKVkjPf7CVf3Zd8Cy5Ex1i9oUdhYhU8uTJph5iFD")}, []byte(`"/map/QmUaMozKVkjPf7CVf3Zd8Cy5Ex1i9oUdhYhU8uTJph5iFD"`), ""},
 	}
@@ -204,7 +204,7 @@ func TestVizMarshalJSONObject(t *testing.T) {
 		{&Viz{}, []byte(`{"qri":"vz:0"}`), ""},
 		{&Viz{Qri: KindViz}, []byte(`{"qri":"vz:0"}`), ""},
 		{&Viz{Format: "foo", Qri: KindViz}, []byte(`{"format":"foo","qri":"vz:0"}`), ""},
-		{Viz1, []byte(`{"format":"foo","qri":"vz:0","visualizations":{"colors":{"background":"#000000","bars":"#ffffff"},"type":"bar"}}`), ""},
+		{viz1, []byte(`{"format":"foo","qri":"vz:0","visualizations":{"colors":{"background":"#000000","bars":"#ffffff"},"type":"bar"}}`), ""},
 	}
 
 	for i, c := range cases {

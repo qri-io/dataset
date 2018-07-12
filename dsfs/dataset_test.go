@@ -29,7 +29,7 @@ func init() {
 
 func TestLoadDataset(t *testing.T) {
 	store := cafs.NewMapstore()
-	dsData, err := ioutil.ReadFile("testdata/complete/input.dataset.json")
+	dsData, err := ioutil.ReadFile("testdata/all_fields/input.dataset.json")
 	if err != nil {
 		t.Errorf("error loading test dataset: %s", err.Error())
 		return
@@ -39,13 +39,13 @@ func TestLoadDataset(t *testing.T) {
 		t.Errorf("error unmarshaling test dataset: %s", err.Error())
 		return
 	}
-	body, err := ioutil.ReadFile("testdata/complete/body.csv")
+	body, err := ioutil.ReadFile("testdata/all_fields/body.csv")
 	if err != nil {
 		t.Errorf("error loading test body: %s", err.Error())
 		return
 	}
 
-	df := cafs.NewMemfileBytes("complete.csv", body)
+	df := cafs.NewMemfileBytes("all_fields.csv", body)
 
 	apath, err := WriteDataset(store, ds, df, true)
 	if err != nil {
@@ -147,7 +147,7 @@ func TestCreateDataset(t *testing.T) {
 			"", 0, "commit is required"},
 		{"cities",
 			"/map/QmZagVwGP1rUo9zEmdYFaJMvWCyoQ6ASpovtirC6owrKd7", 6, ""},
-		{"complete",
+		{"all_fields",
 			"/map/Qmaz1VR3vFfBh7y9dX7AhFF8S154HrLKCKEXZQmk9aGyFL", 14, ""},
 		{"cities_no_commit_title",
 			"/map/QmeuGsnqavk67cziEtDEPmBttCpKJsNwufjLCHUjuLJyLQ", 16, ""},
@@ -267,7 +267,7 @@ func TestWriteDataset(t *testing.T) {
 		err       string
 	}{
 		{"testdata/cities/input.dataset.json", "testdata/cities/body.csv", "/map/", 6, ""},
-		{"testdata/complete/input.dataset.json", "testdata/complete/body.csv", "/map/", 12, ""},
+		{"testdata/all_fields/input.dataset.json", "testdata/all_fields/body.csv", "/map/", 12, ""},
 	}
 
 	for i, c := range cases {

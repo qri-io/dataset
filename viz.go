@@ -1,9 +1,9 @@
 package dataset
 
 import (
-	"io"
 	"encoding/json"
 	"fmt"
+	"io"
 
 	"github.com/ipfs/go-datastore"
 )
@@ -72,9 +72,9 @@ func (v *Viz) Assign(visConfigs ...*Viz) {
 	}
 }
 
-// _visconfig is a private struct for marshaling into & out of.
+// vizPod is a private struct for marshaling into & out of.
 // fields must remain sorted in lexographical order
-type _visconfig struct {
+type vizPod struct {
 	Format     string `json:"format,omitempty"`
 	Qri        Kind   `json:"qri,omitempty"`
 	ScriptPath string `json:"scriptPath,omitempty"`
@@ -98,15 +98,15 @@ func (v *Viz) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
-	_v := &_visconfig{}
-	if err := json.Unmarshal(data, _v); err != nil {
+	vp := &vizPod{}
+	if err := json.Unmarshal(data, vp); err != nil {
 		return err
 	}
 
 	*v = Viz{
-		Format:     _v.Format,
-		Qri:        _v.Qri,
-		ScriptPath: _v.ScriptPath,
+		Format:     vp.Format,
+		Qri:        vp.Qri,
+		ScriptPath: vp.ScriptPath,
 	}
 	return nil
 }
