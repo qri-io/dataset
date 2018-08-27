@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/jinzhu/copier"
 	logger "github.com/ipfs/go-log"
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
@@ -50,6 +51,8 @@ type TestCase struct {
 	// loads from expect.dataset.json
 	Expect *dataset.Dataset
 }
+
+var testCaseCache map[string]TestCase = make(map[string]TestCase)
 
 // BodyFile creates a new in-memory file from data & filename properties
 func (t TestCase) BodyFile() cafs.File {
@@ -105,6 +108,12 @@ func LoadTestCases(dir string) (tcs map[string]TestCase, err error) {
 // dir should be the path to the directory to check, and any parsing errors will
 // be logged using t.Log methods
 func NewTestCaseFromDir(dir string) (tc TestCase, err error) {
+	if got, ok := testCaseCache[dir]; ok {
+		tc = TestCase{}
+		copier.Copy(&tc, &got)
+		return
+	}
+
 	tc = TestCase{
 		Path: dir,
 		Name: filepath.Base(dir),
@@ -148,6 +157,9 @@ func NewTestCaseFromDir(dir string) (tc TestCase, err error) {
 	}
 	err = nil
 
+	preserve := TestCase{}
+	copier.Copy(&preserve, &tc)
+	testCaseCache[dir] = preserve
 	return
 }
 

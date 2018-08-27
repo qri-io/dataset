@@ -19,6 +19,7 @@ jobs:
             go get -v -d -u
             github.com/ipfs/go-datastore
             github.com/jbenet/go-base58
+            github.com/jinzhu/copier
             github.com/multiformats/go-multihash
             github.com/qri-io/compare
             github.com/datatogether/cdxj
