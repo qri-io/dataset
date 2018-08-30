@@ -51,6 +51,14 @@ func CSVSchema(resource *dataset.Structure, data io.Reader) (schema *jsonschema.
 	r := csv.NewReader(dsio.ReplaceSoloCarriageReturns(tr))
 	r.FieldsPerRecord = -1
 	r.TrimLeadingSpace = true
+	r.LazyQuotes = true
+
+	opt := &dataset.CSVOptions{
+		// TODO - for now we're going to assume lazy quotes. we should scan the entire file
+		// for unescaped quotes & only set this to true if that's the case.
+		LazyQuotes: true,
+	}
+	resource.FormatConfig = opt
 
 	header, err := r.Read()
 	if err != nil {
@@ -73,10 +81,7 @@ func CSVSchema(resource *dataset.Structure, data io.Reader) (schema *jsonschema.
 			f.Title = varName.CreateVarNameFromString(header[i])
 			f.Type = vals.TypeUnknown
 		}
-		resource.FormatConfig = &dataset.CSVOptions{
-			HeaderRow: true,
-		}
-		// ds.HeaderRow = true
+		opt.HeaderRow = true
 	} else {
 		for i, cell := range header {
 			types[i][vals.ParseType([]byte(cell))]++
@@ -101,8 +106,9 @@ func CSVSchema(resource *dataset.Structure, data io.Reader) (schema *jsonschema.
 			for i, cell := range rec {
 				types[i][vals.ParseType([]byte(cell))]++
 			}
-
 			count++
+		} else {
+			opt.VariadicFields = true
 		}
 	}
 

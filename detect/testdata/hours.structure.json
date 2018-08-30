@@ -1,5 +1,8 @@
 {
   "format": "csv",
+  "formatConfig": {
+    "lazyQuotes" : true
+  },
   "schema": {
     "type": "array",
     "items": {
