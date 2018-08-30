@@ -94,6 +94,39 @@ func TestCSVReader(t *testing.T) {
 	}
 }
 
+func TestCSVReaderLazyQuotes(t *testing.T) {
+	data := `number,str
+2,"HYDROCHLORIC ACID (1995 AND AFTER "ACID AEROSOLS" ONLY)"`
+
+	st := &dataset.Structure{
+		Format: dataset.CSVDataFormat,
+		FormatConfig: &dataset.CSVOptions{
+			HeaderRow:  true,
+			LazyQuotes: true,
+		},
+		Schema: jsonschema.Must(`{
+			"type":"array",
+			"items":{
+				"type":"array",
+				"items": [
+					{"type":"number"},
+					{"type":"string"}
+				]
+			}
+		}`),
+	}
+
+	rdr, err := NewEntryReader(st, bytes.NewBuffer([]byte(data)))
+	if err != nil {
+		t.Fatalf("error allocating EntryReader: %s", err.Error())
+	}
+
+	_, err = rdr.ReadEntry()
+	if err != nil {
+		t.Errorf("expected no error: %s", err.Error())
+	}
+}
+
 func TestTSVReader(t *testing.T) {
 	// data separated with tabs, has variadic fields per record, and odd quoting
 	// bascially, a trash TSV file that can still parse with lots of CSVOption relaxing

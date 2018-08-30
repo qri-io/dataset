@@ -105,7 +105,7 @@ func DerefDatasetStructure(store cafs.Filestore, ds *dataset.Dataset) error {
 	return nil
 }
 
-// DerefDatasetViz derferences a dataset's Viz element if required
+// DerefDatasetViz dereferences a dataset's Viz element if required
 // should be a no-op if ds.Viz is nil or isn't a reference
 func DerefDatasetViz(store cafs.Filestore, ds *dataset.Dataset) error {
 	if ds.Viz != nil && ds.Viz.IsEmpty() && ds.Viz.Path().String() != "" {

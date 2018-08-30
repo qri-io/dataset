@@ -42,7 +42,7 @@ func NewCSVOptions(opts map[string]interface{}) (FormatConfig, error) {
 
 	if opts["lazyQuotes"] != nil {
 		if lq, ok := opts["lazyQuotes"].(bool); ok {
-			o.HeaderRow = lq
+			o.LazyQuotes = lq
 		} else {
 			return nil, fmt.Errorf("invalid lazyQuotes value: %s", opts["lazyQuotes"])
 		}
@@ -82,7 +82,7 @@ type CSVOptions struct {
 	// It is set to comma (',') by NewReader.
 	// Comma must be a valid rune and must not be \r, \n,
 	// or the Unicode replacement character (0xFFFD).
-	Separator rune `json:"separator"`
+	Separator rune `json:"separator,omitempty"`
 	// VariadicFields sets permits records to have a variable number of fields
 	// avoid using this
 	VariadicFields bool `json:"variadicFields"`
@@ -98,9 +98,20 @@ func (o *CSVOptions) Map() map[string]interface{} {
 	if o == nil {
 		return nil
 	}
-	return map[string]interface{}{
-		"headerRow": o.HeaderRow,
+	opt := map[string]interface{}{}
+	if o.HeaderRow {
+		opt["headerRow"] = o.HeaderRow
 	}
+	if o.LazyQuotes {
+		opt["lazyQuotes"] = o.LazyQuotes
+	}
+	if o.VariadicFields {
+		opt["variadicFields"] = o.VariadicFields
+	}
+	if o.Separator != rune(0) {
+		opt["separator"] = o.Separator
+	}
+	return opt
 }
 
 // NewJSONOptions creates a JSONOptions pointer from a map

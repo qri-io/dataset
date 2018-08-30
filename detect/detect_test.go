@@ -3,6 +3,7 @@ package detect
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"testing"
 
@@ -49,6 +50,8 @@ func TestFromFile(t *testing.T) {
 			}
 
 			if err := dataset.CompareStructures(expect, st); err != nil {
+				fmt.Printf("exp: %#v\n", expect.FormatConfig)
+				fmt.Printf("got: %#v\n\n", st.FormatConfig)
 				t.Errorf("case %d structure mismatch: %s", i, err.Error())
 				continue
 			}

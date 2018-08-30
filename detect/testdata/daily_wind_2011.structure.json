@@ -1,7 +1,8 @@
 {
   "format": "csv",
   "formatConfig": {
-    "headerRow" : true
+    "headerRow" : true,
+    "lazyQuotes" : true
   },
   "schema": {
     "type": "array",

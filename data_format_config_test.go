@@ -68,7 +68,7 @@ func TestNewCSVOptions(t *testing.T) {
 	for i, c := range cases {
 		got, err := NewCSVOptions(c.opts)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
-			t.Errorf("case %d error expected: '%s', got: '%s'", i, c.err, err.Error())
+			t.Errorf("case %d error expected: '%s', got: '%s'", i, c.err, err)
 			continue
 		}
 		if c.err == "" {
