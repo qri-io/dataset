@@ -33,3 +33,21 @@ func loadViz(store cafs.Filestore, path datastore.Key) (st *dataset.Viz, err err
 	}
 	return dataset.UnmarshalViz(data)
 }
+
+// ErrNoViz is the error for asking a dataset without a viz component for viz info
+var ErrNoViz = fmt.Errorf("this dataset has no viz component")
+
+// LoadVizScript loads script data from a dataset path if the given dataset has a viz script is specified
+// the returned cafs.File will be the value of dataset.Viz.ScriptPath
+func LoadVizScript(store cafs.Filestore, dspath datastore.Key) (cafs.File, error) {
+	ds, err := LoadDataset(store, dspath)
+	if err != nil {
+		return nil, err
+	}
+
+	if ds.Viz == nil || ds.Viz.ScriptPath == "" {
+		return nil, ErrNoViz
+	}
+
+	return store.Get(datastore.NewKey(ds.Viz.ScriptPath))
+}
