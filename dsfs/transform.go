@@ -1,7 +1,6 @@
 package dsfs
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/ipfs/go-datastore"
@@ -60,47 +59,20 @@ func SaveTransform(store cafs.Filestore, q *dataset.Transform, pin bool) (path d
 	return store.Put(tf, pin)
 }
 
-// SaveAbstractTransform writes a transform to a cafs, ensuring only it's abstract form is written
-func SaveAbstractTransform(store cafs.Filestore, t *dataset.Transform, pin bool) (path datastore.Key, err error) {
-	// copy transform
-	save := &dataset.Transform{}
-	save.Assign(t)
-	save.Qri = dataset.KindTransform
+// ErrNoTransform is the error for asking a dataset without a tranform component for viz info
+var ErrNoTransform = fmt.Errorf("this dataset has no transform component")
 
-	if save.Structure == nil {
-		return datastore.NewKey(""), fmt.Errorf("structure required to save abstract transform")
-	}
-
-	save.Structure = save.Structure.Abstract()
-	stpath, err := SaveStructure(store, save.Structure, pin)
+// LoadTransformScript loads transform script data from a dataset path if the given dataset has a transform script specified
+// the returned cafs.File will be the value of dataset.Transform.ScriptPath
+func LoadTransformScript(store cafs.Filestore, dspath datastore.Key) (cafs.File, error) {
+	ds, err := LoadDataset(store, dspath)
 	if err != nil {
-		log.Debug(err.Error())
-		return datastore.NewKey(""), err
-	}
-	save.Structure = dataset.NewStructureRef(stpath)
-
-	// ensure all dataset references are abstract
-	for key, r := range save.Resources {
-		absdata, err := json.Marshal(dataset.Abstract(r))
-		if err != nil {
-			log.Debug(err.Error())
-			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset abstract to json: %s", err.Error())
-		}
-
-		path, err := store.Put(cafs.NewMemfileBytes(fmt.Sprintf("%s_abst.json", key), absdata), pin)
-		if err != nil {
-			log.Debug(err.Error())
-			return datastore.NewKey(""), fmt.Errorf("error placing abstract dataset '%s' in store: %s", key, err.Error())
-		}
-
-		save.Resources[key] = dataset.NewDatasetRef(path)
+		return nil, err
 	}
 
-	data, err := json.Marshal(save)
-	if err != nil {
-		log.Debug(err.Error())
-		return datastore.NewKey(""), fmt.Errorf("error marshaling dataset abstract transform to json: %s", err.Error())
+	if ds.Transform == nil || ds.Transform.ScriptPath == "" {
+		return nil, ErrNoTransform
 	}
 
-	return store.Put(cafs.NewMemfileBytes(PackageFileAbstractTransform.String(), data), pin)
+	return store.Get(datastore.NewKey(ds.Transform.ScriptPath))
 }
