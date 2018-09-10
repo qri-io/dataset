@@ -8,20 +8,20 @@
   },
   "gxDependencies": [
     {
-      "hash": "QmatUACvrFK3xYg1nd2iLAKfz7Yy5YB56tnzBYHpqiUuhn",
+      "hash": "QmebqVUQQqQFhg74FtQFszUJo22Vpr3e8qBAkvvV4ho9HH",
       "name": "go-ipfs",
-      "version": "0.4.14"
+      "version": "0.4.17"
     },
     {
-      "hash": "QmceUdzxkimdYsgtX733uNgzf1DLHyBKN6ehGSp85ayppM",
+      "hash": "QmdE4gMduCKCGAcczM2F5ioYDfdeKuPix138wrES1YSr7f",
       "name": "go-ipfs-cmdkit",
-      "version": "1.0.0-dev"
+      "version": "1.1.1"
     },
     {
       "author": "jbenet",
-      "hash": "QmVSase1JP7cq9QkPT46oNwdp9pT6kBkG3oqS14y3QcZjG",
+      "hash": "QmeiCcJfDW1GJnWUArudsv5rQsihpi4oyddPhdqo3CfX6i",
       "name": "go-datastore",
-      "version": "1.2.2"
+      "version": "2.4.1"
     }
   ],
   "gxVersion": "0.11.0",
