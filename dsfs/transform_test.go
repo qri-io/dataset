@@ -45,8 +45,8 @@ func TestSaveTransform(t *testing.T) {
 			Format: dataset.CSVDataFormat,
 			Schema: jsonschema.Must(`true`),
 		},
-		Resources: map[string]*dataset.Dataset{
-			"a": dsa,
+		Resources: map[string]*dataset.TransformResource{
+			"a": &dataset.TransformResource{Path: dsa.Path().String()},
 		},
 	}
 
@@ -56,7 +56,7 @@ func TestSaveTransform(t *testing.T) {
 		return
 	}
 
-	hash := "/map/QmbaGqpbMmdJwRS4spApiwtE4JcwqHpR7YhvbpgUx1fqXF"
+	hash := "/map/QmS7xBzqKfRzdhZgSt69JMzUDdrPfoY3Z6EgroiQGjHhj8"
 	if hash != key.String() {
 		t.Errorf("key mismatch: %s != %s", hash, key.String())
 		return
@@ -84,8 +84,8 @@ func TestSaveTransform(t *testing.T) {
 		t.Errorf("expected stored transform.Structure to be a reference")
 	}
 	for name, ref := range res.Resources {
-		if !ref.IsEmpty() {
-			t.Errorf("expected stored transform reference '%s' to be empty", name)
+		if ref.Path == "" {
+			t.Errorf("expected stored transform reference '%s' to have a path", name)
 		}
 	}
 }

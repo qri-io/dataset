@@ -38,8 +38,8 @@ func TestTransformAssign(t *testing.T) {
 		// Abstract: &AbstractTransform{
 		// 	Syntax: "structure_syntax",
 		// },
-		Resources: map[string]*Dataset{
-			"a": NewDatasetRef(datastore.NewKey("/path/to/a")),
+		Resources: map[string]*TransformResource{
+			"a": &TransformResource{Path: "/path/to/a"},
 		},
 	}
 	got := &Transform{
@@ -65,8 +65,8 @@ func TestTransformAssign(t *testing.T) {
 		// 	Syntax: "structure_syntax",
 		// },
 		path: datastore.NewKey("path"),
-		Resources: map[string]*Dataset{
-			"a": NewDatasetRef(datastore.NewKey("/path/to/a")),
+		Resources: map[string]*TransformResource{
+			"a": &TransformResource{Path: "/path/to/a"},
 		},
 	})
 
@@ -198,7 +198,7 @@ func TestTransformIsEmpty(t *testing.T) {
 		{&Transform{Config: nil}, true},
 		{&Transform{Config: map[string]interface{}{}}, false},
 		{&Transform{Resources: nil}, true},
-		{&Transform{Resources: map[string]*Dataset{}}, false},
+		{&Transform{Resources: map[string]*TransformResource{}}, false},
 	}
 
 	for i, c := range cases {
@@ -217,7 +217,7 @@ func TestTransformCoding(t *testing.T) {
 		{ScriptPath: "foo"},
 		{path: datastore.NewKey("/foo")},
 		{Qri: KindTransform},
-		{Resources: map[string]*Dataset{"foo": &Dataset{BodyPath: "foo"}}},
+		{Resources: map[string]*TransformResource{"foo": &TransformResource{Path: "foo"}}},
 		{Syntax: "foo"},
 		{Structure: &Structure{Format: CBORDataFormat}},
 	}

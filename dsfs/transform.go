@@ -41,15 +41,6 @@ func SaveTransform(store cafs.Filestore, q *dataset.Transform, pin bool) (path d
 		save.Structure = dataset.NewStructureRef(path)
 	}
 
-	// convert any full datasets to path references
-	for name, d := range save.Resources {
-		if d.Path().String() != "" && d.IsEmpty() {
-			continue
-		} else if d != nil {
-			save.Resources[name] = dataset.NewDatasetRef(d.Path())
-		}
-	}
-
 	tf, err := JSONFile(PackageFileTransform.String(), save)
 	if err != nil {
 		log.Debug(err.Error())

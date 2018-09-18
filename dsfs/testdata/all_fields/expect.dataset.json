@@ -41,7 +41,7 @@
   "transform": {
     "qri": "tf:0",
     "resources": {
-      "foo": "/not/a/real/path"
+      "foo": {"path":"/not/a/real/path"}
     },
     "scriptPath": "/map/QmaCHzMEoDKF21Qd3emkT1mWEBS5uZG5BxLeJNbaXxghWc",
     "structure": {
