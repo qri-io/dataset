@@ -482,11 +482,8 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File,
 	if ds.Transform != nil {
 		// all resources must be references
 		for key, r := range ds.Transform.Resources {
-			if r.Path().String() == "" {
+			if r.Path == "" {
 				return datastore.NewKey(""), fmt.Errorf("transform resource %s requires a path to save", key)
-			}
-			if !r.IsEmpty() {
-				ds.Transform.Resources[key] = dataset.NewDatasetRef(r.Path())
 			}
 		}
 

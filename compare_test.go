@@ -3,10 +3,12 @@ package dataset
 import (
 	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/dataset/compression"
+
 	// "github.com/qri-io/dataset/datatypes"
-	"github.com/qri-io/jsonschema"
 	"testing"
 	"time"
+
+	"github.com/qri-io/jsonschema"
 )
 
 func TestCompareDatasets(t *testing.T) {
@@ -15,6 +17,8 @@ func TestCompareDatasets(t *testing.T) {
 		err  string
 	}{
 		{nil, nil, ""},
+		{nil, AirportCodes, "nil: <nil> != <not nil>"},
+		{AirportCodes, nil, "nil: <not nil> != <nil>"},
 		{AirportCodes, AirportCodes, ""},
 		{&Dataset{Qri: "a"}, &Dataset{Qri: "b"}, "Qri: a != b"},
 		{&Dataset{PreviousPath: "a"}, &Dataset{PreviousPath: "b"}, "PreviousPath: a != b"},
@@ -38,6 +42,8 @@ func TestCompareMetas(t *testing.T) {
 		err  string
 	}{
 		{nil, nil, ""},
+		{nil, AirportCodes.Meta, "nil: <nil> != <not nil>"},
+		{AirportCodes.Meta, nil, "nil: <not nil> != <nil>"},
 		{AirportCodes.Meta, AirportCodes.Meta, ""},
 		{&Meta{Qri: "a"}, &Meta{Qri: "b"}, "Qri: a != b"},
 		{&Meta{Title: "a"}, &Meta{Title: "b"}, "Title: a != b"},
@@ -102,7 +108,7 @@ func TestCompareVizs(t *testing.T) {
 		{nil, &Viz{}, "nil: <nil> != <not nil>"},
 		{&Viz{Qri: "a"}, &Viz{Qri: "b"}, "Qri: a != b"},
 		{&Viz{Format: "a"}, &Viz{Format: "b"}, "Format: a != b"},
-    {&Viz{ScriptPath: "a"}, &Viz{ScriptPath: "b"}, "ScriptPath: a != b"},
+		{&Viz{ScriptPath: "a"}, &Viz{ScriptPath: "b"}, "ScriptPath: a != b"},
 	}
 
 	for i, c := range cases {
@@ -157,8 +163,8 @@ func TestCompareTransforms(t *testing.T) {
 		SyntaxVersion: "1000.0.0",
 		ScriptPath:    "foo.sky",
 		Structure:     AirportCodes.Structure,
-		Resources: map[string]*Dataset{
-			"airports": AirportCodes,
+		Resources: map[string]*TransformResource{
+			"airports": &TransformResource{Path: AirportCodes.Path().String()},
 		},
 	}
 	cases := []struct {
@@ -175,14 +181,35 @@ func TestCompareTransforms(t *testing.T) {
 		{&Transform{SyntaxVersion: "a"}, &Transform{SyntaxVersion: "b"}, "SyntaxVersion: a != b"},
 		{&Transform{ScriptPath: "a"}, &Transform{ScriptPath: "b"}, "ScriptPath: a != b"},
 		{&Transform{}, &Transform{Structure: AirportCodes.Structure}, "Structure: nil: <nil> != <not nil>"},
-		{&Transform{}, &Transform{Resources: map[string]*Dataset{}}, "Resources: map[] != map[]"},
-		{&Transform{Resources: map[string]*Dataset{
-			"airports": AirportCodes,
-		}}, &Transform{Resources: map[string]*Dataset{}}, "Resource 'airports': nil: <not nil> != <nil>"},
+		{&Transform{Resources: map[string]*TransformResource{
+			"airports": &TransformResource{Path: AirportCodes.Path().String()},
+		}}, &Transform{Resources: map[string]*TransformResource{}}, "Resource 'airports': nil: <not nil> != <nil>"},
 	}
 
 	for i, c := range cases {
 		err := CompareTransforms(c.a, c.b)
+		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
+			t.Errorf("case %d error: expected: '%s', got: '%s'", i, c.err, err)
+		}
+	}
+}
+
+func TestCompareTransformResources(t *testing.T) {
+	tr1 := &TransformResource{Path: "foo"}
+	tr2 := &TransformResource{Path: "bar"}
+	cases := []struct {
+		a, b *TransformResource
+		err  string
+	}{
+		{nil, nil, ""},
+		{tr1, tr1, ""},
+		{tr1, nil, "nil: <not nil> != <nil>"},
+		{nil, tr1, "nil: <nil> != <not nil>"},
+		{tr1, tr2, "Path mismatch. foo != bar"},
+	}
+
+	for i, c := range cases {
+		err := CompareTransformResources(c.a, c.b)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("case %d error: expected: '%s', got: '%s'", i, c.err, err)
 		}

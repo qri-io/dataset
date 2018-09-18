@@ -148,7 +148,7 @@ func TestCreateDataset(t *testing.T) {
 		{"cities",
 			"/map/QmZagVwGP1rUo9zEmdYFaJMvWCyoQ6ASpovtirC6owrKd7", 6, ""},
 		{"all_fields",
-			"/map/Qmaz1VR3vFfBh7y9dX7AhFF8S154HrLKCKEXZQmk9aGyFL", 14, ""},
+			"/map/QmbVhjG9YfJ8kfMqW8CRdxke9RfKisbaHVzhRoCcJTSoxN", 14, ""},
 		{"cities_no_commit_title",
 			"/map/QmeuGsnqavk67cziEtDEPmBttCpKJsNwufjLCHUjuLJyLQ", 16, ""},
 		{"craigslist",

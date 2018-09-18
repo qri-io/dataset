@@ -70,7 +70,7 @@
       }
     },
     "resources": {
-      "foo": "/not/a/real/path"
+      "foo": {"path": "/not/a/real/path"}
     }
   },
   "abstractTransform": {

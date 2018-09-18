@@ -2,8 +2,9 @@ package dataset
 
 import (
 	"fmt"
-	"github.com/qri-io/jsonschema"
 	"reflect"
+
+	"github.com/qri-io/jsonschema"
 )
 
 // CompareDatasets checks if all fields of a dataset are equal,
@@ -281,13 +282,29 @@ func CompareTransforms(a, b *Transform) error {
 	} else if a.Resources == nil && b.Resources != nil || a.Resources != nil && b.Resources == nil {
 		return fmt.Errorf("Resources: %v != %v", a.Resources, b.Resources)
 	}
-	for key, dsa := range a.Resources {
-		dsb := b.Resources[key]
-		if err := CompareDatasets(dsa, dsb); err != nil {
+	for key, tra := range a.Resources {
+		trb := b.Resources[key]
+		if err := CompareTransformResources(tra, trb); err != nil {
 			return fmt.Errorf("Resource '%s': %s", key, err.Error())
 		}
 	}
 
+	return nil
+}
+
+// CompareTransformResource checks if all fields are equal in both resources
+func CompareTransformResources(a, b *TransformResource) error {
+	if a == nil && b == nil {
+		return nil
+	} else if a == nil && b != nil {
+		return fmt.Errorf("nil: <nil> != <not nil>")
+	} else if a != nil && b == nil {
+		return fmt.Errorf("nil: <not nil> != <nil>")
+	}
+
+	if a.Path != b.Path {
+		return fmt.Errorf("Path mismatch. %s != %s", a.Path, b.Path)
+	}
 	return nil
 }
 
