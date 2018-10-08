@@ -37,21 +37,45 @@ structure:
         description: "Facility Name"
 `
 
-func TestUnmarshalYAMLDatasetPod(t *testing.T) {
+const yamlBadData0 = `---
+meta:
+  title: Bad data that has incorrect case-sensitivity
+  description: Yaml uses case-sensitive fields
+transForm:
+  config:
+    foo: bar
+structure:
+  format: json
+`
+
+const yamlBadData1 = `---
+meta:
+  title: Bad data that has an unknown field
+  description: Yaml strict parsing will reject unknown fields
+  tags:
+  - cat
+  - dog
+transForm:
+  config:
+    foo: bar
+structure:
+  format: json
+`
+
+func TestUnmarshalYAMLFailCaseSensitive(t *testing.T) {
 	dsp := &dataset.DatasetPod{}
-	if err := UnmarshalYAMLDatasetPod([]byte(yamlData), dsp); err != nil {
-		t.Error(err.Error())
+	err := UnmarshalYAMLDatasetPod([]byte(yamlBadData0), dsp)
+	if err == nil {
+		t.Error("Expected an error parsing bad yaml that relies on case-sensitivity")
 		return
 	}
+}
 
-	if dsp.Transform.Secrets["a"] != "b" {
-		t.Error("expected transform.secrets.a to equal 'b'")
-		return
-	}
-
-	ds := &dataset.Dataset{}
-	if err := ds.Decode(dsp); err != nil {
-		t.Error(err.Error())
+func TestUnmarshalYAMLFailUnknownField(t *testing.T) {
+	dsp := &dataset.DatasetPod{}
+	err := UnmarshalYAMLDatasetPod([]byte(yamlBadData1), dsp)
+	if err == nil {
+		t.Error("Expected an error parsing bad yaml that has an unknown field")
 		return
 	}
 }
