@@ -59,13 +59,13 @@ func TestDatasetAssign(t *testing.T) {
 		Transform: &Transform{},
 		Structure: &Structure{},
 		Commit:    &Commit{},
-		Viz: &Viz{},
+		Viz:       &Viz{},
 	}
 	madsa := &Dataset{
 		Transform: &Transform{ScriptPath: "some_transform_script.sky"},
 		Structure: &Structure{Format: CSVDataFormat},
 		Commit:    &Commit{Title: "dy.no.mite."},
-		Viz: &Viz{Qri: KindViz},
+		Viz:       &Viz{Qri: KindViz},
 	}
 	mads.Assign(madsa)
 

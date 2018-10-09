@@ -8,8 +8,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/jinzhu/copier"
 	logger "github.com/ipfs/go-log"
+	"github.com/jinzhu/copier"
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
 )

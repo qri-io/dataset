@@ -12,8 +12,8 @@ import (
 	"os"
 	"path/filepath"
 
-	logger "github.com/ipfs/go-log"
 	"github.com/ipfs/go-datastore"
+	logger "github.com/ipfs/go-log"
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsfs"
