@@ -94,4 +94,3 @@ func GetTopLevelType(st *dataset.Structure) (string, error) {
 	}
 	return tlt, nil
 }
-

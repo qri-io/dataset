@@ -4,8 +4,10 @@ import (
 	"archive/zip"
 	"bytes"
 	"github.com/qri-io/jsonschema"
+	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/ipfs/go-datastore"
@@ -28,7 +30,7 @@ func TestWriteZipArchive(t *testing.T) {
 	}
 
 	buf := &bytes.Buffer{}
-	if err = WriteZipArchive(store, ds, buf); err != nil {
+	if err = WriteZipArchive(store, ds, "testref", buf); err != nil {
 		t.Errorf("error writing zip archive: %s", err.Error())
 		return
 	}
@@ -50,6 +52,52 @@ func TestWriteZipArchive(t *testing.T) {
 			t.Errorf("error closing file %s in package", f.Name)
 			break
 		}
+	}
+}
+
+func TestWriteZipArchiveFullDataset(t *testing.T) {
+	store, names, err := testStoreWithVizAndTransform()
+	if err != nil {
+		t.Errorf("error creating store: %s", err.Error())
+		return
+	}
+
+	ds, err := dsfs.LoadDataset(store, names["movies"])
+	if err != nil {
+		t.Errorf("error fetching movies dataset from store: %s", err.Error())
+		return
+	}
+
+	_, err = store.Get(names["transform_script"])
+	if err != nil {
+		t.Errorf("error fetching movies dataset from store: %s", err.Error())
+		return
+	}
+
+	buf := &bytes.Buffer{}
+	if err = WriteZipArchive(store, ds, "testref", buf); err != nil {
+		t.Errorf("error writing zip archive: %s", err.Error())
+		return
+	}
+
+	tmppath := filepath.Join(os.TempDir(), "exported.zip")
+	defer os.RemoveAll(tmppath)
+
+	err = ioutil.WriteFile(tmppath, buf.Bytes(), os.ModePerm)
+	if err != nil {
+		t.Errorf("error writing temp zip file: %s", err.Error())
+		return
+	}
+
+	expectFile := testdataFile("zip/exported.zip")
+	expectBytes, err := ioutil.ReadFile(expectFile)
+	if err != nil {
+		t.Errorf("error reading expected bytes: %s", err.Error())
+		return
+	}
+	if !bytes.Equal(buf.Bytes(), expectBytes) {
+		t.Errorf("error bytes of exported zip did not match")
+		return
 	}
 }
 
@@ -86,12 +134,12 @@ func TestWriteDir(t *testing.T) {
 }
 
 func testStore() (cafs.Filestore, map[string]datastore.Key, error) {
-	fs := cafs.NewMapstore()
+	dataf := cafs.NewMemfileBytes("movies.csv", []byte("movie\nup\nthe incredibles"))
+
+	// Map strings to ds.keys for convenience
 	ns := map[string]datastore.Key{
 		"movies": datastore.NewKey(""),
 	}
-
-	dataf := cafs.NewMemfileBytes("movies.csv", []byte("movie\nup\nthe incredibles"))
 
 	ds := &dataset.Dataset{
 		Structure: &dataset.Structure{
@@ -108,6 +156,7 @@ func testStore() (cafs.Filestore, map[string]datastore.Key, error) {
 		},
 	}
 
+	fs := cafs.NewMapstore()
 	dskey, err := dsfs.WriteDataset(fs, ds, dataf, true)
 	if err != nil {
 		return fs, ns, err
@@ -115,4 +164,46 @@ func testStore() (cafs.Filestore, map[string]datastore.Key, error) {
 	ns["movies"] = dskey
 
 	return fs, ns, nil
+}
+
+func testStoreWithVizAndTransform() (cafs.Filestore, map[string]datastore.Key, error) {
+	ds := &dataset.Dataset{
+		Structure: &dataset.Structure{
+			Format: dataset.CSVDataFormat,
+			Schema: jsonschema.Must(`{
+				"type": "array",
+				"items": {
+					"type":"array",
+					"items" : [
+						{"title": "movie", "type": "string"}
+					]
+				}
+			}`),
+		},
+		Transform: &dataset.Transform{
+			ScriptPath: "transform_script",
+			Script:     strings.NewReader("def transform(ds):\nreturn ds\n"),
+		},
+		Viz: &dataset.Viz{
+			ScriptPath: "viz_script",
+			Script:     strings.NewReader("<html></html>\n"),
+		},
+	}
+	// Map strings to ds.keys for convenience
+	ns := map[string]datastore.Key{}
+	// Store the files
+	fs := cafs.NewMapstore()
+	dataf := cafs.NewMemfileBytes("movies.csv", []byte("movie\nup\nthe incredibles"))
+	dskey, err := dsfs.WriteDataset(fs, ds, dataf, true)
+	if err != nil {
+		return fs, ns, err
+	}
+	ns["movies"] = dskey
+	ns["transform_script"] = datastore.NewKey(ds.Transform.ScriptPath)
+	ns["viz_template"] = datastore.NewKey(ds.Viz.ScriptPath)
+	return fs, ns, nil
+}
+
+func testdataFile(base string) string {
+	return filepath.Join(os.Getenv("GOPATH"), "/src/github.com/qri-io/dataset/testdata/"+base)
 }

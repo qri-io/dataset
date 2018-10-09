@@ -41,7 +41,7 @@ func TestCopyJSONToJSON(t *testing.T) {
 
 func TestCopyJSONToBytes(t *testing.T) {
 	text := "[{\"a\":1},{\"b\":2},{\"c\":3},{\"d\":4}]"
-	expected := []byte{91,123,34,97,34,58,49,125,44,123,34,98,34,58,50,125,44,123,34,99,34,58,51,125,44,123,34,100,34,58,52,125,93}
+	expected := []byte{91, 123, 34, 97, 34, 58, 49, 125, 44, 123, 34, 98, 34, 58, 50, 125, 44, 123, 34, 99, 34, 58, 51, 125, 44, 123, 34, 100, 34, 58, 52, 125, 93}
 	st := &dataset.Structure{
 		Format: dataset.JSONDataFormat,
 		Schema: dataset.BaseSchemaArray,
@@ -70,7 +70,7 @@ func TestCopyJSONToBytes(t *testing.T) {
 
 func TestCopyJSONToCBOR(t *testing.T) {
 	text := "[{\"a\":1},{\"b\":2},{\"c\":3},{\"d\":4}]"
-	expected := []byte{132,161,97,97,1,161,97,98,2,161,97,99,3,161,97,100,4}
+	expected := []byte{132, 161, 97, 97, 1, 161, 97, 98, 2, 161, 97, 99, 3, 161, 97, 100, 4}
 	var b bytes.Buffer
 	sink := bufio.NewWriter(&b)
 	st := &dataset.Structure{
