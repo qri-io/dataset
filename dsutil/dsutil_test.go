@@ -28,7 +28,7 @@ func TestWriteZipArchive(t *testing.T) {
 	}
 
 	buf := &bytes.Buffer{}
-	if err = WriteZipArchive(store, ds, buf); err != nil {
+	if err = WriteZipArchive(store, ds, "testref", buf); err != nil {
 		t.Errorf("error writing zip archive: %s", err.Error())
 		return
 	}
