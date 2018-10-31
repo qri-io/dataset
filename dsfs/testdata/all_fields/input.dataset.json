@@ -11,7 +11,7 @@
   "transform": {
     "qri": "tf:0",
     "syntax": "sql",
-    "scriptPath": "foo.sky",
+    "scriptPath": "foo.star",
     "structure": {
       "qri": "st:0",
       "format": "csv",

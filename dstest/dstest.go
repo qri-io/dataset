@@ -3,6 +3,7 @@
 package dstest
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -52,7 +53,7 @@ type TestCase struct {
 	Expect *dataset.Dataset
 }
 
-var testCaseCache map[string]TestCase = make(map[string]TestCase)
+var testCaseCache = make(map[string]TestCase)
 
 // BodyFile creates a new in-memory file from data & filename properties
 func (t TestCase) BodyFile() cafs.File {
@@ -113,6 +114,7 @@ func NewTestCaseFromDir(dir string) (tc TestCase, err error) {
 		copier.Copy(&tc, &got)
 		return
 	}
+	foundTestData := false
 
 	tc = TestCase{
 		Path: dir,
@@ -120,42 +122,63 @@ func NewTestCaseFromDir(dir string) (tc TestCase, err error) {
 	}
 	tc.Body, tc.BodyFilename, err = ReadBodyData(dir)
 	if err != nil {
-		err = fmt.Errorf("error reading test case body for directory %s: %s", dir, err.Error())
-		log.Info(err.Error())
-		return
+		if err == os.ErrNotExist {
+			// Body is optional
+			err = nil
+		} else {
+			return tc, fmt.Errorf("error reading test case body for dir: %s: %s", dir, err.Error())
+		}
+	} else {
+		foundTestData = true
 	}
 
 	if tc.TransformScript, tc.TransformScriptFilename, err = ReadInputTransformScript(dir); err != nil {
 		if err == os.ErrNotExist {
-			// TransformScript is optional, so if this errors, let's bail
+			// TransformScript is optional
 			err = nil
 		} else {
 			return tc, fmt.Errorf("reading transform script: %s", err.Error())
 		}
+	} else {
+		foundTestData = true
 	}
 
 	if tc.VizScript, tc.VizScriptFilename, err = ReadInputVizScript(dir); err != nil {
 		if err == os.ErrNotExist {
-			// VizScript is optional, so if this errors, let's bail
+			// VizScript is optional
 			err = nil
 		} else {
 			return tc, fmt.Errorf("reading viz script: %s", err.Error())
 		}
+	} else {
+		foundTestData = true
 	}
 
 	tc.Input, err = ReadDataset(dir, InputDatasetFilename)
-	if err != nil && !os.IsNotExist(err) {
-		msg := fmt.Sprintf("%s: error loading input dataset: %s", tc.Name, err)
-		log.Infof(msg)
+	if err != nil {
+		if os.IsNotExist(err) {
+			err = nil
+		} else {
+			return tc, fmt.Errorf("%s reading input dataset: %s", tc.Name, err.Error())
+		}
+	} else {
+		foundTestData = true
 	}
-	err = nil
 
 	tc.Expect, err = ReadDataset(dir, ExpectDatasetFilename)
-	if err != nil && !os.IsNotExist(err) {
-		msg := fmt.Sprintf("%s: error loading expect dataset: %s", tc.Name, err)
-		log.Info(msg)
+	if err != nil {
+		if os.IsNotExist(err) {
+			err = nil
+		} else {
+			return tc, fmt.Errorf("%s: error loading expect dataset: %s", tc.Name, err)
+		}
+	} else {
+		foundTestData = true
 	}
-	err = nil
+
+	if !foundTestData {
+		return tc, fmt.Errorf("%s no test data at path: %s", tc.Name, dir)
+	}
 
 	preserve := TestCase{}
 	copier.Copy(&preserve, &tc)
@@ -172,7 +195,7 @@ func ReadDataset(dir, filename string) (*dataset.Dataset, error) {
 	}
 
 	ds := &dataset.Dataset{}
-	return ds, ds.UnmarshalJSON(data)
+	return ds, json.Unmarshal(data, ds)
 }
 
 // ReadBodyData grabs input data
@@ -189,10 +212,10 @@ func ReadBodyData(dir string) ([]byte, string, error) {
 
 // ReadInputTransformScript grabs input transform bytes
 func ReadInputTransformScript(dir string) ([]byte, string, error) {
-	path := filepath.Join(dir, "transform.sky")
+	path := filepath.Join(dir, "transform.star")
 	if f, err := os.Open(path); err == nil {
 		data, err := ioutil.ReadAll(f)
-		return data, "transform.sky", err
+		return data, "transform.star", err
 	}
 	return nil, "", os.ErrNotExist
 }

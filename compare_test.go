@@ -1,13 +1,11 @@
 package dataset
 
 import (
-	"github.com/ipfs/go-datastore"
-	"github.com/qri-io/dataset/compression"
-
-	// "github.com/qri-io/dataset/datatypes"
 	"testing"
 	"time"
 
+	"github.com/ipfs/go-datastore"
+	"github.com/qri-io/dataset/compression"
 	"github.com/qri-io/jsonschema"
 )
 
@@ -159,9 +157,9 @@ func TestCompareCommits(t *testing.T) {
 func TestCompareTransforms(t *testing.T) {
 	t1 := &Transform{
 		Qri:           KindTransform,
-		Syntax:        "skylark",
+		Syntax:        "starlark",
 		SyntaxVersion: "1000.0.0",
-		ScriptPath:    "foo.sky",
+		ScriptPath:    "foo.star",
 		Structure:     AirportCodes.Structure,
 		Resources: map[string]*TransformResource{
 			"airports": &TransformResource{Path: AirportCodes.Path().String()},
