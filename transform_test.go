@@ -90,16 +90,19 @@ func TestTransformUnmarshalJSON(t *testing.T) {
 	cases := []struct {
 		str       string
 		transform *Transform
-		err       error
+		err       string
 	}{
-		{`{}`, &Transform{}, nil},
-		{`{ "structure" : "/path/to/structure" }`, &Transform{Structure: &Structure{path: datastore.NewKey("/path/to/structure")}}, nil},
-		// {`{ "syntax" : "ql", "statement" : "select a from b" }`, &Transform{Syntax: "ql", Statement: "select a from b"}, nil},
+		{`{}`, &Transform{}, ""},
+		{`{ "structure" : "/path/to/structure" }`, &Transform{Structure: &Structure{path: datastore.NewKey("/path/to/structure")}}, ""},
+		{`{"resources":{"foo": "/not/a/real/path"}}`, &Transform{Resources: map[string]*TransformResource{"foo": &TransformResource{Path: "/not/a/real/path"}}}, ""},
+		{`{"resources":{"foo": { "path":     "/not/a/real/path"`, &Transform{}, "unexpected end of JSON input"},
+		{`{"resources":{"foo": { "path":"/not/a/real/path"}}}`, &Transform{Resources: map[string]*TransformResource{"foo": &TransformResource{Path: "/not/a/real/path"}}}, ""},
 	}
 
 	for i, c := range cases {
 		got := &Transform{}
-		if err := json.Unmarshal([]byte(c.str), got); err != c.err {
+		err := json.Unmarshal([]byte(c.str), got)
+		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("case %d error mismatch. expected: %s, got: %s", i, c.err, err)
 			continue
 		}
@@ -130,7 +133,7 @@ func TestTransformMarshalJSONObject(t *testing.T) {
 		err error
 	}{
 		{&Transform{}, `{"qri":"tf:0"}`, nil},
-		{&Transform{Syntax: "sql", ScriptPath: "foo.sky"}, `{"qri":"tf:0","scriptPath":"foo.sky","syntax":"sql"}`, nil},
+		{&Transform{Syntax: "sql", ScriptPath: "foo.star"}, `{"qri":"tf:0","scriptPath":"foo.star","syntax":"sql"}`, nil},
 	}
 
 	for i, c := range cases {
@@ -163,7 +166,7 @@ func TestTransformMarshalJSON(t *testing.T) {
 		err error
 	}{
 		{&Transform{}, `{"qri":"tf:0"}`, nil},
-		{&Transform{Syntax: "sql", ScriptPath: "foo.sky"}, `{"qri":"tf:0","scriptPath":"foo.sky","syntax":"sql"}`, nil},
+		{&Transform{Syntax: "sql", ScriptPath: "foo.star"}, `{"qri":"tf:0","scriptPath":"foo.star","syntax":"sql"}`, nil},
 	}
 
 	for i, c := range cases {

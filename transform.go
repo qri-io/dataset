@@ -48,6 +48,27 @@ type TransformResource struct {
 	Path string `json:"path"`
 }
 
+// private version for marshalling purposes only
+type transformResource TransformResource
+
+// UnmarshalJSON implements json.Unmarshaler, allowing both string and object
+// representations
+func (r *TransformResource) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err == nil {
+		*r = TransformResource{Path: s}
+		return nil
+	}
+
+	_r := &transformResource{}
+	if err := json.Unmarshal(data, _r); err != nil {
+		return err
+	}
+
+	*r = TransformResource(*_r)
+	return nil
+}
+
 // NewTransformRef creates a Transform pointer with the internal
 // path property specified, and no other fields.
 func NewTransformRef(path datastore.Key) *Transform {

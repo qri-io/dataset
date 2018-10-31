@@ -36,6 +36,8 @@ func TestNewTestCaseFromDir(t *testing.T) {
 	if _, err := NewTestCaseFromDir("testdata"); err == nil {
 		t.Errorf("expected error")
 		return
+	} else {
+		t.Log(err)
 	}
 
 	tc, err := NewTestCaseFromDir("testdata/complete")
@@ -73,8 +75,8 @@ raleigh,250000,50.65,true
 	if ts, ok := tc.TransformScriptFile(); !ok {
 		t.Errorf("expected tranform script to load")
 	} else {
-		if ts.FileName() != "transform.sky" {
-			t.Errorf("expected TransformScript filename to be transform.sky")
+		if ts.FileName() != "transform.star" {
+			t.Errorf("expected TransformScript filename to be transform.star")
 		}
 	}
 	tc.TransformScript = nil

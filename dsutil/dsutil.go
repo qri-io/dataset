@@ -57,7 +57,7 @@ func WriteZipArchive(store cafs.Filestore, ds *dataset.Dataset, ref string, w io
 		if err != nil {
 			return err
 		}
-		target, err := zw.Create("transform.sky")
+		target, err := zw.Create("transform.star")
 		if err != nil {
 			return err
 		}

@@ -3,7 +3,6 @@ package dsutil
 import (
 	"archive/zip"
 	"bytes"
-	"github.com/qri-io/jsonschema"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -14,6 +13,7 @@ import (
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsfs"
+	"github.com/qri-io/jsonschema"
 )
 
 func TestWriteZipArchive(t *testing.T) {
