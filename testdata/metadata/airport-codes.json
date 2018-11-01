@@ -1,6 +1,6 @@
 {
   "qri": "md:0",
-  "homePath": "http://www.ourairports.com/",
+  "homeURL": "http://www.ourairports.com/",
   "license": { 
     "type":"PDDL-1.0"
   },

@@ -3,9 +3,9 @@
   "meta": {
     "qri": "md:0",
     "title": "hours",
-    "accessPath": "https://example.com/not/a/url",
-    "downloadPath": "https://example.com/not/a/url",
-    "readmePath": "/ipfs/notahash"
+    "accessURL": "https://example.com/not/a/url",
+    "downloadURL": "https://example.com/not/a/url",
+    "readmeURL": "/ipfs/notahash"
   },
   "bodyPath": "/ipfs/QmS1dVa1xemo7gQzJgjimj1WwnVBF3TwRTGsyKa1uEBWbJ"
 }

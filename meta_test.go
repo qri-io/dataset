@@ -35,13 +35,13 @@ func TestMetaAssign(t *testing.T) {
 		in *Meta
 	}{
 		{&Meta{path: datastore.NewKey("/a")}},
-		{&Meta{AccessPath: "foo"}},
-		{&Meta{DownloadPath: "foo"}},
-		{&Meta{ReadmePath: "foo"}},
+		{&Meta{AccessURL: "foo"}},
+		{&Meta{DownloadURL: "foo"}},
+		{&Meta{ReadmeURL: "foo"}},
 		{&Meta{AccrualPeriodicity: "1W"}},
 		{&Meta{Citations: []*Citation{{Email: "foo"}}}},
 		{&Meta{Description: "foo"}},
-		{&Meta{HomePath: "foo"}},
+		{&Meta{HomeURL: "foo"}},
 		{&Meta{Identifier: "foo"}},
 		{&Meta{License: &License{Type: "foo"}}},
 		{&Meta{Version: "foo"}},
@@ -64,7 +64,7 @@ func TestMetaAssign(t *testing.T) {
 	expect := &Meta{
 		Title:       "Final Title",
 		Description: "Final Description",
-		AccessPath:  "AccessPath",
+		AccessURL:   "AccessURL",
 	}
 	got := &Meta{
 		Title:       "Overwrite Me",
@@ -74,7 +74,7 @@ func TestMetaAssign(t *testing.T) {
 	got.Assign(&Meta{
 		Title:       "Final Title",
 		Description: "Final Description",
-		AccessPath:  "AccessPath",
+		AccessURL:   "AccessURL",
 	})
 
 	if err := CompareMetas(expect, got); err != nil {
@@ -103,20 +103,20 @@ func TestMetaSet(t *testing.T) {
 		{" TITLE  ", 0, "type must be a string", nil},
 		{" TITLE", "title", "", &Meta{Title: "title"}},
 		{" TITLE", nil, "", &Meta{}},
-		{"accesspath", 0, "type must be a string", nil},
-		{"accesspath", "foo", "", &Meta{AccessPath: "foo"}},
+		{"accessurl", 0, "type must be a string", nil},
+		{"accessurl", "foo", "", &Meta{AccessURL: "foo"}},
 		{"accrualperiodicity", 0, "type must be a string", nil},
 		{"accrualperiodicity", "foo", "", &Meta{AccrualPeriodicity: "foo"}},
 		{"description", 0, "type must be a string", nil},
 		{"description", "foo", "", &Meta{Description: "foo"}},
-		{"downloadpath", 0, "type must be a string", nil},
-		{"downloadpath", "foo", "", &Meta{DownloadPath: "foo"}},
-		{"homepath", 0, "type must be a string", nil},
-		{"homepath", "foo", "", &Meta{HomePath: "foo"}},
+		{"downloadurl", 0, "type must be a string", nil},
+		{"downloadurl", "foo", "", &Meta{DownloadURL: "foo"}},
+		{"homeurl", 0, "type must be a string", nil},
+		{"homeurl", "foo", "", &Meta{HomeURL: "foo"}},
 		{"identifier", 0, "type must be a string", nil},
 		{"identifier", "foo", "", &Meta{Identifier: "foo"}},
-		{"readmepath", 0, "type must be a string", nil},
-		{"readmepath", "foo", "", &Meta{ReadmePath: "foo"}},
+		{"readmeurl", 0, "type must be a string", nil},
+		{"readmeurl", "foo", "", &Meta{ReadmeURL: "foo"}},
 		{"title", 0, "type must be a string", nil},
 		{"title", "foo", "", &Meta{Title: "foo"}},
 		{"version", 0, "type must be a string", nil},
@@ -161,12 +161,12 @@ func TestMetaSet(t *testing.T) {
 		m := &Meta{}
 		err := m.Set(c.key, c.val)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
-			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
+			t.Errorf("case %d (%s) error mismatch. expected: '%s', got: '%s'", i, c.key, c.err, err)
 			continue
 		}
 		if c.meta != nil {
 			if err := CompareMetas(m, c.meta); err != nil {
-				t.Errorf("case %d meta mismatch: %s", i, err.Error())
+				t.Errorf("case %d (%s) meta mismatch: %s", i, c.key, err.Error())
 				continue
 			}
 		}
@@ -180,8 +180,8 @@ func TestMetaMarshalJSON(t *testing.T) {
 		err error
 	}{
 		{&Meta{}, []byte(`{"qri":"md:0"}`), nil},
-		{AirportCodes.Meta, []byte(`{"citations":[{"name":"Our Airports","url":"http://ourairports.com/data/"}],"homePath":"http://www.ourairports.com/","license":{"type":"PDDL-1.0"},"qri":"md:0","title":"Airport Codes"}`), nil},
-		{Hours.Meta, []byte(`{"accessPath":"https://example.com/not/a/url","downloadPath":"https://example.com/not/a/url","qri":"md:0","readmePath":"/ipfs/notahash","title":"hours"}`), nil},
+		{AirportCodes.Meta, []byte(`{"citations":[{"name":"Our Airports","url":"http://ourairports.com/data/"}],"homeURL":"http://www.ourairports.com/","license":{"type":"PDDL-1.0"},"qri":"md:0","title":"Airport Codes"}`), nil},
+		{Hours.Meta, []byte(`{"accessURL":"https://example.com/not/a/url","downloadURL":"https://example.com/not/a/url","qri":"md:0","readmeURL":"/ipfs/notahash","title":"hours"}`), nil},
 	}
 
 	for i, c := range cases {

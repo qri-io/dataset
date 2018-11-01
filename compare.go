@@ -66,23 +66,23 @@ func CompareMetas(a, b *Meta) error {
 	if a.Title != b.Title {
 		return fmt.Errorf("Title: %s != %s", a.Title, b.Title)
 	}
-	if a.AccessPath != b.AccessPath {
-		return fmt.Errorf("AccessPath: %s != %s", a.AccessPath, b.AccessPath)
+	if a.AccessURL != b.AccessURL {
+		return fmt.Errorf("AccessURL: %s != %s", a.AccessURL, b.AccessURL)
 	}
-	if a.DownloadPath != b.DownloadPath {
-		return fmt.Errorf("DownloadPath: %s != %s", a.DownloadPath, b.DownloadPath)
+	if a.DownloadURL != b.DownloadURL {
+		return fmt.Errorf("DownloadURL: %s != %s", a.DownloadURL, b.DownloadURL)
 	}
 	if a.AccrualPeriodicity != b.AccrualPeriodicity {
 		return fmt.Errorf("AccrualPeriodicity: %s != %s", a.AccrualPeriodicity, b.AccrualPeriodicity)
 	}
-	if a.ReadmePath != b.ReadmePath {
-		return fmt.Errorf("ReadmePath: %s != %s", a.ReadmePath, b.ReadmePath)
+	if a.ReadmeURL != b.ReadmeURL {
+		return fmt.Errorf("ReadmeURL: %s != %s", a.ReadmeURL, b.ReadmeURL)
 	}
 	if a.Description != b.Description {
 		return fmt.Errorf("Description: %s != %s", a.Description, b.Description)
 	}
-	if a.HomePath != b.HomePath {
-		return fmt.Errorf("HomePath: %s != %s", a.HomePath, b.HomePath)
+	if a.HomeURL != b.HomeURL {
+		return fmt.Errorf("HomeURL: %s != %s", a.HomeURL, b.HomeURL)
 	}
 	if a.Identifier != b.Identifier {
 		return fmt.Errorf("Identifier: %s != %s", a.Identifier, b.Identifier)
