@@ -3,8 +3,8 @@
   "meta": {
     "title": "dataset with all submodels example",
     "description": "foo",
-    "accessUrl": "foo",
-    "downloadUrl": "foo",
+    "accessURL": "foo",
+    "downloadURL": "foo",
     "accrualPeriodicity": "1W",
     "version": "0",
     "readme": "foo",

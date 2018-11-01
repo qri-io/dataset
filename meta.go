@@ -24,7 +24,7 @@ type Meta struct {
 	meta map[string]interface{}
 
 	// Url to access the dataset
-	AccessPath string `json:"accessPath,omitempty"`
+	AccessURL string `json:"accessURL,omitempty"`
 	// The frequency with which dataset changes. Must be an ISO 8601 repeating
 	// duration
 	AccrualPeriodicity string `json:"accrualPeriodicity,omitempty"`
@@ -36,9 +36,9 @@ type Meta struct {
 	// paragraph of human-readable text
 	Description string `json:"description,omitempty"`
 	// Url that should / must lead directly to the data itself
-	DownloadPath string `json:"downloadPath,omitempty"`
-	// HomePath is a path to a "home" resource, either a url or d.web path
-	HomePath string `json:"homePath,omitempty"`
+	DownloadURL string `json:"downloadURL,omitempty"`
+	// HomeURL is a path to a "home" resource
+	HomeURL string `json:"homeURL,omitempty"`
 	// Identifier is for *other* data catalog specifications. Identifier should
 	// not be used or relied on to be unique, because this package does not
 	// enforce any of these rules.
@@ -52,30 +52,31 @@ type Meta struct {
 	License *License `json:"license,omitempty"`
 	// Kind is required, must be qri:md:[version]
 	Qri Kind `json:"qri"`
-	// path to dataset readme file
-	ReadmePath string `json:"readmePath,omitempty"`
+	// path to dataset readme file, not part of the DCAT spec, but a common
+	// convention in software dev
+	ReadmeURL string `json:"readmeURL,omitempty"`
 	// Title of this dataset
 	Title string `json:"title,omitempty"`
-	//
+	// "Category" for
 	Theme []string `json:"theme,omitempty"`
-	// Version is the semantic version for this dataset
+	// Version is the version identifier for this dataset
 	Version string `json:"version,omitempty"`
 }
 
 // IsEmpty checks to see if dataset has any fields other than the internal path
 func (md *Meta) IsEmpty() bool {
-	return md.AccessPath == "" &&
+	return md.AccessURL == "" &&
 		md.AccrualPeriodicity == "" &&
 		md.Citations == nil &&
 		md.Contributors == nil &&
 		md.Description == "" &&
-		md.DownloadPath == "" &&
-		md.HomePath == "" &&
+		md.DownloadURL == "" &&
+		md.HomeURL == "" &&
 		md.Identifier == "" &&
 		md.Keywords == nil &&
 		md.Language == nil &&
 		md.License == nil &&
-		md.ReadmePath == "" &&
+		md.ReadmeURL == "" &&
 		md.Title == "" &&
 		md.Theme == nil &&
 		md.Version == ""
@@ -168,20 +169,20 @@ func (md *Meta) Set(key string, val interface{}) (err error) {
 
 	switch strings.TrimSpace(strings.ToLower(key)) {
 	// string meta fields
-	case "accesspath":
-		md.AccessPath, err = strVal(val)
+	case "accessurl":
+		md.AccessURL, err = strVal(val)
 	case "accrualperiodicity":
 		md.AccrualPeriodicity, err = strVal(val)
 	case "description":
 		md.Description, err = strVal(val)
-	case "downloadpath":
-		md.DownloadPath, err = strVal(val)
-	case "homepath":
-		md.HomePath, err = strVal(val)
+	case "downloadurl":
+		md.DownloadURL, err = strVal(val)
+	case "homeurl":
+		md.HomeURL, err = strVal(val)
 	case "identifier":
 		md.Identifier, err = strVal(val)
-	case "readmepath":
-		md.ReadmePath, err = strVal(val)
+	case "readmeurl":
+		md.ReadmeURL, err = strVal(val)
 	case "title":
 		md.Title, err = strVal(val)
 	case "version":
@@ -256,14 +257,14 @@ func (md *Meta) Assign(metas ...*Meta) {
 		if m.Title != "" {
 			md.Title = m.Title
 		}
-		if m.AccessPath != "" {
-			md.AccessPath = m.AccessPath
+		if m.AccessURL != "" {
+			md.AccessURL = m.AccessURL
 		}
-		if m.DownloadPath != "" {
-			md.DownloadPath = m.DownloadPath
+		if m.DownloadURL != "" {
+			md.DownloadURL = m.DownloadURL
 		}
-		if m.ReadmePath != "" {
-			md.ReadmePath = m.ReadmePath
+		if m.ReadmeURL != "" {
+			md.ReadmeURL = m.ReadmeURL
 		}
 		if m.AccrualPeriodicity != "" {
 			md.AccrualPeriodicity = m.AccrualPeriodicity
@@ -274,8 +275,8 @@ func (md *Meta) Assign(metas ...*Meta) {
 		if m.Description != "" {
 			md.Description = m.Description
 		}
-		if m.HomePath != "" {
-			md.HomePath = m.HomePath
+		if m.HomeURL != "" {
+			md.HomeURL = m.HomeURL
 		}
 		if m.Identifier != "" {
 			md.Identifier = m.Identifier
@@ -323,8 +324,8 @@ func (md *Meta) MarshalJSONObject() ([]byte, error) {
 
 	data["qri"] = KindMeta
 
-	if md.AccessPath != "" {
-		data["accessPath"] = md.AccessPath
+	if md.AccessURL != "" {
+		data["accessURL"] = md.AccessURL
 	}
 	if md.Citations != nil {
 		data["citations"] = md.Citations
@@ -335,11 +336,11 @@ func (md *Meta) MarshalJSONObject() ([]byte, error) {
 	if md.Description != "" {
 		data["description"] = md.Description
 	}
-	if md.DownloadPath != "" {
-		data["downloadPath"] = md.DownloadPath
+	if md.DownloadURL != "" {
+		data["downloadURL"] = md.DownloadURL
 	}
-	if md.HomePath != "" {
-		data["homePath"] = md.HomePath
+	if md.HomeURL != "" {
+		data["homeURL"] = md.HomeURL
 	}
 	if md.Identifier != "" {
 		data["identifier"] = md.Identifier
@@ -353,8 +354,8 @@ func (md *Meta) MarshalJSONObject() ([]byte, error) {
 	if md.License != nil {
 		data["license"] = md.License
 	}
-	if md.ReadmePath != "" {
-		data["readmePath"] = md.ReadmePath
+	if md.ReadmeURL != "" {
+		data["readmeURL"] = md.ReadmeURL
 	}
 	if md.Theme != nil {
 		data["theme"] = md.Theme
@@ -395,14 +396,14 @@ func (md *Meta) UnmarshalJSON(data []byte) error {
 	}
 
 	for _, f := range []string{
-		"accessPath",
+		"accessURL",
 		"accrualPeriodicity",
 		"citations",
 		"contributors",
 		"data",
 		"description",
-		"downloadPath",
-		"homePath",
+		"downloadURL",
+		"homeURL",
 		"identifier",
 		"image",
 		"keyword",
@@ -410,7 +411,7 @@ func (md *Meta) UnmarshalJSON(data []byte) error {
 		"language",
 		"length",
 		"license",
-		"readmePath",
+		"readmeURL",
 		"theme",
 		"timestamp",
 		"title",

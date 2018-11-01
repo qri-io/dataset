@@ -14,8 +14,8 @@ import (
 
 var AirportCodes = &dataset.Dataset{
 	Meta: &dataset.Meta{
-		Title:    "Airport Codes",
-		HomePath: "http://www.ourairports.com/",
+		Title:   "Airport Codes",
+		HomeURL: "http://www.ourairports.com/",
 		License: &dataset.License{
 			Type: "PDDL-1.0",
 		},
