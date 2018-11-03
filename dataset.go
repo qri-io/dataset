@@ -24,6 +24,7 @@
 package dataset
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -270,6 +271,10 @@ func (ds *Dataset) Decode(cd *DatasetPod) error {
 		Viz:          cd.Viz,
 	}
 
+	if cd.Viz != nil && cd.Viz.ScriptBytes != nil {
+		cd.Viz.Script = bytes.NewReader(cd.Viz.ScriptBytes)
+	}
+
 	if cd.Qri != "" {
 		// TODO - this should react to changes in cd
 		d.Qri = KindDataset
@@ -313,7 +318,7 @@ type DatasetPod struct {
 	// Body is the designated field for representing dataset data with native go
 	// types. this will often not be populated
 	Body interface{} `json:"body,omitempty"`
-	// BodyBytes is fpr representing dataset data as a slice of bytes
+	// BodyBytes is for representing dataset data as a slice of bytes
 	// this will often not be populated
 	BodyBytes []byte `json:"bodyBytes,omitempty"`
 	// BodyPath is the path to retrieve this dataset
@@ -331,4 +336,60 @@ type DatasetPod struct {
 	Structure *StructurePod `json:"structure"`
 	Transform *TransformPod `json:"transform,omitempty"`
 	Viz       *Viz          `json:"viz,omitempty"`
+}
+
+// Assign collapses all properties of zero or more DatasetPod onto one.
+// inspired by Javascript's Object.assign
+func (dp *DatasetPod) Assign(dps ...*DatasetPod) {
+	for _, d := range dps {
+		if d == nil {
+			continue
+		}
+		if dp.Commit == nil && d.Commit != nil {
+			dp.Commit = d.Commit
+		} else if dp.Commit != nil {
+			dp.Commit.Assign(d.Commit)
+		}
+		if d.BodyBytes != nil {
+			dp.BodyBytes = d.BodyBytes
+		}
+		if d.BodyPath != "" {
+			dp.BodyPath = d.BodyPath
+		}
+		if d.Name != "" {
+			dp.Name = d.Name
+		}
+		if dp.Meta == nil && d.Meta != nil {
+			dp.Meta = d.Meta
+		} else if dp.Meta != nil {
+			dp.Meta.Assign(d.Meta)
+		}
+		if d.Path != "" {
+			dp.Path = d.Path
+		}
+		if d.Peername != "" {
+			dp.Peername = d.Peername
+		}
+		if d.PreviousPath != "" {
+			dp.PreviousPath = d.PreviousPath
+		}
+		if d.ProfileID != "" {
+			dp.ProfileID = d.ProfileID
+		}
+		if dp.Structure == nil && d.Structure != nil {
+			dp.Structure = d.Structure
+		} else if dp.Structure != nil {
+			dp.Structure.Assign(d.Structure)
+		}
+		if dp.Transform == nil && d.Transform != nil {
+			dp.Transform = d.Transform
+		} else if dp.Transform != nil {
+			dp.Transform.Assign(d.Transform)
+		}
+		if dp.Viz == nil && d.Viz != nil {
+			dp.Viz = d.Viz
+		} else if dp.Viz != nil {
+			dp.Viz.Assign(d.Viz)
+		}
+	}
 }

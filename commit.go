@@ -204,3 +204,32 @@ type CommitPod struct {
 	Timestamp time.Time `json:"timestamp"`
 	Title     string    `json:"title"`
 }
+
+// Assign collapses all properties of zero or more CommitPod onto one.
+// inspired by Javascript's Object.assign
+func (cp *CommitPod) Assign(cps ...*CommitPod) {
+	for _, c := range cps {
+		if c == nil {
+			continue
+		}
+
+		if c.Author != nil {
+			cp.Author = c.Author
+		}
+		if c.Message != "" {
+			cp.Message = c.Message
+		}
+		if c.Path != "" {
+			cp.Path = c.Path
+		}
+		if c.Signature != "" {
+			cp.Signature = c.Signature
+		}
+		if !c.Timestamp.IsZero() {
+			cp.Timestamp = c.Timestamp
+		}
+		if c.Title != "" {
+			cp.Title = c.Title
+		}
+	}
+}

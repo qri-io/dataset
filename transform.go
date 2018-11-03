@@ -1,6 +1,7 @@
 package dataset
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -275,6 +276,10 @@ func (q *Transform) Decode(ct *TransformPod) error {
 		t.Qri = KindTransform
 	}
 
+	if ct.ScriptBytes != nil {
+		t.Script = bytes.NewReader(ct.ScriptBytes)
+	}
+
 	if ct.Resources != nil {
 		t.Resources = map[string]*TransformResource{}
 		if err := json.Unmarshal(ct.Resources, &t.Resources); err != nil {
@@ -303,9 +308,58 @@ type TransformPod struct {
 	// resources are respresented as JSON-bytes
 	Resources []byte `json:"resources,omitempty"`
 	// Secrets doesn't exsit on Transform, only here for select use cases
-	Secrets       map[string]string `json:"secrets,omitempty"`
-	Structure     *StructurePod     `json:"structure,omitempty"`
-	ScriptPath    string            `json:"scriptPath,omitempty"`
-	Syntax        string            `json:"syntax,omitempty"`
-	SyntaxVersion string            `json:"syntaxVersion,omitempty"`
+	Secrets    map[string]string `json:"secrets,omitempty"`
+	Structure  *StructurePod     `json:"structure,omitempty"`
+	ScriptPath string            `json:"scriptPath,omitempty"`
+	// ScriptBytes is for representing a script as a slice of bytes
+	ScriptBytes   []byte `json:"scriptBytes,omitempty"`
+	Syntax        string `json:"syntax,omitempty"`
+	SyntaxVersion string `json:"syntaxVersion,omitempty"`
+}
+
+// Assign collapses all properties of zero or more TransformPod onto one.
+// inspired by Javascript's Object.assign
+func (tp *TransformPod) Assign(tps ...*TransformPod) {
+	for _, t := range tps {
+		if t == nil {
+			continue
+		}
+
+		if t.Config != nil {
+			tp.Config = t.Config
+		}
+		if t.TransformPath != "" {
+			tp.TransformPath = t.TransformPath
+		}
+		if t.Path != "" {
+			tp.Path = t.Path
+		}
+		if t.Qri != "" {
+			tp.Qri = t.Qri
+		}
+		if t.Resources != nil {
+			tp.Resources = t.Resources
+		}
+		if t.Secrets != nil {
+			tp.Secrets = t.Secrets
+		}
+
+		// TODO - we should depricate the Structure field. it doesn't make sense anymore
+		// if t.Structure != nil {
+		// 	tp.Structure = t.Structure
+		// }
+
+		if t.ScriptPath != "" {
+			tp.ScriptPath = t.ScriptPath
+		}
+		if t.ScriptBytes != nil {
+			tp.ScriptBytes = t.ScriptBytes
+		}
+		if t.Syntax != "" {
+			tp.Syntax = t.Syntax
+		}
+		if t.SyntaxVersion != "" {
+			tp.SyntaxVersion = t.SyntaxVersion
+		}
+	}
 }
