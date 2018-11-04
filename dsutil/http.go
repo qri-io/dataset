@@ -1,12 +1,15 @@
 package dsutil
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
 	"strings"
+
+	"github.com/qri-io/dataset/detect"
 
 	"github.com/qri-io/dataset"
 )
@@ -97,6 +100,19 @@ func FormFileDataset(r *http.Request, dsp *dataset.DatasetPod) (err error) {
 		}
 		dsp.BodyPath = bodyHeader.Filename
 		dsp.BodyBytes = bodyData
+		if dsp.Structure == nil {
+			// TODO - this is silly and should move into base.PrepareDataset funcs
+			dsp.Structure = &dataset.StructurePod{}
+			format, err := detect.ExtensionDataFormat(bodyHeader.Filename)
+			if err != nil {
+				return err
+			}
+			st, _, err := detect.FromReader(format, bytes.NewReader(dsp.BodyBytes))
+			if err != nil {
+				return err
+			}
+			dsp.Structure = st.Encode()
+		}
 	}
 
 	return

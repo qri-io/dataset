@@ -3,6 +3,8 @@ package dataset
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/ipfs/go-datastore"
@@ -300,6 +302,38 @@ func TestTransformPodAssign(t *testing.T) {
 }
 
 func CompareTransformPods(a, b *TransformPod) error {
-	// TODO - finish
+	if !reflect.DeepEqual(a.Config, b.Config) {
+		return fmt.Errorf("Config: %s != %s", a.Config, b.Config)
+	}
+	if a.TransformPath != b.TransformPath {
+		return fmt.Errorf("TransformPath: %s != %s", a.TransformPath, b.TransformPath)
+	}
+	if a.Path != b.Path {
+		return fmt.Errorf("Path: %s != %s", a.Path, b.Path)
+	}
+	if a.Qri != b.Qri {
+		return fmt.Errorf("Qri: %s != %s", a.Qri, b.Qri)
+	}
+	if !reflect.DeepEqual(a.Resources, b.Resources) {
+		return fmt.Errorf("Resources: %v != %v", a.Resources, b.Resources)
+	}
+	if !reflect.DeepEqual(a.Secrets, b.Secrets) {
+		return fmt.Errorf("Secrets: %v != %v", a.Secrets, b.Secrets)
+	}
+	if a.Structure != b.Structure {
+		return fmt.Errorf("Structure: %v != %v", a.Structure, b.Structure)
+	}
+	if a.ScriptPath != b.ScriptPath {
+		return fmt.Errorf("ScriptPath: %s != %s", a.ScriptPath, b.ScriptPath)
+	}
+	if !bytes.Equal(a.ScriptBytes, b.ScriptBytes) {
+		return fmt.Errorf("ScriptBytes: %v != %v", a.ScriptBytes, b.ScriptBytes)
+	}
+	if a.Syntax != b.Syntax {
+		return fmt.Errorf("Syntax: %s != %s", a.Syntax, b.Syntax)
+	}
+	if a.SyntaxVersion != b.SyntaxVersion {
+		return fmt.Errorf("SyntaxVersion: %s != %s", a.SyntaxVersion, b.SyntaxVersion)
+	}
 	return nil
 }
