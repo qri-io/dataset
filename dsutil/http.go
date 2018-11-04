@@ -9,9 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/qri-io/dataset/detect"
-
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/dataset/detect"
 )
 
 // FormFileDataset extracts a dataset document from a http Request
@@ -48,7 +47,7 @@ func FormFileDataset(r *http.Request, dsp *dataset.DatasetPod) (err error) {
 		}
 	}
 
-	tfFile, _, err := r.FormFile("transform")
+	tfFile, tfHeader, err := r.FormFile("transform")
 	if err == http.ErrMissingFile {
 		err = nil
 	} else if err != nil {
@@ -65,9 +64,10 @@ func FormFileDataset(r *http.Request, dsp *dataset.DatasetPod) (err error) {
 		}
 		dsp.Transform.Syntax = "starlark"
 		dsp.Transform.ScriptBytes = tfData
+		dsp.Transform.ScriptPath = tfHeader.Filename
 	}
 
-	vizFile, _, err := r.FormFile("viz")
+	vizFile, vizHeader, err := r.FormFile("viz")
 	if err == http.ErrMissingFile {
 		err = nil
 	} else if err != nil {
@@ -84,6 +84,7 @@ func FormFileDataset(r *http.Request, dsp *dataset.DatasetPod) (err error) {
 		}
 		dsp.Viz.Format = "html"
 		dsp.Viz.ScriptBytes = vizData
+		dsp.Viz.ScriptPath = vizHeader.Filename
 	}
 
 	bodyfile, bodyHeader, err := r.FormFile("body")
@@ -100,6 +101,7 @@ func FormFileDataset(r *http.Request, dsp *dataset.DatasetPod) (err error) {
 		}
 		dsp.BodyPath = bodyHeader.Filename
 		dsp.BodyBytes = bodyData
+
 		if dsp.Structure == nil {
 			// TODO - this is silly and should move into base.PrepareDataset funcs
 			dsp.Structure = &dataset.StructurePod{}

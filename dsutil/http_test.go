@@ -21,7 +21,18 @@ func TestFormFileDataset(t *testing.T) {
 	}
 
 	r = newFormFileRequest(t, map[string]string{
-		"file": testdataFile("../dstest/testdata/complete/input.dataset.json"),
+		"file":      testdataFile("../dstest/testdata/complete/input.dataset.json"),
+		"viz":       testdataFile("../dstest/testdata/complete/template.html"),
+		"transform": testdataFile("../dstest/testdata/complete/transform.star"),
+		"body":      testdataFile("../dstest/testdata/complete/body.csv"),
+	}, nil)
+	if err := FormFileDataset(r, dsp); err != nil {
+		t.Error(err)
+	}
+
+	r = newFormFileRequest(t, map[string]string{
+		"file": "testdata/dataset.yml",
+		"body": testdataFile("../dstest/testdata/complete/body.csv"),
 	}, nil)
 	if err := FormFileDataset(r, dsp); err != nil {
 		t.Error(err)
