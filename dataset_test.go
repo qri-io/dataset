@@ -321,7 +321,7 @@ func TestDatasetDecode(t *testing.T) {
 		{&DatasetPod{}, ""},
 		{&DatasetPod{Commit: &CommitPod{Qri: "foo"}}, "invalid commit 'qri' value: foo"},
 		{&DatasetPod{Structure: &StructurePod{Format: "foo"}}, "invalid data format: `foo`"},
-		{&DatasetPod{Transform: &TransformPod{Resources: []byte("foo")}}, "decoding transform resources: invalid character 'o' in literal false (expecting 'a')"},
+		{&DatasetPod{Transform: &TransformPod{Resources: map[string]interface{}{"foo": 0}}}, "resource 'foo': json: cannot unmarshal number into Go value of type dataset.transformResource"},
 	}
 
 	for i, c := range cases {

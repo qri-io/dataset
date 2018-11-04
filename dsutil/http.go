@@ -3,10 +3,8 @@ package dsutil
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -14,22 +12,15 @@ import (
 )
 
 // FormFileDataset extracts a dataset document from a http Request
-func FormFileDataset(r *http.Request, dsp *dataset.DatasetPod) (cleanup func(), err error) {
-	var rmFiles []*os.File
-	cleanup = func() {
-		// TODO - this needs to be removed ASAP in favor of constructing cafs.Files from form-file readers
-		// There's danger this code could delete stuff not in temp directory if we're bad at our jobs.
-		for _, f := range rmFiles {
-			// TODO - log error?
-			os.Remove(f.Name())
-		}
-	}
+func FormFileDataset(r *http.Request, dsp *dataset.DatasetPod) (err error) {
+	dsp.Peername = r.FormValue("peername")
+	dsp.Name = r.FormValue("name")
+	dsp.BodyPath = r.FormValue("body_path")
 
 	datafile, dataHeader, err := r.FormFile("file")
 	if err == http.ErrMissingFile {
 		err = nil
-	}
-	if err != nil {
+	} else if err != nil {
 		err = fmt.Errorf("error opening dataset file: %s", err)
 		return
 	}
@@ -57,72 +48,55 @@ func FormFileDataset(r *http.Request, dsp *dataset.DatasetPod) (cleanup func(), 
 	tfFile, _, err := r.FormFile("transform")
 	if err == http.ErrMissingFile {
 		err = nil
-	}
-	if err != nil {
+	} else if err != nil {
 		err = fmt.Errorf("error opening transform file: %s", err)
 		return
 	}
 	if tfFile != nil {
-		var f *os.File
-		// TODO - this assumes a starlark transform file
-		if f, err = ioutil.TempFile("", "transform"); err != nil {
+		var tfData []byte
+		if tfData, err = ioutil.ReadAll(tfFile); err != nil {
 			return
 		}
-		rmFiles = append(rmFiles, f)
-		io.Copy(f, tfFile)
 		if dsp.Transform == nil {
 			dsp.Transform = &dataset.TransformPod{}
 		}
 		dsp.Transform.Syntax = "starlark"
-		dsp.Transform.ScriptPath = f.Name()
+		dsp.Transform.ScriptBytes = tfData
 	}
 
 	vizFile, _, err := r.FormFile("viz")
 	if err == http.ErrMissingFile {
 		err = nil
-	}
-	if err != nil {
+	} else if err != nil {
 		err = fmt.Errorf("error opening viz file: %s", err)
 		return
 	}
 	if vizFile != nil {
-		var f *os.File
-		// TODO - this assumes an html viz file
-		if f, err = ioutil.TempFile("", "viz"); err != nil {
+		var vizData []byte
+		if vizData, err = ioutil.ReadAll(vizFile); err != nil {
 			return
 		}
-		rmFiles = append(rmFiles, f)
-		io.Copy(f, vizFile)
 		if dsp.Viz == nil {
 			dsp.Viz = &dataset.Viz{}
 		}
 		dsp.Viz.Format = "html"
-		dsp.Viz.ScriptPath = f.Name()
+		dsp.Viz.ScriptBytes = vizData
 	}
-
-	dsp.Peername = r.FormValue("peername")
-	dsp.Name = r.FormValue("name")
-	dsp.BodyPath = r.FormValue("body_path")
 
 	bodyfile, bodyHeader, err := r.FormFile("body")
 	if err == http.ErrMissingFile {
 		err = nil
-	}
-	if err != nil {
+	} else if err != nil {
 		err = fmt.Errorf("error opening body file: %s", err)
 		return
 	}
 	if bodyfile != nil {
-		var f *os.File
-		path := filepath.Join(os.TempDir(), bodyHeader.Filename)
-		if f, err = os.Create(path); err != nil {
-			err = fmt.Errorf("error writing body file: %s", err.Error())
+		var bodyData []byte
+		if bodyData, err = ioutil.ReadAll(bodyfile); err != nil {
 			return
 		}
-		rmFiles = append(rmFiles, f)
-		io.Copy(f, bodyfile)
-		f.Close()
-		dsp.BodyPath = path
+		dsp.BodyPath = bodyHeader.Filename
+		dsp.BodyBytes = bodyData
 	}
 
 	return

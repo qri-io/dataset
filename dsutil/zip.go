@@ -9,8 +9,94 @@ import (
 	"io/ioutil"
 	"strings"
 
+	datastore "github.com/ipfs/go-datastore"
+	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/dataset/dsfs"
 )
+
+// WriteZipArchive generates a zip archive of a dataset and writes it to w
+func WriteZipArchive(store cafs.Filestore, ds *dataset.Dataset, ref string, w io.Writer) error {
+	zw := zip.NewWriter(w)
+
+	// Dataset header, contains meta, structure, and commit
+	dsf, err := zw.Create(dsfs.PackageFileDataset.String())
+	if err != nil {
+		log.Debug(err.Error())
+		return err
+	}
+	dsdata, err := json.MarshalIndent(ds, "", "  ")
+	if err != nil {
+		return err
+	}
+	_, err = dsf.Write(dsdata)
+	if err != nil {
+		log.Debug(err.Error())
+		return err
+	}
+
+	// Reference to dataset, as a string
+	target, err := zw.Create("ref.txt")
+	if err != nil {
+		return err
+	}
+	_, err = io.WriteString(target, ref)
+	if err != nil {
+		return err
+	}
+
+	// Transform script
+	if ds.Transform != nil && ds.Transform.ScriptPath != "" {
+		script, err := store.Get(datastore.NewKey(ds.Transform.ScriptPath))
+		if err != nil {
+			return err
+		}
+		target, err := zw.Create("transform.star")
+		if err != nil {
+			return err
+		}
+		_, err = io.Copy(target, script)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Viz template
+	if ds.Viz != nil && ds.Viz.ScriptPath != "" {
+		script, err := store.Get(datastore.NewKey(ds.Viz.ScriptPath))
+		if err != nil {
+			return err
+		}
+		target, err := zw.Create("viz.html")
+		if err != nil {
+			return err
+		}
+		_, err = io.Copy(target, script)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Body
+	datadst, err := zw.Create(fmt.Sprintf("body.%s", ds.Structure.Format.String()))
+	if err != nil {
+		log.Debug(err.Error())
+		return err
+	}
+
+	datasrc, err := dsfs.LoadBody(store, ds)
+	if err != nil {
+		log.Debug(err.Error())
+		return err
+	}
+
+	if _, err = io.Copy(datadst, datasrc); err != nil {
+		log.Debug(err.Error())
+		return err
+	}
+
+	return zw.Close()
+}
 
 // UnzipDatasetBytes is a convenince wrapper for UnzipDataset
 func UnzipDatasetBytes(zipData []byte, dsp *dataset.DatasetPod) error {
@@ -68,23 +154,21 @@ func UnzipDataset(r io.ReaderAt, size int64, dsp *dataset.DatasetPod) error {
 	}
 
 	// Get ref to existing dataset
-	refText, ok := contents["ref.txt"]
-	if !ok {
-		return fmt.Errorf("no ref.txt found in the provided zip")
+	if refText, ok := contents["ref.txt"]; ok {
+		refStr := string(refText)
+		atPos := strings.Index(refStr, "@")
+		if atPos == -1 {
+			return fmt.Errorf("invalid dataset ref: no '@' found")
+		}
+		// Get name and peername
+		datasetName := refStr[:atPos]
+		sepPos := strings.Index(datasetName, "/")
+		if sepPos == -1 {
+			return fmt.Errorf("invalid dataset name: no '/' found")
+		}
+		dsp.Peername = datasetName[:sepPos]
+		dsp.Name = datasetName[sepPos+1:]
 	}
-	refStr := string(refText)
-	atPos := strings.Index(refStr, "@")
-	if atPos == -1 {
-		return fmt.Errorf("invalid dataset ref: no '@' found")
-	}
-	// Get name and peername
-	datasetName := refStr[:atPos]
-	sepPos := strings.Index(datasetName, "/")
-	if sepPos == -1 {
-		return fmt.Errorf("invalid dataset name: no '/' found")
-	}
-	dsp.Peername = datasetName[:sepPos]
-	dsp.Name = datasetName[sepPos+1:]
 	return nil
 }
 

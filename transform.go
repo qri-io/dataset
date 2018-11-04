@@ -233,26 +233,20 @@ func UnmarshalTransform(v interface{}) (*Transform, error) {
 
 // Encode creates a TransformPod from a Transform instance
 func (q Transform) Encode() *TransformPod {
-	var (
-		rsc []byte
-		err error
-	)
-
-	if q.Resources != nil {
-		rsc, err = json.Marshal(q.Resources)
-		if err != nil {
-			rsc = []byte{}
-		}
-	}
-
 	ct := &TransformPod{
 		SyntaxVersion: q.SyntaxVersion,
 		Config:        q.Config,
 		ScriptPath:    q.ScriptPath,
 		Path:          q.Path().String(),
 		Qri:           q.Qri.String(),
-		Resources:     rsc,
 		Syntax:        q.Syntax,
+	}
+
+	if q.Resources != nil {
+		ct.Resources = map[string]interface{}{}
+		for key, r := range q.Resources {
+			ct.Resources[key] = r
+		}
 	}
 
 	if q.Structure != nil {
@@ -282,8 +276,23 @@ func (q *Transform) Decode(ct *TransformPod) error {
 
 	if ct.Resources != nil {
 		t.Resources = map[string]*TransformResource{}
-		if err := json.Unmarshal(ct.Resources, &t.Resources); err != nil {
-			return fmt.Errorf("decoding transform resources: %s", err.Error())
+		for key, rsc := range ct.Resources {
+			switch v := rsc.(type) {
+			case string:
+				t.Resources[key] = &TransformResource{Path: v}
+			default:
+				// TODO - falling back to double marshalling is slow
+				data, err := json.Marshal(v)
+				if err != nil {
+					return fmt.Errorf("resource '%s': %s", key, err)
+				}
+
+				r := &TransformResource{}
+				if err := json.Unmarshal(data, r); err != nil {
+					return fmt.Errorf("resource '%s': %s", key, err)
+				}
+				t.Resources[key] = r
+			}
 		}
 	}
 
@@ -305,8 +314,7 @@ type TransformPod struct {
 	TransformPath string                 `json:"transformPath,omitempty"`
 	Path          string                 `json:"path,omitempty"`
 	Qri           string                 `json:"qri,omitempty"`
-	// resources are respresented as JSON-bytes
-	Resources []byte `json:"resources,omitempty"`
+	Resources     map[string]interface{} `json:"resources,omitempty"`
 	// Secrets doesn't exsit on Transform, only here for select use cases
 	Secrets    map[string]string `json:"secrets,omitempty"`
 	Structure  *StructurePod     `json:"structure,omitempty"`

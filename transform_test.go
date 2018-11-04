@@ -35,9 +35,6 @@ func TestTransformAssign(t *testing.T) {
 		Config: map[string]interface{}{
 			"foo": "bar",
 		},
-		// Abstract: &AbstractTransform{
-		// 	Syntax: "structure_syntax",
-		// },
 		Resources: map[string]*TransformResource{
 			"a": &TransformResource{Path: "/path/to/a"},
 		},
@@ -48,7 +45,6 @@ func TestTransformAssign(t *testing.T) {
 		Config: map[string]interface{}{
 			"foo": "baz",
 		},
-		// Abstract:  nil,
 		Resources: nil,
 	}
 
@@ -58,12 +54,8 @@ func TestTransformAssign(t *testing.T) {
 		Config: map[string]interface{}{
 			"foo": "bar",
 		},
-		// Abstract:  nil,
 		Resources: nil,
 	}, &Transform{
-		// Abstract: &AbstractTransform{
-		// 	Syntax: "structure_syntax",
-		// },
 		path: datastore.NewKey("path"),
 		Resources: map[string]*TransformResource{
 			"a": &TransformResource{Path: "/path/to/a"},
@@ -79,9 +71,9 @@ func TestTransformAssign(t *testing.T) {
 		t.Error(err)
 	}
 
-	emptyMsg := &Transform{}
-	emptyMsg.Assign(expect)
-	if err := CompareTransforms(expect, emptyMsg); err != nil {
+	emptyTf := &Transform{}
+	emptyTf.Assign(expect)
+	if err := CompareTransforms(expect, emptyTf); err != nil {
 		t.Error(err)
 	}
 }
@@ -246,7 +238,7 @@ func TestTransformDecode(t *testing.T) {
 		err string
 	}{
 		{&TransformPod{}, ""},
-		{&TransformPod{Resources: []byte("foo")}, "decoding transform resources: invalid character 'o' in literal false (expecting 'a')"},
+		{&TransformPod{Resources: map[string]interface{}{"foo": 0}}, "resource 'foo': json: cannot unmarshal number into Go value of type dataset.transformResource"},
 		{&TransformPod{Structure: &StructurePod{Format: "foo"}}, "invalid data format: `foo`"},
 	}
 
@@ -258,4 +250,56 @@ func TestTransformDecode(t *testing.T) {
 			continue
 		}
 	}
+}
+
+func TestTransformPodAssign(t *testing.T) {
+	expect := &TransformPod{
+		Path:          "path",
+		Syntax:        "a",
+		SyntaxVersion: "change",
+		Config: map[string]interface{}{
+			"foo": "bar",
+		},
+		Resources: map[string]interface{}{"a": "b"},
+	}
+	got := &TransformPod{
+		Syntax:        "no",
+		SyntaxVersion: "b",
+		Config: map[string]interface{}{
+			"foo": "baz",
+		},
+		Resources: nil,
+	}
+
+	got.Assign(&TransformPod{
+		Syntax:        "a",
+		SyntaxVersion: "change",
+		Config: map[string]interface{}{
+			"foo": "bar",
+		},
+		Resources: nil,
+	}, &TransformPod{
+		Path:      "path",
+		Resources: map[string]interface{}{"a": "b"},
+	})
+
+	if err := CompareTransformPods(expect, got); err != nil {
+		t.Error(err)
+	}
+
+	got.Assign(nil, nil)
+	if err := CompareTransformPods(expect, got); err != nil {
+		t.Error(err)
+	}
+
+	emptyTf := &TransformPod{}
+	emptyTf.Assign(expect)
+	if err := CompareTransformPods(expect, emptyTf); err != nil {
+		t.Error(err)
+	}
+}
+
+func CompareTransformPods(a, b *TransformPod) error {
+	// TODO - finish
+	return nil
 }
