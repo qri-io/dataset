@@ -3,6 +3,7 @@ package dataset
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"testing"
 	"time"
@@ -332,4 +333,91 @@ func TestDatasetDecode(t *testing.T) {
 			continue
 		}
 	}
+}
+
+func TestDatasetPodAssign(t *testing.T) {
+	// Commit
+	// Body
+	// BodyBytes
+	// BodyPath
+	// Name
+	// Meta
+	// Path
+	// Peername
+	// PreviousPath
+	// ProfileID
+	// Qri
+	// Structure
+	// Transform
+	// Viz
+
+	// TODO - expand test to check all fields
+	cases := []struct {
+		in *DatasetPod
+	}{
+		{&DatasetPod{Path: "/a"}},
+		{&DatasetPod{Structure: &StructurePod{Format: "csv"}}},
+		{&DatasetPod{Transform: &TransformPod{ScriptPath: "some_transform_script.star"}}},
+		{&DatasetPod{Commit: &CommitPod{Title: "foo"}}},
+		{&DatasetPod{BodyPath: "foo"}},
+		{&DatasetPod{PreviousPath: "stuff"}},
+		{&DatasetPod{Meta: &Meta{Title: "foo"}}},
+		{&DatasetPod{Viz: &Viz{Qri: KindViz}}},
+	}
+
+	for i, c := range cases {
+		got := &DatasetPod{}
+		got.Assign(c.in)
+		// assign resets the path:
+		if err := CompareDatasetPods(c.in, got); err != nil {
+			t.Errorf("case %d error: %s", i, err.Error())
+			continue
+		}
+	}
+}
+
+func CompareDatasetPods(a, b *DatasetPod) error {
+	if a.Commit != b.Commit {
+		return fmt.Errorf("Commit: %s != %s", a.Commit, b.Commit)
+	}
+	if a.Body != b.Body {
+		return fmt.Errorf("Body: %s != %s", a.Body, b.Body)
+	}
+	if !bytes.Equal(a.BodyBytes, b.BodyBytes) {
+		return fmt.Errorf("BodyBytes: %v != %b", a.BodyBytes, b.BodyBytes)
+	}
+	if a.BodyPath != b.BodyPath {
+		return fmt.Errorf("BodyPath: %s != %s", a.BodyPath, b.BodyPath)
+	}
+	if a.Name != b.Name {
+		return fmt.Errorf("Name: %s != %s", a.Name, b.Name)
+	}
+	if a.Meta != b.Meta {
+		return fmt.Errorf("Meta: %v != %v", a.Meta, b.Meta)
+	}
+	if a.Path != b.Path {
+		return fmt.Errorf("Path: %s != %s", a.Path, b.Path)
+	}
+	if a.Peername != b.Peername {
+		return fmt.Errorf("Peername: %s != %s", a.Peername, b.Peername)
+	}
+	if a.PreviousPath != b.PreviousPath {
+		return fmt.Errorf("PreviousPath: %s != %s", a.PreviousPath, b.PreviousPath)
+	}
+	if a.ProfileID != b.ProfileID {
+		return fmt.Errorf("ProfileID: %s != %s", a.ProfileID, b.ProfileID)
+	}
+	if a.Qri != b.Qri {
+		return fmt.Errorf("Qri: %s != %s", a.Qri, b.Qri)
+	}
+	if err := CompareStructurePods(a.Structure, b.Structure); err != nil {
+		return fmt.Errorf("Structure: %s", err)
+	}
+	if err := CompareTransformPods(a.Transform, b.Transform); err != nil {
+		return fmt.Errorf("Transform: %s", err)
+	}
+	if err := CompareVizs(a.Viz, b.Viz); err != nil {
+		return fmt.Errorf("Viz: %s", err)
+	}
+	return nil
 }

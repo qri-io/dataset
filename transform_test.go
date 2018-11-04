@@ -302,6 +302,13 @@ func TestTransformPodAssign(t *testing.T) {
 }
 
 func CompareTransformPods(a, b *TransformPod) error {
+	if a == nil && b == nil {
+		return nil
+	}
+	if a == nil && b != nil || b == nil && a != nil {
+		return fmt.Errorf("nil mismatch: %v != %v", a, b)
+	}
+
 	if !reflect.DeepEqual(a.Config, b.Config) {
 		return fmt.Errorf("Config: %s != %s", a.Config, b.Config)
 	}
