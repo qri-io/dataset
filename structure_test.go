@@ -3,10 +3,12 @@ package dataset
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/qri-io/dataset/compression"
-	"github.com/qri-io/jsonschema"
+	"fmt"
 	"io/ioutil"
 	"testing"
+
+	"github.com/qri-io/dataset/compression"
+	"github.com/qri-io/jsonschema"
 
 	"github.com/ipfs/go-datastore"
 	// "github.com/qri-io/dataset/datatypes"
@@ -337,4 +339,88 @@ func TestStructureDecode(t *testing.T) {
 			continue
 		}
 	}
+}
+
+func TestStructurePodAssign(t *testing.T) {
+	expect := &StructurePod{
+		Format:      "format",
+		Length:      2503,
+		Compression: "nah",
+		Encoding:    "UTF-3000",
+		ErrCount:    50,
+		Entries:     200,
+		Path:        "enlightenment",
+		Qri:         "qri?",
+	}
+	got := &StructurePod{
+		Format: "format",
+	}
+
+	got.Assign(&StructurePod{
+		Length:      2503,
+		Compression: "nah",
+		Encoding:    "UTF-3000",
+		ErrCount:    50,
+		Entries:     200,
+		Path:        "enlightenment",
+		Qri:         "qri?",
+	})
+
+	if err := EnsureEqualStructurePods(expect, got); err != nil {
+		t.Error(err)
+	}
+
+	got.Assign(nil, nil)
+	if err := EnsureEqualStructurePods(expect, got); err != nil {
+		t.Error(err)
+	}
+
+	emptySt := &StructurePod{}
+	emptySt.Assign(expect)
+	if err := EnsureEqualStructurePods(expect, emptySt); err != nil {
+		t.Error(err)
+	}
+}
+
+func EnsureEqualStructurePods(a, b *StructurePod) error {
+	if a == nil && b == nil {
+		return nil
+	}
+	if a == nil && b != nil || b == nil && a != nil {
+		return fmt.Errorf("nil mismatch: %v != %v", a, b)
+	}
+	if a.Checksum != b.Checksum {
+		return fmt.Errorf("Checksum: %s != %s", a.Checksum, b.Checksum)
+	}
+	if a.Compression != b.Compression {
+		return fmt.Errorf("Compression: %s != %s", a.Compression, b.Compression)
+	}
+	if a.Encoding != b.Encoding {
+		return fmt.Errorf("Encoding: %s != %s", a.Encoding, b.Encoding)
+	}
+	if a.ErrCount != b.ErrCount {
+		return fmt.Errorf("ErrCount: %d != %d", a.ErrCount, b.ErrCount)
+	}
+	if a.Entries != b.Entries {
+		return fmt.Errorf("Entries: %d != %d", a.Entries, b.Entries)
+	}
+	if a.Format != b.Format {
+		return fmt.Errorf("Format: %s != %s", a.Format, b.Format)
+	}
+	// if a.FormatConfig != b.FormatConfig {
+	// 	return fmt.Errorf("FormatConfig: %s != %s", a.FormatConfig, b.FormatConfig)
+	// }
+	if a.Length != b.Length {
+		return fmt.Errorf("Length: %d != %d", a.Length, b.Length)
+	}
+	if a.Path != b.Path {
+		return fmt.Errorf("Path: %s != %s", a.Path, b.Path)
+	}
+	if a.Qri != b.Qri {
+		return fmt.Errorf("Qri: %s != %s", a.Qri, b.Qri)
+	}
+	// if a.Schema != b.Schema {
+	// 	return fmt.Errorf("Schema: %s != %s", a.Schema, b.Schema)
+	// }
+	return nil
 }

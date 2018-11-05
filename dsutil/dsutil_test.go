@@ -1,9 +1,6 @@
 package dsutil
 
 import (
-	"archive/zip"
-	"bytes"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,91 +12,6 @@ import (
 	"github.com/qri-io/dataset/dsfs"
 	"github.com/qri-io/jsonschema"
 )
-
-func TestWriteZipArchive(t *testing.T) {
-	store, names, err := testStore()
-	if err != nil {
-		t.Errorf("error creating store: %s", err.Error())
-		return
-	}
-
-	ds, err := dsfs.LoadDataset(store, names["movies"])
-	if err != nil {
-		t.Errorf("error fetching movies dataset from store: %s", err.Error())
-		return
-	}
-
-	buf := &bytes.Buffer{}
-	if err = WriteZipArchive(store, ds, "testref", buf); err != nil {
-		t.Errorf("error writing zip archive: %s", err.Error())
-		return
-	}
-
-	zr, err := zip.NewReader(bytes.NewReader(buf.Bytes()), int64(buf.Len()))
-	if err != nil {
-		t.Errorf("error creating zip reader: %s", err.Error())
-		return
-	}
-
-	for _, f := range zr.File {
-		rc, err := f.Open()
-		if err != nil {
-			t.Errorf("error opening file %s in package", f.Name)
-			break
-		}
-
-		if err := rc.Close(); err != nil {
-			t.Errorf("error closing file %s in package", f.Name)
-			break
-		}
-	}
-}
-
-func TestWriteZipArchiveFullDataset(t *testing.T) {
-	store, names, err := testStoreWithVizAndTransform()
-	if err != nil {
-		t.Errorf("error creating store: %s", err.Error())
-		return
-	}
-
-	ds, err := dsfs.LoadDataset(store, names["movies"])
-	if err != nil {
-		t.Errorf("error fetching movies dataset from store: %s", err.Error())
-		return
-	}
-
-	_, err = store.Get(names["transform_script"])
-	if err != nil {
-		t.Errorf("error fetching movies dataset from store: %s", err.Error())
-		return
-	}
-
-	buf := &bytes.Buffer{}
-	if err = WriteZipArchive(store, ds, "testref", buf); err != nil {
-		t.Errorf("error writing zip archive: %s", err.Error())
-		return
-	}
-
-	tmppath := filepath.Join(os.TempDir(), "exported.zip")
-	defer os.RemoveAll(tmppath)
-
-	err = ioutil.WriteFile(tmppath, buf.Bytes(), os.ModePerm)
-	if err != nil {
-		t.Errorf("error writing temp zip file: %s", err.Error())
-		return
-	}
-
-	expectFile := testdataFile("zip/exported.zip")
-	expectBytes, err := ioutil.ReadFile(expectFile)
-	if err != nil {
-		t.Errorf("error reading expected bytes: %s", err.Error())
-		return
-	}
-	if !bytes.Equal(buf.Bytes(), expectBytes) {
-		t.Errorf("error bytes of exported zip did not match")
-		return
-	}
-}
 
 func TestWriteDir(t *testing.T) {
 	store, names, err := testStore()

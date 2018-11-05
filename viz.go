@@ -20,6 +20,8 @@ type Viz struct {
 	Format string
 	// Script is a reader of raw script data
 	Script io.Reader `json:"_"`
+	// ScriptBytes is for representing a script as a slice of bytes
+	ScriptBytes []byte `json:"scriptBytes,omitempty"`
 	// ScriptPath is the path to the script that created this
 	ScriptPath string `json:"script,omitempty"`
 }
@@ -66,6 +68,9 @@ func (v *Viz) Assign(visConfigs ...*Viz) {
 		if vs.Format != "" {
 			v.Format = vs.Format
 		}
+		if vs.ScriptBytes != nil {
+			v.ScriptBytes = vs.ScriptBytes
+		}
 		if vs.ScriptPath != "" {
 			v.ScriptPath = vs.ScriptPath
 		}
@@ -75,9 +80,10 @@ func (v *Viz) Assign(visConfigs ...*Viz) {
 // vizPod is a private struct for marshaling into & out of.
 // fields must remain sorted in lexographical order
 type vizPod struct {
-	Format     string `json:"format,omitempty"`
-	Qri        Kind   `json:"qri,omitempty"`
-	ScriptPath string `json:"scriptPath,omitempty"`
+	Format      string `json:"format,omitempty"`
+	Qri         Kind   `json:"qri,omitempty"`
+	ScriptBytes []byte `json:"scriptBytes,omitempty"`
+	ScriptPath  string `json:"scriptPath,omitempty"`
 }
 
 // MarshalJSON satisfies the json.Marshaler interface
@@ -104,9 +110,10 @@ func (v *Viz) UnmarshalJSON(data []byte) error {
 	}
 
 	*v = Viz{
-		Format:     vp.Format,
-		Qri:        vp.Qri,
-		ScriptPath: vp.ScriptPath,
+		Format:      vp.Format,
+		Qri:         vp.Qri,
+		ScriptBytes: vp.ScriptBytes,
+		ScriptPath:  vp.ScriptPath,
 	}
 	return nil
 }
@@ -138,6 +145,9 @@ func (v *Viz) MarshalJSONObject() ([]byte, error) {
 
 	if v.Format != "" {
 		data["format"] = v.Format
+	}
+	if v.ScriptBytes != nil {
+		data["scriptBytes"] = v.ScriptBytes
 	}
 	if v.ScriptPath != "" {
 		data["scriptPath"] = v.ScriptPath

@@ -424,3 +424,47 @@ type StructurePod struct {
 	Qri          string                 `json:"qri"`
 	Schema       map[string]interface{} `json:"schema,omitempty"`
 }
+
+// Assign collapses all properties of zero or more StructurePod onto one.
+// inspired by Javascript's Object.assign
+func (sp *StructurePod) Assign(sps ...*StructurePod) {
+	for _, s := range sps {
+		if s == nil {
+			continue
+		}
+
+		if s.Checksum != "" {
+			sp.Checksum = s.Checksum
+		}
+		if s.Compression != "" {
+			sp.Compression = s.Compression
+		}
+		if s.Encoding != "" {
+			sp.Encoding = s.Encoding
+		}
+		if s.ErrCount != 0 {
+			sp.ErrCount = s.ErrCount
+		}
+		if s.Entries != 0 {
+			sp.Entries = s.Entries
+		}
+		if s.Format != "" {
+			sp.Format = s.Format
+		}
+		if s.FormatConfig != nil {
+			sp.FormatConfig = s.FormatConfig
+		}
+		if s.Length != 0 {
+			sp.Length = s.Length
+		}
+		if s.Path != "" {
+			sp.Path = s.Path
+		}
+		if s.Qri != "" {
+			sp.Qri = s.Qri
+		}
+		if s.Schema != nil {
+			sp.Schema = s.Schema
+		}
+	}
+}

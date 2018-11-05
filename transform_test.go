@@ -3,6 +3,8 @@ package dataset
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/ipfs/go-datastore"
@@ -35,9 +37,6 @@ func TestTransformAssign(t *testing.T) {
 		Config: map[string]interface{}{
 			"foo": "bar",
 		},
-		// Abstract: &AbstractTransform{
-		// 	Syntax: "structure_syntax",
-		// },
 		Resources: map[string]*TransformResource{
 			"a": &TransformResource{Path: "/path/to/a"},
 		},
@@ -48,7 +47,6 @@ func TestTransformAssign(t *testing.T) {
 		Config: map[string]interface{}{
 			"foo": "baz",
 		},
-		// Abstract:  nil,
 		Resources: nil,
 	}
 
@@ -58,12 +56,8 @@ func TestTransformAssign(t *testing.T) {
 		Config: map[string]interface{}{
 			"foo": "bar",
 		},
-		// Abstract:  nil,
 		Resources: nil,
 	}, &Transform{
-		// Abstract: &AbstractTransform{
-		// 	Syntax: "structure_syntax",
-		// },
 		path: datastore.NewKey("path"),
 		Resources: map[string]*TransformResource{
 			"a": &TransformResource{Path: "/path/to/a"},
@@ -79,9 +73,9 @@ func TestTransformAssign(t *testing.T) {
 		t.Error(err)
 	}
 
-	emptyMsg := &Transform{}
-	emptyMsg.Assign(expect)
-	if err := CompareTransforms(expect, emptyMsg); err != nil {
+	emptyTf := &Transform{}
+	emptyTf.Assign(expect)
+	if err := CompareTransforms(expect, emptyTf); err != nil {
 		t.Error(err)
 	}
 }
@@ -246,7 +240,7 @@ func TestTransformDecode(t *testing.T) {
 		err string
 	}{
 		{&TransformPod{}, ""},
-		{&TransformPod{Resources: []byte("foo")}, "decoding transform resources: invalid character 'o' in literal false (expecting 'a')"},
+		{&TransformPod{Resources: map[string]interface{}{"foo": 0}}, "resource 'foo': json: cannot unmarshal number into Go value of type dataset.transformResource"},
 		{&TransformPod{Structure: &StructurePod{Format: "foo"}}, "invalid data format: `foo`"},
 	}
 
@@ -258,4 +252,95 @@ func TestTransformDecode(t *testing.T) {
 			continue
 		}
 	}
+}
+
+func TestTransformPodAssign(t *testing.T) {
+	expect := &TransformPod{
+		Path:          "path",
+		Syntax:        "a",
+		SyntaxVersion: "change",
+		Config: map[string]interface{}{
+			"foo": "bar",
+		},
+		Resources: map[string]interface{}{"a": "b"},
+	}
+	got := &TransformPod{
+		Syntax:        "no",
+		SyntaxVersion: "b",
+		Config: map[string]interface{}{
+			"foo": "baz",
+		},
+		Resources: nil,
+	}
+
+	got.Assign(&TransformPod{
+		Syntax:        "a",
+		SyntaxVersion: "change",
+		Config: map[string]interface{}{
+			"foo": "bar",
+		},
+		Resources: nil,
+	}, &TransformPod{
+		Path:      "path",
+		Resources: map[string]interface{}{"a": "b"},
+	})
+
+	if err := EnsureEqualTransformPods(expect, got); err != nil {
+		t.Error(err)
+	}
+
+	got.Assign(nil, nil)
+	if err := EnsureEqualTransformPods(expect, got); err != nil {
+		t.Error(err)
+	}
+
+	emptyTf := &TransformPod{}
+	emptyTf.Assign(expect)
+	if err := EnsureEqualTransformPods(expect, emptyTf); err != nil {
+		t.Error(err)
+	}
+}
+
+func EnsureEqualTransformPods(a, b *TransformPod) error {
+	if a == nil && b == nil {
+		return nil
+	}
+	if a == nil && b != nil || b == nil && a != nil {
+		return fmt.Errorf("nil mismatch: %v != %v", a, b)
+	}
+
+	if !reflect.DeepEqual(a.Config, b.Config) {
+		return fmt.Errorf("Config: %s != %s", a.Config, b.Config)
+	}
+	if a.TransformPath != b.TransformPath {
+		return fmt.Errorf("TransformPath: %s != %s", a.TransformPath, b.TransformPath)
+	}
+	if a.Path != b.Path {
+		return fmt.Errorf("Path: %s != %s", a.Path, b.Path)
+	}
+	if a.Qri != b.Qri {
+		return fmt.Errorf("Qri: %s != %s", a.Qri, b.Qri)
+	}
+	if !reflect.DeepEqual(a.Resources, b.Resources) {
+		return fmt.Errorf("Resources: %v != %v", a.Resources, b.Resources)
+	}
+	if !reflect.DeepEqual(a.Secrets, b.Secrets) {
+		return fmt.Errorf("Secrets: %v != %v", a.Secrets, b.Secrets)
+	}
+	if a.Structure != b.Structure {
+		return fmt.Errorf("Structure: %v != %v", a.Structure, b.Structure)
+	}
+	if a.ScriptPath != b.ScriptPath {
+		return fmt.Errorf("ScriptPath: %s != %s", a.ScriptPath, b.ScriptPath)
+	}
+	if !bytes.Equal(a.ScriptBytes, b.ScriptBytes) {
+		return fmt.Errorf("ScriptBytes: %v != %v", a.ScriptBytes, b.ScriptBytes)
+	}
+	if a.Syntax != b.Syntax {
+		return fmt.Errorf("Syntax: %s != %s", a.Syntax, b.Syntax)
+	}
+	if a.SyntaxVersion != b.SyntaxVersion {
+		return fmt.Errorf("SyntaxVersion: %s != %s", a.SyntaxVersion, b.SyntaxVersion)
+	}
+	return nil
 }

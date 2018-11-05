@@ -1,6 +1,7 @@
 package dataset
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -232,26 +233,20 @@ func UnmarshalTransform(v interface{}) (*Transform, error) {
 
 // Encode creates a TransformPod from a Transform instance
 func (q Transform) Encode() *TransformPod {
-	var (
-		rsc []byte
-		err error
-	)
-
-	if q.Resources != nil {
-		rsc, err = json.Marshal(q.Resources)
-		if err != nil {
-			rsc = []byte{}
-		}
-	}
-
 	ct := &TransformPod{
 		SyntaxVersion: q.SyntaxVersion,
 		Config:        q.Config,
 		ScriptPath:    q.ScriptPath,
 		Path:          q.Path().String(),
 		Qri:           q.Qri.String(),
-		Resources:     rsc,
 		Syntax:        q.Syntax,
+	}
+
+	if q.Resources != nil {
+		ct.Resources = map[string]interface{}{}
+		for key, r := range q.Resources {
+			ct.Resources[key] = r
+		}
 	}
 
 	if q.Structure != nil {
@@ -275,10 +270,29 @@ func (q *Transform) Decode(ct *TransformPod) error {
 		t.Qri = KindTransform
 	}
 
+	if ct.ScriptBytes != nil {
+		t.Script = bytes.NewReader(ct.ScriptBytes)
+	}
+
 	if ct.Resources != nil {
 		t.Resources = map[string]*TransformResource{}
-		if err := json.Unmarshal(ct.Resources, &t.Resources); err != nil {
-			return fmt.Errorf("decoding transform resources: %s", err.Error())
+		for key, rsc := range ct.Resources {
+			switch v := rsc.(type) {
+			case string:
+				t.Resources[key] = &TransformResource{Path: v}
+			default:
+				// TODO - falling back to double marshalling is slow
+				data, err := json.Marshal(v)
+				if err != nil {
+					return fmt.Errorf("resource '%s': %s", key, err)
+				}
+
+				r := &TransformResource{}
+				if err := json.Unmarshal(data, r); err != nil {
+					return fmt.Errorf("resource '%s': %s", key, err)
+				}
+				t.Resources[key] = r
+			}
 		}
 	}
 
@@ -300,12 +314,60 @@ type TransformPod struct {
 	TransformPath string                 `json:"transformPath,omitempty"`
 	Path          string                 `json:"path,omitempty"`
 	Qri           string                 `json:"qri,omitempty"`
-	// resources are respresented as JSON-bytes
-	Resources []byte `json:"resources,omitempty"`
+	Resources     map[string]interface{} `json:"resources,omitempty"`
 	// Secrets doesn't exsit on Transform, only here for select use cases
-	Secrets       map[string]string `json:"secrets,omitempty"`
-	Structure     *StructurePod     `json:"structure,omitempty"`
-	ScriptPath    string            `json:"scriptPath,omitempty"`
-	Syntax        string            `json:"syntax,omitempty"`
-	SyntaxVersion string            `json:"syntaxVersion,omitempty"`
+	Secrets    map[string]string `json:"secrets,omitempty"`
+	Structure  *StructurePod     `json:"structure,omitempty"`
+	ScriptPath string            `json:"scriptPath,omitempty"`
+	// ScriptBytes is for representing a script as a slice of bytes
+	ScriptBytes   []byte `json:"scriptBytes,omitempty"`
+	Syntax        string `json:"syntax,omitempty"`
+	SyntaxVersion string `json:"syntaxVersion,omitempty"`
+}
+
+// Assign collapses all properties of zero or more TransformPod onto one.
+// inspired by Javascript's Object.assign
+func (tp *TransformPod) Assign(tps ...*TransformPod) {
+	for _, t := range tps {
+		if t == nil {
+			continue
+		}
+
+		if t.Config != nil {
+			tp.Config = t.Config
+		}
+		if t.TransformPath != "" {
+			tp.TransformPath = t.TransformPath
+		}
+		if t.Path != "" {
+			tp.Path = t.Path
+		}
+		if t.Qri != "" {
+			tp.Qri = t.Qri
+		}
+		if t.Resources != nil {
+			tp.Resources = t.Resources
+		}
+		if t.Secrets != nil {
+			tp.Secrets = t.Secrets
+		}
+
+		// TODO - we should depricate the Structure field. it doesn't make sense anymore
+		// if t.Structure != nil {
+		// 	tp.Structure = t.Structure
+		// }
+
+		if t.ScriptPath != "" {
+			tp.ScriptPath = t.ScriptPath
+		}
+		if t.ScriptBytes != nil {
+			tp.ScriptBytes = t.ScriptBytes
+		}
+		if t.Syntax != "" {
+			tp.Syntax = t.Syntax
+		}
+		if t.SyntaxVersion != "" {
+			tp.SyntaxVersion = t.SyntaxVersion
+		}
+	}
 }
