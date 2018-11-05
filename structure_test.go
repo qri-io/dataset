@@ -366,23 +366,23 @@ func TestStructurePodAssign(t *testing.T) {
 		Qri:         "qri?",
 	})
 
-	if err := CompareStructurePods(expect, got); err != nil {
+	if err := EnsureEqualStructurePods(expect, got); err != nil {
 		t.Error(err)
 	}
 
 	got.Assign(nil, nil)
-	if err := CompareStructurePods(expect, got); err != nil {
+	if err := EnsureEqualStructurePods(expect, got); err != nil {
 		t.Error(err)
 	}
 
 	emptySt := &StructurePod{}
 	emptySt.Assign(expect)
-	if err := CompareStructurePods(expect, emptySt); err != nil {
+	if err := EnsureEqualStructurePods(expect, emptySt); err != nil {
 		t.Error(err)
 	}
 }
 
-func CompareStructurePods(a, b *StructurePod) error {
+func EnsureEqualStructurePods(a, b *StructurePod) error {
 	if a == nil && b == nil {
 		return nil
 	}

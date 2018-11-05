@@ -285,23 +285,23 @@ func TestTransformPodAssign(t *testing.T) {
 		Resources: map[string]interface{}{"a": "b"},
 	})
 
-	if err := CompareTransformPods(expect, got); err != nil {
+	if err := EnsureEqualTransformPods(expect, got); err != nil {
 		t.Error(err)
 	}
 
 	got.Assign(nil, nil)
-	if err := CompareTransformPods(expect, got); err != nil {
+	if err := EnsureEqualTransformPods(expect, got); err != nil {
 		t.Error(err)
 	}
 
 	emptyTf := &TransformPod{}
 	emptyTf.Assign(expect)
-	if err := CompareTransformPods(expect, emptyTf); err != nil {
+	if err := EnsureEqualTransformPods(expect, emptyTf); err != nil {
 		t.Error(err)
 	}
 }
 
-func CompareTransformPods(a, b *TransformPod) error {
+func EnsureEqualTransformPods(a, b *TransformPod) error {
 	if a == nil && b == nil {
 		return nil
 	}

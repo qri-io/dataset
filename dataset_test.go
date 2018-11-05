@@ -336,21 +336,6 @@ func TestDatasetDecode(t *testing.T) {
 }
 
 func TestDatasetPodAssign(t *testing.T) {
-	// Commit
-	// Body
-	// BodyBytes
-	// BodyPath
-	// Name
-	// Meta
-	// Path
-	// Peername
-	// PreviousPath
-	// ProfileID
-	// Qri
-	// Structure
-	// Transform
-	// Viz
-
 	// TODO - expand test to check all fields
 	cases := []struct {
 		in *DatasetPod
@@ -369,14 +354,14 @@ func TestDatasetPodAssign(t *testing.T) {
 		got := &DatasetPod{}
 		got.Assign(c.in)
 		// assign resets the path:
-		if err := CompareDatasetPods(c.in, got); err != nil {
+		if err := EnsureEqualDatasetPods(c.in, got); err != nil {
 			t.Errorf("case %d error: %s", i, err.Error())
 			continue
 		}
 	}
 }
 
-func CompareDatasetPods(a, b *DatasetPod) error {
+func EnsureEqualDatasetPods(a, b *DatasetPod) error {
 	if a.Commit != b.Commit {
 		return fmt.Errorf("Commit: %s != %s", a.Commit, b.Commit)
 	}
@@ -410,10 +395,10 @@ func CompareDatasetPods(a, b *DatasetPod) error {
 	if a.Qri != b.Qri {
 		return fmt.Errorf("Qri: %s != %s", a.Qri, b.Qri)
 	}
-	if err := CompareStructurePods(a.Structure, b.Structure); err != nil {
+	if err := EnsureEqualStructurePods(a.Structure, b.Structure); err != nil {
 		return fmt.Errorf("Structure: %s", err)
 	}
-	if err := CompareTransformPods(a.Transform, b.Transform); err != nil {
+	if err := EnsureEqualTransformPods(a.Transform, b.Transform); err != nil {
 		return fmt.Errorf("Transform: %s", err)
 	}
 	if err := CompareVizs(a.Viz, b.Viz); err != nil {
