@@ -54,10 +54,9 @@ func (r *CSVReader) ReadEntry() (Entry, error) {
 	if !r.readHeader {
 		if HasHeaderRow(r.st) {
 			if _, err := r.r.Read(); err != nil {
-				if err.Error() == "EOF" {
-					return Entry{}, nil
+				if err.Error() != "EOF" {
+					log.Debug(err.Error())
 				}
-				log.Debug(err.Error())
 				return Entry{}, err
 			}
 		}

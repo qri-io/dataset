@@ -192,19 +192,6 @@ func CreateDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pk c
 		return
 	}
 
-	// TODO - figure out where we stand on this
-	// var diffDescription string
-	// if diffDescription == "" {
-	// 	err = fmt.Errorf("cannot record changes if no changes occured")
-	// 	return
-	// }
-
-	// TODO - figure out where we stand on this
-	// if err = confirmChangesOccurred(store, ds, df); err != nil {
-	//   err = fmt.Errorf("cannot record changes if no changes occured")
-	// 	 return
-	// }
-
 	path, err = WriteDataset(store, ds, df, pin)
 	if err != nil {
 		log.Debug(err.Error())
@@ -253,9 +240,9 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 	done := make(chan error)
 	tasks := 3
 
-	go setErrCount(ds, cafs.NewMemfileReader(df.FileName(), errR), mu, done)
-	go setEntryCount(ds, cafs.NewMemfileReader(df.FileName(), entryR), mu, done)
-	go setChecksumAndStats(ds, cafs.NewMemfileReader(df.FileName(), hashR), &buf, mu, done)
+	go setErrCount(ds, cafs.NewMemfileReader(df.FileName(), errR), &mu, done)
+	go setEntryCount(ds, cafs.NewMemfileReader(df.FileName(), entryR), &mu, done)
+	go setChecksumAndStats(ds, cafs.NewMemfileReader(df.FileName(), hashR), &buf, &mu, done)
 
 	go func() {
 		// pipes must be manually closed to trigger EOF
@@ -301,7 +288,7 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 }
 
 // setErrCount consumes sets the ErrCount field of a dataset's Structure
-func setErrCount(ds *dataset.Dataset, data cafs.File, mu sync.Mutex, done chan error) {
+func setErrCount(ds *dataset.Dataset, data cafs.File, mu *sync.Mutex, done chan error) {
 	er, err := dsio.NewEntryReader(ds.Structure, data)
 	if err != nil {
 		log.Debug(err.Error())
@@ -324,7 +311,7 @@ func setErrCount(ds *dataset.Dataset, data cafs.File, mu sync.Mutex, done chan e
 }
 
 // setEntryCount set the Entries field of a ds.Structure
-func setEntryCount(ds *dataset.Dataset, data cafs.File, mu sync.Mutex, done chan error) {
+func setEntryCount(ds *dataset.Dataset, data cafs.File, mu *sync.Mutex, done chan error) {
 	er, err := dsio.NewEntryReader(ds.Structure, data)
 	if err != nil {
 		log.Debug(err.Error())
@@ -353,7 +340,7 @@ func setEntryCount(ds *dataset.Dataset, data cafs.File, mu sync.Mutex, done chan
 }
 
 // setChecksumAndStats
-func setChecksumAndStats(ds *dataset.Dataset, data cafs.File, buf *bytes.Buffer, mu sync.Mutex, done chan error) {
+func setChecksumAndStats(ds *dataset.Dataset, data cafs.File, buf *bytes.Buffer, mu *sync.Mutex, done chan error) {
 	if _, err := io.Copy(buf, data); err != nil {
 		done <- err
 		return
@@ -407,7 +394,7 @@ func generateCommitMsg(store cafs.Filestore, ds *dataset.Dataset) (string, error
 	if err != nil {
 		return "", err
 	}
-	// ds.Commit.Title = diffDescription
+
 	return diffDescription, nil
 }
 
