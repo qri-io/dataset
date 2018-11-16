@@ -3,6 +3,9 @@
 package dstest
 
 import (
+	"bytes"
+	"crypto/sha1"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -13,6 +16,7 @@ import (
 	"github.com/jinzhu/copier"
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
+	"github.com/ugorji/go/codec"
 )
 
 var log = logger.Logger("dstest")
@@ -51,6 +55,20 @@ type TestCase struct {
 	//  Expect should match test output
 	// loads from expect.dataset.json
 	Expect *dataset.Dataset
+}
+
+// DatasetPodChecksum generates a fast, insecure hash of an encoded dataset,
+// useful for checking that expected dataset values haven't changed
+func DatasetPodChecksum(ds *dataset.DatasetPod) string {
+	buf := &bytes.Buffer{}
+	h := &codec.CborHandle{}
+	h.Canonical = true
+	if err := codec.NewEncoder(buf, h).Encode(ds); err != nil {
+		panic(err)
+	}
+
+	sum := sha1.Sum(buf.Bytes())
+	return hex.EncodeToString(sum[:])
 }
 
 var testCaseCache = make(map[string]TestCase)
