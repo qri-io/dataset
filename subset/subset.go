@@ -6,7 +6,7 @@
 // The full cascade of subsets from smallest to largest is as follows:
 // * hash - the content-addressed dataset identifier
 // * reference - a dataset name + human-friendly name
-// * preview - a fixed size description of a dataset, with fields from meta & structure. indended for listing datasets with important details
+// * preview - a short description of a dataset indended for listing datasets
 // * summary - a subsection of a dataset, including a bounded subset of body, meta, viz, script
 // * head - all dataset content except the body
 // * document - the full dataset document
@@ -36,28 +36,18 @@ func LoadPreview(s cafs.Filestore, path string) (*dataset.DatasetPod, error) {
 }
 
 // Preview creates a new preview from a given dataset
+// dataset preivews contain the entire contents of commit, with selected fields from meta & structure
+// preview is intended to be used when listing dataset, containing important details
+// previews also contain all information necessary to verify the commit signature
 func Preview(ds *dataset.DatasetPod) *dataset.DatasetPod {
 	return &dataset.DatasetPod{
 		Path:         ds.Path,
 		Name:         ds.Name,
 		Peername:     ds.Peername,
-		Commit:       previewCommit(ds.Commit),
+		Commit:       ds.Commit,
 		Meta:         previewMeta(ds.Meta),
 		Structure:    previewStructure(ds.Structure),
 		PreviousPath: ds.PreviousPath,
-	}
-}
-
-func previewCommit(cm *dataset.CommitPod) *dataset.CommitPod {
-	// TODO - consider removing longer fields like signature
-	if cm == nil {
-		return nil
-	}
-
-	return &dataset.CommitPod{
-		Timestamp: cm.Timestamp,
-		Title:     cm.Title,
-		Author:    cm.Author,
 	}
 }
 
@@ -83,5 +73,6 @@ func previewStructure(st *dataset.StructurePod) *dataset.StructurePod {
 		Length:   st.Length,
 		ErrCount: st.ErrCount,
 		Entries:  st.Entries,
+		Checksum: st.Checksum,
 	}
 }
