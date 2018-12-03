@@ -1,6 +1,8 @@
 package dsio
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/qri-io/dataset"
@@ -46,4 +48,8 @@ func TestEachEntry(t *testing.T) {
 		t.Errorf("eachrow error: %s", err.Error())
 		return
 	}
+}
+
+func testdataFile(base string) string {
+	return filepath.Join(os.Getenv("GOPATH"), "/src/github.com/qri-io/dataset/testdata/", base)
 }
