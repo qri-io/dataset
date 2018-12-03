@@ -431,7 +431,7 @@ func BenchmarkCBORReader(b *testing.B) {
 	st := &dataset.Structure{Format: dataset.CBORDataFormat, Schema: dataset.BaseSchemaArray}
 
 	for n := 0; n < b.N; n++ {
-		file, err := os.Open("testdata/movies/data.cbor")
+		file, err := os.Open(testdataFile("../dsio/testdata/movies/body.cbor"))
 		if err != nil {
 			b.Errorf("unexpected error: %s", err.Error())
 		}

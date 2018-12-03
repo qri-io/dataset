@@ -292,7 +292,7 @@ func BenchmarkCSVReader(b *testing.B) {
 	st := &dataset.Structure{Format: dataset.CSVDataFormat, Schema: dataset.BaseSchemaArray}
 
 	for n := 0; n < b.N; n++ {
-		file, err := os.Open("testdata/movies/data.csv")
+		file, err := os.Open(testdataFile("../dsio/testdata/movies/body.csv"))
 		if err != nil {
 			b.Errorf("unexpected error: %s", err.Error())
 		}
