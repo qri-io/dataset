@@ -1,7 +1,6 @@
 package dsio
 
 import (
-	"bufio"
 	"bytes"
 	"strings"
 	"testing"
@@ -71,8 +70,7 @@ func TestCopyJSONToBytes(t *testing.T) {
 func TestCopyJSONToCBOR(t *testing.T) {
 	text := "[{\"a\":1},{\"b\":2},{\"c\":3},{\"d\":4}]"
 	expected := []byte{132, 161, 97, 97, 1, 161, 97, 98, 2, 161, 97, 99, 3, 161, 97, 100, 4}
-	var b bytes.Buffer
-	sink := bufio.NewWriter(&b)
+	sink := bytes.Buffer{}
 	st := &dataset.Structure{
 		Format: dataset.JSONDataFormat,
 		Schema: dataset.BaseSchemaArray,
@@ -82,7 +80,7 @@ func TestCopyJSONToCBOR(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	w, err := NewCBORWriter(st, sink)
+	w, err := NewCBORWriter(st, &sink)
 	if err != nil {
 		t.Error(err)
 		return
@@ -93,8 +91,9 @@ func TestCopyJSONToCBOR(t *testing.T) {
 		return
 	}
 	w.Close()
-	if bytes.Compare(b.Bytes(), expected) != 0 {
-		t.Errorf("Copy from json to cbor did not succeed: %v <> %v", b.Bytes(), expected)
+	b := sink.Bytes()
+	if bytes.Compare(b, expected) != 0 {
+		t.Errorf("Copy from json to cbor did not succeed: %v <> %v", b, expected)
 	}
 }
 
