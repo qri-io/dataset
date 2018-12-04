@@ -39,17 +39,23 @@ func (r *PagedReader) ReadEntry() (Entry, error) {
 
 // Copy reads all entries from the reader and writes them to the writer
 func Copy(reader EntryReader, writer EntryWriter) error {
+	fmt.Printf("*** Copy {\n")
 	for {
 		val, err := reader.ReadEntry()
+		fmt.Printf("*** Copy ReadEntry\n")
 		if err != nil {
+			fmt.Printf("*** Copy err found\n")
 			if err == io.EOF {
+				fmt.Printf("*** Copy err is io.EOF\n")
 				break
 			}
 			return fmt.Errorf("row iteration error: %s", err.Error())
 		}
 		if err := writer.WriteEntry(val); err != nil {
+			fmt.Printf("*** Copy WriteEntry error\n")
 			return fmt.Errorf("error writing value to buffer: %s", err.Error())
 		}
+		fmt.Printf("*** Copy WriteEntry\n")
 	}
 	return nil
 }
