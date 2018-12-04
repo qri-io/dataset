@@ -1,6 +1,7 @@
 package dsio
 
 import (
+	"fmt"
 	"bufio"
 	"bytes"
 	"strings"
