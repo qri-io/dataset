@@ -51,13 +51,13 @@ func TestCBORReaderOneArrayEntry(t *testing.T) {
 		{`811A004C4B40`, int64(5000000), ""}, // [5000000]
 		{`8020`, int64(-1), ""},              // [-1]
 
-		{`81FB4028AE147AE147AE`, 12.34, ""},                                             // [12.34]
-		{`81FB402A1D1F601797CC`, 13.05688, ""},                                          // [13.05688]
-		{`8163666F6F`, "foo", ""},                                                       // ["foo"]
-		{`81F5`, true, ""},                                                              // [true]
-		{`81F4`, false, ""},                                                             // [false]
-		{`81F6`, nil, ""},                                                               // [null]
-		{`81A0`, map[string]interface{}{}, ""},                                          // [{}]
+		{`81FB4028AE147AE147AE`, 12.34, ""},    // [12.34]
+		{`81FB402A1D1F601797CC`, 13.05688, ""}, // [13.05688]
+		{`8163666F6F`, "foo", ""},              // ["foo"]
+		{`81F5`, true, ""},                     // [true]
+		{`81F4`, false, ""},                    // [false]
+		{`81F6`, nil, ""},                      // [null]
+		{`81A0`, map[string]interface{}{}, ""}, // [{}]
 		{`81A163666F6FA0`, map[string]interface{}{"foo": map[string]interface{}{}}, ""}, // [{"foo":{}}]
 
 		{`81782A286F72672C64617461746F6765746865722C292F616374697669746965732F68617276657374696E673E`, "(org,datatogether,)/activities/harvesting>", ""}, // ["(org,datatogether,)/activities/harvesting>"]
@@ -105,21 +105,21 @@ func TestCBORReaderOneObjectEntry(t *testing.T) {
 		val  Entry
 		err  string
 	}{
-		{`A0`, Entry{}, "EOF"},                                                                                      // {}
-		{`A1616100`, Entry{Key: "a", Value: int64(0)}, ""},                                                          // {"a":0}
-		{`A1616217`, Entry{Key: "b", Value: int64(23)}, ""},                                                         // {"b":23}
-		{`A161631818`, Entry{Key: "c", Value: int64(24)}, ""},                                                       // {"c":24}
-		{`A161641901F4`, Entry{Key: "d", Value: int64(500)}, ""},                                                    // {"d":500}
-		{`A161651A004C4B40`, Entry{Key: "e", Value: int64(5000000)}, ""},                                            // {"e":5000000}
-		{`A1616620`, Entry{Key: "f", Value: int64(-1)}, ""},                                                         // {"f":-1}
-		{`A16166FB4028AE147AE147AE`, Entry{Key: "f", Value: 12.34}, ""},                                             // {"f":[12.34]}
-		{`A1616763666F6F`, Entry{Key: "g", Value: "foo"}, ""},                                                       // {"g":"foo"}
-		{`A16168F5`, Entry{Key: "h", Value: true}, ""},                                                              // {"h":true}
-		{`A16169F4`, Entry{Key: "i", Value: false}, ""},                                                             // {"i":false}
-		{`A1616AF6`, Entry{Key: "j", Value: nil}, ""},                                                               // {"j":null}
-		{`A1616BA0`, Entry{Key: "k", Value: map[string]interface{}{}}, ""},                                          // {"k":{}}
-		{`A1616CA163666F6FA0`, Entry{Key: "l", Value: map[string]interface{}{"foo": map[string]interface{}{}}}, ""}, // {"l": {"foo":{}}}
+		{`A0`, Entry{}, "EOF"},                                             // {}
+		{`A1616100`, Entry{Key: "a", Value: int64(0)}, ""},                 // {"a":0}
+		{`A1616217`, Entry{Key: "b", Value: int64(23)}, ""},                // {"b":23}
+		{`A161631818`, Entry{Key: "c", Value: int64(24)}, ""},              // {"c":24}
+		{`A161641901F4`, Entry{Key: "d", Value: int64(500)}, ""},           // {"d":500}
+		{`A161651A004C4B40`, Entry{Key: "e", Value: int64(5000000)}, ""},   // {"e":5000000}
+		{`A1616620`, Entry{Key: "f", Value: int64(-1)}, ""},                // {"f":-1}
+		{`A16166FB4028AE147AE147AE`, Entry{Key: "f", Value: 12.34}, ""},    // {"f":[12.34]}
+		{`A1616763666F6F`, Entry{Key: "g", Value: "foo"}, ""},              // {"g":"foo"}
+		{`A16168F5`, Entry{Key: "h", Value: true}, ""},                     // {"h":true}
+		{`A16169F4`, Entry{Key: "i", Value: false}, ""},                    // {"i":false}
+		{`A1616AF6`, Entry{Key: "j", Value: nil}, ""},                      // {"j":null}
+		{`A1616BA0`, Entry{Key: "k", Value: map[string]interface{}{}}, ""}, // {"k":{}}
 
+		{`A1616CA163666F6FA0`, Entry{Key: "l", Value: map[string]interface{}{"foo": map[string]interface{}{}}}, ""}, // {"l": {"foo":{}}}
 		{`A1616C782A286F72672C64617461746F6765746865722C292F616374697669746965732F68617276657374696E673E`, Entry{Key: "l", Value: "(org,datatogether,)/activities/harvesting>"}, ""}, // {"l":"(org,datatogether,)/activities/harvesting>"}
 		{bigObj, bigVal, ""},
 
