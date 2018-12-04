@@ -6,7 +6,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
-	"reflect"
+	"math"
 
 	"github.com/qri-io/dataset"
 	"github.com/ugorji/go/codec"
@@ -14,14 +14,10 @@ import (
 
 // CBORReader implements the RowReader interface for the CBOR data format
 type CBORReader struct {
-	rowsRead   int
-	depth      int
-	rdr        *bufio.Reader
-	st         *dataset.Structure
-	token      *bytes.Buffer
-	readingMap bool
-	tlt        string
-	handle     *codec.CborHandle
+	rowsRead int
+	rdr      *bufio.Reader
+	st       *dataset.Structure
+	topLevel byte
 }
 
 var (
@@ -42,20 +38,16 @@ func NewCBORReader(st *dataset.Structure, r io.Reader) (*CBORReader, error) {
 		return nil, err
 	}
 
+	var topLevel byte
+	topLevel = cborBaseArray
+	if tlt == "object" {
+		topLevel = cborBaseMap
+	}
+
 	return &CBORReader{
-		st:    st,
-		rdr:   bufio.NewReader(r),
-		token: &bytes.Buffer{},
-		tlt:   tlt,
-		handle: &codec.CborHandle{
-			TimeRFC3339: true,
-			BasicHandle: codec.BasicHandle{
-				DecodeOptions: codec.DecodeOptions{
-					MapType:       reflect.TypeOf(map[string]interface{}{}),
-					SignedInteger: true,
-				},
-			},
-		},
+		st:       st,
+		rdr:      bufio.NewReader(r),
+		topLevel: topLevel,
 	}, nil
 }
 
@@ -67,37 +59,32 @@ func (r *CBORReader) Structure() *dataset.Structure {
 // ReadEntry reads one CBOR record from the reader
 func (r *CBORReader) ReadEntry() (ent Entry, err error) {
 	if r.rowsRead == 0 {
-		if _, err = r.readTopLevel(); err != nil {
-			r.rowsRead++
-			return
-		}
-	}
-	r.rowsRead++
-
-	if r.readingMap {
-		err = r.decodeToken(&ent.Key)
+		top, _, err := r.readTopLevel()
 		if err != nil {
-			if err.Error() != "EOF" {
-				log.Debug(err.Error())
-			}
-			return
+			return ent, err
+		}
+		if top != r.topLevel {
+			return ent, fmt.Errorf("Top-level type did not match")
 		}
 	}
 
-	err = r.decodeToken(&ent.Value)
+	if r.topLevel == cborBaseMap {
+		ent.Key, err = r.readMapKey()
+		if err != nil {
+			return
+		}
+	} else {
+		ent.Index = r.rowsRead
+	}
+
+	ent.Value, err = r.readValue()
+	if err != nil {
+		return
+	}
+
+	r.rowsRead++
 	return
 }
-
-const (
-	cborMajorUint byte = iota
-	cborMajorNegInt
-	cborMajorBytes
-	cborMajorText
-	cborMajorArray
-	cborMajorMap
-	cborMajorTag
-	cborMajorOther
-)
 
 const (
 	cborBdFalse byte = 0xf4 + iota
@@ -119,14 +106,6 @@ const (
 )
 
 const (
-	cborStreamBytes  byte = 0x5f
-	cborStreamString      = 0x7f
-	cborStreamArray       = 0x9f
-	cborStreamMap         = 0xbf
-	cborStreamBreak       = 0xff
-)
-
-const (
 	cborBaseUint   byte = 0x00
 	cborBaseNegInt      = 0x20
 	cborBaseBytes       = 0x40
@@ -137,191 +116,206 @@ const (
 	cborBaseSimple      = 0xe0
 )
 
-func (r *CBORReader) readTopLevel() (int, error) {
-	defer func() {
-		r.token.Reset()
-	}()
+const cborTypeMask byte = 0xe0
 
-	bd, err := r.rdr.ReadByte()
+// readTopLevel determines the top-level type, either "object" or "array"
+func (r *CBORReader) readTopLevel() (byte, int, error) {
+	b, err := r.rdr.ReadByte()
+	if err != nil {
+		return 0xff, -1, err
+	}
+
+	t := b & cborTypeMask
+	if t != cborBaseArray && t != cborBaseMap {
+		return 0xff, -1, fmt.Errorf("invalid top level type")
+	}
+
+	length, err := r.getVarLenInt(b)
+	if err != nil {
+		return 0xff, -1, err
+	}
+
+	return t, int(length), nil
+}
+
+// readMapKey reads a map key "string" from the input stream
+func (r *CBORReader) readMapKey() (string, error) {
+	b, err := r.rdr.ReadByte()
+	if err != nil {
+		return "", err
+	}
+
+	if b&cborTypeMask != cborBaseString {
+		return "", fmt.Errorf("expected string for key")
+	}
+
+	length, err := r.getVarLenInt(b)
+	if err != nil {
+		return "", err
+	}
+
+	buff, err := r.rdr.Peek(int(length))
+	if err != nil {
+		return "", err
+	}
+
+	_, err = r.rdr.Discard(int(length))
+	if err != nil {
+		return "", err
+	}
+
+	return string(buff), nil
+}
+
+// readValue reads a value of any type from the input stream
+func (r *CBORReader) readValue() (interface{}, error) {
+	b, err := r.rdr.ReadByte()
+	if err != nil {
+		return nil, err
+	}
+
+	if b < 0x1c {
+		return r.getVarLenInt(b)
+	} else if b >= 0x20 && b < 0x38 {
+		return -int64(b - 0x1f), nil
+	}
+
+	switch b {
+	case cborBdNil:
+		return nil, nil
+	case cborBdFalse:
+		return false, nil
+	case cborBdTrue:
+		return true, nil
+	case cborBdFloat16:
+		return r.readFloatBytes(2)
+	case cborBdFloat32:
+		return r.readFloatBytes(4)
+	case cborBdFloat64:
+		return r.readFloatBytes(8)
+	case cborBdIndefiniteBytes:
+		// TODO: Implement me
+		return nil, nil
+	case cborBdIndefiniteArray:
+		// TODO: Implement me
+		return nil, nil
+	case cborBdIndefiniteMap:
+		// TODO: Implement me
+		return nil, nil
+	default:
+		t := b & cborTypeMask
+		switch t {
+		case cborBaseBytes:
+			// TODO: Implement me
+			return nil, nil
+		case cborBaseString:
+			length, err := r.getVarLenInt(b)
+			if err != nil {
+				return nil, err
+			}
+			buff, err := r.rdr.Peek(int(length))
+			if err != nil {
+				return nil, err
+			}
+
+			_, err = r.rdr.Discard(int(length))
+			if err != nil {
+				return nil, err
+			}
+
+			return string(buff), nil
+		case cborBaseArray:
+			length, err := r.getVarLenInt(b)
+			if err != nil {
+				return nil, err
+			}
+			array := make([]interface{}, 0, int(length))
+			for i := 0; i < int(length); i++ {
+				val, err := r.readValue()
+				if err != nil {
+					return nil, err
+				}
+				array = append(array, val)
+			}
+			return array, nil
+		case cborBaseMap:
+			length, err := r.getVarLenInt(b)
+			if err != nil {
+				return nil, err
+			}
+			assoc := make(map[string]interface{})
+			for i := 0; i < int(length); i++ {
+				key, err := r.readMapKey()
+				if err != nil {
+					return nil, err
+				}
+				val, err := r.readValue()
+				if err != nil {
+					return nil, err
+				}
+				assoc[key] = val
+			}
+			return assoc, nil
+		case cborBaseTag:
+			// TODO: Implement me
+			return nil, nil
+		case cborBaseSimple:
+			// TODO: Implement me
+			return nil, nil
+		default:
+			return nil, fmt.Errorf("unknown cbor tag: %v", b)
+		}
+	}
+}
+
+// getVarLenInt handles the byte most recently read, and possibly reads more bytes, to get an int
+func (r *CBORReader) getVarLenInt(b byte) (int64, error) {
+	b = b & 0x1f
+	if b < 0x18 {
+		return int64(b), nil
+	} else if b == 0x18 {
+		return r.readIntBytes(1)
+	} else if b == 0x19 {
+		return r.readIntBytes(2)
+	} else if b == 0x1a {
+		return r.readIntBytes(4)
+	} else if b == 0x1b {
+		return r.readIntBytes(8)
+	} else {
+		return 0, fmt.Errorf("Could not decode variable length int: %v", b)
+	}
+}
+
+// readIntBytes returns an int by reading num bytes from the input stream
+func (r *CBORReader) readIntBytes(num int) (int64, error) {
+	data, err := r.rdr.Peek(num)
 	if err != nil {
 		return 0, err
 	}
-
-	// bd = bd & 0x1f
-	switch {
-	case bd >= cborBaseArray && bd < cborBaseMap, bd == cborBdIndefiniteArray:
-		return r.tokAdduInt(bd)
-	case bd >= cborBaseMap && bd < cborBaseTag, bd == cborBdIndefiniteMap:
-		r.readingMap = true
-		return r.tokAdduInt(bd)
-	}
-
-	return 0, fmt.Errorf("invalid top level type")
-}
-
-func (r *CBORReader) decodeToken(dst interface{}) (err error) {
-	if err = r.readToken(); err != nil {
-		return
-	}
-
-	if err = codec.NewDecoderBytes(r.token.Bytes(), r.handle).Decode(dst); err != nil {
-		log.Debug(err.Error())
-		return
-	}
-
-	r.token.Reset()
-	return
-}
-
-func (r *CBORReader) readToken() error {
-
-	bd, err := r.rdr.ReadByte()
+	_, err = r.rdr.Discard(num)
 	if err != nil {
-		if err.Error() != io.EOF.Error() {
-			log.Debug(err.Error())
-		}
-		return err
+		return 0, err
 	}
-
-	r.token.WriteByte(bd)
-
-	switch bd {
-	case cborBdNil, cborBdFalse, cborBdTrue:
-		return nil
-	case cborBdFloat16:
-		return r.tokAdd(1)
-	case cborBdFloat32:
-		return r.tokAdd(4)
-	case cborBdFloat64:
-		return r.tokAdd(8)
-	case cborBdIndefiniteBytes:
-	case cborBdIndefiniteString:
-		// n.s = d.DecodeString()
-	case cborBdIndefiniteArray:
-		// decodeFurther = true
-	case cborBdIndefiniteMap:
-		// n.v = valueTypeMap
-		// decodeFurther = true
-	default:
-		switch {
-		case bd >= cborBaseUint && bd < cborBaseNegInt, bd >= cborBaseNegInt && bd < cborBaseBytes:
-			_, err := r.tokAdduInt(bd)
-			return err
-
-		case bd >= cborBaseBytes && bd < cborBaseString, bd >= cborBaseString && bd < cborBaseArray:
-			l, err := r.tokAdduInt(bd)
-			if err != nil {
-				return err
-			}
-			return r.tokAdd(l)
-		case bd >= cborBaseArray && bd < cborBaseMap:
-			count, err := r.tokAdduInt(bd)
-			if err != nil {
-				return err
-			}
-			for i := 0; i < count; i++ {
-				err := r.readToken()
-				if err != nil {
-					return err
-				}
-			}
-			return nil
-
-		case bd >= cborBaseMap && bd < cborBaseTag:
-			count, err := r.tokAdduInt(bd)
-			if err != nil {
-				return err
-			}
-			for i := 0; i < count; i++ {
-				// read key
-				if err := r.readToken(); err != nil {
-					return err
-				}
-
-				// read value
-				if err := r.readToken(); err != nil {
-					return err
-				}
-			}
-			return nil
-
-		case bd >= cborBaseTag && bd < cborBaseSimple:
-			// TODO
-			// n.v = valueTypeExt
-			// n.u = d.decUint()
-			// n.l = nil
-			// if n.u == 0 || n.u == 1 {
-			// 	bdRead = false
-			// 	// n.v = valueTypeTime
-			// 	// n.t = d.decodeTime(n.u)
-			// }
-			// bdRead = false
-			// d.d.decode(&re.Value) // handled by decode itself.
-			// decodeFurther = true
-			return fmt.Errorf("cbor decoding currently doesn't support custom tags")
-		default:
-			return fmt.Errorf("unrecognized cbor byte descriptor: 0x%x", bd)
-		}
+	if num < 8 {
+		data = bytes.Join([][]byte{bytes.Repeat([]byte{0}, 8-len(data)), data}, []byte{})
 	}
-
-	// if !decodeFurther {
-	// 	// bdRead = false
-	// }
-	panic("boo")
-	return fmt.Errorf("booo")
+	return int64(binary.BigEndian.Uint64(data)), nil
 }
 
-// tokAdd transfers i bytes to the token buffer from the reader, returning
-// the read byte slice
-func (r *CBORReader) tokAdd(i int) error {
-	// TODO - slow. make not slow.
-	p := make([]byte, i)
-	if _, err := r.rdr.Read(p); err != nil {
-		return err
+// readFloatBytes returns a float by reading num bytes from the input stream
+func (r *CBORReader) readFloatBytes(num int) (float64, error) {
+	data, err := r.rdr.Peek(num)
+	if err != nil {
+		return 0, err
 	}
-	_, err := r.token.Write(p)
-	return err
-}
-
-// tokAddB transfers i bytes to the token buffer from the reader, returning
-// the read byte slice
-func (r *CBORReader) tokAddB(i int) ([]byte, error) {
-	// TODO - slow. make not slow. only you can prevent unnecessary allocations
-	p := make([]byte, i)
-	if _, err := r.rdr.Read(p); err != nil {
-		return p, err
+	_, err = r.rdr.Discard(num)
+	if err != nil {
+		return 0, err
 	}
-	_, err := r.token.Write(p)
-	return p, err
-}
-
-// tokAdduInt writes any necessary tokens to the buffer, returning the read unsigned int
-func (r *CBORReader) tokAdduInt(bd byte) (i int, err error) {
-	var b []byte
-	v := bd & 0x1f
-	if v <= 0x17 {
-		i = int(v)
-		return
+	if num < 8 {
+		data = bytes.Join([][]byte{bytes.Repeat([]byte{0}, 8-len(data)), data}, []byte{})
 	}
-	if v == 0x18 {
-		bt, e := r.tokAddB(1)
-		if e != nil {
-			return 0, e
-		}
-		i = int(bt[0])
-		return i, e
-	} else if v == 0x19 {
-		b, err = r.tokAddB(2)
-		i = int(bigen.Uint16(b))
-	} else if v == 0x1a {
-		b, err = r.tokAddB(4)
-		i = int(bigen.Uint32(b))
-	} else if v == 0x1b {
-		b, err = r.tokAddB(8)
-		i = int(bigen.Uint64(b))
-	}
-
-	return
+	return math.Float64frombits(binary.BigEndian.Uint64(data)), nil
 }
 
 // CBORWriter implements the RowWriter interface for

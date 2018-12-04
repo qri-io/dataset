@@ -1,5 +1,19 @@
 ## Performance
 
+2018-12-04
+
+    go test github.com/qri-io/dataset/dsio -bench=.
+
+    BenchmarkCBORWriterArrays-2    	    3000	    431290 ns/op
+    BenchmarkCBORWriterObjects-2   	    2000	    698920 ns/op
+    BenchmarkCBORReader-2          	    1000	   1764549 ns/op
+    BenchmarkCSVWriterArrays-2     	    1000	   1548509 ns/op
+    BenchmarkCSVWriterObjects-2    	    1000	   1458219 ns/op
+    BenchmarkCSVReader-2           	    1000	   2008097 ns/op
+    BenchmarkJSONWriterArrays-2    	    1000	   1556416 ns/op
+    BenchmarkJSONWriterObjects-2   	    1000	   1562488 ns/op
+    BenchmarkJSONReader-2          	     500	   2984057 ns/op
+
 2018-04-17
 
     go test github.com/qri-io/dataset/dsio -bench=.
