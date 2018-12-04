@@ -9,6 +9,7 @@ import (
 	"github.com/qri-io/dataset"
 )
 
+/*
 func TestCopyJSONToJSON(t *testing.T) {
 	text := "[{\"a\":1},{\"b\":2},{\"c\":3},{\"d\":4}]"
 	expected := text
@@ -67,7 +68,7 @@ func TestCopyJSONToBytes(t *testing.T) {
 		t.Errorf("Copy from json to bytes did not succeed: %v <> %v", b, expected)
 	}
 }
-
+*/
 func TestCopyJSONToCBOR(t *testing.T) {
 	text := "[{\"a\":1},{\"b\":2},{\"c\":3},{\"d\":4}]"
 	expected := []byte{132, 161, 97, 97, 1, 161, 97, 98, 2, 161, 97, 99, 3, 161, 97, 100, 4}
@@ -97,7 +98,7 @@ func TestCopyJSONToCBOR(t *testing.T) {
 		t.Errorf("Copy from json to cbor did not succeed: %v <> %v", b.Bytes(), expected)
 	}
 }
-
+/*
 func TestCopyJSONToJSONWithPaging(t *testing.T) {
 	text := "[{\"a\":1},{\"b\":2},{\"c\":3},{\"d\":4}]"
 	expected := "[{\"b\":2},{\"c\":3}]"
@@ -159,3 +160,4 @@ func TestCopyJSONToJSONPagingRunsOut(t *testing.T) {
 		t.Errorf("Copy limited due to paging did not succeed: %v <> %v", str, expected)
 	}
 }
+*/
