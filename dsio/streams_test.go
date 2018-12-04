@@ -70,6 +70,8 @@ func TestCopyJSONToBytes(t *testing.T) {
 }
 */
 func TestCopyJSONToCBOR(t *testing.T) {
+	fmt.Printf("*** TestCopyJSONToCBOR\n")
+
 	text := "[{\"a\":1},{\"b\":2},{\"c\":3},{\"d\":4}]"
 	expected := []byte{132, 161, 97, 97, 1, 161, 97, 98, 2, 161, 97, 99, 3, 161, 97, 100, 4}
 	var b bytes.Buffer
