@@ -34,6 +34,10 @@ var (
 	}}
 )
 
+// TODO: Tag support.
+// TODO: Test illegal chunks.
+// TODO: Move indefinite streams to their own test, test that 0xff correctly returns EOF.
+
 func TestCBORReaderOneArrayEntry(t *testing.T) {
 	arrCases := []struct {
 		data string
@@ -58,20 +62,31 @@ func TestCBORReaderOneArrayEntry(t *testing.T) {
 		{`81F4`, false, ""},                    // [false]
 		{`81F6`, nil, ""},                      // [null]
 		{`81A0`, map[string]interface{}{}, ""}, // [{}]
-		{`81A163666F6FA0`, map[string]interface{}{"foo": map[string]interface{}{}}, ""}, // [{"foo":{}}]
+
+		// array - [[1,2,3]]
+		{`8183010203`, []interface{}{int64(1), int64(2), int64(3)}, ""},
+		// map   - [{"a":1,"b":2}]
+		{`81A2616101616202`, map[string]interface{}{"a": int64(1), "b": int64(2)}, ""},
+		// bytes - [[0x01,0x02,0x03]]
+		{`8143010203`, []byte{0x01, 0x02, 0x03}, ""},
+
+		// array of indeterminate length
+		{`819f010203ff`, []interface{}{int64(1), int64(2), int64(3)}, ""},
+		// map of indeterminate length
+		{`81bf616101616202ff`, map[string]interface{}{"a": int64(1), "b": int64(2)}, ""},
+		// bytes of indeterminate length
+		{`815f43010203ff`, []byte{1, 2, 3}, ""},
+		// string of indeterminate length
+		{`817f63636174ff`, "cat", ""},
+		// bytes of chunks
+		{`815f4201024103ff`, []byte{1, 2, 3}, ""},
+		// string of chunks
+		{`817f6263616174ff`, "cat", ""},
 
 		{`81782A286F72672C64617461746F6765746865722C292F616374697669746965732F68617276657374696E673E`, "(org,datatogether,)/activities/harvesting>", ""}, // ["(org,datatogether,)/activities/harvesting>"]
 
-		// TODO - currently don't support indefinite arrays.
-		// {`9FFF`, obj, "EOF"},      // [] - indefinte array
-		// {`9F00FF`, arr, ""},       // [0] - indefinite array
-		// {`9F20FF`, arr, ""},       // [-1] - indefinite array
-		// {`9F63666F6FFF`, arr, ""}, // ["foo"] - indefinite array
-		// {`9FF4FF`, arr, ""},       // [false] - indefinite array
-		// {`9FF5FF`, arr, ""},       // [true] - indefinite array
-		// {`9FF6FF`, arr, ""},       // [null] - indefinite array
-
-		// TODO - need to add tests for tag values
+		// Top-level array of indetermine size
+		{`9f16ff`, int64(22), ""}, // [22]
 	}
 
 	for i, c := range arrCases {
@@ -92,7 +107,7 @@ func TestCBORReaderOneArrayEntry(t *testing.T) {
 		}
 
 		if !reflect.DeepEqual(c.val, v.Value) {
-			t.Errorf("array case %d value mismatch. expected: %T %#v got: %T %#v", i, c.val, c.val, v.Value, v.Value)
+			t.Errorf("array case %d value mismatch. expected: type %T, value %#v got: type %T, value %#v", i, c.val, c.val, v.Value, v.Value)
 			continue
 		}
 	}
@@ -119,14 +134,12 @@ func TestCBORReaderOneObjectEntry(t *testing.T) {
 		{`A1616AF6`, Entry{Key: "j", Value: nil}, ""},                      // {"j":null}
 		{`A1616BA0`, Entry{Key: "k", Value: map[string]interface{}{}}, ""}, // {"k":{}}
 
-		{`A1616CA163666F6FA0`, Entry{Key: "l", Value: map[string]interface{}{"foo": map[string]interface{}{}}}, ""}, // {"l": {"foo":{}}}
+		{`A1616CA163666F6FA0`, Entry{Key: "l", Value: map[string]interface{}{"foo": map[string]interface{}{}}}, ""},                                                                  // {"l": {"foo":{}}}
 		{`A1616C782A286F72672C64617461746F6765746865722C292F616374697669746965732F68617276657374696E673E`, Entry{Key: "l", Value: "(org,datatogether,)/activities/harvesting>"}, ""}, // {"l":"(org,datatogether,)/activities/harvesting>"}
 		{bigObj, bigVal, ""},
 
-		// TODO - currently don't support indefinite maps
-		// {`bfff`, vals.Object{}, "EOF"}, // {} - indefinte map
-
-		// TODO - need to add tests for tag values
+		// Top-level map of indetermine size
+		{`bf616100ff`, Entry{Key: "a", Value: int64(0)}, ""}, // {"a":0}
 	}
 
 	for i, c := range objCases {
