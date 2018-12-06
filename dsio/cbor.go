@@ -67,8 +67,8 @@ func (r *CBORReader) ReadEntry() (ent Entry, err error) {
 		if top != r.topLevel {
 			return ent, fmt.Errorf("Top-level type did not match")
 		}
-		// TODO: Length is not used right now, except for handling indefinite length streams.
-		// In the future, it should be used to check that max(r.rowsRead) == r.length
+		// TODO(dustmop): Length is not used right now, except for handling indefinite length
+		// streams. In the future, it should be used to check that max(r.rowsRead) == r.length
 		r.length = length
 	}
 

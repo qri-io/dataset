@@ -34,9 +34,9 @@ var (
 	}}
 )
 
-// TODO: Tag support.
-// TODO: Test illegal chunks.
-// TODO: Move indefinite streams to their own test, test that 0xff correctly returns EOF.
+// TODO(dustmop): Tag support.
+// TODO(dustmop): Test illegal chunks.
+// TODO(dustmop): Move indefinite streams to their own test, test that 0xff correctly returns EOF.
 
 func TestCBORReaderOneArrayEntry(t *testing.T) {
 	arrCases := []struct {
