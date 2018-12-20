@@ -23,7 +23,7 @@ func addMovies(t *testing.T, s cafs.Filestore) string {
 		t.Fatal(err)
 	}
 
-	path, err := dsfs.CreateDataset(s, tc.Input, tc.BodyFile(), dstest.PrivKey, true)
+	path, err := dsfs.CreateDataset(s, tc.Input, nil, tc.BodyFile(), nil, dstest.PrivKey, true)
 	if err != nil {
 		t.Fatal(err)
 	}

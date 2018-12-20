@@ -124,7 +124,7 @@ func TestCreateDataset(t *testing.T) {
 		return
 	}
 
-	_, err = CreateDataset(store, nil, nil, nil, false)
+	_, err = CreateDataset(store, nil, nil, nil, nil, nil, false)
 	if err == nil {
 		t.Errorf("expected call without prvate key to error")
 		return
@@ -178,7 +178,7 @@ func TestCreateDataset(t *testing.T) {
 			tc.Input.Viz.Script = vs
 		}
 
-		path, err := CreateDataset(store, tc.Input, tc.BodyFile(), privKey, false)
+		path, err := CreateDataset(store, tc.Input, nil, tc.BodyFile(), nil, privKey, false)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("%s: error mismatch. expected: '%s', got: '%s'", tc.Name, c.err, err)
 			continue
@@ -213,30 +213,46 @@ func TestCreateDataset(t *testing.T) {
 		}
 	}
 
+	// Case: no body or previous body files
 	dsData, err := ioutil.ReadFile("testdata/cities/input.dataset.json")
 	if err != nil {
-		t.Errorf("case nil datafile and no PreviousPath, error reading dataset file: %s", err.Error())
+		t.Errorf("case nil body and previous body files, error reading dataset file: %s", err.Error())
 	}
 	ds := &dataset.Dataset{}
 	if err := ds.UnmarshalJSON(dsData); err != nil {
-		t.Errorf("case nil datafile and no PreviousPath, error unmarshaling dataset file: %s", err.Error())
+		t.Errorf("case nil body and previous body files, error unmarshaling dataset file: %s", err.Error())
 	}
 
 	if err != nil {
-		t.Errorf("case nil datafile and no PreviousPath, error reading data file: %s", err.Error())
+		t.Errorf("case nil body and previous body files, error reading data file: %s", err.Error())
 	}
-	expectedErr := "datafile or dataset PreviousPath needed"
-	_, err = CreateDataset(store, ds, nil, privKey, false)
+	expectedErr := "datafile or previous datafile needed"
+	_, err = CreateDataset(store, ds, nil, nil, nil, privKey, false)
 	if err.Error() != expectedErr {
-		t.Errorf("case nil datafile and no PreviousPath, error mismatch: expected '%s', got '%s'", expectedErr, err.Error())
+		t.Errorf("case nil body and previous body files, error mismatch: expected '%s', got '%s'", expectedErr, err.Error())
 	}
-	// take path from previous case
-	ds.PreviousPath = cases[2].resultPath
+
+	// Case: no changes in dataset
 	expectedErr = "error saving: no changes detected"
-	_, err = CreateDataset(store, ds, nil, privKey, false)
-	if err.Error() != expectedErr {
-		t.Errorf("case nil datafile and no PreviousPath, error mismatch: expected '%s', got '%s'", expectedErr, err.Error())
+	dsPrev, err := LoadDataset(store, datastore.NewKey(cases[2].resultPath))
+	ds.PreviousPath = cases[2].resultPath
+	if err != nil {
+		t.Errorf("case no changes in dataset, error loading previous dataset file: %s", err.Error())
 	}
+
+	bodyBytes, err := ioutil.ReadFile("testdata/cities/body.csv")
+	if err != nil {
+		t.Errorf("case no changes in dataset, error reading body file: %s", err.Error())
+	}
+	bodyFile := cafs.NewMemfileBytes("body.csv", bodyBytes)
+
+	_, err = CreateDataset(store, ds, dsPrev, bodyFile, nil, privKey, false)
+	if err != nil && err.Error() != expectedErr {
+		t.Errorf("case no changes in dataset, error mismatch: expected '%s', got '%s'", expectedErr, err.Error())
+	} else if err == nil {
+		t.Errorf("case no changes in dataset, expected error got 'nil'")
+	}
+
 	if len(store.Files) != 20 {
 		t.Errorf("case nil datafile and PreviousPath, invalid number of entries: %d != %d", 20, len(store.Files))
 		_, err := store.Print()
