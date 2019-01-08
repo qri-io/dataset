@@ -39,6 +39,8 @@ type Structure struct {
 	// Compression specifies any compression on the source data,
 	// if empty assume no compression
 	Compression compression.Type `json:"compression,omitempty"`
+	// Maximum nesting level of composite types in the dataset. eg: depth 1 == [], depth 2 == [[]]
+	Depth int `json:"depth,omitempty"`
 	// Encoding specifics character encoding, assume utf-8 if not specified
 	Encoding string `json:"encoding,omitempty"`
 	// ErrCount is the number of errors returned by validating data
@@ -112,6 +114,7 @@ func (s *Structure) Hash() (string, error) {
 type _structure struct {
 	Checksum     string                 `json:"checksum,omitempty"`
 	Compression  compression.Type       `json:"compression,omitempty"`
+	Depth        int                    `json:"depth,omitempty"`
 	Encoding     string                 `json:"encoding,omitempty"`
 	Entries      int                    `json:"entries,omitempty"`
 	ErrCount     int                    `json:"errCount"`
@@ -146,6 +149,7 @@ func (s Structure) MarshalJSONObject() ([]byte, error) {
 	return json.Marshal(&_structure{
 		Checksum:     s.Checksum,
 		Compression:  s.Compression,
+		Depth:        s.Depth,
 		Encoding:     s.Encoding,
 		Entries:      s.Entries,
 		ErrCount:     s.ErrCount,
@@ -186,6 +190,7 @@ func (s *Structure) UnmarshalJSON(data []byte) (err error) {
 	*s = Structure{
 		Checksum:     _s.Checksum,
 		Compression:  _s.Compression,
+		Depth:        _s.Depth,
 		Encoding:     _s.Encoding,
 		Entries:      _s.Entries,
 		ErrCount:     _s.ErrCount,
@@ -202,6 +207,7 @@ func (s *Structure) UnmarshalJSON(data []byte) (err error) {
 func (s *Structure) IsEmpty() bool {
 	return s.Checksum == "" &&
 		s.Compression == compression.None &&
+		s.Depth == 0 &&
 		s.Encoding == "" &&
 		s.Entries == 0 &&
 		s.ErrCount == 0 &&
@@ -237,6 +243,9 @@ func (s *Structure) Assign(structures ...*Structure) {
 		}
 		if st.Compression != compression.None {
 			s.Compression = st.Compression
+		}
+		if st.Depth != 0 {
+			s.Depth = st.Depth
 		}
 		if st.Encoding != "" {
 			s.Encoding = st.Encoding
@@ -287,12 +296,6 @@ func UnmarshalStructure(v interface{}) (*Structure, error) {
 		log.Debug(err.Error())
 		return nil, err
 	}
-}
-
-// AbstractTableName prepends a given index with "t"
-// t1, t2, t3, ...
-func AbstractTableName(i int) string {
-	return fmt.Sprintf("t%d", i+1)
 }
 
 // AbstractColumnName is the "base26" value of a column name
@@ -349,6 +352,7 @@ func (s Structure) Encode() *StructurePod {
 	cs := &StructurePod{
 		Checksum:    s.Checksum,
 		Compression: s.Compression.String(),
+		Depth:       s.Depth,
 		Encoding:    s.Encoding,
 		ErrCount:    s.ErrCount,
 		Entries:     s.Entries,
@@ -370,6 +374,7 @@ func (s Structure) Encode() *StructurePod {
 func (s *Structure) Decode(cs *StructurePod) (err error) {
 	dst := Structure{
 		Checksum: cs.Checksum,
+		Depth:    cs.Depth,
 		Encoding: cs.Encoding,
 		ErrCount: cs.ErrCount,
 		Entries:  cs.Entries,
@@ -414,6 +419,7 @@ func (s *Structure) Decode(cs *StructurePod) (err error) {
 type StructurePod struct {
 	Checksum     string                 `json:"checksum,omitempty"`
 	Compression  string                 `json:"compression,omitempty"`
+	Depth        int                    `json:"depth,omitempty"`
 	Encoding     string                 `json:"encoding,omitempty"`
 	ErrCount     int                    `json:"errCount"`
 	Entries      int                    `json:"entries,omitempty"`
@@ -435,6 +441,9 @@ func (sp *StructurePod) Assign(sps ...*StructurePod) {
 
 		if s.Checksum != "" {
 			sp.Checksum = s.Checksum
+		}
+		if s.Depth != 0 {
+			sp.Depth = s.Depth
 		}
 		if s.Compression != "" {
 			sp.Compression = s.Compression

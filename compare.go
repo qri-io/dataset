@@ -137,6 +137,9 @@ func CompareStructures(a, b *Structure) error {
 	if a.Checksum != b.Checksum {
 		return fmt.Errorf("Checksum: %s != %s", a.Checksum, b.Checksum)
 	}
+	if a.Depth != b.Depth {
+		return fmt.Errorf("Depth: %d != %d", a.Depth, b.Depth)
+	}
 	if a.Entries != b.Entries {
 		return fmt.Errorf("Entries: %d != %d", a.Entries, b.Entries)
 	}
@@ -292,7 +295,7 @@ func CompareTransforms(a, b *Transform) error {
 	return nil
 }
 
-// CompareTransformResource checks if all fields are equal in both resources
+// CompareTransformResources checks if all fields are equal in both resources
 func CompareTransformResources(a, b *TransformResource) error {
 	if a == nil && b == nil {
 		return nil

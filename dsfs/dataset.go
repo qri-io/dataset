@@ -241,7 +241,7 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 	tasks := 3
 
 	go setErrCount(ds, cafs.NewMemfileReader(df.FileName(), errR), &mu, done)
-	go setEntryCount(ds, cafs.NewMemfileReader(df.FileName(), entryR), &mu, done)
+	go setDepthAndEntryCount(ds, cafs.NewMemfileReader(df.FileName(), entryR), &mu, done)
 	go setChecksumAndStats(ds, cafs.NewMemfileReader(df.FileName(), hashR), &buf, &mu, done)
 
 	go func() {
@@ -310,8 +310,8 @@ func setErrCount(ds *dataset.Dataset, data cafs.File, mu *sync.Mutex, done chan 
 	done <- nil
 }
 
-// setEntryCount set the Entries field of a ds.Structure
-func setEntryCount(ds *dataset.Dataset, data cafs.File, mu *sync.Mutex, done chan error) {
+// setDepthAndEntryCount set the Entries field of a ds.Structure
+func setDepthAndEntryCount(ds *dataset.Dataset, data cafs.File, mu *sync.Mutex, done chan error) {
 	er, err := dsio.NewEntryReader(ds.Structure, data)
 	if err != nil {
 		log.Debug(err.Error())
@@ -320,10 +320,17 @@ func setEntryCount(ds *dataset.Dataset, data cafs.File, mu *sync.Mutex, done cha
 	}
 
 	entries := 0
+	// baseline of 1 for the original closure
+	depth := 1
+	var ent dsio.Entry
 	for {
-		if _, err = er.ReadEntry(); err != nil {
+		if ent, err = er.ReadEntry(); err != nil {
 			log.Debug(err.Error())
 			break
+		}
+		// get the depth of this entry, update depth if larger
+		if d := getDepth(ent.Value, 1); d > depth {
+			depth = d
 		}
 		entries++
 	}
@@ -334,9 +341,32 @@ func setEntryCount(ds *dataset.Dataset, data cafs.File, mu *sync.Mutex, done cha
 
 	mu.Lock()
 	ds.Structure.Entries = entries
+	ds.Structure.Depth = depth
 	mu.Unlock()
 
 	done <- nil
+}
+
+// getDepth finds the deepest value in a given interface value
+func getDepth(x interface{}, depth int) int {
+	switch v := x.(type) {
+	case map[string]interface{}:
+		depth++
+		for _, el := range v {
+			if d := getDepth(el, depth); d > depth {
+				depth = d
+			}
+		}
+	case []interface{}:
+		depth++
+		for _, el := range v {
+			if d := getDepth(el, depth); d > depth {
+				depth = d
+			}
+		}
+	}
+
+	return depth
 }
 
 // setChecksumAndStats

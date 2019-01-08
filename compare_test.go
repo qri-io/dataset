@@ -81,6 +81,7 @@ func TestCompareStructures(t *testing.T) {
 		{&Structure{Length: 0}, &Structure{Length: 1}, "Length: 0 != 1"},
 		{&Structure{Entries: 0}, &Structure{Entries: 1}, "Entries: 0 != 1"},
 		{&Structure{Checksum: "a"}, &Structure{Checksum: "b"}, "Checksum: a != b"},
+		{&Structure{Depth: 0}, &Structure{Depth: 1}, "Depth: 0 != 1"},
 		{&Structure{Format: CSVDataFormat}, &Structure{Format: UnknownDataFormat}, "Format: csv != "},
 		{&Structure{Encoding: "a"}, &Structure{Encoding: "b"}, "Encoding: a != b"},
 		{&Structure{Compression: compression.None}, &Structure{Compression: compression.Tar}, "Compression:  != tar"},

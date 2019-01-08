@@ -131,6 +131,7 @@ var Hours = &Dataset{
 
 var HoursStructure = &Structure{
 	Format: CSVDataFormat,
+	Depth:  2,
 	Schema: jsonschema.Must(`{
 		"type": "array",
 		"items": {

@@ -13,6 +13,7 @@
   "qri": "ds:0",
   "structure": {
     "checksum": "QmcCcPTqmckdXLBwPQXxfyW2BbFcUT6gqv9oGeWDkrNTyD",
+    "depth" : 2,
     "entries": 5,
     "errCount": 1,
     "format": "csv",
