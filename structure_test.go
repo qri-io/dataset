@@ -110,36 +110,29 @@ func TestStructureSetPath(t *testing.T) {
 
 func TestStructureAssign(t *testing.T) {
 	expect := &Structure{
-		Format: CSVDataFormat,
-		Length: 2503,
-		// TODO - restore
-		// Schema: &Schema{
-		// 	Fields: []*Field{
-		// 		{Type: datatypes.String, Name: "foo"},
-		// 		{Type: datatypes.Integer, Name: "bar"},
-		// 		{Description: "bat"},
-		// 	},
-		// },
+		Length:      2503,
+		Checksum:    "hey",
+		Compression: compression.Gzip,
+		Depth:       11,
+		ErrCount:    12,
+		Encoding:    "UTF-8",
+		Entries:     3000000000,
+		Format:      CSVDataFormat,
 	}
 	got := &Structure{
-		Format: CSVDataFormat,
-		// Schema: &Schema{
-		// 	Fields: []*Field{
-		// 		{Type: datatypes.String},
-		// 		{Type: datatypes.Integer},
-		// 	},
-		// },
+		Length: 2000,
+		Format: JSONDataFormat,
 	}
 
 	got.Assign(&Structure{
-		Length: 2503,
-		// Schema: &Schema{
-		// 	Fields: []*Field{
-		// 		{Name: "foo"},
-		// 		{Name: "bar"},
-		// 		{Description: "bat"},
-		// 	},
-		// },
+		Length:      2503,
+		Checksum:    "hey",
+		Compression: compression.Gzip,
+		Depth:       11,
+		ErrCount:    12,
+		Encoding:    "UTF-8",
+		Entries:     3000000000,
+		Format:      CSVDataFormat,
 	})
 
 	if err := CompareStructures(expect, got); err != nil {
@@ -345,6 +338,7 @@ func TestStructureDecode(t *testing.T) {
 func TestStructurePodAssign(t *testing.T) {
 	expect := &StructurePod{
 		Format:      "format",
+		Depth:       24,
 		Length:      2503,
 		Compression: "nah",
 		Encoding:    "UTF-3000",
@@ -359,6 +353,7 @@ func TestStructurePodAssign(t *testing.T) {
 
 	got.Assign(&StructurePod{
 		Length:      2503,
+		Depth:       24,
 		Compression: "nah",
 		Encoding:    "UTF-3000",
 		ErrCount:    50,

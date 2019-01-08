@@ -298,12 +298,6 @@ func UnmarshalStructure(v interface{}) (*Structure, error) {
 	}
 }
 
-// AbstractTableName prepends a given index with "t"
-// t1, t2, t3, ...
-func AbstractTableName(i int) string {
-	return fmt.Sprintf("t%d", i+1)
-}
-
 // AbstractColumnName is the "base26" value of a column name
 // to make short, sql-valid, deterministic column names
 func AbstractColumnName(i int) string {

@@ -13,8 +13,9 @@ import (
 // standard csv package. This'll fix by wrapping the reader passed to csv.NewReader:
 // 		rdr, err := csv.NewReader(replacecr.Reader(r))
 // because Reader adds '\n' characters, the number of bytes reported from the underlying
-// reader can/will differ from if the reader were read from directly. This can cause issues
-// with checksums and byte counts. Use with caution.
+// reader can/will differ from what the underlyng reader would return
+// if read from directly. This can cause issues with checksums and byte counts.
+// Use with caution.
 func Reader(data io.Reader) io.Reader {
 	return crlfReplaceReader{
 		rdr: bufio.NewReader(data),
