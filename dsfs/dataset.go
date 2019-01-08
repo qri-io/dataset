@@ -243,7 +243,7 @@ func prepareDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, bf, bfPre
 	tasks := 3
 
 	go setErrCount(ds, cafs.NewMemfileReader(bf.FileName(), errR), &mu, done)
-	go setEntryCount(ds, cafs.NewMemfileReader(bf.FileName(), entryR), &mu, done)
+	go setDepthAndEntryCount(ds, cafs.NewMemfileReader(bf.FileName(), entryR), &mu, done)
 	go setChecksumAndStats(ds, cafs.NewMemfileReader(bf.FileName(), hashR), &buf, &mu, done)
 
 	go func() {
