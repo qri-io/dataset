@@ -10,6 +10,7 @@ import (
 
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsio"
+	"github.com/qri-io/dataset/dsio/replacecr"
 	"github.com/qri-io/dataset/vals"
 	"github.com/qri-io/jsonschema"
 	"github.com/qri-io/varName"
@@ -48,7 +49,7 @@ type field struct {
 // CSVSchema determines the field names and types of an io.Reader of CSV-formatted data, returning a json schema
 func CSVSchema(resource *dataset.Structure, data io.Reader) (schema *jsonschema.RootSchema, n int, err error) {
 	tr := dsio.NewTrackedReader(data)
-	r := csv.NewReader(dsio.ReplaceSoloCarriageReturns(tr))
+	r := csv.NewReader(replacecr.Reader(tr))
 	r.FieldsPerRecord = -1
 	r.TrimLeadingSpace = true
 	r.LazyQuotes = true

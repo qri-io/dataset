@@ -292,7 +292,7 @@ func CompareTransforms(a, b *Transform) error {
 	return nil
 }
 
-// CompareTransformResource checks if all fields are equal in both resources
+// CompareTransformResources checks if all fields are equal in both resources
 func CompareTransformResources(a, b *TransformResource) error {
 	if a == nil && b == nil {
 		return nil

@@ -43,12 +43,12 @@ func TestReadInputTransformScript(t *testing.T) {
 }
 
 func TestNewTestCaseFromDir(t *testing.T) {
-	if _, err := NewTestCaseFromDir("testdata"); err == nil {
+	var err error
+	if _, err = NewTestCaseFromDir("testdata"); err == nil {
 		t.Errorf("expected error")
 		return
-	} else {
-		t.Log(err)
 	}
+	t.Log(err)
 
 	tc, err := NewTestCaseFromDir("testdata/complete")
 	if err != nil {
