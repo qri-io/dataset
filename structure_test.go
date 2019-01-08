@@ -71,6 +71,7 @@ func TestStructureIsEmpty(t *testing.T) {
 	}{
 		{&Structure{Checksum: "a"}},
 		{&Structure{Compression: compression.Tar}},
+		{&Structure{Depth: 1}},
 		{&Structure{Encoding: "a"}},
 		{&Structure{Entries: 1}},
 		{&Structure{ErrCount: 1}},

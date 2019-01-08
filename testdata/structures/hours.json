@@ -1,6 +1,7 @@
 {
   "format": "csv",
   "formatOptions": null,
+  "depth" : 2,
   "schema": {
     "type": "array",
     "items": {

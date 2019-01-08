@@ -15,6 +15,7 @@
   "structure": {
     "checksum": "QmcCcPTqmckdXLBwPQXxfyW2BbFcUT6gqv9oGeWDkrNTyD",
     "entries": 5,
+    "depth" : 2,
     "errCount": 1,
     "format": "csv",
     "formatConfig": {

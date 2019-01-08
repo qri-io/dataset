@@ -40,7 +40,7 @@ func TestLoadPreview(t *testing.T) {
 		t.Error(err)
 	}
 
-	expect := "4eca3a461dafd9477a14ef5c0a71107923c8c827"
+	expect := "3f4b42ad33241e81da3e874e772cbf99d0e7c949"
 	sum := dstest.DatasetPodChecksum(res)
 	if expect != sum {
 		t.Errorf("dataset pod checksum mismatch. expected: %s, got: %s", expect, sum)

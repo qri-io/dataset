@@ -137,6 +137,9 @@ func CompareStructures(a, b *Structure) error {
 	if a.Checksum != b.Checksum {
 		return fmt.Errorf("Checksum: %s != %s", a.Checksum, b.Checksum)
 	}
+	if a.Depth != b.Depth {
+		return fmt.Errorf("Depth: %d != %d", a.Depth, b.Depth)
+	}
 	if a.Entries != b.Entries {
 		return fmt.Errorf("Entries: %d != %d", a.Entries, b.Entries)
 	}
