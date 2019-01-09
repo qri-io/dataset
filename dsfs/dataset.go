@@ -12,7 +12,6 @@ import (
 
 	"github.com/ipfs/go-datastore"
 	"github.com/libp2p/go-libp2p-crypto"
-	"github.com/mr-tron/base58/base58"
 	"github.com/multiformats/go-multihash"
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
@@ -265,14 +264,14 @@ func prepareDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, bf, bfPre
 		}
 	}
 
-	//get auto commit message if necessary
+	// TODO (ramfox): This whole section can be wrapped:
+	// func generateCommit(ds, prev *dataset.Dataset, privKey crypto.PrivKey) error
+	// Lots of stuff happening in prepareDataset and the steps to creating the
+	// proper commit can be abstracted out
 	diffDescription, err := generateCommitMsg(ds, dsPrev)
 	if err != nil {
-		log.Debug(err.Error())
-		return nil, "", err
-	}
-	if diffDescription == "" {
-		return nil, "", fmt.Errorf("error saving: no changes detected")
+		log.Debug(fmt.Errorf("error saving: %s", err))
+		return nil, "", fmt.Errorf("error saving: %s", err)
 	}
 
 	cleanTitleAndMessage(&ds.Commit.Title, &ds.Commit.Message, diffDescription)
@@ -393,19 +392,12 @@ func setChecksumAndStats(ds *dataset.Dataset, data cafs.File, buf *bytes.Buffer,
 	done <- nil
 }
 
+// returns a commit message based on the diff of the two datasets
+// if there is no previous dataset, it returns "created dataset"
+// if there is no difference, the func returns an error
 func generateCommitMsg(ds, prev *dataset.Dataset) (string, error) {
-	// placeholder for when no previous commit exists
-	const placeholder = `abc`
-	// check for user-supplied commit message
 	if prev == nil || prev.IsEmpty() {
-		prev = &dataset.Dataset{
-			Commit: &dataset.Commit{},
-			Structure: &dataset.Structure{
-				Checksum: base58.Encode([]byte(placeholder)),
-				Format:   ds.Structure.Format,
-			},
-			BodyPath: placeholder,
-		}
+		return "created dataset", nil
 	}
 
 	diffMap, err := dsdiff.DiffDatasets(prev, ds, nil)
@@ -417,6 +409,10 @@ func generateCommitMsg(ds, prev *dataset.Dataset) (string, error) {
 	diffDescription, err := dsdiff.MapDiffsToString(diffMap, "listKeys")
 	if err != nil {
 		return "", err
+	}
+
+	if diffDescription == "" {
+		return "", fmt.Errorf("no changes detected")
 	}
 
 	return diffDescription, nil
@@ -442,7 +438,11 @@ func cleanTitleAndMessage(sTitle, sMsg *string, diffDescription string) {
 		if lastSpaceIndex > 0 {
 			cutIndex = lastSpaceIndex + 1
 		}
-		sm = fmt.Sprintf("...%s\n%s", st[cutIndex:], sm)
+		if sm == "" {
+			sm = fmt.Sprintf("...%s", st[cutIndex:])
+		} else {
+			sm = fmt.Sprintf("...%s\n%s", st[cutIndex:], sm)
+		}
 		st = fmt.Sprintf("%s...", st[:cutIndex])
 	}
 	// adjust for line breaks

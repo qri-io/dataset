@@ -38,10 +38,5 @@
         ]
       }
     }
-  },
-  "visconfig": {
-    "qri": "vc:0",
-    "format": "example format",
-    "visualizations": "example visualization"
   }
 }
