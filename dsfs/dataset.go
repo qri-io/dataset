@@ -12,7 +12,6 @@ import (
 
 	"github.com/ipfs/go-datastore"
 	"github.com/libp2p/go-libp2p-crypto"
-	"github.com/mr-tron/base58/base58"
 	"github.com/multiformats/go-multihash"
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
@@ -173,7 +172,7 @@ func DerefDatasetCommit(store cafs.Filestore, ds *dataset.Dataset) error {
 // Store is where we're going to
 // Dataset to be saved
 // Pin the dataset if the underlying store supports the pinning interface
-func CreateDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pk crypto.PrivKey, pin bool) (path datastore.Key, err error) {
+func CreateDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, bf, bfPrev cafs.File, pk crypto.PrivKey, pin bool) (path datastore.Key, err error) {
 	if pk == nil {
 		err = fmt.Errorf("private key is required to create a dataset")
 		return
@@ -186,13 +185,24 @@ func CreateDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pk c
 		log.Debug(err.Error())
 		return
 	}
-	df, _, err = prepareDataset(store, ds, df, pk)
+
+	if dsPrev != nil && !dsPrev.IsEmpty() {
+		if err = DerefDataset(store, dsPrev); err != nil {
+			log.Debug(err.Error())
+			return
+		}
+		if err = validate.Dataset(dsPrev); err != nil {
+			log.Debug(err.Error())
+			return
+		}
+	}
+	bf, _, err = prepareDataset(store, ds, dsPrev, bf, bfPrev, pk)
 	if err != nil {
 		log.Debug(err.Error())
 		return
 	}
 
-	path, err = WriteDataset(store, ds, df, pin)
+	path, err = WriteDataset(store, ds, bf, pin)
 	if err != nil {
 		log.Debug(err.Error())
 		err = fmt.Errorf("error writing dataset: %s", err.Error())
@@ -208,7 +218,7 @@ var Timestamp = func() time.Time {
 
 // prepareDataset modifies a dataset in preparation for adding to a dsfs
 // it returns a new data file for use in WriteDataset
-func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, privKey crypto.PrivKey) (cafs.File, string, error) {
+func prepareDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, bf, bfPrev cafs.File, privKey crypto.PrivKey) (cafs.File, string, error) {
 	var (
 		err error
 		// lock for parallel edits to ds pointer
@@ -217,21 +227,12 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 		buf bytes.Buffer
 	)
 
-	if df == nil && ds.PreviousPath == "" {
-		return nil, "", fmt.Errorf("datafile or dataset PreviousPath needed")
+	if bf == nil && bfPrev == nil {
+		return nil, "", fmt.Errorf("datafile or previous datafile needed")
 	}
 
-	if df == nil && ds.PreviousPath != "" {
-		prev, err := LoadDataset(store, datastore.NewKey(ds.PreviousPath))
-		if err != nil {
-			log.Debug(err.Error())
-			return nil, "", fmt.Errorf("error loading previous dataset: %s", err)
-		}
-		df, err = LoadBody(store, prev)
-		if err != nil {
-			log.Debug(err.Error())
-			return nil, "", fmt.Errorf("error loading previous dataset body: %s", err)
-		}
+	if bf == nil {
+		bf = bfPrev
 	}
 
 	errR, errW := io.Pipe()
@@ -240,9 +241,9 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 	done := make(chan error)
 	tasks := 3
 
-	go setErrCount(ds, cafs.NewMemfileReader(df.FileName(), errR), &mu, done)
-	go setDepthAndEntryCount(ds, cafs.NewMemfileReader(df.FileName(), entryR), &mu, done)
-	go setChecksumAndStats(ds, cafs.NewMemfileReader(df.FileName(), hashR), &buf, &mu, done)
+	go setErrCount(ds, cafs.NewMemfileReader(bf.FileName(), errR), &mu, done)
+	go setDepthAndEntryCount(ds, cafs.NewMemfileReader(bf.FileName(), entryR), &mu, done)
+	go setChecksumAndStats(ds, cafs.NewMemfileReader(bf.FileName(), hashR), &buf, &mu, done)
 
 	go func() {
 		// pipes must be manually closed to trigger EOF
@@ -254,7 +255,7 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 		// mw.Write() is called
 		mw := io.MultiWriter(errW, entryW, hashW)
 		// copy file bytes to multiwriter from input file
-		io.Copy(mw, df)
+		io.Copy(mw, bf)
 	}()
 
 	for i := 0; i < tasks; i++ {
@@ -263,14 +264,14 @@ func prepareDataset(store cafs.Filestore, ds *dataset.Dataset, df cafs.File, pri
 		}
 	}
 
-	//get auto commit message if necessary
-	diffDescription, err := generateCommitMsg(store, ds)
+	// TODO (ramfox): This whole section can be wrapped:
+	// func generateCommit(ds, prev *dataset.Dataset, privKey crypto.PrivKey) error
+	// Lots of stuff happening in prepareDataset and the steps to creating the
+	// proper commit can be abstracted out
+	diffDescription, err := generateCommitMsg(ds, dsPrev)
 	if err != nil {
-		log.Debug(err.Error())
-		return nil, "", err
-	}
-	if diffDescription == "" {
-		return nil, "", fmt.Errorf("error saving: no changes detected")
+		log.Debug(fmt.Errorf("error saving: %s", err))
+		return nil, "", fmt.Errorf("error saving: %s", err)
 	}
 
 	cleanTitleAndMessage(&ds.Commit.Title, &ds.Commit.Message, diffDescription)
@@ -391,27 +392,12 @@ func setChecksumAndStats(ds *dataset.Dataset, data cafs.File, buf *bytes.Buffer,
 	done <- nil
 }
 
-func generateCommitMsg(store cafs.Filestore, ds *dataset.Dataset) (string, error) {
-	// placeholder for when no previous commit exists
-	const placeholder = `abc`
-	// check for user-supplied commit message
-	var prev *dataset.Dataset
-	if ds.PreviousPath != "" {
-		prevKey := datastore.NewKey(ds.PreviousPath)
-		var err error
-		prev, err = LoadDataset(store, prevKey)
-		if err != nil {
-			return "", fmt.Errorf("error loading previous dataset: %s", err.Error())
-		}
-	} else {
-		prev = &dataset.Dataset{
-			Commit: &dataset.Commit{},
-			Structure: &dataset.Structure{
-				Checksum: base58.Encode([]byte(placeholder)),
-				Format:   ds.Structure.Format,
-			},
-			BodyPath: placeholder,
-		}
+// returns a commit message based on the diff of the two datasets
+// if there is no previous dataset, it returns "created dataset"
+// if there is no difference, the func returns an error
+func generateCommitMsg(ds, prev *dataset.Dataset) (string, error) {
+	if prev == nil || prev.IsEmpty() {
+		return "created dataset", nil
 	}
 
 	diffMap, err := dsdiff.DiffDatasets(prev, ds, nil)
@@ -423,6 +409,10 @@ func generateCommitMsg(store cafs.Filestore, ds *dataset.Dataset) (string, error
 	diffDescription, err := dsdiff.MapDiffsToString(diffMap, "listKeys")
 	if err != nil {
 		return "", err
+	}
+
+	if diffDescription == "" {
+		return "", fmt.Errorf("no changes detected")
 	}
 
 	return diffDescription, nil
@@ -448,7 +438,11 @@ func cleanTitleAndMessage(sTitle, sMsg *string, diffDescription string) {
 		if lastSpaceIndex > 0 {
 			cutIndex = lastSpaceIndex + 1
 		}
-		sm = fmt.Sprintf("...%s\n%s", st[cutIndex:], sm)
+		if sm == "" {
+			sm = fmt.Sprintf("...%s", st[cutIndex:])
+		} else {
+			sm = fmt.Sprintf("...%s\n%s", st[cutIndex:], sm)
+		}
 		st = fmt.Sprintf("%s...", st[:cutIndex])
 	}
 	// adjust for line breaks

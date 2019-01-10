@@ -124,7 +124,7 @@ func TestCreateDataset(t *testing.T) {
 		return
 	}
 
-	_, err = CreateDataset(store, nil, nil, nil, false)
+	_, err = CreateDataset(store, nil, nil, nil, nil, nil, false)
 	if err == nil {
 		t.Errorf("expected call without prvate key to error")
 		return
@@ -138,21 +138,29 @@ func TestCreateDataset(t *testing.T) {
 	cases := []struct {
 		casePath   string
 		resultPath string
+		prev       *dataset.Dataset
 		repoFiles  int // expected total count of files in repo after test execution
 		err        string
 	}{
 		{"invalid_reference",
-			"", 0, "error loading dataset commit: error loading commit file: datastore: key not found"},
+			"", nil, 0, "error loading dataset commit: error loading commit file: datastore: key not found"},
 		{"invalid",
-			"", 0, "commit is required"},
+			"", nil, 0, "commit is required"},
 		{"cities",
-			"/map/QmPm1VvN3PjZLuA12NSEUTwCft8JruHPwcL2zmKf4SGnWd", 6, ""},
+			"/map/QmPm1VvN3PjZLuA12NSEUTwCft8JruHPwcL2zmKf4SGnWd", nil, 6, ""},
 		{"all_fields",
-			"/map/QmYHRKiQ52CETCBrMZR2c9hh1Je7292YBeD9gjQyWwEhtE", 14, ""},
+			"/map/QmYHRKiQ52CETCBrMZR2c9hh1Je7292YBeD9gjQyWwEhtE", nil, 14, ""},
 		{"cities_no_commit_title",
-			"/map/QmRXosHbnSXxVV7cFvnhTfCnzMcqjTj67fYVBKruLeRj9E", 16, ""},
+			"/map/QmX3JQrS5oZ8SdkJQRMhmV4qRD2tBMwcwktoECbmK4BpfH", nil, 16, ""},
 		{"craigslist",
-			"/map/QmUAn7Fm8KF2uVDSoafXfEvJj6EErRF9WxiCQtNED2k8HE", 20, ""},
+			"/map/QmUAn7Fm8KF2uVDSoafXfEvJj6EErRF9WxiCQtNED2k8HE", nil, 20, ""},
+		// should error when previous dataset won't dereference.
+		{"craigslist",
+			"", &dataset.Dataset{Structure: dataset.NewStructureRef(datastore.NewKey("/bad/path"))}, 20, "error loading dataset structure: error loading structure file: datastore: key not found"},
+		// should error when previous dataset isn't valid. Aka, when it isn't empty, but missing
+		// either structure or commit. Commit is checked for first.
+		{"craigslist",
+			"", &dataset.Dataset{Meta: &dataset.Meta{Title: "previous"}, Structure: nil}, 20, "commit is required"},
 	}
 
 	for _, c := range cases {
@@ -178,7 +186,7 @@ func TestCreateDataset(t *testing.T) {
 			tc.Input.Viz.Script = vs
 		}
 
-		path, err := CreateDataset(store, tc.Input, tc.BodyFile(), privKey, false)
+		path, err := CreateDataset(store, tc.Input, c.prev, tc.BodyFile(), nil, privKey, false)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("%s: error mismatch. expected: '%s', got: '%s'", tc.Name, c.err, err)
 			continue
@@ -213,30 +221,46 @@ func TestCreateDataset(t *testing.T) {
 		}
 	}
 
+	// Case: no body or previous body files
 	dsData, err := ioutil.ReadFile("testdata/cities/input.dataset.json")
 	if err != nil {
-		t.Errorf("case nil datafile and no PreviousPath, error reading dataset file: %s", err.Error())
+		t.Errorf("case nil body and previous body files, error reading dataset file: %s", err.Error())
 	}
 	ds := &dataset.Dataset{}
 	if err := ds.UnmarshalJSON(dsData); err != nil {
-		t.Errorf("case nil datafile and no PreviousPath, error unmarshaling dataset file: %s", err.Error())
+		t.Errorf("case nil body and previous body files, error unmarshaling dataset file: %s", err.Error())
 	}
 
 	if err != nil {
-		t.Errorf("case nil datafile and no PreviousPath, error reading data file: %s", err.Error())
+		t.Errorf("case nil body and previous body files, error reading data file: %s", err.Error())
 	}
-	expectedErr := "datafile or dataset PreviousPath needed"
-	_, err = CreateDataset(store, ds, nil, privKey, false)
+	expectedErr := "datafile or previous datafile needed"
+	_, err = CreateDataset(store, ds, nil, nil, nil, privKey, false)
 	if err.Error() != expectedErr {
-		t.Errorf("case nil datafile and no PreviousPath, error mismatch: expected '%s', got '%s'", expectedErr, err.Error())
+		t.Errorf("case nil body and previous body files, error mismatch: expected '%s', got '%s'", expectedErr, err.Error())
 	}
-	// take path from previous case
-	ds.PreviousPath = cases[2].resultPath
+
+	// Case: no changes in dataset
 	expectedErr = "error saving: no changes detected"
-	_, err = CreateDataset(store, ds, nil, privKey, false)
-	if err.Error() != expectedErr {
-		t.Errorf("case nil datafile and no PreviousPath, error mismatch: expected '%s', got '%s'", expectedErr, err.Error())
+	dsPrev, err := LoadDataset(store, datastore.NewKey(cases[2].resultPath))
+	ds.PreviousPath = cases[2].resultPath
+	if err != nil {
+		t.Errorf("case no changes in dataset, error loading previous dataset file: %s", err.Error())
 	}
+
+	bodyBytes, err := ioutil.ReadFile("testdata/cities/body.csv")
+	if err != nil {
+		t.Errorf("case no changes in dataset, error reading body file: %s", err.Error())
+	}
+	bodyFile := cafs.NewMemfileBytes("body.csv", bodyBytes)
+
+	_, err = CreateDataset(store, ds, dsPrev, bodyFile, nil, privKey, false)
+	if err != nil && err.Error() != expectedErr {
+		t.Errorf("case no changes in dataset, error mismatch: expected '%s', got '%s'", expectedErr, err.Error())
+	} else if err == nil {
+		t.Errorf("case no changes in dataset, expected error got 'nil'")
+	}
+
 	if len(store.Files) != 20 {
 		t.Errorf("case nil datafile and PreviousPath, invalid number of entries: %d != %d", 20, len(store.Files))
 		_, err := store.Print()
@@ -244,6 +268,8 @@ func TestCreateDataset(t *testing.T) {
 			panic(err)
 		}
 	}
+
+	// case: previous dataset isn't valid
 }
 
 func TestWriteDataset(t *testing.T) {
@@ -369,5 +395,75 @@ func TestWriteDataset(t *testing.T) {
 			t.Log(string(d))
 			continue
 		}
+	}
+}
+
+func TestGenerateCommitMessage(t *testing.T) {
+	cases := []struct {
+		ds, prev *dataset.Dataset
+		expected string
+		errMsg   string
+	}{
+		// empty prev
+		{&dataset.Dataset{Meta: &dataset.Meta{Title: "new dataset"}}, &dataset.Dataset{}, "created dataset", ""},
+		// different datasets
+		{&dataset.Dataset{Meta: &dataset.Meta{Title: "changes to dataset"}}, &dataset.Dataset{Meta: &dataset.Meta{Title: "new dataset"}}, "Meta: 1 change\n\t- modified title", ""},
+		// same datasets
+		{&dataset.Dataset{Meta: &dataset.Meta{Title: "same dataset"}}, &dataset.Dataset{Meta: &dataset.Meta{Title: "same dataset"}}, "", "no changes detected"},
+	}
+
+	for i, c := range cases {
+		got, err := generateCommitMsg(c.ds, c.prev)
+		if err != nil && c.errMsg != err.Error() {
+			t.Errorf("case %d, error mismatch, expect: %s, got: %s", i, c.errMsg, err.Error())
+			continue
+		}
+		if c.expected != got {
+			t.Errorf("case %d, message mismatch, expect: %s, got: %s", i, c.expected, got)
+		}
+	}
+}
+
+func TestCleanTitleAndMessage(t *testing.T) {
+	ds := &dataset.Dataset{Commit: &dataset.Commit{}}
+	cases := []struct {
+		title         string
+		message       string
+		description   string
+		expectTitle   string
+		expectMessage string
+	}{
+		// all should be over 70 characters
+		// no title, no message, no description
+		{"", "", "", "", ""},
+		// no title, no message, description
+		{"", "", "This is the description we are adding woooo", "This is the description we are adding woooo", ""},
+		// no title, no message, long description
+		{"", "", "need to make sure this description is over 70 characters long so that we can test to see if the cleaning of the title works", "need to make sure this description is over 70 characters long so ...", "...that we can test to see if the cleaning of the title works"},
+		// no title, message, no description
+		{"", "This text should move to the title", "", "This text should move to the title", ""},
+		// title, no message, no description
+		{"Yay, a title", "", "", "Yay, a title", ""},
+		// no title, message, description
+		{"", "And this text should stay in the message", "This description should move to the title", "This description should move to the title", "And this text should stay in the message"},
+		// title, message, no description
+		{"We have a title", "And we have a message", "", "We have a title", "And we have a message"},
+		// title, no message, description
+		{"We have a title", "", "This description will get squashed which I'm not sure what I feel about that", "We have a title", ""},
+		// long title, and message
+		{"This title is very long and I want to make sure that it works correctly with also having a message. wooo", "This message should still exist", "", "This title is very long and I want to make sure that it works ...", "...correctly with also having a message. wooo\nThis message should still exist"},
+	}
+	for i, c := range cases {
+		ds.Commit.Title = c.title
+		ds.Commit.Message = c.message
+
+		cleanTitleAndMessage(&ds.Commit.Title, &ds.Commit.Message, c.description)
+		if c.expectTitle != ds.Commit.Title {
+			t.Errorf("case %d, title mismatch, expect: %s, got: %s", i, c.expectTitle, ds.Commit.Title)
+		}
+		if c.expectMessage != ds.Commit.Message {
+			t.Errorf("case %d, message mismatch, expect: %s, got: %s", i, c.expectMessage, ds.Commit.Message)
+		}
+
 	}
 }
