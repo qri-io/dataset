@@ -186,7 +186,7 @@ func CreateDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, bf, bfPrev
 		return
 	}
 
-	if !(dsPrev == nil || dsPrev.IsEmpty()) {
+	if dsPrev != nil && !dsPrev.IsEmpty() {
 		if err = DerefDataset(store, dsPrev); err != nil {
 			log.Debug(err.Error())
 			return
@@ -231,7 +231,7 @@ func prepareDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, bf, bfPre
 		return nil, "", fmt.Errorf("datafile or previous datafile needed")
 	}
 
-	if bf == nil && bfPrev != nil {
+	if bf == nil {
 		bf = bfPrev
 	}
 
