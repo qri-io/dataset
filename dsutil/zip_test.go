@@ -24,7 +24,7 @@ func TestWriteZipArchive(t *testing.T) {
 	}
 
 	buf := &bytes.Buffer{}
-	if err = WriteZipArchive(store, ds, "peer/ref@a/ipfs/b", buf); err != nil {
+	if err = WriteZipArchive(store, ds, "yaml", "peer/ref@a/ipfs/b", buf); err != nil {
 		t.Errorf("error writing zip archive: %s", err.Error())
 		return
 	}
@@ -35,6 +35,7 @@ func TestWriteZipArchive(t *testing.T) {
 		return
 	}
 
+	// TODO (dlong): Actually test the contents of the zip.
 	for _, f := range zr.File {
 		rc, err := f.Open()
 		if err != nil {
@@ -69,7 +70,7 @@ func TestWriteZipArchiveFullDataset(t *testing.T) {
 	}
 
 	buf := &bytes.Buffer{}
-	if err = WriteZipArchive(store, ds, "peer/ref@a/ipfs/b", buf); err != nil {
+	if err = WriteZipArchive(store, ds, "json", "peer/ref@a/ipfs/b", buf); err != nil {
 		t.Errorf("error writing zip archive: %s", err.Error())
 		return
 	}
