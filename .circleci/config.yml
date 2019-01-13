@@ -27,6 +27,7 @@ jobs:
             github.com/qri-io/varName
             github.com/qri-io/jsonschema
             github.com/ugorji/go/codec
+            github.com/ghodss/yaml
             gopkg.in/yaml.v2
       - run: 
           name: Run Lint Tests

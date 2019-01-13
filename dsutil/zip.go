@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"strings"
 
+	"github.com/ghodss/yaml"
 	datastore "github.com/ipfs/go-datastore"
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
@@ -16,19 +17,32 @@ import (
 )
 
 // WriteZipArchive generates a zip archive of a dataset and writes it to w
-func WriteZipArchive(store cafs.Filestore, ds *dataset.Dataset, ref string, w io.Writer) error {
+func WriteZipArchive(store cafs.Filestore, ds *dataset.Dataset, format string, ref string, w io.Writer) error {
 	zw := zip.NewWriter(w)
 
 	// Dataset header, contains meta, structure, and commit
-	dsf, err := zw.Create(dsfs.PackageFileDataset.String())
+	dsf, err := zw.Create(fmt.Sprintf("dataset.%s", format))
 	if err != nil {
 		log.Debug(err.Error())
 		return err
 	}
-	dsdata, err := json.MarshalIndent(ds, "", "  ")
-	if err != nil {
-		return err
+
+	var dsdata []byte
+	switch format {
+	case "json":
+		dsdata, err = json.MarshalIndent(ds, "", "  ")
+		if err != nil {
+			return err
+		}
+	case "yaml":
+		dsdata, err = yaml.Marshal(ds)
+		if err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf("unknown file format: \"%s\"", format)
 	}
+
 	_, err = dsf.Write(dsdata)
 	if err != nil {
 		log.Debug(err.Error())
