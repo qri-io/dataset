@@ -28,7 +28,7 @@ func addMovies(t *testing.T, s cafs.Filestore) string {
 		t.Fatal(err)
 	}
 
-	return path.String()
+	return path
 }
 
 func TestLoadPreview(t *testing.T) {

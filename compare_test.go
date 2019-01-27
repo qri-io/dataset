@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/dataset/compression"
 	"github.com/qri-io/jsonschema"
 )
@@ -120,7 +119,7 @@ func TestCompareVizs(t *testing.T) {
 
 func TestCompareCommits(t *testing.T) {
 	c1 := &Commit{
-		path:    datastore.NewKey("/foo"),
+		path:    "/foo",
 		Title:   "foo",
 		Message: "message",
 		Qri:     KindCommit,
@@ -163,7 +162,7 @@ func TestCompareTransforms(t *testing.T) {
 		ScriptPath:    "foo.star",
 		Structure:     AirportCodes.Structure,
 		Resources: map[string]*TransformResource{
-			"airports": &TransformResource{Path: AirportCodes.Path().String()},
+			"airports": &TransformResource{Path: AirportCodes.Path()},
 		},
 	}
 	cases := []struct {
@@ -181,7 +180,7 @@ func TestCompareTransforms(t *testing.T) {
 		{&Transform{ScriptPath: "a"}, &Transform{ScriptPath: "b"}, "ScriptPath: a != b"},
 		{&Transform{}, &Transform{Structure: AirportCodes.Structure}, "Structure: nil: <nil> != <not nil>"},
 		{&Transform{Resources: map[string]*TransformResource{
-			"airports": &TransformResource{Path: AirportCodes.Path().String()},
+			"airports": &TransformResource{Path: AirportCodes.Path()},
 		}}, &Transform{Resources: map[string]*TransformResource{}}, "Resource 'airports': nil: <not nil> != <nil>"},
 	}
 

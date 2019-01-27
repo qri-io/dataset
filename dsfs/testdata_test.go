@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
-	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/jsonschema"
@@ -127,7 +126,7 @@ var Hours = &dataset.Dataset{
 	Meta: &dataset.Meta{
 		Title: "hours",
 	},
-	// Data:   datastore.NewKey("/ipfs/QmS1dVa1xemo7gQzJgjimj1WwnVBF3TwRTGsyKa1uEBWbJ"),
+	// Body:   "/ipfs/QmS1dVa1xemo7gQzJgjimj1WwnVBF3TwRTGsyKa1uEBWbJ",
 }
 
 var HoursStructure = &dataset.Structure{
@@ -146,12 +145,12 @@ var HoursStructure = &dataset.Structure{
 	}`),
 }
 
-func makeFilestore() (map[string]datastore.Key, cafs.Filestore, error) {
+func makeFilestore() (map[string]string, cafs.Filestore, error) {
 	fs := cafs.NewMapstore()
 
-	datasets := map[string]datastore.Key{
-		"movies": datastore.NewKey(""),
-		"cities": datastore.NewKey(""),
+	datasets := map[string]string{
+		"movies": "",
+		"cities": "",
 	}
 
 	for k := range datasets {

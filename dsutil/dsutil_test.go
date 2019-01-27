@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsfs"
@@ -45,12 +44,12 @@ func TestWriteDir(t *testing.T) {
 	}
 }
 
-func testStore() (cafs.Filestore, map[string]datastore.Key, error) {
+func testStore() (cafs.Filestore, map[string]string, error) {
 	dataf := cafs.NewMemfileBytes("movies.csv", []byte("movie\nup\nthe incredibles"))
 
 	// Map strings to ds.keys for convenience
-	ns := map[string]datastore.Key{
-		"movies": datastore.NewKey(""),
+	ns := map[string]string{
+		"movies": "",
 	}
 
 	ds := &dataset.Dataset{
@@ -78,7 +77,7 @@ func testStore() (cafs.Filestore, map[string]datastore.Key, error) {
 	return fs, ns, nil
 }
 
-func testStoreWithVizAndTransform() (cafs.Filestore, map[string]datastore.Key, error) {
+func testStoreWithVizAndTransform() (cafs.Filestore, map[string]string, error) {
 	ds := &dataset.Dataset{
 		Structure: &dataset.Structure{
 			Format: dataset.CSVDataFormat,
@@ -102,7 +101,7 @@ func testStoreWithVizAndTransform() (cafs.Filestore, map[string]datastore.Key, e
 		},
 	}
 	// Map strings to ds.keys for convenience
-	ns := map[string]datastore.Key{}
+	ns := map[string]string{}
 	// Store the files
 	fs := cafs.NewMapstore()
 	dataf := cafs.NewMemfileBytes("movies.csv", []byte("movie\nup\nthe incredibles"))
@@ -111,8 +110,8 @@ func testStoreWithVizAndTransform() (cafs.Filestore, map[string]datastore.Key, e
 		return fs, ns, err
 	}
 	ns["movies"] = dskey
-	ns["transform_script"] = datastore.NewKey(ds.Transform.ScriptPath)
-	ns["viz_template"] = datastore.NewKey(ds.Viz.ScriptPath)
+	ns["transform_script"] = ds.Transform.ScriptPath
+	ns["viz_template"] = ds.Viz.ScriptPath
 	return fs, ns, nil
 }
 

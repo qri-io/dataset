@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
-
-	"github.com/ipfs/go-datastore"
 )
 
 func TestTransformSetPath(t *testing.T) {
@@ -15,8 +13,8 @@ func TestTransformSetPath(t *testing.T) {
 		path   string
 		expect *Transform
 	}{
-		{"", &Transform{path: datastore.Key{}}},
-		{"path", &Transform{path: datastore.NewKey("path")}},
+		{"", &Transform{}},
+		{"path", &Transform{path: "path"}},
 	}
 
 	for i, c := range cases {
@@ -31,7 +29,7 @@ func TestTransformSetPath(t *testing.T) {
 
 func TestTransformAssign(t *testing.T) {
 	expect := &Transform{
-		path:          datastore.NewKey("path"),
+		path:          "path",
 		Syntax:        "a",
 		SyntaxVersion: "change",
 		Config: map[string]interface{}{
@@ -58,7 +56,7 @@ func TestTransformAssign(t *testing.T) {
 		},
 		Resources: nil,
 	}, &Transform{
-		path: datastore.NewKey("path"),
+		path: "path",
 		Resources: map[string]*TransformResource{
 			"a": &TransformResource{Path: "/path/to/a"},
 		},
@@ -87,7 +85,7 @@ func TestTransformUnmarshalJSON(t *testing.T) {
 		err       string
 	}{
 		{`{}`, &Transform{}, ""},
-		{`{ "structure" : "/path/to/structure" }`, &Transform{Structure: &Structure{path: datastore.NewKey("/path/to/structure")}}, ""},
+		{`{ "structure" : "/path/to/structure" }`, &Transform{Structure: &Structure{path: "/path/to/structure"}}, ""},
 		{`{"resources":{"foo": "/not/a/real/path"}}`, &Transform{Resources: map[string]*TransformResource{"foo": &TransformResource{Path: "/not/a/real/path"}}}, ""},
 		{`{"resources":{"foo": { "path":     "/not/a/real/path"`, &Transform{}, "unexpected end of JSON input"},
 		{`{"resources":{"foo": { "path":"/not/a/real/path"}}}`, &Transform{Resources: map[string]*TransformResource{"foo": &TransformResource{Path: "/not/a/real/path"}}}, ""},
@@ -114,7 +112,7 @@ func TestTransformUnmarshalJSON(t *testing.T) {
 		return
 	}
 
-	if strq.path.String() != path {
+	if strq.path != path {
 		t.Errorf("unmarshal didn't set proper path: %s != %s", path, strq.path)
 		return
 	}
@@ -142,7 +140,7 @@ func TestTransformMarshalJSONObject(t *testing.T) {
 		}
 	}
 
-	strbytes, err := json.Marshal(&Transform{path: datastore.NewKey("/path/to/transform")})
+	strbytes, err := json.Marshal(&Transform{path: "/path/to/transform"})
 	if err != nil {
 		t.Errorf("unexpected string marshal error: %s", err.Error())
 		return
@@ -185,7 +183,7 @@ func TestTransformIsEmpty(t *testing.T) {
 		expected bool
 	}{
 		{&Transform{Qri: KindTransform}, true},
-		{&Transform{path: datastore.NewKey("foo")}, true},
+		{&Transform{path: "foo"}, true},
 		{&Transform{}, true},
 		{&Transform{Syntax: "foo"}, false},
 		{&Transform{SyntaxVersion: "0"}, false},
@@ -212,7 +210,7 @@ func TestTransformCoding(t *testing.T) {
 		{SyntaxVersion: "foo"},
 		{Config: map[string]interface{}{"foo": "foo"}},
 		{ScriptPath: "foo"},
-		{path: datastore.NewKey("/foo")},
+		{path: "/foo"},
 		{Qri: KindTransform},
 		{Resources: map[string]*TransformResource{"foo": &TransformResource{Path: "foo"}}},
 		{Syntax: "foo"},

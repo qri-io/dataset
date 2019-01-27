@@ -7,8 +7,6 @@ import (
 	"io/ioutil"
 	"testing"
 	"time"
-
-	"github.com/ipfs/go-datastore"
 )
 
 func TestDatasetSetPath(t *testing.T) {
@@ -16,8 +14,8 @@ func TestDatasetSetPath(t *testing.T) {
 		path   string
 		expect *Dataset
 	}{
-		{"", &Dataset{path: datastore.Key{}}},
-		{"path", &Dataset{path: datastore.NewKey("path")}},
+		{"", &Dataset{}},
+		{"path", &Dataset{path: "path"}},
 	}
 
 	for i, c := range cases {
@@ -35,7 +33,7 @@ func TestDatasetAssign(t *testing.T) {
 	cases := []struct {
 		in *Dataset
 	}{
-		{&Dataset{path: datastore.NewKey("/a")}},
+		{&Dataset{path: "/a"}},
 		{&Dataset{Structure: &Structure{Format: CSVDataFormat}}},
 		{&Dataset{Transform: &Transform{ScriptPath: "some_transform_script.star"}}},
 		{&Dataset{Commit: &Commit{Title: "foo"}}},
@@ -146,7 +144,7 @@ func TestDatasetMarshalJSON(t *testing.T) {
 		return
 	}
 
-	strbytes, err := json.Marshal(&Dataset{path: datastore.NewKey("/path/to/dataset")})
+	strbytes, err := json.Marshal(&Dataset{path: "/path/to/dataset"})
 	if err != nil {
 		t.Errorf("unexpected string marshal error: %s", err.Error())
 		return
@@ -194,7 +192,7 @@ func TestDatasetUnmarshalJSON(t *testing.T) {
 		return
 	}
 
-	if strds.path.String() != path {
+	if strds.path != path {
 		t.Errorf("unmarshal didn't set proper path: %s != %s", path, strds.path)
 		return
 	}

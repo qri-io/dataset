@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/ghodss/yaml"
-	datastore "github.com/ipfs/go-datastore"
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsfs"
@@ -61,7 +60,7 @@ func WriteZipArchive(store cafs.Filestore, ds *dataset.Dataset, format string, r
 
 	// Transform script
 	if ds.Transform != nil && ds.Transform.ScriptPath != "" {
-		script, err := store.Get(datastore.NewKey(ds.Transform.ScriptPath))
+		script, err := store.Get(ds.Transform.ScriptPath)
 		if err != nil {
 			return err
 		}
@@ -77,7 +76,7 @@ func WriteZipArchive(store cafs.Filestore, ds *dataset.Dataset, format string, r
 
 	// Viz template
 	if ds.Viz != nil && ds.Viz.ScriptPath != "" {
-		script, err := store.Get(datastore.NewKey(ds.Viz.ScriptPath))
+		script, err := store.Get(ds.Viz.ScriptPath)
 		if err != nil {
 			return err
 		}

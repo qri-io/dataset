@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsio"
@@ -12,7 +11,7 @@ import (
 
 // LoadBody loads the data this dataset points to from the store
 func LoadBody(store cafs.Filestore, ds *dataset.Dataset) (cafs.File, error) {
-	return store.Get(datastore.NewKey(ds.BodyPath))
+	return store.Get(ds.BodyPath)
 }
 
 // LoadRows loads a slice of raw bytes inside a limit/offset row range

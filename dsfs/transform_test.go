@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/ipfs/go-datastore"
 	crypto "github.com/libp2p/go-libp2p-crypto"
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
@@ -29,13 +28,8 @@ func TestLoadTransform(t *testing.T) {
 	// TODO - other tests & stuff
 }
 
-func TestTransformLoadAbstract(t *testing.T) {
-	// store := datastore.NewMapDatastore()
-	// TODO - finish dis test
-}
-
 func TestSaveTransform(t *testing.T) {
-	dsa := dataset.NewDatasetRef(datastore.NewKey("/path/to/dataset/a"))
+	dsa := dataset.NewDatasetRef("/path/to/dataset/a")
 	dsa.Assign(&dataset.Dataset{Meta: &dataset.Meta{Title: "now dataset isn't empty"}})
 
 	store := cafs.NewMapstore()
@@ -46,7 +40,7 @@ func TestSaveTransform(t *testing.T) {
 			Schema: jsonschema.Must(`true`),
 		},
 		Resources: map[string]*dataset.TransformResource{
-			"a": &dataset.TransformResource{Path: dsa.Path().String()},
+			"a": &dataset.TransformResource{Path: dsa.Path()},
 		},
 	}
 
@@ -57,8 +51,8 @@ func TestSaveTransform(t *testing.T) {
 	}
 
 	hash := "/map/QmS7xBzqKfRzdhZgSt69JMzUDdrPfoY3Z6EgroiQGjHhj8"
-	if hash != key.String() {
-		t.Errorf("key mismatch: %s != %s", hash, key.String())
+	if hash != key {
+		t.Errorf("key mismatch: %s != %s", hash, key)
 		return
 	}
 
@@ -68,7 +62,7 @@ func TestSaveTransform(t *testing.T) {
 		return
 	}
 
-	f, err := store.Get(datastore.NewKey(hash))
+	f, err := store.Get(hash)
 	if err != nil {
 		t.Errorf("error getting dataset file: %s", err.Error())
 		return
@@ -97,7 +91,7 @@ func TestLoadTransformScript(t *testing.T) {
 		t.Fatalf("error unmarshaling private key: %s", err.Error())
 	}
 
-	_, err = LoadTransformScript(store, datastore.NewKey(""))
+	_, err = LoadTransformScript(store, "")
 	if err == nil {
 		t.Error("expected load empty key to fail")
 	}
@@ -124,7 +118,7 @@ func TestLoadTransformScript(t *testing.T) {
 	if err != nil {
 		t.Fatal(err.Error())
 	}
-	tc.Input.Transform.ScriptPath = transformPath.String()
+	tc.Input.Transform.ScriptPath = transformPath
 	path, err = CreateDataset(store, tc.Input, nil, tc.BodyFile(), nil, privKey, true)
 	if err != nil {
 		t.Fatal(err.Error())

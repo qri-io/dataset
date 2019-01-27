@@ -45,5 +45,4 @@ func EachEntry(rr EntryReader, fn DataIteratorFunc) error {
 		num++
 	}
 
-	return fmt.Errorf("cannot parse data format '%s'", rr.Structure().Format.String())
 }

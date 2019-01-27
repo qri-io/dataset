@@ -3,7 +3,6 @@ package dataset
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/ipfs/go-datastore"
 	"io/ioutil"
 	"testing"
 )
@@ -31,8 +30,8 @@ func TestVizSetPath(t *testing.T) {
 		path   string
 		expect *Viz
 	}{
-		{"", &Viz{path: datastore.Key{}}},
-		{"path", &Viz{path: datastore.NewKey("path")}},
+		{"", &Viz{}},
+		{"path", &Viz{path: "path"}},
 	}
 
 	for i, c := range cases {
@@ -67,14 +66,14 @@ func TestVizAssign(t *testing.T) {
 		},
 			viz2, viz3, "ScriptPath: three != two"},
 		{&Viz{
-			path:       datastore.NewKey("foo"),
+			path:       "foo",
 			Format:     "foo",
 			Qri:        KindViz,
 			ScriptPath: "bat",
 		},
-			&Viz{path: datastore.NewKey("bar"), Format: "bar"},
+			&Viz{path: "bar", Format: "bar"},
 			&Viz{
-				path:       datastore.NewKey("foo"),
+				path:       "foo",
 				Format:     "bar",
 				Qri:        KindViz,
 				ScriptPath: "bat",
@@ -98,7 +97,7 @@ func TestVizIsEmpty(t *testing.T) {
 		{&Viz{Qri: KindViz}, true},
 		{&Viz{ScriptPath: "foo"}, false},
 		{&Viz{}, true},
-		{&Viz{path: datastore.NewKey("foo")}, true},
+		{&Viz{path: "foo"}, true},
 	}
 
 	for i, c := range cases {
@@ -151,7 +150,7 @@ func TestVizUnmarshalJSON(t *testing.T) {
 		return
 	}
 
-	if vc.path.String() != path {
+	if vc.path != path {
 		t.Errorf("unmarshal didn't set proper path: %s != %s", path, vc.path)
 		return
 	}
@@ -167,8 +166,8 @@ func TestVizMarshalJSON(t *testing.T) {
 		{&Viz{Qri: KindViz}, []byte(`{"qri":"vz:0"}`), ""},
 		{&Viz{Format: "foo", Qri: KindViz}, []byte(`{"format":"foo","qri":"vz:0"}`), ""},
 		{viz1, []byte(`{"format":"foo","qri":"vz:0","scriptPath":"one"}`), ""},
-		{&Viz{path: datastore.NewKey("/map/QmXo5LE3WVfKZKzTrrgtUUX3nMK4VREKTAoBu5WAGECz4U")}, []byte(`"/map/QmXo5LE3WVfKZKzTrrgtUUX3nMK4VREKTAoBu5WAGECz4U"`), ""},
-		{&Viz{path: datastore.NewKey("/map/QmUaMozKVkjPf7CVf3Zd8Cy5Ex1i9oUdhYhU8uTJph5iFD")}, []byte(`"/map/QmUaMozKVkjPf7CVf3Zd8Cy5Ex1i9oUdhYhU8uTJph5iFD"`), ""},
+		{&Viz{path: "/map/QmXo5LE3WVfKZKzTrrgtUUX3nMK4VREKTAoBu5WAGECz4U"}, []byte(`"/map/QmXo5LE3WVfKZKzTrrgtUUX3nMK4VREKTAoBu5WAGECz4U"`), ""},
+		{&Viz{path: "/map/QmUaMozKVkjPf7CVf3Zd8Cy5Ex1i9oUdhYhU8uTJph5iFD"}, []byte(`"/map/QmUaMozKVkjPf7CVf3Zd8Cy5Ex1i9oUdhYhU8uTJph5iFD"`), ""},
 	}
 
 	for i, c := range cases {
@@ -184,7 +183,7 @@ func TestVizMarshalJSON(t *testing.T) {
 		}
 	}
 
-	vcbytes, err := json.Marshal(&Viz{path: datastore.NewKey("/path/to/Viz")})
+	vcbytes, err := json.Marshal(&Viz{path: "/path/to/Viz"})
 	if err != nil {
 		t.Errorf("unexpected string marshal error: %s", err.Error())
 		return

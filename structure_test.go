@@ -9,9 +9,6 @@ import (
 
 	"github.com/qri-io/dataset/compression"
 	"github.com/qri-io/jsonschema"
-
-	"github.com/ipfs/go-datastore"
-	// "github.com/qri-io/dataset/datatypes"
 )
 
 func TestStrucureHash(t *testing.T) {
@@ -94,8 +91,8 @@ func TestStructureSetPath(t *testing.T) {
 		path   string
 		expect *Structure
 	}{
-		{"", &Structure{path: datastore.Key{}}},
-		{"path", &Structure{path: datastore.NewKey("path")}},
+		{"", &Structure{}},
+		{"path", &Structure{path: "path"}},
 	}
 
 	for i, c := range cases {
@@ -187,7 +184,7 @@ func TestStructureUnmarshalJSON(t *testing.T) {
 		return
 	}
 
-	if strq.path.String() != path {
+	if strq.path != path {
 		t.Errorf("unmarshal didn't set proper path: %s != %s", path, strq.path)
 		return
 	}
@@ -202,7 +199,7 @@ func TestStructureMarshalJSON(t *testing.T) {
 		{&Structure{Format: CSVDataFormat}, []byte(`{"errCount":0,"format":"csv","qri":"st:0"}`), nil},
 		{&Structure{Format: CSVDataFormat, Qri: KindStructure}, []byte(`{"errCount":0,"format":"csv","qri":"st:0"}`), nil},
 		{AirportCodesStructure, []byte(`{"errCount":5,"format":"csv","formatConfig":{"headerRow":true},"qri":"st:0","schema":{"items":{"items":[{"title":"ident","type":"string"},{"title":"type","type":"string"},{"title":"name","type":"string"},{"title":"latitude_deg","type":"string"},{"title":"longitude_deg","type":"string"},{"title":"elevation_ft","type":"string"},{"title":"continent","type":"string"},{"title":"iso_country","type":"string"},{"title":"iso_region","type":"string"},{"title":"municipality","type":"string"},{"title":"gps_code","type":"string"},{"title":"iata_code","type":"string"},{"title":"local_code","type":"string"}],"type":"array"},"type":"array"}}`), nil},
-		{&Structure{path: datastore.NewKey("/map/QmUaMozKVkjPf7CVf3Zd8Cy5Ex1i9oUdhYhU8uTJph5iFD")}, []byte(`"/map/QmUaMozKVkjPf7CVf3Zd8Cy5Ex1i9oUdhYhU8uTJph5iFD"`), nil},
+		{&Structure{path: "/map/QmUaMozKVkjPf7CVf3Zd8Cy5Ex1i9oUdhYhU8uTJph5iFD"}, []byte(`"/map/QmUaMozKVkjPf7CVf3Zd8Cy5Ex1i9oUdhYhU8uTJph5iFD"`), nil},
 	}
 
 	for i, c := range cases {
@@ -218,7 +215,7 @@ func TestStructureMarshalJSON(t *testing.T) {
 		}
 	}
 
-	strbytes, err := json.Marshal(&Structure{path: datastore.NewKey("/path/to/structure")})
+	strbytes, err := json.Marshal(&Structure{path: "/path/to/structure"})
 	if err != nil {
 		t.Errorf("unexpected string marshal error: %s", err.Error())
 		return
