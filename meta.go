@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"strings"
 	"time"
-
-	"github.com/ipfs/go-datastore"
 )
 
 // Meta contains human-readable descriptive metadata that qualifies and
@@ -18,7 +16,7 @@ import (
 // derived from existing metadata formats whenever possible
 type Meta struct {
 	// private storage for reference to this object
-	path datastore.Key
+	path string
 	// meta holds additional arbitrary metadata not covered by the spec when
 	// encoding & decoding json values here will be hoisted into the meta object
 	meta map[string]interface{}
@@ -83,13 +81,13 @@ func (md *Meta) IsEmpty() bool {
 }
 
 // Path gives the internal path reference for this dataset
-func (md *Meta) Path() datastore.Key {
+func (md *Meta) Path() string {
 	return md.path
 }
 
 // NewMetaRef creates a Meta pointer with the internal
 // path property specified, and no other fields.
-func NewMetaRef(path datastore.Key) *Meta {
+func NewMetaRef(path string) *Meta {
 	return &Meta{path: path}
 }
 
@@ -121,11 +119,7 @@ func UnmarshalMeta(v interface{}) (*Meta, error) {
 // SetPath sets the internal path property of a Meta
 // Use with caution. most users should never need to call SetPath
 func (md *Meta) SetPath(path string) {
-	if path == "" {
-		md.path = datastore.Key{}
-	} else {
-		md.path = datastore.NewKey(path)
-	}
+	md.path = path
 }
 
 // strVal confirms an interface is a string
@@ -248,7 +242,7 @@ func (md *Meta) Assign(metas ...*Meta) {
 			continue
 		}
 
-		if m.path.String() != "" {
+		if m.path != "" {
 			md.path = m.path
 		}
 		if m.Qri != "" {
@@ -310,8 +304,8 @@ func (md *Meta) Assign(metas ...*Meta) {
 func (md *Meta) MarshalJSON() ([]byte, error) {
 	// if we're dealing with an empty object that has a path specified
 	// marshal to a string instead
-	if md.path.String() != "" && md.IsEmpty() {
-		return md.path.MarshalJSON()
+	if md.path != "" && md.IsEmpty() {
+		return json.Marshal(md.path)
 	}
 
 	return md.MarshalJSONObject()
@@ -381,7 +375,7 @@ func (md *Meta) UnmarshalJSON(data []byte) error {
 	// first check to see if this is a valid path ref
 	var path string
 	if err := json.Unmarshal(data, &path); err == nil {
-		*md = Meta{path: datastore.NewKey(path)}
+		*md = Meta{path: path}
 		return nil
 	}
 

@@ -1,11 +1,10 @@
 package dsfs
 
 import (
-	"github.com/qri-io/dataset"
 	"testing"
 
-	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/cafs"
+	"github.com/qri-io/dataset"
 )
 
 func TestSaveCommit(t *testing.T) {
@@ -49,13 +48,13 @@ func TestLoadCommit(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 
-	_, err = LoadCommit(store, datastore.NewKey("/bad/path"))
+	_, err = LoadCommit(store, "/bad/path")
 	if err == nil {
 		t.Errorf("expected loading a bad path to error. got nil")
 		return
 	}
 
-	expect := "error loading commit file: datastore: key not found"
+	expect := "error loading commit file: cafs: path not found"
 	if err.Error() != expect {
 		t.Errorf("error mismatch. expected: '%s', got: '%s'", expect, err.Error())
 	}

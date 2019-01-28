@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
-
-	"github.com/ipfs/go-datastore"
 )
 
 // Commit encapsulates information about changes to a dataset in relation to
@@ -14,7 +12,7 @@ import (
 // the administrative metadata of a dataset, answering "who made this
 // dataset, when, and why"
 type Commit struct {
-	path datastore.Key
+	path string
 
 	// Author of this commit
 	Author *User `json:"author,omitempty"`
@@ -32,7 +30,7 @@ type Commit struct {
 
 // NewCommitRef creates an empty struct with it's
 // internal path set
-func NewCommitRef(path datastore.Key) *Commit {
+func NewCommitRef(path string) *Commit {
 	return &Commit{path: path}
 }
 
@@ -42,7 +40,7 @@ func (cm *Commit) IsEmpty() bool {
 }
 
 // Path returns the internal path of this commitMsg
-func (cm *Commit) Path() datastore.Key {
+func (cm *Commit) Path() string {
 	return cm.path
 }
 
@@ -50,9 +48,9 @@ func (cm *Commit) Path() datastore.Key {
 // Use with caution. most callers should never need to call SetPath
 func (cm *Commit) SetPath(path string) {
 	if path == "" {
-		cm.path = datastore.Key{}
+		cm.path = ""
 	} else {
-		cm.path = datastore.NewKey(path)
+		cm.path = path
 	}
 }
 
@@ -64,7 +62,7 @@ func (cm *Commit) Assign(msgs ...*Commit) {
 			continue
 		}
 
-		if m.path.String() != "" {
+		if m.path != "" {
 			cm.path = m.path
 		}
 		if m.Author != nil {
@@ -92,8 +90,8 @@ func (cm *Commit) Assign(msgs ...*Commit) {
 // Empty Commit instances with a non-empty path marshal to their path value
 // otherwise, Commit marshals to an object
 func (cm *Commit) MarshalJSON() ([]byte, error) {
-	if cm.path.String() != "" && cm.IsEmpty() {
-		return cm.path.MarshalJSON()
+	if cm.path != "" && cm.IsEmpty() {
+		return json.Marshal(cm.path)
 	}
 	return cm.MarshalJSONObject()
 }
@@ -125,7 +123,7 @@ func (cm *Commit) UnmarshalJSON(data []byte) error {
 	// first check to see if this is a valid path ref
 	var path string
 	if err := json.Unmarshal(data, &path); err == nil {
-		*cm = Commit{path: datastore.NewKey(path)}
+		*cm = Commit{path: path}
 		return nil
 	}
 
@@ -163,7 +161,7 @@ func (cm Commit) Encode() *CommitPod {
 	return &CommitPod{
 		Author:    cm.Author,
 		Message:   cm.Message,
-		Path:      cm.Path().String(),
+		Path:      cm.Path(),
 		Qri:       cm.Qri.String(),
 		Signature: cm.Signature,
 		Timestamp: cm.Timestamp,
@@ -174,7 +172,7 @@ func (cm Commit) Encode() *CommitPod {
 // Decode creates a Commit from a CommitPod instance
 func (cm *Commit) Decode(cc *CommitPod) error {
 	c := Commit{
-		path:      datastore.NewKey(cc.Path),
+		path:      cc.Path,
 		Author:    cc.Author,
 		Message:   cc.Message,
 		Signature: cc.Signature,

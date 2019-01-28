@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/dataset/compression"
 	"github.com/qri-io/jsonschema"
 )
@@ -30,7 +29,7 @@ var (
 // the datasets
 type Structure struct {
 	// private storage for reference to this object
-	path datastore.Key
+	path string
 
 	// Checksum is a bas58-encoded multihash checksum of the entire data
 	// file this structure points to. This is different from IPFS
@@ -66,13 +65,13 @@ type Structure struct {
 }
 
 // Path gives the internal path reference for this structure
-func (s *Structure) Path() datastore.Key {
+func (s *Structure) Path() string {
 	return s.path
 }
 
 // NewStructureRef creates an empty struct with it's
 // internal path set
-func NewStructureRef(path datastore.Key) *Structure {
+func NewStructureRef(path string) *Structure {
 	return &Structure{Qri: KindStructure, path: path}
 }
 
@@ -127,8 +126,8 @@ type _structure struct {
 
 // MarshalJSON satisfies the json.Marshaler interface
 func (s Structure) MarshalJSON() (data []byte, err error) {
-	if s.path.String() != "" && s.Encoding == "" && s.Schema == nil {
-		return s.path.MarshalJSON()
+	if s.path != "" && s.Encoding == "" && s.Schema == nil {
+		return json.Marshal(s.path)
 	}
 
 	return s.MarshalJSONObject()
@@ -168,7 +167,7 @@ func (s *Structure) UnmarshalJSON(data []byte) (err error) {
 		fmtCfg FormatConfig
 	)
 	if err := json.Unmarshal(data, &str); err == nil {
-		*s = Structure{path: datastore.NewKey(str)}
+		*s = Structure{path: str}
 		return nil
 	}
 
@@ -220,11 +219,7 @@ func (s *Structure) IsEmpty() bool {
 // SetPath sets the internal path property of a Structure
 // Use with caution. most callers should never need to call SetPath
 func (s *Structure) SetPath(path string) {
-	if path == "" {
-		s.path = datastore.Key{}
-	} else {
-		s.path = datastore.NewKey(path)
-	}
+	s.path = path
 }
 
 // Assign collapses all properties of a group of structures on to one
@@ -235,7 +230,7 @@ func (s *Structure) Assign(structures ...*Structure) {
 			continue
 		}
 
-		if st.path.String() != "" {
+		if st.path != "" {
 			s.path = st.path
 		}
 		if st.Checksum != "" {
@@ -358,7 +353,7 @@ func (s Structure) Encode() *StructurePod {
 		Entries:     s.Entries,
 		Format:      s.Format.String(),
 		Length:      s.Length,
-		Path:        s.Path().String(),
+		Path:        s.Path(),
 		Qri:         s.Qri.String(),
 		Schema:      sch,
 	}

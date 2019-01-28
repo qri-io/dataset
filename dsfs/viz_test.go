@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/ipfs/go-datastore"
 	crypto "github.com/libp2p/go-libp2p-crypto"
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
@@ -39,7 +38,7 @@ func TestLoadVizScript(t *testing.T) {
 		t.Fatalf("error unmarshaling private key: %s", err.Error())
 	}
 
-	_, err = LoadVizScript(store, datastore.NewKey(""))
+	_, err = LoadVizScript(store, "")
 	if err == nil {
 		t.Error("expected load empty key to fail")
 	}
@@ -66,7 +65,7 @@ func TestLoadVizScript(t *testing.T) {
 	if err != nil {
 		t.Fatal(err.Error())
 	}
-	tc.Input.Viz.ScriptPath = vizPath.String()
+	tc.Input.Viz.ScriptPath = vizPath
 	path, err = CreateDataset(store, tc.Input, nil, tc.BodyFile(), nil, privKey, true)
 	if err != nil {
 		t.Fatal(err.Error())

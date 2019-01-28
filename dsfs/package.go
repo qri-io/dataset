@@ -1,7 +1,6 @@
 package dsfs
 
 import (
-	"github.com/ipfs/go-datastore"
 	"path/filepath"
 	"strings"
 
@@ -82,6 +81,8 @@ func (p PackageFile) Filename() string {
 func PackageFilepath(store cafs.Filestore, path string, pf PackageFile) string {
 	switch store.PathPrefix() {
 	case "ipfs":
+		// TODO (b5): this convention should be generalized for other stores,
+		// may be a source of bugs, especially when working with mapstore
 		return filepath.Join("/ipfs", ipfsHashBase(path), pf.String())
 	default:
 		return path
@@ -93,9 +94,4 @@ func ipfsHashBase(in string) string {
 	in = strings.TrimLeft(in, "/")
 	in = strings.TrimPrefix(in, "ipfs/")
 	return strings.Split(in, "/")[0]
-}
-
-// PackageKeypath wraps PackageFilepath to work with datastore.Keys instead
-func PackageKeypath(store cafs.Filestore, path datastore.Key, pf PackageFile) datastore.Key {
-	return datastore.NewKey(PackageFilepath(store, path.String(), pf))
 }

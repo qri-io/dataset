@@ -29,7 +29,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ipfs/go-datastore"
 	logger "github.com/ipfs/go-log"
 )
 
@@ -48,7 +47,7 @@ var log = logger.Logger("dataset")
 // definitions or specifications
 type Dataset struct {
 	// private storage for reference to this object
-	path datastore.Key
+	path string
 
 	// Commit contains author & change message information that describes this
 	// version of a dataset
@@ -86,13 +85,13 @@ func (ds *Dataset) IsEmpty() bool {
 }
 
 // Path gives the internal path reference for this dataset
-func (ds *Dataset) Path() datastore.Key {
+func (ds *Dataset) Path() string {
 	return ds.path
 }
 
 // NewDatasetRef creates a Dataset pointer with the internal
 // path property specified, and no other fields.
-func NewDatasetRef(path datastore.Key) *Dataset {
+func NewDatasetRef(path string) *Dataset {
 	return &Dataset{path: path}
 }
 
@@ -111,11 +110,7 @@ func Abstract(ds *Dataset) *Dataset {
 // SetPath sets the internal path property of a dataset
 // Use with caution. most callers should never need to call SetPath
 func (ds *Dataset) SetPath(path string) {
-	if path == "" {
-		ds.path = datastore.Key{}
-	} else {
-		ds.path = datastore.NewKey(path)
-	}
+	ds.path = path
 }
 
 // SignableBytes produces the portion of a commit message used for signing
@@ -142,7 +137,7 @@ func (ds *Dataset) Assign(datasets ...*Dataset) {
 			continue
 		}
 
-		if d.path.String() != "" {
+		if d.path != "" {
 			ds.path = d.path
 		}
 		if ds.Structure == nil && d.Structure != nil {
@@ -187,8 +182,8 @@ func (ds *Dataset) Assign(datasets ...*Dataset) {
 func (ds *Dataset) MarshalJSON() ([]byte, error) {
 	// if we're dealing with an empty object that has a path specified, marshal to a string instead
 	// TODO - check all fields
-	if ds.path.String() != "" && ds.IsEmpty() {
-		return ds.path.MarshalJSON()
+	if ds.path != "" && ds.IsEmpty() {
+		return json.Marshal(ds.path)
 	}
 	if ds.Qri == "" {
 		ds.Qri = KindDataset
@@ -205,7 +200,7 @@ func (ds *Dataset) UnmarshalJSON(data []byte) error {
 	// first check to see if this is a valid path ref
 	var path string
 	if err := json.Unmarshal(data, &path); err == nil {
-		*ds = Dataset{path: datastore.NewKey(path)}
+		*ds = Dataset{path: path}
 		return nil
 	}
 
@@ -242,7 +237,7 @@ func (ds Dataset) Encode() *DatasetPod {
 	cd := &DatasetPod{
 		BodyPath:     ds.BodyPath,
 		Meta:         ds.Meta,
-		Path:         ds.Path().String(),
+		Path:         ds.Path(),
 		PreviousPath: ds.PreviousPath,
 		Qri:          ds.Qri.String(),
 		Viz:          ds.Viz,
@@ -264,7 +259,7 @@ func (ds Dataset) Encode() *DatasetPod {
 // Decode creates a Dataset from a DatasetPod instance
 func (ds *Dataset) Decode(cd *DatasetPod) error {
 	d := Dataset{
-		path:         datastore.NewKey(cd.Path),
+		path:         cd.Path,
 		BodyPath:     cd.BodyPath,
 		PreviousPath: cd.PreviousPath,
 		Meta:         cd.Meta,

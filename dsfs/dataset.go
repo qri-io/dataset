@@ -10,7 +10,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ipfs/go-datastore"
 	"github.com/libp2p/go-libp2p-crypto"
 	"github.com/multiformats/go-multihash"
 	"github.com/qri-io/cafs"
@@ -22,8 +21,8 @@ import (
 
 // LoadDataset reads a dataset from a cafs and dereferences structure, transform, and commitMsg if they exist,
 // returning a fully-hydrated dataset
-func LoadDataset(store cafs.Filestore, path datastore.Key) (*dataset.Dataset, error) {
-	path = PackageKeypath(store, path, PackageFileDataset)
+func LoadDataset(store cafs.Filestore, path string) (*dataset.Dataset, error) {
+	path = PackageFilepath(store, path, PackageFileDataset)
 	ds, err := LoadDatasetRefs(store, path)
 	if err != nil {
 		log.Debug(err.Error())
@@ -39,10 +38,10 @@ func LoadDataset(store cafs.Filestore, path datastore.Key) (*dataset.Dataset, er
 
 // LoadDatasetRefs reads a dataset from a content addressed filesystem without dereferencing
 // it's components
-func LoadDatasetRefs(store cafs.Filestore, path datastore.Key) (*dataset.Dataset, error) {
+func LoadDatasetRefs(store cafs.Filestore, path string) (*dataset.Dataset, error) {
 	ds := &dataset.Dataset{}
 
-	path = PackageKeypath(store, path, PackageFileDataset)
+	path = PackageFilepath(store, path, PackageFileDataset)
 	data, err := fileBytes(store.Get(path))
 	// if err != nil {
 	// 	return nil, fmt.Errorf("error getting file bytes: %s", err.Error())
@@ -91,7 +90,7 @@ func DerefDataset(store cafs.Filestore, ds *dataset.Dataset) error {
 // DerefDatasetStructure derferences a dataset's structure element if required
 // should be a no-op if ds.Structure is nil or isn't a reference
 func DerefDatasetStructure(store cafs.Filestore, ds *dataset.Dataset) error {
-	if ds.Structure != nil && ds.Structure.IsEmpty() && ds.Structure.Path().String() != "" {
+	if ds.Structure != nil && ds.Structure.IsEmpty() && ds.Structure.Path() != "" {
 		st, err := loadStructure(store, ds.Structure.Path())
 		if err != nil {
 			log.Debug(err.Error())
@@ -107,7 +106,7 @@ func DerefDatasetStructure(store cafs.Filestore, ds *dataset.Dataset) error {
 // DerefDatasetViz dereferences a dataset's Viz element if required
 // should be a no-op if ds.Viz is nil or isn't a reference
 func DerefDatasetViz(store cafs.Filestore, ds *dataset.Dataset) error {
-	if ds.Viz != nil && ds.Viz.IsEmpty() && ds.Viz.Path().String() != "" {
+	if ds.Viz != nil && ds.Viz.IsEmpty() && ds.Viz.Path() != "" {
 		st, err := loadViz(store, ds.Viz.Path())
 		if err != nil {
 			log.Debug(err.Error())
@@ -123,7 +122,7 @@ func DerefDatasetViz(store cafs.Filestore, ds *dataset.Dataset) error {
 // DerefDatasetTransform derferences a dataset's transform element if required
 // should be a no-op if ds.Structure is nil or isn't a reference
 func DerefDatasetTransform(store cafs.Filestore, ds *dataset.Dataset) error {
-	if ds.Transform != nil && ds.Transform.IsEmpty() && ds.Transform.Path().String() != "" {
+	if ds.Transform != nil && ds.Transform.IsEmpty() && ds.Transform.Path() != "" {
 		t, err := loadTransform(store, ds.Transform.Path())
 		if err != nil {
 			log.Debug(err.Error())
@@ -139,7 +138,7 @@ func DerefDatasetTransform(store cafs.Filestore, ds *dataset.Dataset) error {
 // DerefDatasetMeta derferences a dataset's transform element if required
 // should be a no-op if ds.Structure is nil or isn't a reference
 func DerefDatasetMeta(store cafs.Filestore, ds *dataset.Dataset) error {
-	if ds.Meta != nil && ds.Meta.IsEmpty() && ds.Meta.Path().String() != "" {
+	if ds.Meta != nil && ds.Meta.IsEmpty() && ds.Meta.Path() != "" {
 		md, err := loadMeta(store, ds.Meta.Path())
 		if err != nil {
 			log.Debug(err.Error())
@@ -155,7 +154,7 @@ func DerefDatasetMeta(store cafs.Filestore, ds *dataset.Dataset) error {
 // DerefDatasetCommit derferences a dataset's Commit element if required
 // should be a no-op if ds.Structure is nil or isn't a reference
 func DerefDatasetCommit(store cafs.Filestore, ds *dataset.Dataset) error {
-	if ds.Commit != nil && ds.Commit.IsEmpty() && ds.Commit.Path().String() != "" {
+	if ds.Commit != nil && ds.Commit.IsEmpty() && ds.Commit.Path() != "" {
 		cm, err := loadCommit(store, ds.Commit.Path())
 		if err != nil {
 			log.Debug(err.Error())
@@ -172,7 +171,7 @@ func DerefDatasetCommit(store cafs.Filestore, ds *dataset.Dataset) error {
 // Store is where we're going to
 // Dataset to be saved
 // Pin the dataset if the underlying store supports the pinning interface
-func CreateDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, bf, bfPrev cafs.File, pk crypto.PrivKey, pin bool) (path datastore.Key, err error) {
+func CreateDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, bf, bfPrev cafs.File, pk crypto.PrivKey, pin bool) (path string, err error) {
 	if pk == nil {
 		err = fmt.Errorf("private key is required to create a dataset")
 		return
@@ -460,7 +459,7 @@ func cleanTitleAndMessage(sTitle, sMsg *string, diffDescription string) {
 // during the write process. Directory structure is according to PackageFile naming conventions.
 // This method is currently exported, but 99% of use cases should use CreateDataset instead of this
 // lower-level function
-func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File, pin bool) (datastore.Key, error) {
+func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File, pin bool) (string, error) {
 
 	// assign to a new dataset instance to avoid clobbering input dataset
 	cp := &dataset.Dataset{}
@@ -468,20 +467,20 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File,
 	ds = cp
 
 	if ds.IsEmpty() {
-		return datastore.NewKey(""), fmt.Errorf("cannot save empty dataset")
+		return "", fmt.Errorf("cannot save empty dataset")
 	}
 
 	fileTasks := 0
 	addedDataset := false
 	adder, err := store.NewAdder(pin, true)
 	if err != nil {
-		return datastore.NewKey(""), fmt.Errorf("error creating new adder: %s", err.Error())
+		return "", fmt.Errorf("error creating new adder: %s", err.Error())
 	}
 
 	if ds.Meta != nil {
 		mdf, err := JSONFile(PackageFileMeta.String(), ds.Meta)
 		if err != nil {
-			return datastore.NewKey(""), fmt.Errorf("error marshaling metadata to json: %s", err.Error())
+			return "", fmt.Errorf("error marshaling metadata to json: %s", err.Error())
 		}
 		fileTasks++
 		adder.AddFile(mdf)
@@ -494,7 +493,7 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File,
 		// all resources must be references
 		for key, r := range ds.Transform.Resources {
 			if r.Path == "" {
-				return datastore.NewKey(""), fmt.Errorf("transform resource %s requires a path to save", key)
+				return "", fmt.Errorf("transform resource %s requires a path to save", key)
 			}
 		}
 
@@ -508,7 +507,7 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File,
 		} else {
 			tfdata, err := json.Marshal(ds.Transform)
 			if err != nil {
-				return datastore.NewKey(""), fmt.Errorf("error marshalling dataset transform to json: %s", err.Error())
+				return "", fmt.Errorf("error marshalling dataset transform to json: %s", err.Error())
 			}
 
 			fileTasks++
@@ -520,7 +519,7 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File,
 	if ds.Commit != nil {
 		cmf, err := JSONFile(PackageFileCommit.String(), ds.Commit)
 		if err != nil {
-			return datastore.NewKey(""), fmt.Errorf("error marshilng dataset commit message to json: %s", err.Error())
+			return "", fmt.Errorf("error marshilng dataset commit message to json: %s", err.Error())
 		}
 		fileTasks++
 		adder.AddFile(cmf)
@@ -529,7 +528,7 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File,
 	if ds.Structure != nil {
 		stf, err := JSONFile(PackageFileStructure.String(), ds.Structure)
 		if err != nil {
-			return datastore.NewKey(""), fmt.Errorf("error marshaling dataset structure to json: %s", err.Error())
+			return "", fmt.Errorf("error marshaling dataset structure to json: %s", err.Error())
 		}
 		fileTasks++
 		adder.AddFile(stf)
@@ -546,7 +545,7 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File,
 		} else {
 			vizdata, err := json.Marshal(ds.Viz)
 			if err != nil {
-				return datastore.NewKey(""), fmt.Errorf("error marshalling dataset viz to json: %s", err.Error())
+				return "", fmt.Errorf("error marshalling dataset viz to json: %s", err.Error())
 			}
 
 			fileTasks++
@@ -554,7 +553,7 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File,
 		}
 	}
 
-	var path datastore.Key
+	var path string
 	done := make(chan error, 0)
 	go func() {
 		for ao := range adder.Added() {
@@ -571,9 +570,9 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File,
 			case PackageFileViz.String():
 				ds.Viz = dataset.NewVizRef(ao.Path)
 			case dataFile.FileName():
-				ds.BodyPath = ao.Path.String()
+				ds.BodyPath = ao.Path
 			case transformScriptFilename:
-				ds.Transform.ScriptPath = ao.Path.String()
+				ds.Transform.ScriptPath = ao.Path
 				tfdata, err := json.Marshal(ds.Transform)
 				if err != nil {
 					done <- err
@@ -582,7 +581,7 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, dataFile cafs.File,
 				// Add the encoded transform file, decrementing the stray fileTasks from above
 				adder.AddFile(cafs.NewMemfileBytes(PackageFileTransform.String(), tfdata))
 			case vizScriptFilename:
-				ds.Viz.ScriptPath = ao.Path.String()
+				ds.Viz.ScriptPath = ao.Path
 				vizdata, err := json.Marshal(ds.Viz)
 				if err != nil {
 					done <- err

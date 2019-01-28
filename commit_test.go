@@ -5,17 +5,15 @@ import (
 	"encoding/json"
 	"testing"
 	"time"
-
-	"github.com/ipfs/go-datastore"
 )
 
 func TestCommit(t *testing.T) {
-	ref := NewCommitRef(datastore.NewKey("a"))
+	ref := NewCommitRef("a")
 	if !ref.IsEmpty() {
 		t.Errorf("expected reference to be empty")
 	}
 
-	if !ref.Path().Equal(datastore.NewKey("a")) {
+	if ref.path != "a" {
 		t.Errorf("expected ref path to equal /a")
 	}
 }
@@ -25,8 +23,8 @@ func TestCommitSetPath(t *testing.T) {
 		path   string
 		expect *Commit
 	}{
-		{"", &Commit{path: datastore.Key{}}},
-		{"path", &Commit{path: datastore.NewKey("path")}},
+		{"", &Commit{}},
+		{"path", &Commit{path: "path"}},
 	}
 
 	for i, c := range cases {
@@ -43,7 +41,7 @@ func TestCommitAssign(t *testing.T) {
 	t1 := time.Now()
 	doug := &User{ID: "doug_id", Email: "doug@example.com"}
 	expect := &Commit{
-		path:      datastore.NewKey("a"),
+		path:      "a",
 		Qri:       KindCommit,
 		Author:    doug,
 		Timestamp: t1,
@@ -62,7 +60,7 @@ func TestCommitAssign(t *testing.T) {
 		Qri:    KindCommit,
 		Title:  "expect title",
 	}, &Commit{
-		path:      datastore.NewKey("a"),
+		path:      "a",
 		Timestamp: t1,
 		Message:   "expect message",
 		Signature: "sig",
@@ -127,7 +125,7 @@ func TestCommitMarshalJSON(t *testing.T) {
 		}
 	}
 
-	strbytes, err := json.Marshal(&Commit{path: datastore.NewKey("/path/to/dataset")})
+	strbytes, err := json.Marshal(&Commit{path: "/path/to/dataset"})
 	if err != nil {
 		t.Errorf("unexpected string marshal error: %s", err.Error())
 		return
@@ -199,7 +197,7 @@ func TestCommitUnmarshalJSON(t *testing.T) {
 		return
 	}
 
-	if strq.path.String() != path {
+	if strq.path != path {
 		t.Errorf("unmarshal didn't set proper path: %s != %s", path, strq.path)
 		return
 	}
@@ -236,7 +234,7 @@ func TestCommitCoding(t *testing.T) {
 		{},
 		{Author: &User{Email: "foo"}},
 		{Message: "foo"},
-		{path: datastore.NewKey("/foo")},
+		{path: "/foo"},
 		{Qri: KindCommit},
 		{Signature: "foo"},
 		{Timestamp: time.Date(2001, 1, 1, 1, 1, 1, 1, time.UTC)},

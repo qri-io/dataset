@@ -4,15 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-
-	"github.com/ipfs/go-datastore"
 )
 
 // Viz stores configuration data related to representing a dataset as a
 // visualization
 type Viz struct {
 	// private storage for reference to this object
-	path datastore.Key
+	path string
 	// Qri should always be "vc:0"
 	Qri Kind
 	// Format designates the visualization configuration syntax. currently the
@@ -27,12 +25,12 @@ type Viz struct {
 }
 
 // Path gives the internal path reference for this structure
-func (v *Viz) Path() datastore.Key {
+func (v *Viz) Path() string {
 	return v.path
 }
 
 // NewVizRef creates an empty struct with it's internal path set
-func NewVizRef(path datastore.Key) *Viz {
+func NewVizRef(path string) *Viz {
 	return &Viz{path: path}
 }
 
@@ -44,11 +42,7 @@ func (v *Viz) IsEmpty() bool {
 // SetPath sets the internal path property of a Viz
 // Use with caution. most callers should never need to call SetPath
 func (v *Viz) SetPath(path string) {
-	if path == "" {
-		v.path = datastore.Key{}
-	} else {
-		v.path = datastore.NewKey(path)
-	}
+	v.path = path
 }
 
 // Assign collapses all properties of a group of structures on to one this is
@@ -59,7 +53,7 @@ func (v *Viz) Assign(visConfigs ...*Viz) {
 			continue
 		}
 
-		if vs.path.String() != "" {
+		if vs.path != "" {
 			v.path = vs.path
 		}
 		if vs.Qri != "" {
@@ -90,8 +84,8 @@ type vizPod struct {
 func (v *Viz) MarshalJSON() ([]byte, error) {
 	// if we're dealing with an empty object that has a path specified, marshal
 	// to a string instead
-	if v.path.String() != "" && v.IsEmpty() {
-		return v.path.MarshalJSON()
+	if v.path != "" && v.IsEmpty() {
+		return json.Marshal(v.path)
 	}
 	return v.MarshalJSONObject()
 }
@@ -100,7 +94,7 @@ func (v *Viz) MarshalJSON() ([]byte, error) {
 func (v *Viz) UnmarshalJSON(data []byte) error {
 	var s string
 	if err := json.Unmarshal(data, &s); err == nil {
-		*v = Viz{path: datastore.NewKey(s)}
+		*v = Viz{path: s}
 		return nil
 	}
 

@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ipfs/go-datastore"
 	"github.com/libp2p/go-libp2p-crypto"
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
@@ -63,26 +62,26 @@ func TestLoadDataset(t *testing.T) {
 		ds  *dataset.Dataset
 		err string
 	}{
-		{dataset.NewDatasetRef(datastore.NewKey("/bad/path")),
-			"error loading dataset: error getting file bytes: datastore: key not found"},
+		{dataset.NewDatasetRef("/bad/path"),
+			"error loading dataset: error getting file bytes: cafs: path not found"},
 		{&dataset.Dataset{
-			Meta: dataset.NewMetaRef(datastore.NewKey("/bad/path")),
-		}, "error loading dataset metadata: error loading metadata file: datastore: key not found"},
+			Meta: dataset.NewMetaRef("/bad/path"),
+		}, "error loading dataset metadata: error loading metadata file: cafs: path not found"},
 		{&dataset.Dataset{
-			Structure: dataset.NewStructureRef(datastore.NewKey("/bad/path")),
-		}, "error loading dataset structure: error loading structure file: datastore: key not found"},
+			Structure: dataset.NewStructureRef("/bad/path"),
+		}, "error loading dataset structure: error loading structure file: cafs: path not found"},
 		{&dataset.Dataset{
-			Structure: dataset.NewStructureRef(datastore.NewKey("/bad/path")),
-		}, "error loading dataset structure: error loading structure file: datastore: key not found"},
+			Structure: dataset.NewStructureRef("/bad/path"),
+		}, "error loading dataset structure: error loading structure file: cafs: path not found"},
 		{&dataset.Dataset{
-			Transform: dataset.NewTransformRef(datastore.NewKey("/bad/path")),
-		}, "error loading dataset transform: error loading transform raw data: datastore: key not found"},
+			Transform: dataset.NewTransformRef("/bad/path"),
+		}, "error loading dataset transform: error loading transform raw data: cafs: path not found"},
 		{&dataset.Dataset{
-			Commit: dataset.NewCommitRef(datastore.NewKey("/bad/path")),
-		}, "error loading dataset commit: error loading commit file: datastore: key not found"},
+			Commit: dataset.NewCommitRef("/bad/path"),
+		}, "error loading dataset commit: error loading commit file: cafs: path not found"},
 		{&dataset.Dataset{
-			Viz: dataset.NewVizRef(datastore.NewKey("/bad/path")),
-		}, "error loading dataset viz: error loading viz file: datastore: key not found"},
+			Viz: dataset.NewVizRef("/bad/path"),
+		}, "error loading dataset viz: error loading viz file: cafs: path not found"},
 	}
 
 	for i, c := range cases {
@@ -143,7 +142,7 @@ func TestCreateDataset(t *testing.T) {
 		err        string
 	}{
 		{"invalid_reference",
-			"", nil, 0, "error loading dataset commit: error loading commit file: datastore: key not found"},
+			"", nil, 0, "error loading dataset commit: error loading commit file: cafs: path not found"},
 		{"invalid",
 			"", nil, 0, "commit is required"},
 		{"cities",
@@ -156,7 +155,7 @@ func TestCreateDataset(t *testing.T) {
 			"/map/QmUAn7Fm8KF2uVDSoafXfEvJj6EErRF9WxiCQtNED2k8HE", nil, 20, ""},
 		// should error when previous dataset won't dereference.
 		{"craigslist",
-			"", &dataset.Dataset{Structure: dataset.NewStructureRef(datastore.NewKey("/bad/path"))}, 20, "error loading dataset structure: error loading structure file: datastore: key not found"},
+			"", &dataset.Dataset{Structure: dataset.NewStructureRef("/bad/path")}, 20, "error loading dataset structure: error loading structure file: cafs: path not found"},
 		// should error when previous dataset isn't valid. Aka, when it isn't empty, but missing
 		// either structure or commit. Commit is checked for first.
 		{"craigslist",
@@ -193,9 +192,8 @@ func TestCreateDataset(t *testing.T) {
 		}
 
 		if c.err == "" {
-			resultPath := datastore.NewKey(c.resultPath)
-			if !resultPath.Equal(path) {
-				t.Errorf("%s: result path mismatch: expected: '%s', got: '%s'", tc.Name, resultPath, path)
+			if c.resultPath != path {
+				t.Errorf("%s: result path mismatch: expected: '%s', got: '%s'", tc.Name, c.resultPath, path)
 			}
 
 			if len(store.Files) != c.repoFiles {
@@ -207,7 +205,7 @@ func TestCreateDataset(t *testing.T) {
 				continue
 			}
 
-			ds, err := LoadDataset(store, resultPath)
+			ds, err := LoadDataset(store, c.resultPath)
 			if err != nil {
 				t.Errorf("%s: error loading dataset: %s", tc.Name, err.Error())
 				continue
@@ -242,7 +240,7 @@ func TestCreateDataset(t *testing.T) {
 
 	// Case: no changes in dataset
 	expectedErr = "error saving: no changes detected"
-	dsPrev, err := LoadDataset(store, datastore.NewKey(cases[2].resultPath))
+	dsPrev, err := LoadDataset(store, cases[2].resultPath)
 	ds.PreviousPath = cases[2].resultPath
 	if err != nil {
 		t.Errorf("case no changes in dataset, error loading previous dataset file: %s", err.Error())

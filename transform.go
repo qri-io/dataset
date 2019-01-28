@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-
-	"github.com/ipfs/go-datastore"
 )
 
 // Transform is a record of executing a transformation on data.
@@ -17,7 +15,7 @@ import (
 // deterministicly execute the algorithm referenced in "ScriptPath".
 type Transform struct {
 	// private storage for reference to this object
-	path datastore.Key
+	path string
 
 	// Kind should always equal KindTransform
 	Qri Kind `json:"qri,omitempty"`
@@ -72,12 +70,12 @@ func (r *TransformResource) UnmarshalJSON(data []byte) error {
 
 // NewTransformRef creates a Transform pointer with the internal
 // path property specified, and no other fields.
-func NewTransformRef(path datastore.Key) *Transform {
+func NewTransformRef(path string) *Transform {
 	return &Transform{path: path}
 }
 
 // Path gives the internal path reference for this Transform
-func (q *Transform) Path() datastore.Key {
+func (q *Transform) Path() string {
 	return q.path
 }
 
@@ -94,11 +92,7 @@ func (q *Transform) IsEmpty() bool {
 // SetPath sets the internal path property of a Transform
 // Use with caution. most callers should never need to call SetPath
 func (q *Transform) SetPath(path string) {
-	if path == "" {
-		q.path = datastore.Key{}
-	} else {
-		q.path = datastore.NewKey(path)
-	}
+	q.path = path
 }
 
 // Assign collapses all properties of a group of queries onto one.
@@ -108,7 +102,7 @@ func (q *Transform) Assign(qs ...*Transform) {
 		if q2 == nil {
 			continue
 		}
-		if q2.Path().String() != "" {
+		if q2.Path() != "" {
 			q.path = q2.path
 		}
 		if q2.Syntax != "" {
@@ -163,8 +157,8 @@ type _transform struct {
 // MarshalJSON satisfies the json.Marshaler interface
 func (q Transform) MarshalJSON() ([]byte, error) {
 	// if we're dealing with an empty object that has a path specified, marshal to a string instead
-	if q.path.String() != "" && q.IsEmpty() {
-		return q.path.MarshalJSON()
+	if q.path != "" && q.IsEmpty() {
+		return json.Marshal(q.path)
 	}
 	return q.MarshalJSONObject()
 }
@@ -191,7 +185,7 @@ func (q Transform) MarshalJSONObject() ([]byte, error) {
 func (q *Transform) UnmarshalJSON(data []byte) error {
 	var s string
 	if err := json.Unmarshal(data, &s); err == nil {
-		*q = Transform{path: datastore.NewKey(s)}
+		*q = Transform{path: s}
 		return nil
 	}
 
@@ -237,7 +231,7 @@ func (q Transform) Encode() *TransformPod {
 		SyntaxVersion: q.SyntaxVersion,
 		Config:        q.Config,
 		ScriptPath:    q.ScriptPath,
-		Path:          q.Path().String(),
+		Path:          q.Path(),
 		Qri:           q.Qri.String(),
 		Syntax:        q.Syntax,
 	}
@@ -262,7 +256,7 @@ func (q *Transform) Decode(ct *TransformPod) error {
 		SyntaxVersion: ct.SyntaxVersion,
 		Config:        ct.Config,
 		ScriptPath:    ct.ScriptPath,
-		path:          datastore.NewKey(ct.Path),
+		path:          ct.Path,
 		Syntax:        ct.Syntax,
 	}
 

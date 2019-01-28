@@ -6,8 +6,6 @@ import (
 	"io/ioutil"
 	"testing"
 	"time"
-
-	"github.com/ipfs/go-datastore"
 )
 
 func TestMetaSetPath(t *testing.T) {
@@ -15,8 +13,8 @@ func TestMetaSetPath(t *testing.T) {
 		path   string
 		expect *Meta
 	}{
-		{"", &Meta{path: datastore.Key{}}},
-		{"path", &Meta{path: datastore.NewKey("path")}},
+		{"", &Meta{}},
+		{"path", &Meta{path: "path"}},
 	}
 
 	for i, c := range cases {
@@ -34,7 +32,7 @@ func TestMetaAssign(t *testing.T) {
 	cases := []struct {
 		in *Meta
 	}{
-		{&Meta{path: datastore.NewKey("/a")}},
+		{&Meta{path: "/a"}},
 		{&Meta{AccessURL: "foo"}},
 		{&Meta{DownloadURL: "foo"}},
 		{&Meta{ReadmeURL: "foo"}},
@@ -212,7 +210,7 @@ func TestMetaMarshalJSON(t *testing.T) {
 		return
 	}
 
-	strbytes, err := json.Marshal(&Meta{path: datastore.NewKey("/path/to/dataset")})
+	strbytes, err := json.Marshal(&Meta{path: "/path/to/dataset"})
 	if err != nil {
 		t.Errorf("unexpected string marshal error: %s", err.Error())
 		return
@@ -259,7 +257,7 @@ func TestMetaUnmarshalJSON(t *testing.T) {
 		return
 	}
 
-	if strds.path.String() != path {
+	if strds.path != path {
 		t.Errorf("unmarshal didn't set proper path: %s != %s", path, strds.path)
 		return
 	}

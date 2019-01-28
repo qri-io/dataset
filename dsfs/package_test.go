@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/cafs"
 	ipfsfs "github.com/qri-io/cafs/ipfs"
 )
@@ -43,15 +42,6 @@ func TestPackageFilepath(t *testing.T) {
 			t.Errorf("case %d result mismatch. expected: '%s', got: '%s'", i, c.path, c.pf)
 			continue
 		}
-	}
-}
-
-func TestPackageKeyPath(t *testing.T) {
-	mem := cafs.NewMapstore()
-	p := datastore.NewKey("/mem/foo")
-	got := PackageKeypath(mem, p, PackageFileDataset)
-	if !got.Equal(p) {
-		t.Errorf("key mismatch. expected: %s, got %s", p, got)
 	}
 }
 

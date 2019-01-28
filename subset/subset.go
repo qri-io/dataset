@@ -19,7 +19,6 @@
 package subset
 
 import (
-	"github.com/ipfs/go-datastore"
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsfs"
@@ -28,7 +27,7 @@ import (
 // LoadPreview loads a dataset preview for a given hash path
 func LoadPreview(s cafs.Filestore, path string) (*dataset.DatasetPod, error) {
 	// TODO - this is overfetching. Refine.
-	ds, err := dsfs.LoadDataset(s, datastore.NewKey(path))
+	ds, err := dsfs.LoadDataset(s, path)
 	if err != nil {
 		return nil, err
 	}

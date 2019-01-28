@@ -79,7 +79,7 @@ func TestNewCSVOptions(t *testing.T) {
 			}
 
 			if csvo.HeaderRow != c.res.HeaderRow {
-				fmt.Errorf("case %d HeaderRow expected: %t, got: %t", i, csvo.HeaderRow, c.res.HeaderRow)
+				t.Errorf("case %d HeaderRow expected: %t, got: %t", i, csvo.HeaderRow, c.res.HeaderRow)
 				continue
 			}
 		}
