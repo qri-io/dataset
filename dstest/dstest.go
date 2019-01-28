@@ -57,9 +57,9 @@ type TestCase struct {
 	Expect *dataset.Dataset
 }
 
-// DatasetPodChecksum generates a fast, insecure hash of an encoded dataset,
+// DatasetChecksum generates a fast, insecure hash of an encoded dataset,
 // useful for checking that expected dataset values haven't changed
-func DatasetPodChecksum(ds *dataset.DatasetPod) string {
+func DatasetChecksum(ds *dataset.Dataset) string {
 	buf := &bytes.Buffer{}
 	h := &codec.CborHandle{}
 	h.Canonical = true

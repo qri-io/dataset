@@ -40,7 +40,7 @@ func FromFile(path string) (st *dataset.Structure, err error) {
 // structure, the number of bytes read from the reader, and any error
 func FromReader(format dataset.DataFormat, data io.Reader) (st *dataset.Structure, n int, err error) {
 	st = &dataset.Structure{
-		Format: format,
+		Format: format.String(),
 	}
 	st.Schema, n, err = Schema(st, data)
 	return

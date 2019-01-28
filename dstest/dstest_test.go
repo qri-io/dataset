@@ -9,9 +9,9 @@ import (
 	"github.com/qri-io/dataset"
 )
 
-func TestDatasetPodChecksum(t *testing.T) {
+func TestDatasetChecksum(t *testing.T) {
 	expect := "a909a887caab333296f92c25e308e66c14d33480"
-	sum := DatasetPodChecksum(&dataset.DatasetPod{})
+	sum := DatasetChecksum(&dataset.Dataset{})
 	if sum != expect {
 		t.Errorf("empty pod hash mismatch. expected: %s, got: %s", expect, sum)
 	}

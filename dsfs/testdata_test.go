@@ -8,7 +8,6 @@ import (
 
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
-	"github.com/qri-io/jsonschema"
 )
 
 var AirportCodes = &dataset.Dataset{
@@ -31,68 +30,68 @@ var AirportCodes = &dataset.Dataset{
 }
 
 var AirportCodesCommit = &dataset.Commit{
-	Qri:     dataset.KindCommit,
+	Qri:     dataset.KindCommit.String(),
 	Message: "initial commit",
 }
 
 var AirportCodesStructure = &dataset.Structure{
-	Format: dataset.CSVDataFormat,
-	FormatConfig: &dataset.CSVOptions{
-		HeaderRow: true,
+	Format: "csv",
+	FormatConfig: map[string]interface{}{
+		"headerRow": true,
 	},
-	Schema: jsonschema.Must(`{
+	Schema: map[string]interface{}{
 		"type": "array",
-		"items": {
-			"type" : "array",
-			"items" : [
-				{"title": "ident", "type": "string" },
-				{"title": "type", "type": "string" },
-				{"title": "name", "type": "string" },
-				{"title": "latitude_deg", "type": "number" },
-				{"title": "longitude_deg", "type": "number" },
-				{"title": "elevation_ft", "type": "integer" },
-				{"title": "continent", "type": "string" },
-				{"title": "iso_country", "type": "string" },
-				{"title": "iso_region", "type": "string" },
-				{"title": "municipality", "type": "string" },
-				{"title": "gps_code", "type": "string" },
-				{"title": "iata_code", "type": "string" },
-				{"title": "local_code", "type": "string" }
-			]
-		}
-	}`),
+		"items": map[string]interface{}{
+			"type": "array",
+			"items": []interface{}{
+				map[string]interface{}{"title": "ident", "type": "string"},
+				map[string]interface{}{"title": "type", "type": "string"},
+				map[string]interface{}{"title": "name", "type": "string"},
+				map[string]interface{}{"title": "latitude_deg", "type": "number"},
+				map[string]interface{}{"title": "longitude_deg", "type": "number"},
+				map[string]interface{}{"title": "elevation_ft", "type": "integer"},
+				map[string]interface{}{"title": "continent", "type": "string"},
+				map[string]interface{}{"title": "iso_country", "type": "string"},
+				map[string]interface{}{"title": "iso_region", "type": "string"},
+				map[string]interface{}{"title": "municipality", "type": "string"},
+				map[string]interface{}{"title": "gps_code", "type": "string"},
+				map[string]interface{}{"title": "iata_code", "type": "string"},
+				map[string]interface{}{"title": "local_code", "type": "string"},
+			},
+		},
+	},
 }
 
 var AirportCodesStructureAgebraic = &dataset.Structure{
-	Format:       dataset.CSVDataFormat,
-	FormatConfig: &dataset.CSVOptions{HeaderRow: true},
-	Schema: jsonschema.Must(`{
+	Format:       "csv",
+	FormatConfig: map[string]interface{}{"headerRow": true},
+	Schema: map[string]interface{}{
 		"type": "array",
-		"items": {
+		"items": map[string]interface{}{
 			"type": "array",
-			"items": [
-				{"title": "col_0", "type": "string" },
-				{"title": "col_1", "type": "string" },
-				{"title": "col_2", "type": "string" },
-				{"title": "col_3", "type": "number" },
-				{"title": "col_4", "type": "number" },
-				{"title": "col_5", "type": "integer" },
-				{"title": "col_6", "type": "string" },
-				{"title": "col_7", "type": "string" },
-				{"title": "col_8", "type": "string" },
-				{"title": "col_9", "type": "string" },
-				{"title": "col_10", "type": "string" },
-				{"title": "col_11", "type": "string" },
-				{"title": "col_12", "type": "string" }
-			]
-		}
-		}`),
+			"items": []interface{}{
+				map[string]interface{}{"title": "col_0", "type": "string"},
+				map[string]interface{}{"title": "col_1", "type": "string"},
+				map[string]interface{}{"title": "col_2", "type": "string"},
+				map[string]interface{}{"title": "col_3", "type": "number"},
+				map[string]interface{}{"title": "col_4", "type": "number"},
+				map[string]interface{}{"title": "col_5", "type": "integer"},
+				map[string]interface{}{"title": "col_6", "type": "string"},
+				map[string]interface{}{"title": "col_7", "type": "string"},
+				map[string]interface{}{"title": "col_8", "type": "string"},
+				map[string]interface{}{"title": "col_9", "type": "string"},
+				map[string]interface{}{"title": "col_10", "type": "string"},
+				map[string]interface{}{"title": "col_11", "type": "string"},
+				map[string]interface{}{"title": "col_12", "type": "string"},
+			},
+		},
+	},
 }
 
 var ContinentCodes = &dataset.Dataset{
-	Qri: dataset.KindDataset,
+	Qri: dataset.KindDataset.String(),
 	Meta: &dataset.Meta{
-		Qri:         dataset.KindMeta,
+		Qri:         dataset.KindMeta.String(),
 		Title:       "Continent Codes",
 		Description: "list of continents with corresponding two letter codes",
 		License: &dataset.License{
@@ -109,17 +108,17 @@ var ContinentCodes = &dataset.Dataset{
 }
 
 var ContinentCodesStructure = &dataset.Structure{
-	Format: dataset.CSVDataFormat,
-	Schema: jsonschema.Must(`{
+	Format: "csv",
+	Schema: map[string]interface{}{
 		"type": "array",
-		"items" : {
+		"items": map[string]interface{}{
 			"type": "array",
-			"items" : [
-				{"title": "code", "type": "string"},
-				{"title": "name", "type": "string"}
-			]
-		} 
-	}`),
+			"items": []interface{}{
+				map[string]interface{}{"title": "code", "type": "string"},
+				map[string]interface{}{"title": "name", "type": "string"},
+			},
+		},
+	},
 }
 
 var Hours = &dataset.Dataset{
@@ -130,19 +129,19 @@ var Hours = &dataset.Dataset{
 }
 
 var HoursStructure = &dataset.Structure{
-	Format: dataset.CSVDataFormat,
-	Schema: jsonschema.Must(`{
-		"type":"array",
-		"items": {
+	Format: "csv",
+	Schema: map[string]interface{}{
+		"type": "array",
+		"items": map[string]interface{}{
 			"type": "array",
-			"items": [
-				{"title": "field_1", "type": "string" },
-				{"title": "field_2", "type": "number" },
-				{"title": "field_3", "type": "string" },
-				{"title": "field_4", "type": "string" }
-			]
-		}
-	}`),
+			"items": []interface{}{
+				map[string]interface{}{"title": "field_1", "type": "string"},
+				map[string]interface{}{"title": "field_2", "type": "number"},
+				map[string]interface{}{"title": "field_3", "type": "string"},
+				map[string]interface{}{"title": "field_4", "type": "string"},
+			},
+		},
+	},
 }
 
 func makeFilestore() (map[string]string, cafs.Filestore, error) {
@@ -164,7 +163,7 @@ func makeFilestore() (map[string]string, cafs.Filestore, error) {
 			return datasets, nil, err
 		}
 
-		dataPath := fmt.Sprintf("testdata/%s/body.%s", k, ds.Structure.Format.String())
+		dataPath := fmt.Sprintf("testdata/%s/body.%s", k, ds.Structure.Format)
 		data, err := ioutil.ReadFile(dataPath)
 		if err != nil {
 			return datasets, nil, err

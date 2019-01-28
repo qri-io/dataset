@@ -29,16 +29,8 @@ func SaveTransform(store cafs.Filestore, q *dataset.Transform, pin bool) (path s
 	// copy transform
 	save := &dataset.Transform{}
 	save.Assign(q)
-	save.Qri = dataset.KindTransform
-
-	if q.Structure != nil && !q.Structure.IsEmpty() {
-		path, err := SaveStructure(store, q.Structure, pin)
-		if err != nil {
-			log.Debug(err.Error())
-			return "", err
-		}
-		save.Structure = dataset.NewStructureRef(path)
-	}
+	save.Qri = dataset.KindTransform.String()
+	save.DropTransientValues()
 
 	tf, err := JSONFile(PackageFileTransform.String(), save)
 	if err != nil {

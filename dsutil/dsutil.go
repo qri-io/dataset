@@ -43,7 +43,7 @@ func WriteDir(store cafs.Filestore, ds *dataset.Dataset, path string) error {
 		return err
 	}
 
-	datadst, err := os.Create(filepath.Join(path, fmt.Sprintf("data.%s", ds.Structure.Format.String())))
+	datadst, err := os.Create(filepath.Join(path, fmt.Sprintf("data.%s", ds.Structure.Format)))
 	if err != nil {
 		log.Debug(err.Error())
 		return err

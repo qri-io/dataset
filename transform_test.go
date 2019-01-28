@@ -6,6 +6,14 @@ import (
 	"testing"
 )
 
+func TestTransformDropTransientValues(t *testing.T) {
+	t.Log("TODO (b5)")
+}
+
+func TestTransformScript(t *testing.T) {
+	t.Log("TODO (b5)")
+}
+
 func TestTransformAssign(t *testing.T) {
 	expect := &Transform{
 		Path:          "path",
@@ -64,7 +72,6 @@ func TestTransformUnmarshalJSON(t *testing.T) {
 		err       string
 	}{
 		{`{}`, &Transform{}, ""},
-		{`{ "structure" : "/path/to/structure" }`, &Transform{Structure: &Structure{Path: "/path/to/structure"}}, ""},
 		{`{"resources":{"foo": "/not/a/real/path"}}`, &Transform{Resources: map[string]*TransformResource{"foo": &TransformResource{Path: "/not/a/real/path"}}}, ""},
 		{`{"resources":{"foo": { "path":     "/not/a/real/path"`, &Transform{}, "unexpected end of JSON input"},
 		{`{"resources":{"foo": { "path":"/not/a/real/path"}}}`, &Transform{Resources: map[string]*TransformResource{"foo": &TransformResource{Path: "/not/a/real/path"}}}, ""},
@@ -167,8 +174,6 @@ func TestTransformIsEmpty(t *testing.T) {
 		{&Transform{Syntax: "foo"}, false},
 		{&Transform{SyntaxVersion: "0"}, false},
 		{&Transform{ScriptPath: "foo"}, false},
-		{&Transform{Structure: nil}, true},
-		{&Transform{Structure: &Structure{}}, false},
 		{&Transform{Config: nil}, true},
 		{&Transform{Config: map[string]interface{}{}}, false},
 		{&Transform{Resources: nil}, true},

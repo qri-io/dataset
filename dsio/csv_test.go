@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/qri-io/dataset"
-	"github.com/qri-io/jsonschema"
 )
 
 const csvData = `col_a,col_b,col_c,col_d,col_3,col_f,col_g
@@ -17,46 +16,46 @@ a,1.23,4,false,"{""a"":""b""}","[1,2,3]",null
 a,1.23,4,false,"{""a"":""b""}","[1,2,3]",null`
 
 var csvStruct = &dataset.Structure{
-	Format: dataset.CSVDataFormat,
-	FormatConfig: &dataset.CSVOptions{
-		HeaderRow: true,
+	Format: "csv",
+	FormatConfig: map[string]interface{}{
+		"headerRow": true,
 	},
-	Schema: jsonschema.Must(`{
+	Schema: map[string]interface{}{
 		"type": "array",
-		"items": {
-			"type":"array",
-			"items": [
-				{"title":"col_a","type":"string"},
-				{"title":"col_b","type":"number"},
-				{"title":"col_c","type":"integer"},
-				{"title":"col_d","type":"boolean"},
-				{"title":"col_e","type":"object"},
-				{"title":"col_f","type":"array"},
-				{"title":"col_g","type":"null"}
-			]
-		}
-	}`),
+		"items": map[string]interface{}{
+			"type": "array",
+			"items": []interface{}{
+				map[string]interface{}{"title": "col_a", "type": "string"},
+				map[string]interface{}{"title": "col_b", "type": "number"},
+				map[string]interface{}{"title": "col_c", "type": "integer"},
+				map[string]interface{}{"title": "col_d", "type": "boolean"},
+				map[string]interface{}{"title": "col_e", "type": "object"},
+				map[string]interface{}{"title": "col_f", "type": "array"},
+				map[string]interface{}{"title": "col_g", "type": "null"},
+			},
+		},
+	},
 }
 
 var tsvStruct = &dataset.Structure{
-	Format: dataset.CSVDataFormat,
-	FormatConfig: &dataset.CSVOptions{
-		HeaderRow:      true,
-		Separator:      '\t',
-		LazyQuotes:     true,
-		VariadicFields: true,
+	Format: "csv",
+	FormatConfig: map[string]interface{}{
+		"headerRow":      true,
+		"separator":      "\t",
+		"lazyQuotes":     true,
+		"variadicFields": true,
 	},
-	Schema: jsonschema.Must(`{
-		"type":"array",
-		"items": {
-			"type":"array",
-			"items": [
-				{"title": "a", "type": "number"},
-				{"title": "a", "type": "number"},
-				{"title": "a", "type": "number"}
-			]
-		}
-	}`),
+	Schema: map[string]interface{}{
+		"type": "array",
+		"items": map[string]interface{}{
+			"type": "array",
+			"items": []interface{}{
+				map[string]interface{}{"title": "a", "type": "number"},
+				map[string]interface{}{"title": "a", "type": "number"},
+				map[string]interface{}{"title": "a", "type": "number"},
+			},
+		},
+	},
 }
 
 func TestCSVReader(t *testing.T) {
@@ -99,21 +98,21 @@ func TestCSVReaderLazyQuotes(t *testing.T) {
 2,"HYDROCHLORIC ACID (1995 AND AFTER "ACID AEROSOLS" ONLY)"`
 
 	st := &dataset.Structure{
-		Format: dataset.CSVDataFormat,
-		FormatConfig: &dataset.CSVOptions{
-			HeaderRow:  true,
-			LazyQuotes: true,
+		Format: "csv",
+		FormatConfig: map[string]interface{}{
+			"headerRow":  true,
+			"lazyQuotes": true,
 		},
-		Schema: jsonschema.Must(`{
-			"type":"array",
-			"items":{
-				"type":"array",
-				"items": [
-					{"type":"number"},
-					{"type":"string"}
-				]
-			}
-		}`),
+		Schema: map[string]interface{}{
+			"type": "array",
+			"items": map[string]interface{}{
+				"type": "array",
+				"items": []interface{}{
+					map[string]interface{}{"type": "number"},
+					map[string]interface{}{"type": "string"},
+				},
+			},
+		},
 	}
 
 	rdr, err := NewEntryReader(st, bytes.NewBuffer([]byte(data)))
@@ -242,7 +241,7 @@ a	12	23	"[""foo"",""bar""]"`
 }
 func BenchmarkCSVWriterArrays(b *testing.B) {
 	const NumWrites = 1000
-	st := &dataset.Structure{Format: dataset.CSVDataFormat, Schema: dataset.BaseSchemaObject}
+	st := &dataset.Structure{Format: "csv", Schema: dataset.BaseSchemaObject}
 
 	for n := 0; n < b.N; n++ {
 		buf := &bytes.Buffer{}
@@ -257,7 +256,7 @@ func BenchmarkCSVWriterArrays(b *testing.B) {
 
 func BenchmarkCSVWriterObjects(b *testing.B) {
 	const NumWrites = 1000
-	st := &dataset.Structure{Format: dataset.CSVDataFormat, Schema: dataset.BaseSchemaObject}
+	st := &dataset.Structure{Format: "csv", Schema: dataset.BaseSchemaObject}
 
 	for n := 0; n < b.N; n++ {
 		buf := &bytes.Buffer{}
@@ -271,7 +270,7 @@ func BenchmarkCSVWriterObjects(b *testing.B) {
 }
 
 func BenchmarkCSVReader(b *testing.B) {
-	st := &dataset.Structure{Format: dataset.CSVDataFormat, Schema: dataset.BaseSchemaArray}
+	st := &dataset.Structure{Format: "csv", Schema: dataset.BaseSchemaArray}
 
 	for n := 0; n < b.N; n++ {
 		file, err := os.Open(testdataFile("../dsio/testdata/movies/body.csv"))

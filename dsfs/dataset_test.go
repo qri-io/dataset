@@ -85,7 +85,7 @@ func TestLoadDataset(t *testing.T) {
 	}
 
 	for i, c := range cases {
-		path := c.ds.Path()
+		path := c.ds.Path
 		if !c.ds.IsEmpty() {
 			dsf, err := JSONFile(PackageFileDataset.String(), c.ds)
 			if err != nil {
@@ -146,13 +146,13 @@ func TestCreateDataset(t *testing.T) {
 		{"invalid",
 			"", nil, 0, "commit is required"},
 		{"cities",
-			"/map/QmPm1VvN3PjZLuA12NSEUTwCft8JruHPwcL2zmKf4SGnWd", nil, 6, ""},
+			"/map/QmYDVHBmGHWV7h8iCU9H6BrYoXXnm8pCFhhJzZw5jJitoq", nil, 6, ""},
 		{"all_fields",
-			"/map/QmYHRKiQ52CETCBrMZR2c9hh1Je7292YBeD9gjQyWwEhtE", nil, 14, ""},
+			"/map/Qmd68bR6duBY2V5qWyCHbQxJCNdBpp6nNQE1xXvg64FkTw", nil, 14, ""},
 		{"cities_no_commit_title",
-			"/map/QmX3JQrS5oZ8SdkJQRMhmV4qRD2tBMwcwktoECbmK4BpfH", nil, 16, ""},
+			"/map/QmXuq1NExBmfQ9Fw6TFwTcq8G1QJHbbEPWPykX7D3E14Fa", nil, 16, ""},
 		{"craigslist",
-			"/map/QmUAn7Fm8KF2uVDSoafXfEvJj6EErRF9WxiCQtNED2k8HE", nil, 20, ""},
+			"/map/QmVxYECmX3URNr1pZkWbBGYe61kKGo7biEadYKuKLNw1zz", nil, 20, ""},
 		// should error when previous dataset won't dereference.
 		{"craigslist",
 			"", &dataset.Dataset{Structure: dataset.NewStructureRef("/bad/path")}, 20, "error loading dataset structure: error loading structure file: cafs: path not found"},
@@ -174,7 +174,9 @@ func TestCreateDataset(t *testing.T) {
 			if tc.Input.Transform == nil {
 				tc.Input.Transform = &dataset.Transform{}
 			}
-			tc.Input.Transform.Script = ts
+			if data, err := ioutil.ReadAll(ts); err == nil {
+				tc.Input.Transform.ScriptBytes = data
+			}
 		}
 
 		// TODO - this should probs be auto-populated by dstest package
@@ -182,40 +184,47 @@ func TestCreateDataset(t *testing.T) {
 			if tc.Input.Viz == nil {
 				tc.Input.Viz = &dataset.Viz{}
 			}
-			tc.Input.Viz.Script = vs
+			if data, err := ioutil.ReadAll(vs); err == nil {
+				tc.Input.Viz.ScriptBytes = data
+			}
 		}
 
 		path, err := CreateDataset(store, tc.Input, c.prev, tc.BodyFile(), nil, privKey, false)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("%s: error mismatch. expected: '%s', got: '%s'", tc.Name, c.err, err)
 			continue
+		} else if c.err != "" {
+			continue
 		}
 
-		if c.err == "" {
-			if c.resultPath != path {
-				t.Errorf("%s: result path mismatch: expected: '%s', got: '%s'", tc.Name, c.resultPath, path)
-			}
+		ds, err := LoadDataset(store, path)
+		if err != nil {
+			t.Errorf("%s: error loading dataset: %s", tc.Name, err.Error())
+			continue
+		}
+		ds.Path = ""
 
-			if len(store.Files) != c.repoFiles {
-				t.Errorf("%s: invalid number of mapstore entries: %d != %d", tc.Name, c.repoFiles, len(store.Files))
-				_, err := store.Print()
-				if err != nil {
-					panic(err)
-				}
-				continue
+		if tc.Expect != nil {
+			if err := dataset.CompareDatasets(tc.Expect, ds); err != nil {
+				// expb, _ := json.Marshal(tc.Expect)
+				// fmt.Println(string(expb))
+				// dsb, _ := json.Marshal(ds)
+				// fmt.Println(string(dsb))
+				t.Errorf("%s: dataset comparison error: %s", tc.Name, err.Error())
 			}
+		}
 
-			ds, err := LoadDataset(store, c.resultPath)
+		if c.resultPath != path {
+			t.Errorf("%s: result path mismatch: expected: '%s', got: '%s'", tc.Name, c.resultPath, path)
+		}
+
+		if len(store.Files) != c.repoFiles {
+			t.Errorf("%s: invalid number of mapstore entries: %d != %d", tc.Name, c.repoFiles, len(store.Files))
+			_, err := store.Print()
 			if err != nil {
-				t.Errorf("%s: error loading dataset: %s", tc.Name, err.Error())
-				continue
+				panic(err)
 			}
-
-			if tc.Expect != nil {
-				if err := dataset.CompareDatasets(tc.Expect, ds); err != nil {
-					t.Errorf("%s: dataset comparison error: %s", tc.Name, err.Error())
-				}
-			}
+			continue
 		}
 	}
 
@@ -329,11 +338,11 @@ func TestWriteDataset(t *testing.T) {
 		// total count expected of files in repo after test execution
 		if len(store.Files) != c.repoFiles {
 			t.Errorf("case expected %d invalid number of entries: %d != %d", i, c.repoFiles, len(store.Files))
-			str, err := store.Print()
-			if err != nil {
-				panic(err)
-			}
-			t.Log(str)
+			// str, err := store.Print()
+			// if err != nil {
+			// 	panic(err)
+			// }
+			// t.Log(str)
 			continue
 		}
 
@@ -353,26 +362,26 @@ func TestWriteDataset(t *testing.T) {
 			if !ref.Transform.IsEmpty() {
 				t.Errorf("expected stored dataset.Transform to be a reference")
 			}
-			ds.Transform.Assign(dataset.NewTransformRef(ref.Transform.Path()))
+			ds.Transform.Assign(dataset.NewTransformRef(ref.Transform.Path))
 		}
 		if ref.Meta != nil {
 			if !ref.Meta.IsEmpty() {
 				t.Errorf("expected stored dataset.Meta to be a reference")
 			}
 			// Abstract transforms aren't loaded
-			ds.Meta.Assign(dataset.NewMetaRef(ref.Meta.Path()))
+			ds.Meta.Assign(dataset.NewMetaRef(ref.Meta.Path))
 		}
 		if ref.Structure != nil {
 			if !ref.Structure.IsEmpty() {
 				t.Errorf("expected stored dataset.Structure to be a reference")
 			}
-			ds.Structure.Assign(dataset.NewStructureRef(ref.Structure.Path()))
+			ds.Structure.Assign(dataset.NewStructureRef(ref.Structure.Path))
 		}
 		if ref.Viz != nil {
 			if !ref.Viz.IsEmpty() {
 				t.Errorf("expected stored dataset.Viz to be a reference")
 			}
-			ds.Viz.Assign(dataset.NewVizRef(ref.Viz.Path()))
+			ds.Viz.Assign(dataset.NewVizRef(ref.Viz.Path))
 		}
 		ds.BodyPath = ref.BodyPath
 

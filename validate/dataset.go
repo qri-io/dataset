@@ -64,9 +64,10 @@ func Structure(s *dataset.Structure) error {
 		return nil
 	}
 
-	if s.Format == dataset.UnknownDataFormat {
+	df := s.DataFormat()
+	if df == dataset.UnknownDataFormat {
 		return fmt.Errorf("format is required")
-	} else if s.Format == dataset.CSVDataFormat {
+	} else if df == dataset.CSVDataFormat {
 		if s.Schema == nil {
 			return fmt.Errorf("csv data format requires a schema")
 		}
@@ -115,10 +116,12 @@ var csvMetaSchema = jsonschema.Must(`{
 
 // Schema checks that a dataset schema is valid for use
 // returning the first error encountered, nil if valid
-func Schema(sch *jsonschema.RootSchema) error {
+func Schema(sch map[string]interface{}) error {
 	if sch == nil {
 		return fmt.Errorf("schema is required")
 	}
+
+	// TODO (b5): Um, like, finish this
 
 	// if len(s.Fields) == 0 {
 	// 	return fmt.Errorf("fields are required")

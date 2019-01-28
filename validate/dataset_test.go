@@ -5,12 +5,11 @@ import (
 	"testing"
 
 	"github.com/qri-io/dataset"
-	"github.com/qri-io/jsonschema"
 )
 
 func TestDataset(t *testing.T) {
 	cm := &dataset.Commit{Title: "initial commit"}
-	st := &dataset.Structure{Format: dataset.JSONDataFormat, Schema: jsonschema.Must(`{ "type": "array" }`)}
+	st := &dataset.Structure{Format: "json", Schema: map[string]interface{}{"type": "array"}}
 
 	cases := []struct {
 		ds  *dataset.Dataset
@@ -21,7 +20,7 @@ func TestDataset(t *testing.T) {
 		// {&dataset.Dataset{Commit: &dataset.Commit{}}, "commit: title is required"},
 		{&dataset.Dataset{Commit: &dataset.Commit{}}, "structure is required"},
 		{&dataset.Dataset{Commit: cm}, "structure is required"},
-		{&dataset.Dataset{Commit: cm, Structure: &dataset.Structure{Schema: jsonschema.Must(`true`)}}, "structure: format is required"},
+		{&dataset.Dataset{Commit: cm, Structure: &dataset.Structure{}}, "structure: format is required"},
 		// {&dataset.Dataset{Commit: cm, Abstract: &dataset.Dataset{Metadata: &dataset.Metadata{}}}, "abstract field is not an abstract dataset. Metadata: nil: <not nil> != <nil>"},
 		{&dataset.Dataset{Commit: cm, Structure: st}, ""},
 	}
@@ -62,9 +61,9 @@ func TestStructure(t *testing.T) {
 	}{
 		{nil, ""},
 		{&dataset.Structure{}, "format is required"},
-		{&dataset.Structure{Format: dataset.CSVDataFormat}, "csv data format requires a schema"},
-		// {&dataset.Structure{Format: dataset.CSVDataFormat, Schema: jsonschema.Must(`true`)}, "schema: fields are required"},
-		{&dataset.Structure{Format: dataset.JSONDataFormat, Schema: jsonschema.Must(`{ "type" : "array" }`)}, ""},
+		{&dataset.Structure{Format: "csv"}, "csv data format requires a schema"},
+		// {&dataset.Structure{Format: "csv"}, "schema: fields are required"},
+		{&dataset.Structure{Format: "json", Schema: map[string]interface{}{"type": "array"}}, ""},
 	}
 
 	for i, c := range cases {

@@ -9,7 +9,6 @@ import (
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dstest"
-	"github.com/qri-io/jsonschema"
 )
 
 func TestLoadTransform(t *testing.T) {
@@ -35,12 +34,8 @@ func TestSaveTransform(t *testing.T) {
 	store := cafs.NewMapstore()
 	q := &dataset.Transform{
 		Syntax: "sweet syntax",
-		Structure: &dataset.Structure{
-			Format: dataset.CSVDataFormat,
-			Schema: jsonschema.Must(`true`),
-		},
 		Resources: map[string]*dataset.TransformResource{
-			"a": &dataset.TransformResource{Path: dsa.Path()},
+			"a": &dataset.TransformResource{Path: dsa.Path},
 		},
 	}
 
@@ -50,13 +45,13 @@ func TestSaveTransform(t *testing.T) {
 		return
 	}
 
-	hash := "/map/QmS7xBzqKfRzdhZgSt69JMzUDdrPfoY3Z6EgroiQGjHhj8"
+	hash := "/map/QmVyDCTY92ouEFBvfwQzgsc4n2owpKJmnPeWHVV4s6FuXD"
 	if hash != key {
 		t.Errorf("key mismatch: %s != %s", hash, key)
 		return
 	}
 
-	expectedEntries := 2
+	expectedEntries := 1
 	if len(store.Files) != expectedEntries {
 		t.Errorf("invalid number of entries added to store: %d != %d", expectedEntries, len(store.Files))
 		return
@@ -74,9 +69,6 @@ func TestSaveTransform(t *testing.T) {
 		return
 	}
 
-	if !res.Structure.IsEmpty() {
-		t.Errorf("expected stored transform.Structure to be a reference")
-	}
 	for name, ref := range res.Resources {
 		if ref.Path == "" {
 			t.Errorf("expected stored transform reference '%s' to have a path", name)

@@ -3,13 +3,11 @@ package dsutil
 import (
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsfs"
-	"github.com/qri-io/jsonschema"
 )
 
 func TestWriteDir(t *testing.T) {
@@ -54,16 +52,16 @@ func testStore() (cafs.Filestore, map[string]string, error) {
 
 	ds := &dataset.Dataset{
 		Structure: &dataset.Structure{
-			Format: dataset.CSVDataFormat,
-			Schema: jsonschema.Must(`{
+			Format: "csv",
+			Schema: map[string]interface{}{
 				"type": "array",
-				"items": {
-					"type":"array",
-					"items" : [
-						{"title": "movie", "type": "string"}
-					]
-				}
-			}`),
+				"items": map[string]interface{}{
+					"type": "array",
+					"items": []interface{}{
+						map[string]interface{}{"title": "movie", "type": "string"},
+					},
+				},
+			},
 		},
 	}
 
@@ -80,24 +78,24 @@ func testStore() (cafs.Filestore, map[string]string, error) {
 func testStoreWithVizAndTransform() (cafs.Filestore, map[string]string, error) {
 	ds := &dataset.Dataset{
 		Structure: &dataset.Structure{
-			Format: dataset.CSVDataFormat,
-			Schema: jsonschema.Must(`{
+			Format: "csv",
+			Schema: map[string]interface{}{
 				"type": "array",
-				"items": {
-					"type":"array",
-					"items" : [
-						{"title": "movie", "type": "string"}
-					]
-				}
-			}`),
+				"items": map[string]interface{}{
+					"type": "array",
+					"items": []interface{}{
+						map[string]interface{}{"title": "movie", "type": "string"},
+					},
+				},
+			},
 		},
 		Transform: &dataset.Transform{
-			ScriptPath: "transform_script",
-			Script:     strings.NewReader("def transform(ds):\nreturn ds\n"),
+			ScriptPath:  "transform_script",
+			ScriptBytes: []byte("def transform(ds):\nreturn ds\n"),
 		},
 		Viz: &dataset.Viz{
-			ScriptPath: "viz_script",
-			Script:     strings.NewReader("<html></html>\n"),
+			ScriptPath:  "viz_script",
+			ScriptBytes: []byte("<html></html>\n"),
 		},
 	}
 	// Map strings to ds.keys for convenience

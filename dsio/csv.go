@@ -27,13 +27,15 @@ func NewCSVReader(st *dataset.Structure, r io.Reader) *CSVReader {
 
 	csvr := csv.NewReader(replacecr.Reader(r))
 
-	if opts, ok := st.FormatConfig.(*dataset.CSVOptions); ok {
-		csvr.LazyQuotes = opts.LazyQuotes
-		if opts.VariadicFields == true {
-			csvr.FieldsPerRecord = -1
-		}
-		if opts.Separator != rune(0) {
-			csvr.Comma = opts.Separator
+	if fopts, err := dataset.ParseFormatConfigMap(dataset.CSVDataFormat, st.FormatConfig); err == nil {
+		if opts, ok := fopts.(*dataset.CSVOptions); ok {
+			csvr.LazyQuotes = opts.LazyQuotes
+			if opts.VariadicFields == true {
+				csvr.FieldsPerRecord = -1
+			}
+			if opts.Separator != rune(0) {
+				csvr.Comma = opts.Separator
+			}
 		}
 	}
 
@@ -128,8 +130,8 @@ func (r *CSVReader) decode(strings []string) ([]interface{}, error) {
 
 // HasHeaderRow checks Structure for the presence of the HeaderRow flag
 func HasHeaderRow(st *dataset.Structure) bool {
-	if st.Format == dataset.CSVDataFormat && st.FormatConfig != nil {
-		if csvOpt, ok := st.FormatConfig.(*dataset.CSVOptions); ok {
+	if st.DataFormat() == dataset.CSVDataFormat && st.FormatConfig != nil {
+		if csvOpt, err := dataset.NewCSVOptions(st.FormatConfig); err == nil {
 			return csvOpt.HeaderRow
 		}
 	}
@@ -151,7 +153,8 @@ func NewCSVWriter(st *dataset.Structure, w io.Writer) *CSVWriter {
 	titles, types, _ := terribleHackToGetHeaderRowAndTypes(st)
 
 	writer := csv.NewWriter(w)
-	if opts, ok := st.FormatConfig.(*dataset.CSVOptions); ok {
+	opts, err := dataset.NewCSVOptions(st.FormatConfig)
+	if opts != nil && err == nil {
 		if opts.Separator != rune(0) {
 			writer.Comma = opts.Separator
 		}
@@ -163,8 +166,8 @@ func NewCSVWriter(st *dataset.Structure, w io.Writer) *CSVWriter {
 		types: types,
 	}
 
-	if CSVOpts, ok := st.FormatConfig.(*dataset.CSVOptions); ok {
-		if CSVOpts.HeaderRow {
+	if opts != nil {
+		if opts.HeaderRow {
 			writer.Write(titles)
 		}
 	}
@@ -174,15 +177,7 @@ func NewCSVWriter(st *dataset.Structure, w io.Writer) *CSVWriter {
 
 // TODO - holy shit dis so bad. fix
 func terribleHackToGetHeaderRowAndTypes(st *dataset.Structure) ([]string, []string, error) {
-	data, err := st.Schema.MarshalJSON()
-	if err != nil {
-		return nil, nil, err
-	}
-	sch := map[string]interface{}{}
-	if err := json.Unmarshal(data, &sch); err != nil {
-		log.Debug(err.Error())
-		return nil, nil, err
-	}
+	sch := st.Schema
 	if itemObj, ok := sch["items"].(map[string]interface{}); ok {
 		if itemArr, ok := itemObj["items"].([]interface{}); ok {
 			titles := make([]string, len(itemArr))

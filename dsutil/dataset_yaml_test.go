@@ -37,21 +37,15 @@ structure:
         description: "Facility Name"
 `
 
-func TestUnmarshalYAMLDatasetPod(t *testing.T) {
-	dsp := &dataset.DatasetPod{}
-	if err := UnmarshalYAMLDatasetPod([]byte(yamlData), dsp); err != nil {
-		t.Error(err.Error())
-		return
-	}
-
-	if dsp.Transform.Secrets["a"] != "b" {
-		t.Error("expected transform.secrets.a to equal 'b'")
-		return
-	}
-
+func TestUnmarshalYAMLDataset(t *testing.T) {
 	ds := &dataset.Dataset{}
-	if err := ds.Decode(dsp); err != nil {
+	if err := UnmarshalYAMLDataset([]byte(yamlData), ds); err != nil {
 		t.Error(err.Error())
+		return
+	}
+
+	if ds.Transform.Secrets["a"] != "b" {
+		t.Error("expected transform.secrets.a to equal 'b'")
 		return
 	}
 }

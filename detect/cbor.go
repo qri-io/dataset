@@ -6,7 +6,6 @@ import (
 	"io"
 
 	"github.com/qri-io/dataset"
-	"github.com/qri-io/jsonschema"
 )
 
 const (
@@ -18,7 +17,7 @@ const (
 )
 
 // CBORSchema determines the field names and types of an io.Reader of CBOR-formatted data, returning a json schema
-func CBORSchema(resource *dataset.Structure, data io.Reader) (schema *jsonschema.RootSchema, n int, err error) {
+func CBORSchema(resource *dataset.Structure, data io.Reader) (schema map[string]interface{}, n int, err error) {
 	rd := bufio.NewReader(data)
 	bd, err := rd.ReadByte()
 	n++

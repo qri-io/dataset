@@ -2,7 +2,6 @@ package validate
 
 import (
 	"github.com/qri-io/dataset"
-	"github.com/qri-io/jsonschema"
 )
 
 var emptyRawText = ``
@@ -14,22 +13,22 @@ Ken,Thompson,ken, 75.5
 "Robert","Griesemer","gri", 100`
 
 var namesStructure = &dataset.Structure{
-	Format: dataset.CSVDataFormat,
-	FormatConfig: &dataset.CSVOptions{
-		HeaderRow: true,
+	Format: "csv",
+	FormatConfig: map[string]interface{}{
+		"headerRow": true,
 	},
-	Schema: jsonschema.Must(`{
+	Schema: map[string]interface{}{
 		"type": "array",
-		"items": {
+		"items": map[string]interface{}{
 			"type": "array",
-			"items": [
-				{"title": "first_name", "type": "string" },
-				{"title": "last_name", "type": "string" },
-				{"title": "username", "type": "string" },
-				{"title": "age", "type": "integer" }
-			]
-		}
-	}`),
+			"items": []interface{}{
+				map[string]interface{}{"title": "first_name", "type": "string"},
+				map[string]interface{}{"title": "last_name", "type": "string"},
+				map[string]interface{}{"title": "username", "type": "string"},
+				map[string]interface{}{"title": "age", "type": "integer"},
+			},
+		},
+	},
 }
 
 // has nonNumeric quotes and comma inside quotes on last line

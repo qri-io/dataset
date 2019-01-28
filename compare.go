@@ -2,10 +2,9 @@ package dataset
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"reflect"
-
-	"github.com/qri-io/jsonschema"
 )
 
 // CompareDatasets checks if all fields of a dataset are equal,
@@ -22,7 +21,7 @@ func CompareDatasets(a, b *Dataset) error {
 	}
 
 	if !reflect.DeepEqual(a.Path, b.Path) {
-		return fmt.Errorf("Body mismatch")
+		return fmt.Errorf("Path mismatch")
 	}
 	if !bytes.Equal(a.BodyBytes, b.BodyBytes) {
 		return fmt.Errorf("BodyBytes: %v != %v", a.BodyBytes, b.BodyBytes)
@@ -200,7 +199,7 @@ func CompareVizs(a, b *Viz) error {
 // CompareSchemas checks if all fields of two Schema pointers are equal,
 // returning an error on the first, nil if equal
 // Note that comparison does not examine the internal path property
-func CompareSchemas(a, b *jsonschema.RootSchema) error {
+func CompareSchemas(a, b map[string]interface{}) error {
 	if a == nil && b == nil {
 		return nil
 	} else if a == nil && b != nil {
@@ -208,6 +207,21 @@ func CompareSchemas(a, b *jsonschema.RootSchema) error {
 	} else if a != nil && b == nil {
 		return fmt.Errorf("nil: <not nil> != <nil>")
 	}
+
+	ab, err := json.Marshal(a)
+	if err != nil {
+		return fmt.Errorf("error encoding a to JSON: %s", err.Error())
+	}
+
+	bb, err := json.Marshal(b)
+	if err != nil {
+		return fmt.Errorf("error encoding b to JSON: %s", err.Error())
+	}
+
+	if !bytes.Equal(ab, bb) {
+		return fmt.Errorf("json bytes are not equal")
+	}
+	return nil
 
 	// if err := CompareStringSlices(a.PrimaryKey, b.PrimaryKey); err != nil {
 	// 	return fmt.Errorf("PrimaryKey: %s", err.Error())
@@ -286,9 +300,6 @@ func CompareTransforms(a, b *Transform) error {
 	}
 	if a.ScriptPath != b.ScriptPath {
 		return fmt.Errorf("ScriptPath: %s != %s", a.ScriptPath, b.ScriptPath)
-	}
-	if err := CompareStructures(a.Structure, b.Structure); err != nil {
-		return fmt.Errorf("Structure: %s", err.Error())
 	}
 	// TODO - currently not examining config settings
 	if a.Resources == nil && b.Resources == nil {

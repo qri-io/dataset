@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/qri-io/dataset/compression"
-	"github.com/qri-io/jsonschema"
 )
 
 func TestStrucureHash(t *testing.T) {
@@ -16,7 +15,7 @@ func TestStrucureHash(t *testing.T) {
 		hash string
 		err  error
 	}{
-		{&Structure{Qri: KindStructure.String(), Format: CSVDataFormat}, "QmUqNTfVuJamhRfXLC1QUZ8RLaGhUaTY31ChX4GbtamW2o", nil},
+		{&Structure{Qri: KindStructure.String(), Format: "csv"}, "QmUqNTfVuJamhRfXLC1QUZ8RLaGhUaTY31ChX4GbtamW2o", nil},
 	}
 
 	for i, c := range cases {
@@ -46,6 +45,14 @@ func TestAbstractColumnName(t *testing.T) {
 	}
 }
 
+func TestStructureJSONSchema(t *testing.T) {
+	t.Skip("TODO (b5)")
+}
+
+func TestStructureDataFormat(t *testing.T) {
+	t.Skip("TODO (b5)")
+}
+
 func TestStructureAbstract(t *testing.T) {
 	cases := []struct {
 		in, out *Structure
@@ -71,10 +78,10 @@ func TestStructureIsEmpty(t *testing.T) {
 		{&Structure{Encoding: "a"}},
 		{&Structure{Entries: 1}},
 		{&Structure{ErrCount: 1}},
-		{&Structure{Format: CSVDataFormat}},
+		{&Structure{Format: "csv"}},
 		{&Structure{FormatConfig: map[string]interface{}{}}},
 		{&Structure{Length: 1}},
-		{&Structure{Schema: &jsonschema.RootSchema{}}},
+		{&Structure{Schema: map[string]interface{}{}}},
 	}
 
 	for i, c := range cases {
@@ -94,11 +101,11 @@ func TestStructureAssign(t *testing.T) {
 		ErrCount:    12,
 		Encoding:    "UTF-8",
 		Entries:     3000000000,
-		Format:      CSVDataFormat,
+		Format:      "csv",
 	}
 	got := &Structure{
 		Length: 2000,
-		Format: JSONDataFormat,
+		Format: "json",
 	}
 
 	got.Assign(&Structure{
@@ -109,7 +116,7 @@ func TestStructureAssign(t *testing.T) {
 		ErrCount:    12,
 		Encoding:    "UTF-8",
 		Entries:     3000000000,
-		Format:      CSVDataFormat,
+		Format:      "csv",
 	})
 
 	if err := CompareStructures(expect, got); err != nil {
@@ -176,9 +183,9 @@ func TestStructureMarshalJSON(t *testing.T) {
 		out []byte
 		err error
 	}{
-		{&Structure{Format: CSVDataFormat}, []byte(`{"errCount":0,"format":"csv","qri":"st:0"}`), nil},
-		{&Structure{Format: CSVDataFormat, Qri: KindStructure.String()}, []byte(`{"errCount":0,"format":"csv","qri":"st:0"}`), nil},
-		{AirportCodesStructure, []byte(`{"errCount":5,"format":"csv","formatConfig":{"headerRow":true},"qri":"st:0","schema":{"items":{"items":[{"title":"ident","type":"string"},{"title":"type","type":"string"},{"title":"name","type":"string"},{"title":"latitude_deg","type":"string"},{"title":"longitude_deg","type":"string"},{"title":"elevation_ft","type":"string"},{"title":"continent","type":"string"},{"title":"iso_country","type":"string"},{"title":"iso_region","type":"string"},{"title":"municipality","type":"string"},{"title":"gps_code","type":"string"},{"title":"iata_code","type":"string"},{"title":"local_code","type":"string"}],"type":"array"},"type":"array"}}`), nil},
+		{&Structure{Format: "csv"}, []byte(`{"errCount":0,"format":"csv","qri":"st:0"}`), nil},
+		{&Structure{Format: "csv", Qri: KindStructure.String()}, []byte(`{"errCount":0,"format":"csv","qri":"st:0"}`), nil},
+		{AirportCodesStructure, []byte(`{"errCount":5,"format":"csv","formatConfig":{"headerRow":true},"qri":"st:0","schema":{"items":{"items":[{"title":"ident","type":"string"},{"title":"type","type":"string"},{"title":"name","type":"string"},{"title":"latitude_deg","type":"number"},{"title":"longitude_deg","type":"number"},{"title":"elevation_ft","type":"integer"},{"title":"continent","type":"string"},{"title":"iso_country","type":"string"},{"title":"iso_region","type":"string"},{"title":"municipality","type":"string"},{"title":"gps_code","type":"string"},{"title":"iata_code","type":"string"},{"title":"local_code","type":"string"}],"type":"array"},"type":"array"}}`), nil},
 		{&Structure{Path: "/map/QmUaMozKVkjPf7CVf3Zd8Cy5Ex1i9oUdhYhU8uTJph5iFD"}, []byte(`"/map/QmUaMozKVkjPf7CVf3Zd8Cy5Ex1i9oUdhYhU8uTJph5iFD"`), nil},
 	}
 
@@ -212,8 +219,8 @@ func TestStructureMarshalJSONObject(t *testing.T) {
 		out []byte
 		err error
 	}{
-		{&Structure{Format: CSVDataFormat}, []byte(`{"errCount":0,"format":"csv","qri":"st:0"}`), nil},
-		{&Structure{Format: CSVDataFormat, Qri: KindStructure.String()}, []byte(`{"errCount":0,"format":"csv","qri":"st:0"}`), nil},
+		{&Structure{Format: "csv"}, []byte(`{"errCount":0,"format":"csv","qri":"st:0"}`), nil},
+		{&Structure{Format: "csv", Qri: KindStructure.String()}, []byte(`{"errCount":0,"format":"csv","qri":"st:0"}`), nil},
 		{AirportCodesStructure, []byte(`{"errCount":5,"format":"csv","formatConfig":{"headerRow":true},"qri":"st:0","schema":{"items":{"items":[{"title":"ident","type":"string"},{"title":"type","type":"string"},{"title":"name","type":"string"},{"title":"latitude_deg","type":"string"},{"title":"longitude_deg","type":"string"},{"title":"elevation_ft","type":"string"},{"title":"continent","type":"string"},{"title":"iso_country","type":"string"},{"title":"iso_region","type":"string"},{"title":"municipality","type":"string"},{"title":"gps_code","type":"string"},{"title":"iata_code","type":"string"},{"title":"local_code","type":"string"}],"type":"array"},"type":"array"}}`), nil},
 	}
 
@@ -234,7 +241,7 @@ func TestStructureMarshalJSONObject(t *testing.T) {
 }
 
 func TestUnmarshalStructure(t *testing.T) {
-	sta := Structure{Qri: KindStructure.String(), Format: CSVDataFormat}
+	sta := Structure{Qri: KindStructure.String(), Format: "csv"}
 	cases := []struct {
 		value interface{}
 		out   *Structure

@@ -50,7 +50,7 @@
   },
   "viz": {
     "format": "example format",
-    "qri": "vc:0",
+    "qri": "vz:0",
     "scriptPath": "/example/path"
   }
 }

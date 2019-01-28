@@ -10,10 +10,10 @@ import (
 var (
 	// BaseSchemaArray is a minimum schema to constitute a dataset, specifying
 	// the top level of the document is an array
-	BaseSchemaArray = jsonschema.Must(`{"type":"array"}`)
+	BaseSchemaArray = map[string]interface{}{"type": "array"}
 	// BaseSchemaObject is a minimum schema to constitute a dataset, specifying
 	// the top level of the document is an object
-	BaseSchemaObject = jsonschema.Must(`{"type":"object"}`)
+	BaseSchemaObject = map[string]interface{}{"type": "object"}
 )
 
 // Structure defines the characteristics of a dataset document necessary for a
@@ -45,7 +45,7 @@ type Structure struct {
 	// this is the same as the number of "rows"
 	Entries int `json:"entries,omitempty"`
 	// Format specifies the format of the raw data MIME type
-	Format DataFormat `json:"format"`
+	Format string `json:"format"`
 	// FormatConfig removes as much ambiguity as possible about how
 	// to interpret the speficied format.
 	// FormatConfig FormatConfig `json:"formatConfig,omitempty"`
@@ -61,14 +61,44 @@ type Structure struct {
 	// Schema contains the schema definition for the underlying data, schemas
 	// are defined using the IETF json-schema specification. for more info
 	// on json-schema see: https://json-schema.org
-	// TODO: Schema       map[string]interface{} `json:"schema,omitempty"`
-	Schema *jsonschema.RootSchema `json:"schema,omitempty"`
+	Schema map[string]interface{} `json:"schema,omitempty"`
 }
 
 // NewStructureRef creates an empty struct with it's
 // internal path set
 func NewStructureRef(path string) *Structure {
 	return &Structure{Qri: KindStructure.String(), Path: path}
+}
+
+// DropTransientValues removes values that cannot be recorded when the
+// dataset is rendered immutable, usually by storing it in a cafs
+func (st *Structure) DropTransientValues() {
+	st.Path = ""
+}
+
+// JSONSchema parses the Schema field into a json-schema
+func (st *Structure) JSONSchema() (*jsonschema.RootSchema, error) {
+	// TODO (b5): SLOW. we should teach the jsonschema package to parse native go types,
+	// replacing this nonsense. Someone's even filed an issue on regarding this:
+	// https://github.comqri-io/jsonschema/issues/32
+	data, err := json.Marshal(st.Schema)
+	if err != nil {
+		return nil, err
+	}
+
+	rs := &jsonschema.RootSchema{}
+	if err := json.Unmarshal(data, rs); err != nil {
+		return nil, err
+	}
+
+	return rs, nil
+}
+
+// DataFormat gives format as a DataFormat type, returning UnknownDataFormat in
+// any case where st.DataFormat is an invalid string
+func (st *Structure) DataFormat() DataFormat {
+	df, _ := ParseDataFormatString(st.Format)
+	return df
 }
 
 // Abstract returns this structure instance in it's "Abstract" form
@@ -158,27 +188,7 @@ func (s *Structure) UnmarshalJSON(data []byte) (err error) {
 		return fmt.Errorf("error unmarshaling dataset structure from json: %s", err.Error())
 	}
 
-	// if _s.FormatConfig != nil {
-	// 	fmtCfg, err = ParseFormatConfigMap(_s.Format, _s.FormatConfig)
-	// 	if err != nil {
-	// 		return fmt.Errorf("error parsing structure formatConfig: %s", err.Error())
-	// 	}
-	// }
-
 	*s = Structure(_s)
-	// *s = Structure{
-	// 	Checksum:     _s.Checksum,
-	// 	Compression:  _s.Compression,
-	// 	Depth:        _s.Depth,
-	// 	Encoding:     _s.Encoding,
-	// 	Entries:      _s.Entries,
-	// 	ErrCount:     _s.ErrCount,
-	// 	Format:       _s.Format,
-	// 	FormatConfig: fmtCfg,
-	// 	Length:       _s.Length,
-	// 	Qri:          _s.Qri,
-	// 	Schema:       _s.Schema,
-	// }
 	return nil
 }
 
@@ -190,7 +200,7 @@ func (s *Structure) IsEmpty() bool {
 		s.Encoding == "" &&
 		s.Entries == 0 &&
 		s.ErrCount == 0 &&
-		s.Format == UnknownDataFormat &&
+		s.Format == "" &&
 		s.FormatConfig == nil &&
 		s.Length == 0 &&
 		s.Schema == nil
@@ -225,7 +235,7 @@ func (s *Structure) Assign(structures ...*Structure) {
 		if st.ErrCount != 0 {
 			s.ErrCount = st.ErrCount
 		}
-		if st.Format != UnknownDataFormat {
+		if st.Format != "" {
 			s.Format = st.Format
 		}
 		if st.FormatConfig != nil {

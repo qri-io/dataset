@@ -14,7 +14,7 @@ func TestDatasetAssign(t *testing.T) {
 		in *Dataset
 	}{
 		{&Dataset{Path: "/a"}},
-		{&Dataset{Structure: &Structure{Format: CSVDataFormat}}},
+		{&Dataset{Structure: &Structure{Format: "csv"}}},
 		{&Dataset{Transform: &Transform{ScriptPath: "some_transform_script.star"}}},
 		{&Dataset{Commit: &Commit{Title: "foo"}}},
 		{&Dataset{BodyPath: "foo"}},
@@ -42,7 +42,7 @@ func TestDatasetAssign(t *testing.T) {
 	}
 	madsa := &Dataset{
 		Transform: &Transform{ScriptPath: "some_transform_script.star"},
-		Structure: &Structure{Format: CSVDataFormat},
+		Structure: &Structure{Format: "csv"},
 		Commit:    &Commit{Title: "dy.no.mite."},
 		Viz:       &Viz{Qri: KindViz.String()},
 	}

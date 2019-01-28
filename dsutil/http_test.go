@@ -15,7 +15,7 @@ import (
 
 func TestFormFileDataset(t *testing.T) {
 	r := newFormFileRequest(t, nil, nil)
-	dsp := &dataset.DatasetPod{}
+	dsp := &dataset.Dataset{}
 	if err := FormFileDataset(r, dsp); err != nil {
 		t.Error("expected 'empty' request to be ok")
 	}

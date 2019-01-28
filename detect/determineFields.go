@@ -12,7 +12,6 @@ import (
 	"github.com/qri-io/dataset/dsio"
 	"github.com/qri-io/dataset/dsio/replacecr"
 	"github.com/qri-io/dataset/vals"
-	"github.com/qri-io/jsonschema"
 	"github.com/qri-io/varName"
 )
 
@@ -21,14 +20,14 @@ var (
 )
 
 // Schema determines the schema of a given reader for a given structure
-func Schema(r *dataset.Structure, data io.Reader) (schema *jsonschema.RootSchema, n int, err error) {
-	if r.Format == dataset.UnknownDataFormat {
+func Schema(r *dataset.Structure, data io.Reader) (schema map[string]interface{}, n int, err error) {
+	if r.DataFormat() == dataset.UnknownDataFormat {
 		err = fmt.Errorf("dataset format must be specified to determine schema")
 		log.Infof(err.Error())
 		return
 	}
 
-	switch r.Format {
+	switch r.DataFormat() {
 	case dataset.CBORDataFormat:
 		return CBORSchema(r, data)
 	case dataset.JSONDataFormat:
@@ -36,7 +35,7 @@ func Schema(r *dataset.Structure, data io.Reader) (schema *jsonschema.RootSchema
 	case dataset.CSVDataFormat:
 		return CSVSchema(r, data)
 	default:
-		err = fmt.Errorf("'%s' is not supported for field detection", r.Format.String())
+		err = fmt.Errorf("'%s' is not supported for field detection", r.Format)
 		return
 	}
 }
@@ -47,17 +46,17 @@ type field struct {
 }
 
 // CSVSchema determines the field names and types of an io.Reader of CSV-formatted data, returning a json schema
-func CSVSchema(resource *dataset.Structure, data io.Reader) (schema *jsonschema.RootSchema, n int, err error) {
+func CSVSchema(resource *dataset.Structure, data io.Reader) (schema map[string]interface{}, n int, err error) {
 	tr := dsio.NewTrackedReader(data)
 	r := csv.NewReader(replacecr.Reader(tr))
 	r.FieldsPerRecord = -1
 	r.TrimLeadingSpace = true
 	r.LazyQuotes = true
 
-	opt := &dataset.CSVOptions{
+	opt := map[string]interface{}{
 		// TODO - for now we're going to assume lazy quotes. we should scan the entire file
 		// for unescaped quotes & only set this to true if that's the case.
-		LazyQuotes: true,
+		"lazyQuotes": true,
 	}
 	resource.FormatConfig = opt
 
@@ -82,7 +81,7 @@ func CSVSchema(resource *dataset.Structure, data io.Reader) (schema *jsonschema.
 			f.Title = varName.CreateVarNameFromString(header[i])
 			f.Type = vals.TypeUnknown
 		}
-		opt.HeaderRow = true
+		opt["headerRow"] = true
 	} else {
 		for i, cell := range header {
 			types[i][vals.ParseType([]byte(cell))]++
@@ -109,7 +108,7 @@ func CSVSchema(resource *dataset.Structure, data io.Reader) (schema *jsonschema.
 			}
 			count++
 		} else {
-			opt.VariadicFields = true
+			opt["variadicFields"] = true
 		}
 	}
 
@@ -128,12 +127,12 @@ func CSVSchema(resource *dataset.Structure, data io.Reader) (schema *jsonschema.
 	}
 	schstr := fmt.Sprintf(`{"type":"array","items":{"type":"array","items":%s}}`, string(items))
 
-	rs := &jsonschema.RootSchema{}
-	if err := rs.UnmarshalJSON([]byte(schstr)); err != nil {
+	sch := map[string]interface{}{}
+	if err := json.Unmarshal([]byte(schstr), &sch); err != nil {
 		return nil, tr.BytesRead(), err
 	}
 
-	return rs, tr.BytesRead(), nil
+	return sch, tr.BytesRead(), nil
 }
 
 // PossibleHeaderRow makes an educated guess about weather or not this csv file has a header row.

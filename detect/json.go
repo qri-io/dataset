@@ -5,14 +5,13 @@ import (
 	"io"
 
 	"github.com/qri-io/dataset"
-	"github.com/qri-io/jsonschema"
 )
 
 // JSONSchema determines the field names and types of an io.Reader of JSON-formatted data, returning a json schema
 // This is currently a suuuuuuuuper simple interpretation that spits out a generic schema that'll work. In the future
 // we can do all sorts of stuff here to make better inferences about the shape of a dataset, but for now, this'll work,
 // and we'll instead focus on making it easier for users to provide hand-built schemas
-func JSONSchema(resource *dataset.Structure, data io.Reader) (schema *jsonschema.RootSchema, n int, err error) {
+func JSONSchema(resource *dataset.Structure, data io.Reader) (schema map[string]interface{}, n int, err error) {
 	var (
 		count = 0
 		buf   = make([]byte, 100)

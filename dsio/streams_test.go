@@ -13,7 +13,7 @@ func TestCopyJSONToJSON(t *testing.T) {
 	expected := text
 	sink := bytes.NewBufferString("")
 	st := &dataset.Structure{
-		Format: dataset.JSONDataFormat,
+		Format: "json",
 		Schema: dataset.BaseSchemaArray,
 	}
 	r, err := NewJSONReader(st, strings.NewReader(text))
@@ -42,7 +42,7 @@ func TestCopyJSONToBytes(t *testing.T) {
 	text := "[{\"a\":1},{\"b\":2},{\"c\":3},{\"d\":4}]"
 	expected := []byte{91, 123, 34, 97, 34, 58, 49, 125, 44, 123, 34, 98, 34, 58, 50, 125, 44, 123, 34, 99, 34, 58, 51, 125, 44, 123, 34, 100, 34, 58, 52, 125, 93}
 	st := &dataset.Structure{
-		Format: dataset.JSONDataFormat,
+		Format: "json",
 		Schema: dataset.BaseSchemaArray,
 	}
 	r, err := NewJSONReader(st, strings.NewReader(text))
@@ -72,7 +72,7 @@ func TestCopyJSONToCBOR(t *testing.T) {
 	expected := []byte{132, 161, 97, 97, 1, 161, 97, 98, 2, 161, 97, 99, 3, 161, 97, 100, 4}
 	sink := bytes.Buffer{}
 	st := &dataset.Structure{
-		Format: dataset.JSONDataFormat,
+		Format: "json",
 		Schema: dataset.BaseSchemaArray,
 	}
 	r, err := NewJSONReader(st, strings.NewReader(text))
@@ -102,7 +102,7 @@ func TestCopyJSONToJSONWithPaging(t *testing.T) {
 	expected := "[{\"b\":2},{\"c\":3}]"
 	sink := bytes.NewBufferString("")
 	st := &dataset.Structure{
-		Format: dataset.JSONDataFormat,
+		Format: "json",
 		Schema: dataset.BaseSchemaArray,
 	}
 	r, err := NewJSONReader(st, strings.NewReader(text))
@@ -133,7 +133,7 @@ func TestCopyJSONToJSONPagingRunsOut(t *testing.T) {
 	expected := "[{\"b\":2}]"
 	sink := bytes.NewBufferString("")
 	st := &dataset.Structure{
-		Format: dataset.JSONDataFormat,
+		Format: "json",
 		Schema: dataset.BaseSchemaArray,
 	}
 	r, err := NewJSONReader(st, strings.NewReader(text))

@@ -7,6 +7,14 @@ import (
 	"testing"
 )
 
+func TestVizDropTransientValues(t *testing.T) {
+	t.Log("TODO (b5)")
+}
+
+func TestVizScript(t *testing.T) {
+	t.Log("TODO (b5)")
+}
+
 var viz1 = &Viz{
 	Format:     "foo",
 	Qri:        KindViz.String(),

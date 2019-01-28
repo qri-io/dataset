@@ -34,6 +34,12 @@ func NewCommitRef(path string) *Commit {
 	return &Commit{Path: path}
 }
 
+// DropTransientValues removes values that cannot be recorded when the
+// dataset is rendered immutable, usually by storing it in a cafs
+func (cm *Commit) DropTransientValues() {
+	cm.Path = ""
+}
+
 // IsEmpty checks to see if any fields are filled out other than Path and Qri
 func (cm *Commit) IsEmpty() bool {
 	return cm.Author == nil &&

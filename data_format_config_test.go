@@ -72,14 +72,8 @@ func TestNewCSVOptions(t *testing.T) {
 			continue
 		}
 		if c.err == "" {
-			csvo, ok := got.(*CSVOptions)
-			if !ok {
-				t.Errorf("case %d didn't return a CSVOptions pointer", i)
-				continue
-			}
-
-			if csvo.HeaderRow != c.res.HeaderRow {
-				t.Errorf("case %d HeaderRow expected: %t, got: %t", i, csvo.HeaderRow, c.res.HeaderRow)
+			if got.HeaderRow != c.res.HeaderRow {
+				t.Errorf("case %d HeaderRow expected: %t, got: %t", i, got.HeaderRow, c.res.HeaderRow)
 				continue
 			}
 		}
@@ -116,17 +110,10 @@ func TestNewJSONOptions(t *testing.T) {
 	}
 
 	for i, c := range cases {
-		got, err := NewJSONOptions(c.opts)
+		_, err := NewJSONOptions(c.opts)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("case %d error expected: '%s', got: '%s'", i, c.err, err.Error())
 			continue
-		}
-		if c.err == "" {
-			_, ok := got.(*JSONOptions)
-			if !ok {
-				t.Errorf("case %d didn't return a JSONOptions pointer", i)
-				continue
-			}
 		}
 	}
 }

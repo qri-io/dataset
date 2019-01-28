@@ -91,7 +91,7 @@ func WriteZipArchive(store cafs.Filestore, ds *dataset.Dataset, format string, r
 	}
 
 	// Body
-	datadst, err := zw.Create(fmt.Sprintf("body.%s", ds.Structure.Format.String()))
+	datadst, err := zw.Create(fmt.Sprintf("body.%s", ds.Structure.Format))
 	if err != nil {
 		log.Debug(err.Error())
 		return err
@@ -112,12 +112,12 @@ func WriteZipArchive(store cafs.Filestore, ds *dataset.Dataset, format string, r
 }
 
 // UnzipDatasetBytes is a convenince wrapper for UnzipDataset
-func UnzipDatasetBytes(zipData []byte, dsp *dataset.DatasetPod) error {
-	return UnzipDataset(bytes.NewReader(zipData), int64(len(zipData)), dsp)
+func UnzipDatasetBytes(zipData []byte, ds *dataset.Dataset) error {
+	return UnzipDataset(bytes.NewReader(zipData), int64(len(zipData)), ds)
 }
 
 // UnzipDataset reads a zip file from a filename and returns a full dataset with components
-func UnzipDataset(r io.ReaderAt, size int64, dsp *dataset.DatasetPod) error {
+func UnzipDataset(r io.ReaderAt, size int64, ds *dataset.Dataset) error {
 	zr, err := zip.NewReader(r, size)
 	if err != nil {
 		return err
@@ -132,38 +132,38 @@ func UnzipDataset(r io.ReaderAt, size int64, dsp *dataset.DatasetPod) error {
 	if !ok {
 		return fmt.Errorf("no dataset.json found in the provided zip")
 	}
-	if err = json.Unmarshal(fileData, dsp); err != nil {
+	if err = json.Unmarshal(fileData, ds); err != nil {
 		return err
 	}
 
 	// TODO - do a smarter iteration for body format
 	if bodyData, ok := contents["body.json"]; ok {
-		dsp.BodyBytes = bodyData
-		dsp.BodyPath = ""
+		ds.BodyBytes = bodyData
+		ds.BodyPath = ""
 	}
 	if bodyData, ok := contents["body.csv"]; ok {
-		dsp.BodyBytes = bodyData
-		dsp.BodyPath = ""
+		ds.BodyBytes = bodyData
+		ds.BodyPath = ""
 	}
 	if bodyData, ok := contents["body.cbor"]; ok {
-		dsp.BodyBytes = bodyData
-		dsp.BodyPath = ""
+		ds.BodyBytes = bodyData
+		ds.BodyPath = ""
 	}
 
 	if tfScriptData, ok := contents["transform.star"]; ok {
-		if dsp.Transform == nil {
-			dsp.Transform = &dataset.TransformPod{}
+		if ds.Transform == nil {
+			ds.Transform = &dataset.Transform{}
 		}
-		dsp.Transform.ScriptBytes = tfScriptData
-		dsp.Transform.ScriptPath = ""
+		ds.Transform.ScriptBytes = tfScriptData
+		ds.Transform.ScriptPath = ""
 	}
 
 	if vizScriptData, ok := contents["viz.html"]; ok {
-		if dsp.Viz == nil {
-			dsp.Viz = &dataset.Viz{}
+		if ds.Viz == nil {
+			ds.Viz = &dataset.Viz{}
 		}
-		dsp.Viz.ScriptBytes = vizScriptData
-		dsp.Viz.ScriptPath = ""
+		ds.Viz.ScriptBytes = vizScriptData
+		ds.Viz.ScriptPath = ""
 	}
 
 	// Get ref to existing dataset
@@ -179,8 +179,8 @@ func UnzipDataset(r io.ReaderAt, size int64, dsp *dataset.DatasetPod) error {
 		if sepPos == -1 {
 			return fmt.Errorf("invalid dataset name: no '/' found")
 		}
-		dsp.Peername = datasetName[:sepPos]
-		dsp.Name = datasetName[sepPos+1:]
+		ds.Peername = datasetName[:sepPos]
+		ds.Name = datasetName[sepPos+1:]
 	}
 	return nil
 }

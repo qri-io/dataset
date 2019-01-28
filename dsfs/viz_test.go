@@ -14,7 +14,7 @@ import (
 
 var Viz1 = &dataset.Viz{
 	Format:     "foo",
-	Qri:        dataset.KindViz,
+	Qri:        dataset.KindViz.String(),
 	ScriptPath: "bar",
 }
 

@@ -10,7 +10,6 @@ import (
 
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dstest"
-	"github.com/qri-io/jsonschema"
 )
 
 var (
@@ -94,7 +93,7 @@ func TestCBORReaderOneArrayEntry(t *testing.T) {
 		if err != nil {
 			t.Errorf("array case %d error decoding hex string: %s", i, err.Error())
 		}
-		rdr, err := NewCBORReader(&dataset.Structure{Format: dataset.CBORDataFormat, Schema: dataset.BaseSchemaArray}, bytes.NewReader(d))
+		rdr, err := NewCBORReader(&dataset.Structure{Format: "cbor", Schema: dataset.BaseSchemaArray}, bytes.NewReader(d))
 		if err != nil {
 			t.Errorf("array case %d error creating reader: %s", i, err.Error())
 			continue
@@ -147,7 +146,7 @@ func TestCBORReaderOneObjectEntry(t *testing.T) {
 		if err != nil {
 			t.Errorf("object case %d error decoding hex string: %s", i, err.Error())
 		}
-		rdr, err := NewCBORReader(&dataset.Structure{Format: dataset.CBORDataFormat, Schema: dataset.BaseSchemaObject}, bytes.NewReader(d))
+		rdr, err := NewCBORReader(&dataset.Structure{Format: "cbor", Schema: dataset.BaseSchemaObject}, bytes.NewReader(d))
 		if err != nil {
 			t.Errorf("object case %d error creating reader: %s", i, err.Error())
 			continue
@@ -179,45 +178,45 @@ func TestCBORReaderFile(t *testing.T) {
 		err       string
 	}{
 		{"city", &dataset.Structure{}, 0, "schema required for CBOR reader"},
-		{"city", &dataset.Structure{Schema: jsonschema.Must(`false`)}, 0, "invalid schema. root must be either an array or object type"},
+		{"city", &dataset.Structure{Schema: map[string]interface{}{"type": "number"}}, 0, "invalid schema. root must be either an array or object type"},
 		{"city", &dataset.Structure{
-			Format: dataset.CBORDataFormat,
+			Format: "cbor",
 			Schema: dataset.BaseSchemaArray,
 		}, 6, ""},
 
 		// {"sitemap_object", &dataset.Structure{
-		// 	Format: dataset.CBORDataFormat,
+		// 	Format: "cbor",
 		// 	Schema: dataset.BaseSchemaObject,
 		// }, 7, ""},
 
 		{"links_object", &dataset.Structure{
-			Format: dataset.CBORDataFormat,
+			Format: "cbor",
 			Schema: dataset.BaseSchemaObject,
 		}, 20, ""},
 		{"links_array", &dataset.Structure{
-			Format: dataset.CBORDataFormat,
+			Format: "cbor",
 			Schema: dataset.BaseSchemaArray,
 		}, 20, ""},
 		{"array", &dataset.Structure{
-			Format: dataset.CBORDataFormat,
+			Format: "cbor",
 			Schema: dataset.BaseSchemaArray,
 		}, 10, ""},
 
 		{"object", &dataset.Structure{
-			Format: dataset.CBORDataFormat,
+			Format: "cbor",
 			Schema: dataset.BaseSchemaObject,
 		}, 10, ""},
 		// {"craigslist", &dataset.Structure{
-		// 	Format: dataset.CBORDataFormat,
+		// 	Format: "cbor",
 		// 	Schema: dataset.BaseSchemaArray,
 		// }, 1200, ""},
 		{"sitemap", &dataset.Structure{
-			Format: dataset.CBORDataFormat,
+			Format: "cbor",
 			Schema: dataset.BaseSchemaObject,
 		}, 1, ""},
 
 		{"flourinated_compounds_in_fast_food_packaging", &dataset.Structure{
-			Format: dataset.CBORDataFormat,
+			Format: "cbor",
 			Schema: dataset.BaseSchemaArray,
 		}, 25, ""},
 	}
@@ -277,7 +276,7 @@ func TestCBORWriter(t *testing.T) {
 		err       string
 	}{
 		{&dataset.Structure{}, []Entry{}, "[]", "schema required for CBOR writer"},
-		{&dataset.Structure{Schema: jsonschema.Must(`true`)}, []Entry{}, "[]", "invalid schema. root must be either an array or object type"},
+		{&dataset.Structure{Schema: map[string]interface{}{"type": "boolean"}}, []Entry{}, "[]", "invalid schema. root must be either an array or object type"},
 
 		{arrst, []Entry{}, "80", ""},
 		{objst, []Entry{}, "a0", ""},
@@ -316,7 +315,7 @@ func TestCBORWriter(t *testing.T) {
 
 func TestCBORWriterNonObjectEntry(t *testing.T) {
 	buf := &bytes.Buffer{}
-	w, err := NewCBORWriter(&dataset.Structure{Format: dataset.JSONDataFormat, Schema: dataset.BaseSchemaObject}, buf)
+	w, err := NewCBORWriter(&dataset.Structure{Format: "json", Schema: dataset.BaseSchemaObject}, buf)
 	if err != nil {
 		t.Errorf("unexpected error creating writer: %s", err.Error())
 		return
@@ -332,7 +331,7 @@ func TestCBORWriterNonObjectEntry(t *testing.T) {
 
 func TestCBORWriterDoubleKey(t *testing.T) {
 	buf := &bytes.Buffer{}
-	w, err := NewCBORWriter(&dataset.Structure{Format: dataset.JSONDataFormat, Schema: dataset.BaseSchemaObject}, buf)
+	w, err := NewCBORWriter(&dataset.Structure{Format: "json", Schema: dataset.BaseSchemaObject}, buf)
 	if err != nil {
 		t.Errorf("unexpected error creating writer: %s", err.Error())
 		return
@@ -361,7 +360,7 @@ func TestCBORWriterDoubleKey(t *testing.T) {
 }
 
 func TestCBORWriterCanonical(t *testing.T) {
-	st := &dataset.Structure{Format: dataset.CBORDataFormat, Schema: dataset.BaseSchemaObject}
+	st := &dataset.Structure{Format: "cbor", Schema: dataset.BaseSchemaObject}
 	vals := []Entry{
 		{Key: "a", Value: "a"},
 		{Key: "b", Value: "b"},
@@ -402,7 +401,7 @@ func TestCBORWriterCanonical(t *testing.T) {
 
 func BenchmarkCBORWriterArrays(b *testing.B) {
 	const NumWrites = 1000
-	st := &dataset.Structure{Format: dataset.CBORDataFormat, Schema: dataset.BaseSchemaObject}
+	st := &dataset.Structure{Format: "cbor", Schema: dataset.BaseSchemaObject}
 
 	for n := 0; n < b.N; n++ {
 		buf := &bytes.Buffer{}
@@ -422,7 +421,7 @@ func BenchmarkCBORWriterArrays(b *testing.B) {
 
 func BenchmarkCBORWriterObjects(b *testing.B) {
 	const NumWrites = 1000
-	st := &dataset.Structure{Format: dataset.CBORDataFormat, Schema: dataset.BaseSchemaObject}
+	st := &dataset.Structure{Format: "cbor", Schema: dataset.BaseSchemaObject}
 
 	for n := 0; n < b.N; n++ {
 		buf := &bytes.Buffer{}
@@ -441,7 +440,7 @@ func BenchmarkCBORWriterObjects(b *testing.B) {
 }
 
 func BenchmarkCBORReader(b *testing.B) {
-	st := &dataset.Structure{Format: dataset.CBORDataFormat, Schema: dataset.BaseSchemaArray}
+	st := &dataset.Structure{Format: "cbor", Schema: dataset.BaseSchemaArray}
 
 	for n := 0; n < b.N; n++ {
 		file, err := os.Open(testdataFile("../dsio/testdata/movies/body.cbor"))

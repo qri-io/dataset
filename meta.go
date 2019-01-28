@@ -61,6 +61,12 @@ type Meta struct {
 	Version string `json:"version,omitempty"`
 }
 
+// DropTransientValues removes values that cannot be recorded when the
+// dataset is rendered immutable, usually by storing it in a cafs
+func (md *Meta) DropTransientValues() {
+	md.Path = ""
+}
+
 // IsEmpty checks to see if dataset has any fields other than the internal path
 func (md *Meta) IsEmpty() bool {
 	return md.AccessURL == "" &&

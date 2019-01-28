@@ -1,9 +1,5 @@
 package dataset
 
-import (
-	"github.com/qri-io/jsonschema"
-)
-
 var AirportCodes = &Dataset{
 	Qri: KindDataset.String(),
 	Meta: &Meta{
@@ -29,11 +25,11 @@ var AirportCodesAbstract = &Dataset{
 	Structure: AirportCodesStructureAbstract,
 }
 
-const AirportCodesJSON = `{"commit":{"qri":"cm:0","timestamp":"0001-01-01T00:00:00Z","title":"initial commit"},"meta":{"citations":[{"name":"Our Airports","url":"http://ourairports.com/data/"}],"homeURL":"http://www.ourairports.com/","license":{"type":"PDDL-1.0"},"qri":"md:0","title":"Airport Codes"},"qri":"ds:0","structure":{"errCount":5,"format":"csv","formatConfig":{"headerRow":true},"qri":"st:0","schema":{"items":{"items":[{"title":"ident","type":"string"},{"title":"type","type":"string"},{"title":"name","type":"string"},{"title":"latitude_deg","type":"string"},{"title":"longitude_deg","type":"string"},{"title":"elevation_ft","type":"string"},{"title":"continent","type":"string"},{"title":"iso_country","type":"string"},{"title":"iso_region","type":"string"},{"title":"municipality","type":"string"},{"title":"gps_code","type":"string"},{"title":"iata_code","type":"string"},{"title":"local_code","type":"string"}],"type":"array"},"type":"array"}}}`
+const AirportCodesJSON = `{"commit":{"qri":"cm:0","timestamp":"0001-01-01T00:00:00Z","title":"initial commit"},"meta":{"citations":[{"name":"Our Airports","url":"http://ourairports.com/data/"}],"homeURL":"http://www.ourairports.com/","license":{"type":"PDDL-1.0"},"qri":"md:0","title":"Airport Codes"},"qri":"ds:0","structure":{"errCount":5,"format":"csv","formatConfig":{"headerRow":true},"qri":"st:0","schema":{"items":{"items":[{"title":"ident","type":"string"},{"title":"type","type":"string"},{"title":"name","type":"string"},{"title":"latitude_deg","type":"number"},{"title":"longitude_deg","type":"number"},{"title":"elevation_ft","type":"integer"},{"title":"continent","type":"string"},{"title":"iso_country","type":"string"},{"title":"iso_region","type":"string"},{"title":"municipality","type":"string"},{"title":"gps_code","type":"string"},{"title":"iata_code","type":"string"},{"title":"local_code","type":"string"}],"type":"array"},"type":"array"}}}`
 
 var AirportCodesStructure = &Structure{
 	ErrCount: 5,
-	Format:   CSVDataFormat,
+	Format:   "csv",
 	Qri:      KindStructure.String(),
 	// FormatConfig: &CSVOptions{
 	// 	HeaderRow: true,
@@ -41,31 +37,31 @@ var AirportCodesStructure = &Structure{
 	FormatConfig: map[string]interface{}{
 		"headerRow": true,
 	},
-	Schema: jsonschema.Must(`{
+	Schema: map[string]interface{}{
 		"type": "array",
-		"items": {
+		"items": map[string]interface{}{
 			"type": "array",
-			"items": [
-				{ "title": "ident", "type": "string"},
-				{ "title": "type", "type": "string"},
-				{ "title": "name", "type": "string"},
-				{ "title": "latitude_deg", "type": "string"},
-				{ "title": "longitude_deg", "type": "string"},
-				{ "title": "elevation_ft", "type": "string"},
-				{ "title": "continent", "type": "string"},
-				{ "title": "iso_country", "type": "string"},
-				{ "title": "iso_region", "type": "string"},
-				{ "title": "municipality", "type": "string"},
-				{ "title": "gps_code", "type": "string"},
-				{ "title": "iata_code", "type": "string"},
-				{ "title": "local_code", "type": "string"}
-			]
-		}
-	}`),
+			"items": []interface{}{
+				map[string]interface{}{"title": "ident", "type": "string"},
+				map[string]interface{}{"title": "type", "type": "string"},
+				map[string]interface{}{"title": "name", "type": "string"},
+				map[string]interface{}{"title": "latitude_deg", "type": "number"},
+				map[string]interface{}{"title": "longitude_deg", "type": "number"},
+				map[string]interface{}{"title": "elevation_ft", "type": "integer"},
+				map[string]interface{}{"title": "continent", "type": "string"},
+				map[string]interface{}{"title": "iso_country", "type": "string"},
+				map[string]interface{}{"title": "iso_region", "type": "string"},
+				map[string]interface{}{"title": "municipality", "type": "string"},
+				map[string]interface{}{"title": "gps_code", "type": "string"},
+				map[string]interface{}{"title": "iata_code", "type": "string"},
+				map[string]interface{}{"title": "local_code", "type": "string"},
+			},
+		},
+	},
 }
 
 var AirportCodesStructureAbstract = &Structure{
-	Format: CSVDataFormat,
+	Format: "csv",
 	// FormatConfig: &CSVOptions{HeaderRow: true},
 	FormatConfig: map[string]interface{}{
 		"headerRow": true,
@@ -113,14 +109,17 @@ var ContinentCodes = &Dataset{
 }
 
 var ContinentCodesStructure = &Structure{
-	Format: CSVDataFormat,
-	Schema: jsonschema.Must(`{
+	Format: "csv",
+	Schema: map[string]interface{}{
 		"type": "array",
-		"items": [
-			{"title": "code", "type": "string"},
-			{"title": "name", "type": "string"}
-		]
-	}`),
+		"items": map[string]interface{}{
+			"type": "array",
+			"items": []interface{}{
+				map[string]interface{}{"title": "Code", "type": "string"},
+				map[string]interface{}{"title": "Name", "type": "string"},
+			},
+		},
+	},
 }
 
 var Hours = &Dataset{
@@ -136,18 +135,18 @@ var Hours = &Dataset{
 }
 
 var HoursStructure = &Structure{
-	Format: CSVDataFormat,
+	Format: "csv",
 	Depth:  2,
-	Schema: jsonschema.Must(`{
+	Schema: map[string]interface{}{
 		"type": "array",
-		"items": {
+		"items": map[string]interface{}{
 			"type": "array",
-			"items": [
-				{ "title": "field_1", "type": "string"},
-				{ "title": "field_2", "type": "number"},
-				{ "title": "field_3", "type": "string"},
-				{ "title": "field_4", "type": "string"}
-			]
-		}
-	}`),
+			"items": []interface{}{
+				map[string]interface{}{"title": "field_1", "type": "string"},
+				map[string]interface{}{"title": "field_2", "type": "number"},
+				map[string]interface{}{"title": "field_3", "type": "string"},
+				map[string]interface{}{"title": "field_4", "type": "string"},
+			},
+		},
+	},
 }

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/qri-io/dataset/compression"
-	"github.com/qri-io/jsonschema"
 )
 
 func TestCompareDatasets(t *testing.T) {
@@ -81,10 +80,10 @@ func TestCompareStructures(t *testing.T) {
 		{&Structure{Entries: 0}, &Structure{Entries: 1}, "Entries: 0 != 1"},
 		{&Structure{Checksum: "a"}, &Structure{Checksum: "b"}, "Checksum: a != b"},
 		{&Structure{Depth: 0}, &Structure{Depth: 1}, "Depth: 0 != 1"},
-		{&Structure{Format: CSVDataFormat}, &Structure{Format: UnknownDataFormat}, "Format: csv != "},
+		{&Structure{Format: "csv"}, &Structure{Format: ""}, "Format: csv != "},
 		{&Structure{Encoding: "a"}, &Structure{Encoding: "b"}, "Encoding: a != b"},
 		{&Structure{Compression: ""}, &Structure{Compression: compression.Tar.String()}, "Compression:  != tar"},
-		{&Structure{}, &Structure{Schema: &jsonschema.RootSchema{}}, "Schema: nil: <nil> != <not nil>"},
+		{&Structure{}, &Structure{Schema: map[string]interface{}{}}, "Schema: nil: <nil> != <not nil>"},
 	}
 
 	for i, c := range cases {
@@ -160,7 +159,6 @@ func TestCompareTransforms(t *testing.T) {
 		Syntax:        "starlark",
 		SyntaxVersion: "1000.0.0",
 		ScriptPath:    "foo.star",
-		Structure:     AirportCodes.Structure,
 		Resources: map[string]*TransformResource{
 			"airports": &TransformResource{Path: AirportCodes.Path},
 		},
@@ -178,7 +176,6 @@ func TestCompareTransforms(t *testing.T) {
 		{&Transform{Syntax: "a"}, &Transform{Syntax: "b"}, "Syntax: a != b"},
 		{&Transform{SyntaxVersion: "a"}, &Transform{SyntaxVersion: "b"}, "SyntaxVersion: a != b"},
 		{&Transform{ScriptPath: "a"}, &Transform{ScriptPath: "b"}, "ScriptPath: a != b"},
-		{&Transform{}, &Transform{Structure: AirportCodes.Structure}, "Structure: nil: <nil> != <not nil>"},
 		{&Transform{Resources: map[string]*TransformResource{
 			"airports": &TransformResource{Path: AirportCodes.Path},
 		}}, &Transform{Resources: map[string]*TransformResource{}}, "Resource 'airports': nil: <not nil> != <nil>"},

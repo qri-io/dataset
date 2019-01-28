@@ -13,9 +13,9 @@ func TestNewEntryReader(t *testing.T) {
 		err string
 	}{
 		{&dataset.Structure{}, "structure must have a data format"},
-		{&dataset.Structure{Format: dataset.CBORDataFormat, Schema: dataset.BaseSchemaArray}, ""},
-		{&dataset.Structure{Format: dataset.JSONDataFormat, Schema: dataset.BaseSchemaArray}, ""},
-		{&dataset.Structure{Format: dataset.CSVDataFormat, Schema: dataset.BaseSchemaArray}, ""},
+		{&dataset.Structure{Format: "cbor", Schema: dataset.BaseSchemaArray}, ""},
+		{&dataset.Structure{Format: "json", Schema: dataset.BaseSchemaArray}, ""},
+		{&dataset.Structure{Format: "csv", Schema: dataset.BaseSchemaArray}, ""},
 	}
 
 	for i, c := range cases {
@@ -33,9 +33,9 @@ func TestNewEntryWriter(t *testing.T) {
 		err string
 	}{
 		{&dataset.Structure{}, "structure must have a data format"},
-		{&dataset.Structure{Format: dataset.CBORDataFormat, Schema: dataset.BaseSchemaArray}, ""},
-		{&dataset.Structure{Format: dataset.JSONDataFormat, Schema: dataset.BaseSchemaArray}, ""},
-		{&dataset.Structure{Format: dataset.CSVDataFormat, Schema: dataset.BaseSchemaArray}, ""},
+		{&dataset.Structure{Format: "cbor", Schema: dataset.BaseSchemaArray}, ""},
+		{&dataset.Structure{Format: "json", Schema: dataset.BaseSchemaArray}, ""},
+		{&dataset.Structure{Format: "csv", Schema: dataset.BaseSchemaArray}, ""},
 	}
 
 	for i, c := range cases {

@@ -1,8 +1,10 @@
 package dataset
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 )
 
 // Viz stores configuration data related to representing a dataset as a
@@ -20,7 +22,7 @@ type Viz struct {
 	// Script is a reader of raw script data
 	// Script io.Reader `json:"_"`
 
-	// ScriptBytes is for representing a script as a slice of bytes
+	// ScriptBytes is for representing a script as a slice of bytes, transient
 	ScriptBytes []byte `json:"scriptBytes,omitempty"`
 	// ScriptPath is the path to the script that created this
 	ScriptPath string `json:"scriptPath,omitempty"`
@@ -29,6 +31,22 @@ type Viz struct {
 // NewVizRef creates an empty struct with it's internal path set
 func NewVizRef(path string) *Viz {
 	return &Viz{Path: path}
+}
+
+// DropTransientValues removes values that cannot be recorded when the
+// dataset is rendered immutable, usually by storing it in a cafs
+func (v *Viz) DropTransientValues() {
+	v.Path = ""
+	v.ScriptBytes = nil
+}
+
+// Script generates an io.Reader of scrupt bytes
+// TODO (b5): this needs more thought. maybe a LoadScript function?
+func (v *Viz) Script() io.Reader {
+	if v.ScriptBytes == nil {
+		return nil
+	}
+	return bytes.NewReader(v.ScriptBytes)
 }
 
 // IsEmpty checks to see if Viz has any fields other than the internal path

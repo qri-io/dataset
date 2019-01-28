@@ -118,6 +118,21 @@ func (ds *Dataset) SignableBytes() ([]byte, error) {
 	return []byte(fmt.Sprintf("%s\n%s", ds.Commit.Timestamp.UTC().Format(time.RFC3339), ds.Structure.Checksum)), nil
 }
 
+// DropTransientValues removes values that cannot be recorded when the
+// dataset is rendered immutable, usually by storing it in a cafs
+func (ds *Dataset) DropTransientValues() {
+	ds.Body = nil
+	ds.BodyBytes = nil
+	// ds.Commit.DropTransientValues()
+	// ds.Meta.DropTransientValues()
+	ds.Name = ""
+	ds.Path = ""
+	ds.ProfileID = ""
+	// ds.Structure.DropTransientValues()
+	// ds.Transform.DropTransientValues()
+	// ds.Viz.DropTransientValues()
+}
+
 // Assign collapses all properties of a group of datasets onto one.
 // this is directly inspired by Javascript's Object.assign
 func (ds *Dataset) Assign(datasets ...*Dataset) {

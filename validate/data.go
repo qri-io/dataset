@@ -15,7 +15,7 @@ func EntryReader(r dsio.EntryReader) ([]jsonschema.ValError, error) {
 	st := r.Structure()
 
 	buf, err := dsio.NewEntryBuffer(&dataset.Structure{
-		Format: dataset.JSONDataFormat,
+		Format: "json",
 		Schema: st.Schema,
 	})
 	if err != nil {
@@ -44,9 +44,14 @@ func EntryReader(r dsio.EntryReader) ([]jsonschema.ValError, error) {
 	data := buf.Bytes()
 
 	if len(data) == 0 {
-		// TODO - wut?
+		// TODO (b5): - wut?
 		return nil, fmt.Errorf("err reading data")
 	}
 
-	return st.Schema.ValidateBytes(data)
+	jsch, err := st.JSONSchema()
+	if err != nil {
+		return nil, err
+	}
+
+	return jsch.ValidateBytes(data)
 }

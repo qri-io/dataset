@@ -1,8 +1,10 @@
 package dataset
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 )
 
 // Transform is a record of executing a transformation on data.
@@ -23,10 +25,6 @@ type Transform struct {
 	// transform
 	Resources map[string]*TransformResource `json:"resources,omitempty"`
 
-	// Script is a reader of raw script data, transient
-	// TODO (b5): turn this into a method
-	// Script io.Reader `json:"_"`
-
 	// ScriptBytes is for representing a script as a slice of bytes, transient
 	ScriptBytes []byte `json:"scriptBytes,omitempty"`
 	// ScriptPath is the path to the script that produced this transformation.
@@ -34,14 +32,28 @@ type Transform struct {
 	// Secrets is a map of secret values used in the transformation, transient.
 	// TODO (b5): make this not-transient by censoring the values used, but not keys
 	Secrets map[string]string `json:"secrets,omitempty"`
-
-	// Structure is the output structure of this transformation
-	Structure *Structure `json:"structure,omitempty"`
 	// Syntax this transform was written in
 	Syntax string `json:"syntax,omitempty"`
 	// SyntaxVersion is an identifier for the application and version number that
 	// produced the result
 	SyntaxVersion string `json:"syntaxVersion,omitempty"`
+}
+
+// DropTransientValues removes values that cannot be recorded when the
+// dataset is rendered immutable, usually by storing it in a cafs
+func (q *Transform) DropTransientValues() {
+	q.Path = ""
+	q.Secrets = nil
+	q.ScriptBytes = nil
+}
+
+// Script generates an io.Reader of scrupt bytes
+// TODO (b5): this needs more thought. maybe a LoadScript function?
+func (q *Transform) Script() io.Reader {
+	if q.ScriptBytes == nil {
+		return nil
+	}
+	return bytes.NewReader(q.ScriptBytes)
 }
 
 // TransformResource describes an external data dependency, the prime use case
@@ -87,7 +99,6 @@ func (q *Transform) IsEmpty() bool {
 		q.ScriptBytes == nil &&
 		q.ScriptPath == "" &&
 		q.Secrets == nil &&
-		q.Structure == nil &&
 		q.Syntax == "" &&
 		q.SyntaxVersion == ""
 }
