@@ -83,7 +83,7 @@ func TestCompareStructures(t *testing.T) {
 		{&Structure{Depth: 0}, &Structure{Depth: 1}, "Depth: 0 != 1"},
 		{&Structure{Format: CSVDataFormat}, &Structure{Format: UnknownDataFormat}, "Format: csv != "},
 		{&Structure{Encoding: "a"}, &Structure{Encoding: "b"}, "Encoding: a != b"},
-		{&Structure{Compression: compression.None}, &Structure{Compression: compression.Tar}, "Compression:  != tar"},
+		{&Structure{Compression: ""}, &Structure{Compression: compression.Tar.String()}, "Compression:  != tar"},
 		{&Structure{}, &Structure{Schema: &jsonschema.RootSchema{}}, "Schema: nil: <nil> != <not nil>"},
 	}
 
@@ -119,10 +119,10 @@ func TestCompareVizs(t *testing.T) {
 
 func TestCompareCommits(t *testing.T) {
 	c1 := &Commit{
-		path:    "/foo",
+		Path:    "/foo",
 		Title:   "foo",
 		Message: "message",
-		Qri:     KindCommit,
+		Qri:     KindCommit.String(),
 		Author:  &User{ID: "foo"},
 	}
 
@@ -156,13 +156,13 @@ func TestCompareCommits(t *testing.T) {
 
 func TestCompareTransforms(t *testing.T) {
 	t1 := &Transform{
-		Qri:           KindTransform,
+		Qri:           KindTransform.String(),
 		Syntax:        "starlark",
 		SyntaxVersion: "1000.0.0",
 		ScriptPath:    "foo.star",
 		Structure:     AirportCodes.Structure,
 		Resources: map[string]*TransformResource{
-			"airports": &TransformResource{Path: AirportCodes.Path()},
+			"airports": &TransformResource{Path: AirportCodes.Path},
 		},
 	}
 	cases := []struct {
@@ -180,7 +180,7 @@ func TestCompareTransforms(t *testing.T) {
 		{&Transform{ScriptPath: "a"}, &Transform{ScriptPath: "b"}, "ScriptPath: a != b"},
 		{&Transform{}, &Transform{Structure: AirportCodes.Structure}, "Structure: nil: <nil> != <not nil>"},
 		{&Transform{Resources: map[string]*TransformResource{
-			"airports": &TransformResource{Path: AirportCodes.Path()},
+			"airports": &TransformResource{Path: AirportCodes.Path},
 		}}, &Transform{Resources: map[string]*TransformResource{}}, "Resource 'airports': nil: <not nil> != <nil>"},
 	}
 

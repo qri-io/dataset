@@ -3,46 +3,39 @@ package dataset
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 )
 
 // Viz stores configuration data related to representing a dataset as a
 // visualization
 type Viz struct {
-	// private storage for reference to this object
-	path string
-	// Qri should always be "vc:0"
-	Qri Kind
 	// Format designates the visualization configuration syntax. currently the
 	// only supported syntax is "html"
-	Format string
+	Format string `json:"format,omitempty"`
+	// path is the location of a viz, transient
+	Path string `json:"path,omitempty"`
+	// Qri should always be "vc:0"
+	Qri string `json:"qri,omitempty"`
+
+	// TODO (b5): turn this into a method
 	// Script is a reader of raw script data
-	Script io.Reader `json:"_"`
+	// Script io.Reader `json:"_"`
+
 	// ScriptBytes is for representing a script as a slice of bytes
 	ScriptBytes []byte `json:"scriptBytes,omitempty"`
 	// ScriptPath is the path to the script that created this
-	ScriptPath string `json:"script,omitempty"`
-}
-
-// Path gives the internal path reference for this structure
-func (v *Viz) Path() string {
-	return v.path
+	ScriptPath string `json:"scriptPath,omitempty"`
 }
 
 // NewVizRef creates an empty struct with it's internal path set
 func NewVizRef(path string) *Viz {
-	return &Viz{path: path}
+	return &Viz{Path: path}
 }
 
 // IsEmpty checks to see if Viz has any fields other than the internal path
 func (v *Viz) IsEmpty() bool {
-	return v.Format == "" && v.ScriptPath == ""
-}
-
-// SetPath sets the internal path property of a Viz
-// Use with caution. most callers should never need to call SetPath
-func (v *Viz) SetPath(path string) {
-	v.path = path
+	return v.Format == "" &&
+		v.ScriptBytes == nil &&
+		v.ScriptPath == ""
 }
 
 // Assign collapses all properties of a group of structures on to one this is
@@ -53,14 +46,14 @@ func (v *Viz) Assign(visConfigs ...*Viz) {
 			continue
 		}
 
-		if vs.path != "" {
-			v.path = vs.path
+		if vs.Format != "" {
+			v.Format = vs.Format
+		}
+		if vs.Path != "" {
+			v.Path = vs.Path
 		}
 		if vs.Qri != "" {
 			v.Qri = vs.Qri
-		}
-		if vs.Format != "" {
-			v.Format = vs.Format
 		}
 		if vs.ScriptBytes != nil {
 			v.ScriptBytes = vs.ScriptBytes
@@ -71,22 +64,20 @@ func (v *Viz) Assign(visConfigs ...*Viz) {
 	}
 }
 
-// vizPod is a private struct for marshaling into & out of.
-// fields must remain sorted in lexographical order
-type vizPod struct {
-	Format      string `json:"format,omitempty"`
-	Qri         Kind   `json:"qri,omitempty"`
-	ScriptBytes []byte `json:"scriptBytes,omitempty"`
-	ScriptPath  string `json:"scriptPath,omitempty"`
-}
+// _viz is a private struct for marshaling into & out of.
+type _viz Viz
 
 // MarshalJSON satisfies the json.Marshaler interface
 func (v *Viz) MarshalJSON() ([]byte, error) {
 	// if we're dealing with an empty object that has a path specified, marshal
 	// to a string instead
-	if v.path != "" && v.IsEmpty() {
-		return json.Marshal(v.path)
+	if v.Path != "" && v.IsEmpty() {
+		return json.Marshal(v.Path)
 	}
+	if v.Qri == "" {
+		v.Qri = KindViz.String()
+	}
+
 	return v.MarshalJSONObject()
 }
 
@@ -94,21 +85,16 @@ func (v *Viz) MarshalJSON() ([]byte, error) {
 func (v *Viz) UnmarshalJSON(data []byte) error {
 	var s string
 	if err := json.Unmarshal(data, &s); err == nil {
-		*v = Viz{path: s}
+		*v = Viz{Path: s}
 		return nil
 	}
 
-	vp := &vizPod{}
-	if err := json.Unmarshal(data, vp); err != nil {
+	_v := _viz{}
+	if err := json.Unmarshal(data, &_v); err != nil {
 		return err
 	}
 
-	*v = Viz{
-		Format:      vp.Format,
-		Qri:         vp.Qri,
-		ScriptBytes: vp.ScriptBytes,
-		ScriptPath:  vp.ScriptPath,
-	}
+	*v = Viz(_v)
 	return nil
 }
 
@@ -126,7 +112,6 @@ func UnmarshalViz(v interface{}) (*Viz, error) {
 		return visConfig, err
 	default:
 		err := fmt.Errorf("couldn't parse Viz, value is invalid type")
-		log.Debug(err.Error())
 		return nil, err
 	}
 }
@@ -134,8 +119,9 @@ func UnmarshalViz(v interface{}) (*Viz, error) {
 // MarshalJSONObject always marshals to a json Object, even if Viz is empty or
 // a reference
 func (v *Viz) MarshalJSONObject() ([]byte, error) {
-	data := map[string]interface{}{}
-	data["qri"] = KindViz
+	data := map[string]interface{}{
+		"qri": v.Qri,
+	}
 
 	if v.Format != "" {
 		data["format"] = v.Format

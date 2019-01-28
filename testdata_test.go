@@ -5,9 +5,9 @@ import (
 )
 
 var AirportCodes = &Dataset{
-	Qri: KindDataset,
+	Qri: KindDataset.String(),
 	Meta: &Meta{
-		Qri:     KindMeta,
+		Qri:     KindMeta.String(),
 		Title:   "Airport Codes",
 		HomeURL: "http://www.ourairports.com/",
 		License: &License{
@@ -25,7 +25,7 @@ var AirportCodes = &Dataset{
 }
 
 var AirportCodesAbstract = &Dataset{
-	Qri:       KindDataset,
+	Qri:       KindDataset.String(),
 	Structure: AirportCodesStructureAbstract,
 }
 
@@ -34,9 +34,12 @@ const AirportCodesJSON = `{"commit":{"qri":"cm:0","timestamp":"0001-01-01T00:00:
 var AirportCodesStructure = &Structure{
 	ErrCount: 5,
 	Format:   CSVDataFormat,
-	Qri:      KindStructure,
-	FormatConfig: &CSVOptions{
-		HeaderRow: true,
+	Qri:      KindStructure.String(),
+	// FormatConfig: &CSVOptions{
+	// 	HeaderRow: true,
+	// },
+	FormatConfig: map[string]interface{}{
+		"headerRow": true,
 	},
 	Schema: jsonschema.Must(`{
 		"type": "array",
@@ -62,8 +65,11 @@ var AirportCodesStructure = &Structure{
 }
 
 var AirportCodesStructureAbstract = &Structure{
-	Format:       CSVDataFormat,
-	FormatConfig: &CSVOptions{HeaderRow: true},
+	Format: CSVDataFormat,
+	// FormatConfig: &CSVOptions{HeaderRow: true},
+	FormatConfig: map[string]interface{}{
+		"headerRow": true,
+	},
 	// Schema: jsonschema.Must(`{
 	// 	"type": "array",
 	// 	"items": {
@@ -88,10 +94,10 @@ var AirportCodesStructureAbstract = &Structure{
 }
 
 var ContinentCodes = &Dataset{
-	Qri: KindDataset,
+	Qri: KindDataset.String(),
 	Meta: &Meta{
 		Title:       "Continent Codes",
-		Qri:         KindMeta,
+		Qri:         KindMeta.String(),
 		Description: "list of continents with corresponding two letter codes",
 		License: &License{
 			Type: "odc-pddl",
@@ -118,10 +124,10 @@ var ContinentCodesStructure = &Structure{
 }
 
 var Hours = &Dataset{
-	Qri: KindDataset,
+	Qri: KindDataset.String(),
 	Meta: &Meta{
 		Title:       "hours",
-		Qri:         KindMeta,
+		Qri:         KindMeta.String(),
 		AccessURL:   "https://example.com/not/a/url",
 		DownloadURL: "https://example.com/not/a/url",
 		ReadmeURL:   "/ipfs/notahash",

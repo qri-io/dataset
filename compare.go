@@ -1,6 +1,7 @@
 package dataset
 
 import (
+	"bytes"
 	"fmt"
 	"reflect"
 
@@ -20,19 +21,29 @@ func CompareDatasets(a, b *Dataset) error {
 		return fmt.Errorf("nil: <not nil> != <nil>")
 	}
 
-	if a.Qri.String() != b.Qri.String() {
-		return fmt.Errorf("Qri: %s != %s", a.Qri, b.Qri)
+	if !reflect.DeepEqual(a.Path, b.Path) {
+		return fmt.Errorf("Body mismatch")
 	}
-
-	if a.PreviousPath != b.PreviousPath {
-		return fmt.Errorf("PreviousPath: %s != %s", a.PreviousPath, b.PreviousPath)
+	if !bytes.Equal(a.BodyBytes, b.BodyBytes) {
+		return fmt.Errorf("BodyBytes: %v != %v", a.BodyBytes, b.BodyBytes)
 	}
 	if a.BodyPath != b.BodyPath {
 		return fmt.Errorf("BodyPath: %s != %s", a.BodyPath, b.BodyPath)
 	}
-
+	if err := CompareCommits(a.Commit, b.Commit); err != nil {
+		return fmt.Errorf("Commit: %s", err.Error())
+	}
 	if err := CompareMetas(a.Meta, b.Meta); err != nil {
 		return fmt.Errorf("Meta: %s", err.Error())
+	}
+	if a.Path != b.Path {
+		return fmt.Errorf("Path: %s != %s", a.Path, b.Path)
+	}
+	if a.PreviousPath != b.PreviousPath {
+		return fmt.Errorf("PreviousPath: %s != %s", a.PreviousPath, b.PreviousPath)
+	}
+	if a.Qri != b.Qri {
+		return fmt.Errorf("Qri: %s != %s", a.Qri, b.Qri)
 	}
 	if err := CompareStructures(a.Structure, b.Structure); err != nil {
 		return fmt.Errorf("Structure: %s", err.Error())
@@ -40,8 +51,8 @@ func CompareDatasets(a, b *Dataset) error {
 	if err := CompareTransforms(a.Transform, b.Transform); err != nil {
 		return fmt.Errorf("Transform: %s", err.Error())
 	}
-	if err := CompareCommits(a.Commit, b.Commit); err != nil {
-		return fmt.Errorf("Commit: %s", err.Error())
+	if err := CompareVizs(a.Viz, b.Viz); err != nil {
+		return fmt.Errorf("Transform: %s", err.Error())
 	}
 
 	return nil
@@ -60,7 +71,7 @@ func CompareMetas(a, b *Meta) error {
 		return fmt.Errorf("nil: <not nil> != <nil>")
 	}
 
-	if a.Qri.String() != b.Qri.String() {
+	if a.Qri != b.Qri {
 		return fmt.Errorf("Qri: %s != %s", a.Qri, b.Qri)
 	}
 	if a.Title != b.Title {
@@ -152,7 +163,7 @@ func CompareStructures(a, b *Structure) error {
 
 	if (a.FormatConfig != nil && b.FormatConfig == nil) || (a.FormatConfig == nil && b.FormatConfig != nil) {
 		return fmt.Errorf("FormatConfig nil mismatch")
-	} else if a.FormatConfig != nil && b.FormatConfig != nil && !reflect.DeepEqual(a.FormatConfig.Map(), b.FormatConfig.Map()) {
+	} else if a.FormatConfig != nil && b.FormatConfig != nil && !reflect.DeepEqual(a.FormatConfig, b.FormatConfig) {
 		return fmt.Errorf("FormatConfig mismatch")
 	}
 
@@ -264,7 +275,7 @@ func CompareTransforms(a, b *Transform) error {
 		return fmt.Errorf("nil: <not nil> != <nil>")
 	}
 
-	if a.Qri.String() != b.Qri.String() {
+	if a.Qri != b.Qri {
 		return fmt.Errorf("Qri: %s != %s", a.Qri, b.Qri)
 	}
 	if a.Syntax != b.Syntax {

@@ -8,31 +8,12 @@ import (
 	"time"
 )
 
-func TestMetaSetPath(t *testing.T) {
-	cases := []struct {
-		path   string
-		expect *Meta
-	}{
-		{"", &Meta{}},
-		{"path", &Meta{path: "path"}},
-	}
-
-	for i, c := range cases {
-		got := &Meta{}
-		got.SetPath(c.path)
-		if err := CompareMetas(c.expect, got); err != nil {
-			t.Errorf("case %d error: %s", i, err)
-			continue
-		}
-	}
-}
-
 func TestMetaAssign(t *testing.T) {
 	// TODO - expand test to check all fields
 	cases := []struct {
 		in *Meta
 	}{
-		{&Meta{path: "/a"}},
+		{&Meta{Path: "/a"}},
 		{&Meta{AccessURL: "foo"}},
 		{&Meta{DownloadURL: "foo"}},
 		{&Meta{ReadmeURL: "foo"}},
@@ -210,7 +191,7 @@ func TestMetaMarshalJSON(t *testing.T) {
 		return
 	}
 
-	strbytes, err := json.Marshal(&Meta{path: "/path/to/dataset"})
+	strbytes, err := json.Marshal(&Meta{Path: "/path/to/dataset"})
 	if err != nil {
 		t.Errorf("unexpected string marshal error: %s", err.Error())
 		return
@@ -257,14 +238,14 @@ func TestMetaUnmarshalJSON(t *testing.T) {
 		return
 	}
 
-	if strds.path != path {
-		t.Errorf("unmarshal didn't set proper path: %s != %s", path, strds.path)
+	if strds.Path != path {
+		t.Errorf("unmarshal didn't set proper path: %s != %s", path, strds.Path)
 		return
 	}
 }
 
 func TestUnmarshalMeta(t *testing.T) {
-	dsa := Meta{Qri: KindMeta}
+	dsa := Meta{Qri: KindMeta.String()}
 	cases := []struct {
 		value interface{}
 		out   *Meta
@@ -272,7 +253,7 @@ func TestUnmarshalMeta(t *testing.T) {
 	}{
 		{dsa, &dsa, ""},
 		{&dsa, &dsa, ""},
-		{[]byte("{\"qri\":\"md:0\"}"), &Meta{Qri: KindMeta}, ""},
+		{[]byte("{\"qri\":\"md:0\"}"), &Meta{Qri: KindMeta.String()}, ""},
 		{5, nil, "couldn't parse metadata, value is invalid type"},
 	}
 

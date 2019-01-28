@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/qri-io/dataset/compression"
 	"github.com/qri-io/jsonschema"
 )
 
@@ -28,16 +27,13 @@ var (
 // provided in a dataset's structure, and then by the natural comparibilty of
 // the datasets
 type Structure struct {
-	// private storage for reference to this object
-	path string
-
 	// Checksum is a bas58-encoded multihash checksum of the entire data
 	// file this structure points to. This is different from IPFS
 	// hashes, which are calculated after breaking the file into blocks
 	Checksum string `json:"checksum,omitempty"`
 	// Compression specifies any compression on the source data,
 	// if empty assume no compression
-	Compression compression.Type `json:"compression,omitempty"`
+	Compression string `json:"compression,omitempty"`
 	// Maximum nesting level of composite types in the dataset. eg: depth 1 == [], depth 2 == [[]]
 	Depth int `json:"depth,omitempty"`
 	// Encoding specifics character encoding, assume utf-8 if not specified
@@ -52,27 +48,27 @@ type Structure struct {
 	Format DataFormat `json:"format"`
 	// FormatConfig removes as much ambiguity as possible about how
 	// to interpret the speficied format.
-	FormatConfig FormatConfig `json:"formatConfig,omitempty"`
+	// FormatConfig FormatConfig `json:"formatConfig,omitempty"`
+	FormatConfig map[string]interface{} `json:"formatConfig,omitempty"`
+
 	// Length is the length of the data object in bytes.
 	// must always match & be present
 	Length int `json:"length,omitempty"`
+	// location of this structure, transient
+	Path string `json:"path,omitempty"`
 	// Qri should always be KindStructure
-	Qri Kind `json:"qri"`
+	Qri string `json:"qri"`
 	// Schema contains the schema definition for the underlying data, schemas
 	// are defined using the IETF json-schema specification. for more info
 	// on json-schema see: https://json-schema.org
+	// TODO: Schema       map[string]interface{} `json:"schema,omitempty"`
 	Schema *jsonschema.RootSchema `json:"schema,omitempty"`
-}
-
-// Path gives the internal path reference for this structure
-func (s *Structure) Path() string {
-	return s.path
 }
 
 // NewStructureRef creates an empty struct with it's
 // internal path set
 func NewStructureRef(path string) *Structure {
-	return &Structure{Qri: KindStructure, path: path}
+	return &Structure{Qri: KindStructure.String(), Path: path}
 }
 
 // Abstract returns this structure instance in it's "Abstract" form
@@ -110,24 +106,12 @@ func (s *Structure) Hash() (string, error) {
 
 // separate type for marshalling into & out of
 // most importantly, struct names must be sorted lexographically
-type _structure struct {
-	Checksum     string                 `json:"checksum,omitempty"`
-	Compression  compression.Type       `json:"compression,omitempty"`
-	Depth        int                    `json:"depth,omitempty"`
-	Encoding     string                 `json:"encoding,omitempty"`
-	Entries      int                    `json:"entries,omitempty"`
-	ErrCount     int                    `json:"errCount"`
-	Format       DataFormat             `json:"format"`
-	FormatConfig map[string]interface{} `json:"formatConfig,omitempty"`
-	Length       int                    `json:"length,omitempty"`
-	Qri          Kind                   `json:"qri"`
-	Schema       *jsonschema.RootSchema `json:"schema,omitempty"`
-}
+type _structure Structure
 
 // MarshalJSON satisfies the json.Marshaler interface
 func (s Structure) MarshalJSON() (data []byte, err error) {
-	if s.path != "" && s.Encoding == "" && s.Schema == nil {
-		return json.Marshal(s.path)
+	if s.Path != "" && s.Encoding == "" && s.Schema == nil {
+		return json.Marshal(s.Path)
 	}
 
 	return s.MarshalJSONObject()
@@ -137,12 +121,12 @@ func (s Structure) MarshalJSON() (data []byte, err error) {
 func (s Structure) MarshalJSONObject() ([]byte, error) {
 	kind := s.Qri
 	if kind == "" {
-		kind = KindStructure
+		kind = KindStructure.String()
 	}
 
 	var opt map[string]interface{}
 	if s.FormatConfig != nil {
-		opt = s.FormatConfig.Map()
+		opt = s.FormatConfig
 	}
 
 	return json.Marshal(&_structure{
@@ -162,50 +146,46 @@ func (s Structure) MarshalJSONObject() ([]byte, error) {
 
 // UnmarshalJSON satisfies the json.Unmarshaler interface
 func (s *Structure) UnmarshalJSON(data []byte) (err error) {
-	var (
-		str    string
-		fmtCfg FormatConfig
-	)
+	var str string
+
 	if err := json.Unmarshal(data, &str); err == nil {
-		*s = Structure{path: str}
+		*s = Structure{Path: str}
 		return nil
 	}
 
-	_s := &_structure{}
-	if err := json.Unmarshal(data, _s); err != nil {
-		log.Debug(err.Error())
+	_s := _structure{}
+	if err := json.Unmarshal(data, &_s); err != nil {
 		return fmt.Errorf("error unmarshaling dataset structure from json: %s", err.Error())
 	}
 
-	if _s.FormatConfig != nil {
-		fmtCfg, err = ParseFormatConfigMap(_s.Format, _s.FormatConfig)
-		if err != nil {
-			log.Debug(err.Error())
-			return fmt.Errorf("error parsing structure formatConfig: %s", err.Error())
-		}
+	// if _s.FormatConfig != nil {
+	// 	fmtCfg, err = ParseFormatConfigMap(_s.Format, _s.FormatConfig)
+	// 	if err != nil {
+	// 		return fmt.Errorf("error parsing structure formatConfig: %s", err.Error())
+	// 	}
+	// }
 
-	}
-
-	*s = Structure{
-		Checksum:     _s.Checksum,
-		Compression:  _s.Compression,
-		Depth:        _s.Depth,
-		Encoding:     _s.Encoding,
-		Entries:      _s.Entries,
-		ErrCount:     _s.ErrCount,
-		Format:       _s.Format,
-		FormatConfig: fmtCfg,
-		Length:       _s.Length,
-		Qri:          _s.Qri,
-		Schema:       _s.Schema,
-	}
+	*s = Structure(_s)
+	// *s = Structure{
+	// 	Checksum:     _s.Checksum,
+	// 	Compression:  _s.Compression,
+	// 	Depth:        _s.Depth,
+	// 	Encoding:     _s.Encoding,
+	// 	Entries:      _s.Entries,
+	// 	ErrCount:     _s.ErrCount,
+	// 	Format:       _s.Format,
+	// 	FormatConfig: fmtCfg,
+	// 	Length:       _s.Length,
+	// 	Qri:          _s.Qri,
+	// 	Schema:       _s.Schema,
+	// }
 	return nil
 }
 
 // IsEmpty checks to see if structure has any fields other than the internal path
 func (s *Structure) IsEmpty() bool {
 	return s.Checksum == "" &&
-		s.Compression == compression.None &&
+		s.Compression == "" &&
 		s.Depth == 0 &&
 		s.Encoding == "" &&
 		s.Entries == 0 &&
@@ -216,12 +196,6 @@ func (s *Structure) IsEmpty() bool {
 		s.Schema == nil
 }
 
-// SetPath sets the internal path property of a Structure
-// Use with caution. most callers should never need to call SetPath
-func (s *Structure) SetPath(path string) {
-	s.path = path
-}
-
 // Assign collapses all properties of a group of structures on to one
 // this is directly inspired by Javascript's Object.assign
 func (s *Structure) Assign(structures ...*Structure) {
@@ -230,13 +204,13 @@ func (s *Structure) Assign(structures ...*Structure) {
 			continue
 		}
 
-		if st.path != "" {
-			s.path = st.path
+		if st.Path != "" {
+			s.Path = st.Path
 		}
 		if st.Checksum != "" {
 			s.Checksum = st.Checksum
 		}
-		if st.Compression != compression.None {
+		if st.Compression != "" {
 			s.Compression = st.Compression
 		}
 		if st.Depth != 0 {
@@ -288,7 +262,6 @@ func UnmarshalStructure(v interface{}) (*Structure, error) {
 		return structure, err
 	default:
 		err := fmt.Errorf("couldn't parse structure, value is invalid type")
-		log.Debug(err.Error())
 		return nil, err
 	}
 }
@@ -323,152 +296,4 @@ func base26(d int) (s string) {
 		}
 	}
 	return s
-}
-
-// Encode creates a StructurePod from a Structure instance
-func (s Structure) Encode() *StructurePod {
-	var (
-		sch  map[string]interface{}
-		schd []byte
-		err  error
-	)
-
-	if s.Schema != nil {
-		sch = map[string]interface{}{}
-		schd, err = json.Marshal(s.Schema)
-		if err != nil {
-			sch = nil
-		}
-		if err = json.Unmarshal(schd, &sch); err != nil {
-			sch = nil
-		}
-	}
-
-	cs := &StructurePod{
-		Checksum:    s.Checksum,
-		Compression: s.Compression.String(),
-		Depth:       s.Depth,
-		Encoding:    s.Encoding,
-		ErrCount:    s.ErrCount,
-		Entries:     s.Entries,
-		Format:      s.Format.String(),
-		Length:      s.Length,
-		Path:        s.Path(),
-		Qri:         s.Qri.String(),
-		Schema:      sch,
-	}
-
-	if s.FormatConfig != nil {
-		cs.FormatConfig = s.FormatConfig.Map()
-	}
-
-	return cs
-}
-
-// Decode creates a Stucture from a CodingStructre instance
-func (s *Structure) Decode(cs *StructurePod) (err error) {
-	dst := Structure{
-		Checksum: cs.Checksum,
-		Depth:    cs.Depth,
-		Encoding: cs.Encoding,
-		ErrCount: cs.ErrCount,
-		Entries:  cs.Entries,
-		Length:   cs.Length,
-	}
-
-	if cs.Qri != "" {
-		// TODO - this should respond to changes in cs
-		dst.Qri = KindStructure
-	}
-
-	if dst.Format, err = ParseDataFormatString(cs.Format); err != nil {
-		return err
-	}
-
-	if cs.FormatConfig != nil {
-		if dst.FormatConfig, err = ParseFormatConfigMap(dst.Format, cs.FormatConfig); err != nil {
-			return err
-		}
-	}
-
-	if cs.Schema != nil {
-		sch := &jsonschema.RootSchema{}
-		data, e := json.Marshal(cs.Schema)
-		if e != nil {
-			log.Debugf("marshaling schema data: %s", e.Error())
-			return e
-		}
-		if err = json.Unmarshal(data, sch); err != nil {
-			log.Debugf("unmarshaling schema: %s", err.Error())
-			return
-		}
-		dst.Schema = sch
-	}
-
-	*s = dst
-	return nil
-}
-
-// StructurePod is a variant of Structure safe for serialization (encoding & decoding)
-// to static formats. It uses only simple go types
-type StructurePod struct {
-	Checksum     string                 `json:"checksum,omitempty"`
-	Compression  string                 `json:"compression,omitempty"`
-	Depth        int                    `json:"depth,omitempty"`
-	Encoding     string                 `json:"encoding,omitempty"`
-	ErrCount     int                    `json:"errCount"`
-	Entries      int                    `json:"entries,omitempty"`
-	Format       string                 `json:"format"`
-	FormatConfig map[string]interface{} `json:"formatConfig,omitempty"`
-	Length       int                    `json:"length,omitempty"`
-	Path         string                 `json:"path,omitempty"`
-	Qri          string                 `json:"qri"`
-	Schema       map[string]interface{} `json:"schema,omitempty"`
-}
-
-// Assign collapses all properties of zero or more StructurePod onto one.
-// inspired by Javascript's Object.assign
-func (sp *StructurePod) Assign(sps ...*StructurePod) {
-	for _, s := range sps {
-		if s == nil {
-			continue
-		}
-
-		if s.Checksum != "" {
-			sp.Checksum = s.Checksum
-		}
-		if s.Depth != 0 {
-			sp.Depth = s.Depth
-		}
-		if s.Compression != "" {
-			sp.Compression = s.Compression
-		}
-		if s.Encoding != "" {
-			sp.Encoding = s.Encoding
-		}
-		if s.ErrCount != 0 {
-			sp.ErrCount = s.ErrCount
-		}
-		if s.Entries != 0 {
-			sp.Entries = s.Entries
-		}
-		if s.Format != "" {
-			sp.Format = s.Format
-		}
-		if s.FormatConfig != nil {
-			sp.FormatConfig = s.FormatConfig
-		}
-		if s.Length != 0 {
-			sp.Length = s.Length
-		}
-		if s.Path != "" {
-			sp.Path = s.Path
-		}
-		if s.Qri != "" {
-			sp.Qri = s.Qri
-		}
-		if s.Schema != nil {
-			sp.Schema = s.Schema
-		}
-	}
 }

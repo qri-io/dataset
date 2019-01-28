@@ -24,16 +24,10 @@
 package dataset
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"time"
-
-	logger "github.com/ipfs/go-log"
 )
-
-// log is the internal logging mechanism for the dataset package
-var log = logger.Logger("dataset")
 
 // Dataset is a document for describing & storing structured data.
 // Dataset documents are designed to satisfy the FAIR principle of being
@@ -46,24 +40,37 @@ var log = logger.Logger("dataset")
 // valuing direct interoperability with existing standards over novel
 // definitions or specifications
 type Dataset struct {
-	// private storage for reference to this object
-	path string
+	// Body is the designated field for representing dataset data with native go
+	// types. this will often not be populated, transient
+	Body interface{} `json:"body,omitempty"`
+	// BodyBytes is for representing dataset data as a slice of bytes
+	// this will often not be populated, transient
+	BodyBytes []byte `json:"bodyBytes,omitempty"`
+	// BodyPath is the path to the hash of raw data as it resolves on the network
+	// Datasets have at most one body
+	BodyPath string `json:"bodyPath,omitempty"`
 
 	// Commit contains author & change message information that describes this
 	// version of a dataset
 	Commit *Commit `json:"commit,omitempty"`
-	// BodyPath is the path to the hash of raw data as it resolves on the network
-	// Datasets have at most one body
-	BodyPath string `json:"bodyPath,omitempty"`
 	// Meta contains all human-readable meta about this dataset intended to aid
 	// in discovery and organization of this document
 	Meta *Meta `json:"meta,omitempty"`
+
+	// name reference for this dataset, transient
+	Name string `json:"name,omitempty"`
+	// Location of this dataset, transient
+	Path string `json:"path,omitempty"`
+	// Peername of dataset owner, transient
+	Peername string `json:"peername,omitempty"`
 	// PreviousPath connects datasets to form a historical merkle-DAG of snapshots
 	// of this document, creating a version history
 	PreviousPath string `json:"previousPath,omitempty"`
+	// ProfileID of dataset owner, transient
+	ProfileID string `json:"profileID,omitempty"`
 	// Qri is a key for both identifying this document type, and versioning the
 	// dataset document definition itself.
-	Qri Kind `json:"qri"`
+	Qri string `json:"qri"`
 	// Structure of this dataset
 	Structure *Structure `json:"structure"`
 	// Transform is a path to the transformation that generated this resource
@@ -73,44 +80,26 @@ type Dataset struct {
 	Viz *Viz `json:"viz,omitempty"`
 }
 
-// IsEmpty checks to see if dataset has any fields other than the internal path
+// IsEmpty checks to see if dataset has any fields other than the Path & Qri fields
 func (ds *Dataset) IsEmpty() bool {
-	return ds.Commit == nil &&
-		ds.Structure == nil &&
+	return ds.Body == nil &&
+		ds.BodyBytes == nil &&
 		ds.BodyPath == "" &&
+		ds.Commit == nil &&
 		ds.Meta == nil &&
+		ds.Name == "" &&
+		ds.Peername == "" &&
 		ds.PreviousPath == "" &&
+		ds.ProfileID == "" &&
+		ds.Structure == nil &&
 		ds.Transform == nil &&
 		ds.Viz == nil
-}
-
-// Path gives the internal path reference for this dataset
-func (ds *Dataset) Path() string {
-	return ds.path
 }
 
 // NewDatasetRef creates a Dataset pointer with the internal
 // path property specified, and no other fields.
 func NewDatasetRef(path string) *Dataset {
-	return &Dataset{path: path}
-}
-
-// Abstract returns a copy of dataset with all
-// semantically-identifiable and concrete references replaced with
-// uniform values
-func Abstract(ds *Dataset) *Dataset {
-	abs := &Dataset{Qri: ds.Qri}
-	if ds.Structure != nil {
-		abs.Structure = &Structure{}
-		abs.Structure.Assign(ds.Structure.Abstract())
-	}
-	return abs
-}
-
-// SetPath sets the internal path property of a dataset
-// Use with caution. most callers should never need to call SetPath
-func (ds *Dataset) SetPath(path string) {
-	ds.path = path
+	return &Dataset{Path: path}
 }
 
 // SignableBytes produces the portion of a commit message used for signing
@@ -137,28 +126,52 @@ func (ds *Dataset) Assign(datasets ...*Dataset) {
 			continue
 		}
 
-		if d.path != "" {
-			ds.path = d.path
+		// transient values
+		if d.Body != nil {
+			ds.Body = d.Body
 		}
-		if ds.Structure == nil && d.Structure != nil {
-			ds.Structure = d.Structure
-		} else if ds.Structure != nil {
-			ds.Structure.Assign(d.Structure)
+		if d.BodyBytes != nil {
+			ds.BodyBytes = d.BodyBytes
+		}
+		if d.BodyPath != "" {
+			ds.BodyPath = d.BodyPath
+		}
+
+		if ds.Commit == nil && d.Commit != nil {
+			ds.Commit = d.Commit
+		} else if ds.Commit != nil {
+			ds.Commit.Assign(d.Commit)
 		}
 		if ds.Meta == nil && d.Meta != nil {
 			ds.Meta = d.Meta
 		} else if ds.Meta != nil {
 			ds.Meta.Assign(d.Meta)
 		}
+		if d.Name != "" {
+			ds.Name = d.Name
+		}
+		if d.Path != "" {
+			ds.Path = d.Path
+		}
+		if d.Peername != "" {
+			ds.Peername = d.Peername
+		}
+		if d.PreviousPath != "" {
+			ds.PreviousPath = d.PreviousPath
+		}
+		if d.ProfileID != "" {
+			ds.ProfileID = d.ProfileID
+		}
+
+		if ds.Structure == nil && d.Structure != nil {
+			ds.Structure = d.Structure
+		} else if ds.Structure != nil {
+			ds.Structure.Assign(d.Structure)
+		}
 		if ds.Transform == nil && d.Transform != nil {
 			ds.Transform = d.Transform
 		} else if ds.Transform != nil {
 			ds.Transform.Assign(d.Transform)
-		}
-		if ds.Commit == nil && d.Commit != nil {
-			ds.Commit = d.Commit
-		} else if ds.Commit != nil {
-			ds.Commit.Assign(d.Commit)
 		}
 		if ds.Viz == nil && d.Viz != nil {
 			ds.Viz = d.Viz
@@ -166,12 +179,6 @@ func (ds *Dataset) Assign(datasets ...*Dataset) {
 			ds.Viz.Assign(d.Viz)
 		}
 
-		if d.BodyPath != "" {
-			ds.BodyPath = d.BodyPath
-		}
-		if d.PreviousPath != "" {
-			ds.PreviousPath = d.PreviousPath
-		}
 		// TODO - wut dis?
 		ds.Commit.Assign(d.Commit)
 	}
@@ -182,11 +189,11 @@ func (ds *Dataset) Assign(datasets ...*Dataset) {
 func (ds *Dataset) MarshalJSON() ([]byte, error) {
 	// if we're dealing with an empty object that has a path specified, marshal to a string instead
 	// TODO - check all fields
-	if ds.path != "" && ds.IsEmpty() {
-		return json.Marshal(ds.path)
+	if ds.Path != "" && ds.IsEmpty() {
+		return json.Marshal(ds.Path)
 	}
 	if ds.Qri == "" {
-		ds.Qri = KindDataset
+		ds.Qri = KindDataset.String()
 	}
 
 	return json.Marshal(_dataset(*ds))
@@ -200,13 +207,12 @@ func (ds *Dataset) UnmarshalJSON(data []byte) error {
 	// first check to see if this is a valid path ref
 	var path string
 	if err := json.Unmarshal(data, &path); err == nil {
-		*ds = Dataset{path: path}
+		*ds = Dataset{Path: path}
 		return nil
 	}
 
 	d := _dataset{}
 	if err := json.Unmarshal(data, &d); err != nil {
-		log.Debug(err.Error())
 		return fmt.Errorf("unmarshaling dataset: %s", err.Error())
 	}
 	*ds = Dataset(d)
@@ -227,164 +233,6 @@ func UnmarshalDataset(v interface{}) (*Dataset, error) {
 		return dataset, err
 	default:
 		err := fmt.Errorf("couldn't parse dataset, value is invalid type")
-		log.Debug(err.Error())
 		return nil, err
-	}
-}
-
-// Encode creates a DatasetPod from a Dataset instance
-func (ds Dataset) Encode() *DatasetPod {
-	cd := &DatasetPod{
-		BodyPath:     ds.BodyPath,
-		Meta:         ds.Meta,
-		Path:         ds.Path(),
-		PreviousPath: ds.PreviousPath,
-		Qri:          ds.Qri.String(),
-		Viz:          ds.Viz,
-	}
-
-	if ds.Commit != nil {
-		cd.Commit = ds.Commit.Encode()
-	}
-	if ds.Structure != nil {
-		cd.Structure = ds.Structure.Encode()
-	}
-	if ds.Transform != nil {
-		cd.Transform = ds.Transform.Encode()
-	}
-
-	return cd
-}
-
-// Decode creates a Dataset from a DatasetPod instance
-func (ds *Dataset) Decode(cd *DatasetPod) error {
-	d := Dataset{
-		path:         cd.Path,
-		BodyPath:     cd.BodyPath,
-		PreviousPath: cd.PreviousPath,
-		Meta:         cd.Meta,
-		Viz:          cd.Viz,
-	}
-
-	if cd.Viz != nil && cd.Viz.ScriptBytes != nil {
-		cd.Viz.Script = bytes.NewReader(cd.Viz.ScriptBytes)
-	}
-
-	if cd.Qri != "" {
-		// TODO - this should react to changes in cd
-		d.Qri = KindDataset
-	}
-
-	if cd.Commit != nil {
-		d.Commit = &Commit{}
-		if err := d.Commit.Decode(cd.Commit); err != nil {
-			return err
-		}
-	}
-
-	if cd.Structure != nil {
-		d.Structure = &Structure{}
-		if err := d.Structure.Decode(cd.Structure); err != nil {
-			return err
-		}
-	}
-
-	if cd.Transform != nil {
-		d.Transform = &Transform{}
-		if err := d.Transform.Decode(cd.Transform); err != nil {
-			return err
-		}
-	}
-
-	*ds = d
-	return nil
-}
-
-// DatasetPod is a variant of Dataset safe for encoding & decoding to static
-// formats, using only simple go types
-// DatasetPod can contain values that only exist after a dataset has been stored
-// in a content-addressed system, such as path, and fields that implicitly rely
-// on dataset having a path, like Peername & Name
-// There are also two fields that may contain dataset data: Data & DataBytes.
-// In practice these are only populated in special situations, and often only
-// one of the two Data fields is populated at a time.
-type DatasetPod struct {
-	Commit *CommitPod `json:"commit,omitempty"`
-	// Body is the designated field for representing dataset data with native go
-	// types. this will often not be populated
-	Body interface{} `json:"body,omitempty"`
-	// BodyBytes is for representing dataset data as a slice of bytes
-	// this will often not be populated
-	BodyBytes []byte `json:"bodyBytes,omitempty"`
-	// BodyPath is the path to retrieve this dataset
-	BodyPath string `json:"bodyPath,omitempty"`
-	// Unique name reference for this dataset
-	Name string `json:"name,omitempty"`
-	Meta *Meta  `json:"meta,omitempty"`
-	Path string `json:"path,omitempty"`
-	// Peername of dataset owner
-	Peername     string `json:"peername,omitempty"`
-	PreviousPath string `json:"previousPath,omitempty"`
-	// ProfileID of dataset owner
-	ProfileID string        `json:"profileID,omitempty"`
-	Qri       string        `json:"qri"`
-	Structure *StructurePod `json:"structure"`
-	Transform *TransformPod `json:"transform,omitempty"`
-	Viz       *Viz          `json:"viz,omitempty"`
-}
-
-// Assign collapses all properties of zero or more DatasetPod onto one.
-// inspired by Javascript's Object.assign
-func (dp *DatasetPod) Assign(dps ...*DatasetPod) {
-	for _, d := range dps {
-		if d == nil {
-			continue
-		}
-		if dp.Commit == nil && d.Commit != nil {
-			dp.Commit = d.Commit
-		} else if dp.Commit != nil {
-			dp.Commit.Assign(d.Commit)
-		}
-		if d.BodyBytes != nil {
-			dp.BodyBytes = d.BodyBytes
-		}
-		if d.BodyPath != "" {
-			dp.BodyPath = d.BodyPath
-		}
-		if d.Name != "" {
-			dp.Name = d.Name
-		}
-		if dp.Meta == nil && d.Meta != nil {
-			dp.Meta = d.Meta
-		} else if dp.Meta != nil {
-			dp.Meta.Assign(d.Meta)
-		}
-		if d.Path != "" {
-			dp.Path = d.Path
-		}
-		if d.Peername != "" {
-			dp.Peername = d.Peername
-		}
-		if d.PreviousPath != "" {
-			dp.PreviousPath = d.PreviousPath
-		}
-		if d.ProfileID != "" {
-			dp.ProfileID = d.ProfileID
-		}
-		if dp.Structure == nil && d.Structure != nil {
-			dp.Structure = d.Structure
-		} else if dp.Structure != nil {
-			dp.Structure.Assign(d.Structure)
-		}
-		if dp.Transform == nil && d.Transform != nil {
-			dp.Transform = d.Transform
-		} else if dp.Transform != nil {
-			dp.Transform.Assign(d.Transform)
-		}
-		if dp.Viz == nil && d.Viz != nil {
-			dp.Viz = d.Viz
-		} else if dp.Viz != nil {
-			dp.Viz.Assign(d.Viz)
-		}
 	}
 }
