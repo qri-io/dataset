@@ -12,6 +12,7 @@ import (
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dstest"
+	"github.com/qri-io/fs"
 )
 
 // Test Private Key. peerId: QmZePf5LeXow3RW5U1AgEiNbW46YnRGhZ7HPvm1UmPFPwt
@@ -44,7 +45,7 @@ func TestLoadDataset(t *testing.T) {
 		return
 	}
 
-	df := cafs.NewMemfileBytes("all_fields.csv", body)
+	df := fs.NewMemfileBytes("all_fields.csv", body)
 
 	apath, err := WriteDataset(store, ds, df, true)
 	if err != nil {
@@ -174,9 +175,10 @@ func TestCreateDataset(t *testing.T) {
 			if tc.Input.Transform == nil {
 				tc.Input.Transform = &dataset.Transform{}
 			}
-			if data, err := ioutil.ReadAll(ts); err == nil {
-				tc.Input.Transform.ScriptBytes = data
-			}
+			// if data, err := ioutil.ReadAll(ts); err == nil {
+			// 	tc.Input.Transform.ScriptBytes = data
+			// }
+			tc.Input.Transform.SetScriptFile(ts)
 		}
 
 		// TODO - this should probs be auto-populated by dstest package
@@ -184,9 +186,10 @@ func TestCreateDataset(t *testing.T) {
 			if tc.Input.Viz == nil {
 				tc.Input.Viz = &dataset.Viz{}
 			}
-			if data, err := ioutil.ReadAll(vs); err == nil {
-				tc.Input.Viz.ScriptBytes = data
-			}
+			// if data, err := ioutil.ReadAll(vs); err == nil {
+			// 	tc.Input.Viz.ScriptBytes = data
+			// }
+			tc.Input.Viz.SetScriptFile(vs)
 		}
 
 		path, err := CreateDataset(store, tc.Input, c.prev, tc.BodyFile(), nil, privKey, false)
@@ -259,7 +262,7 @@ func TestCreateDataset(t *testing.T) {
 	if err != nil {
 		t.Errorf("case no changes in dataset, error reading body file: %s", err.Error())
 	}
-	bodyFile := cafs.NewMemfileBytes("body.csv", bodyBytes)
+	bodyFile := fs.NewMemfileBytes("body.csv", bodyBytes)
 
 	_, err = CreateDataset(store, ds, dsPrev, bodyFile, nil, privKey, false)
 	if err != nil && err.Error() != expectedErr {
@@ -315,7 +318,7 @@ func TestWriteDataset(t *testing.T) {
 			t.Errorf("case %d error reading body file: %s", i, err.Error())
 			continue
 		}
-		df := cafs.NewMemfileBytes(filepath.Base(c.bodyPath), body)
+		df := fs.NewMemfileBytes(filepath.Base(c.bodyPath), body)
 
 		ds := &dataset.Dataset{}
 		if err := ds.UnmarshalJSON(indata); err != nil {

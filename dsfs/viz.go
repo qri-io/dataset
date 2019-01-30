@@ -5,6 +5,7 @@ import (
 
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/fs"
 )
 
 // SaveViz saves a query's viz to a given store
@@ -38,7 +39,7 @@ var ErrNoViz = fmt.Errorf("this dataset has no viz component")
 
 // LoadVizScript loads script data from a dataset path if the given dataset has a viz script is specified
 // the returned cafs.File will be the value of dataset.Viz.ScriptPath
-func LoadVizScript(store cafs.Filestore, dspath string) (cafs.File, error) {
+func LoadVizScript(store cafs.Filestore, dspath string) (fs.File, error) {
 	ds, err := LoadDataset(store, dspath)
 	if err != nil {
 		return nil, err

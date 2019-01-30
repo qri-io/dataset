@@ -14,8 +14,8 @@ import (
 
 	logger "github.com/ipfs/go-log"
 	"github.com/jinzhu/copier"
-	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/fs"
 	"github.com/ugorji/go/codec"
 )
 
@@ -74,24 +74,24 @@ func DatasetChecksum(ds *dataset.Dataset) string {
 var testCaseCache = make(map[string]TestCase)
 
 // BodyFile creates a new in-memory file from data & filename properties
-func (t TestCase) BodyFile() cafs.File {
-	return cafs.NewMemfileBytes(t.BodyFilename, t.Body)
+func (t TestCase) BodyFile() fs.File {
+	return fs.NewMemfileBytes(t.BodyFilename, t.Body)
 }
 
-// TransformScriptFile creates a cafs.File from testCase transform script data
-func (t TestCase) TransformScriptFile() (cafs.File, bool) {
+// TransformScriptFile creates a fs.File from testCase transform script data
+func (t TestCase) TransformScriptFile() (fs.File, bool) {
 	if t.TransformScript == nil {
 		return nil, false
 	}
-	return cafs.NewMemfileBytes(t.TransformScriptFilename, t.TransformScript), true
+	return fs.NewMemfileBytes(t.TransformScriptFilename, t.TransformScript), true
 }
 
-// VizScriptFile creates a cafs.File from testCase transform script data
-func (t TestCase) VizScriptFile() (cafs.File, bool) {
+// VizScriptFile creates a fs.File from testCase transform script data
+func (t TestCase) VizScriptFile() (fs.File, bool) {
 	if t.VizScript == nil {
 		return nil, false
 	}
-	return cafs.NewMemfileBytes(t.VizScriptFilename, t.VizScript), true
+	return fs.NewMemfileBytes(t.VizScriptFilename, t.VizScript), true
 }
 
 // BodyFilepath retuns the path to the first valid data file it can find,

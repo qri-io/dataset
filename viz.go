@@ -1,10 +1,10 @@
 package dataset
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
+
+	"github.com/qri-io/fs"
 )
 
 // Viz stores configuration data related to representing a dataset as a
@@ -18,10 +18,8 @@ type Viz struct {
 	// Qri should always be "vc:0"
 	Qri string `json:"qri,omitempty"`
 
-	// TODO (b5): turn this into a method
-	// Script is a reader of raw script data
-	// Script io.Reader `json:"_"`
-
+	// script file reader, doesn't serialize
+	scriptFile fs.File
 	// ScriptBytes is for representing a script as a slice of bytes, transient
 	ScriptBytes []byte `json:"scriptBytes,omitempty"`
 	// ScriptPath is the path to the script that created this
@@ -40,13 +38,31 @@ func (v *Viz) DropTransientValues() {
 	v.ScriptBytes = nil
 }
 
-// Script generates an io.Reader of scrupt bytes
-// TODO (b5): this needs more thought. maybe a LoadScript function?
-func (v *Viz) Script() io.Reader {
-	if v.ScriptBytes == nil {
+// ResolveScriptFile generates a byte stream of script data prioritizing creating an
+// in-place file from ScriptBytes when defined, fetching from the
+// passed-in resolver otherwise
+func (v *Viz) ResolveScriptFile(resolver fs.PathResolver) (err error) {
+	if v.ScriptBytes != nil {
+		v.scriptFile = fs.NewMemfileBytes("transform.star", v.ScriptBytes)
 		return nil
 	}
-	return bytes.NewReader(v.ScriptBytes)
+
+	if resolver == nil {
+		return ErrNoResolver
+	}
+	v.scriptFile, err = resolver.Get(v.ScriptPath)
+	return err
+}
+
+// SetScriptFile assigns the unexported scriptFile
+func (v *Viz) SetScriptFile(file fs.File) {
+	v.scriptFile = file
+}
+
+// ScriptFile exposes scriptFile if one is set. Callers that use the file in any
+// way (eg. by calling Read) should consume the entire file and call Close
+func (v *Viz) ScriptFile() fs.File {
+	return v.scriptFile
 }
 
 // IsEmpty checks to see if Viz has any fields other than the internal path

@@ -27,6 +27,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+
+	"github.com/qri-io/fs"
 )
 
 // Dataset is a document for describing & storing structured data.
@@ -40,8 +42,10 @@ import (
 // valuing direct interoperability with existing standards over novel
 // definitions or specifications
 type Dataset struct {
-	// Body is the designated field for representing dataset data with native go
-	// types. this will often not be populated, transient
+	// body file reader, doesn't serialize
+	bodyFile fs.File
+	// Body represents dataset data with native go types.
+	// this will often not be populated, transient
 	Body interface{} `json:"body,omitempty"`
 	// BodyBytes is for representing dataset data as a slice of bytes
 	// this will often not be populated, transient
@@ -120,17 +124,59 @@ func (ds *Dataset) SignableBytes() ([]byte, error) {
 
 // DropTransientValues removes values that cannot be recorded when the
 // dataset is rendered immutable, usually by storing it in a cafs
+// note that DropTransientValues does *not* drop the transient values of child
+// components of a dataset, each component's DropTransientValues method must be
+// called separately
 func (ds *Dataset) DropTransientValues() {
 	ds.Body = nil
 	ds.BodyBytes = nil
-	// ds.Commit.DropTransientValues()
-	// ds.Meta.DropTransientValues()
 	ds.Name = ""
 	ds.Path = ""
 	ds.ProfileID = ""
-	// ds.Structure.DropTransientValues()
-	// ds.Transform.DropTransientValues()
-	// ds.Viz.DropTransientValues()
+}
+
+var (
+	// ErrInlineBody is the error for attempting to generate a body file when
+	// body data is stored as native go types
+	ErrInlineBody = fmt.Errorf("dataset body is inlined")
+	// ErrNoResolver is an error for missing-but-needed resolvers
+	ErrNoResolver = fmt.Errorf("no resolver avilable to fetch path")
+)
+
+// ResolveBodyFile sets the byte stream of file data prioritizing:
+// * erroring when the body is inline
+// * creating an in-place file from bytes
+// * passing BodyPath to the resolver
+// once resolved, the file is set to an internal field, which is
+// accessible via the BodyFile method. separating into two steps
+// decouples loading from access
+func (ds *Dataset) ResolveBodyFile(resolver fs.PathResolver) (err error) {
+	if ds.Body != nil {
+		return ErrInlineBody
+	}
+
+	if ds.BodyBytes != nil {
+		ds.bodyFile = fs.NewMemfileBytes("body", ds.BodyBytes)
+		return nil
+	}
+
+	if resolver == nil {
+		return ErrNoResolver
+	}
+
+	ds.bodyFile, err = resolver.Get(ds.BodyPath)
+	return err
+}
+
+// SetBodyFile assigns the bodyFile.
+func (ds *Dataset) SetBodyFile(file fs.File) {
+	ds.bodyFile = file
+}
+
+// BodyFile exposes bodyFile if one is set. Callers that use the file in any
+// way (eg. by calling Read) should consume the entire file and call Close
+func (ds *Dataset) BodyFile() fs.File {
+	return ds.bodyFile
 }
 
 // Assign collapses all properties of a group of datasets onto one.

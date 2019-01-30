@@ -1,10 +1,10 @@
 package dataset
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
+
+	"github.com/qri-io/fs"
 )
 
 // Transform is a record of executing a transformation on data.
@@ -25,6 +25,8 @@ type Transform struct {
 	// transform
 	Resources map[string]*TransformResource `json:"resources,omitempty"`
 
+	// script file reader, doesn't serialize
+	scriptFile fs.File
 	// ScriptBytes is for representing a script as a slice of bytes, transient
 	ScriptBytes []byte `json:"scriptBytes,omitempty"`
 	// ScriptPath is the path to the script that produced this transformation.
@@ -47,13 +49,31 @@ func (q *Transform) DropTransientValues() {
 	q.ScriptBytes = nil
 }
 
-// Script generates an io.Reader of scrupt bytes
-// TODO (b5): this needs more thought. maybe a LoadScript function?
-func (q *Transform) Script() io.Reader {
-	if q.ScriptBytes == nil {
+// ResolveScriptFile generates a byte stream of script data prioritizing creating an
+// in-place file from ScriptBytes when defined, fetching from the
+// passed-in resolver otherwise
+func (q *Transform) ResolveScriptFile(resolver fs.PathResolver) (err error) {
+	if q.ScriptBytes != nil {
+		q.scriptFile = fs.NewMemfileBytes("transform.star", q.ScriptBytes)
 		return nil
 	}
-	return bytes.NewReader(q.ScriptBytes)
+
+	if resolver == nil {
+		return ErrNoResolver
+	}
+	q.scriptFile, err = resolver.Get(q.ScriptPath)
+	return err
+}
+
+// SetScriptFile assigns the scriptFile
+func (q *Transform) SetScriptFile(file fs.File) {
+	q.scriptFile = file
+}
+
+// ScriptFile gives the internal file, if any. Callers that use the file in any
+// way (eg. by calling Read) should consume the entire file and call Close
+func (q *Transform) ScriptFile() fs.File {
+	return q.scriptFile
 }
 
 // TransformResource describes an external data dependency, the prime use case
@@ -120,7 +140,7 @@ func (q *Transform) Assign(qs ...*Transform) {
 			}
 		}
 		if q2.Path != "" {
-			q.Path = q.Path
+			q.Path = q2.Path
 		}
 		if q2.Qri != "" {
 			q.Qri = q2.Qri
@@ -132,6 +152,9 @@ func (q *Transform) Assign(qs ...*Transform) {
 			for key, val := range q2.Resources {
 				q.Resources[key] = val
 			}
+		}
+		if q2.scriptFile != nil {
+			q.scriptFile = q2.scriptFile
 		}
 		if q2.ScriptBytes != nil {
 			q.ScriptBytes = q2.ScriptBytes

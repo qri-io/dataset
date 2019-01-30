@@ -8,6 +8,7 @@ import (
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsfs"
+	"github.com/qri-io/fs"
 )
 
 func TestWriteDir(t *testing.T) {
@@ -43,7 +44,7 @@ func TestWriteDir(t *testing.T) {
 }
 
 func testStore() (cafs.Filestore, map[string]string, error) {
-	dataf := cafs.NewMemfileBytes("movies.csv", []byte("movie\nup\nthe incredibles"))
+	dataf := fs.NewMemfileBytes("movies.csv", []byte("movie\nup\nthe incredibles"))
 
 	// Map strings to ds.keys for convenience
 	ns := map[string]string{
@@ -98,19 +99,23 @@ func testStoreWithVizAndTransform() (cafs.Filestore, map[string]string, error) {
 			ScriptBytes: []byte("<html></html>\n"),
 		},
 	}
+	// load scripts into file pointers, time for a NewDataset function?
+	ds.Transform.ResolveScriptFile(nil)
+	ds.Viz.ResolveScriptFile(nil)
+
 	// Map strings to ds.keys for convenience
 	ns := map[string]string{}
 	// Store the files
-	fs := cafs.NewMapstore()
-	dataf := cafs.NewMemfileBytes("movies.csv", []byte("movie\nup\nthe incredibles"))
-	dskey, err := dsfs.WriteDataset(fs, ds, dataf, true)
+	st := cafs.NewMapstore()
+	dataf := fs.NewMemfileBytes("movies.csv", []byte("movie\nup\nthe incredibles"))
+	dskey, err := dsfs.WriteDataset(st, ds, dataf, true)
 	if err != nil {
-		return fs, ns, err
+		return st, ns, err
 	}
 	ns["movies"] = dskey
 	ns["transform_script"] = ds.Transform.ScriptPath
 	ns["viz_template"] = ds.Viz.ScriptPath
-	return fs, ns, nil
+	return st, ns, nil
 }
 
 func testdataFile(base string) string {

@@ -8,6 +8,7 @@ import (
 
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/fs"
 )
 
 var AirportCodes = &dataset.Dataset{
@@ -145,7 +146,7 @@ var HoursStructure = &dataset.Structure{
 }
 
 func makeFilestore() (map[string]string, cafs.Filestore, error) {
-	fs := cafs.NewMapstore()
+	st := cafs.NewMapstore()
 
 	datasets := map[string]string{
 		"movies": "",
@@ -169,14 +170,14 @@ func makeFilestore() (map[string]string, cafs.Filestore, error) {
 			return datasets, nil, err
 		}
 
-		df := cafs.NewMemfileBytes(filepath.Base(dataPath), data)
+		df := fs.NewMemfileBytes(filepath.Base(dataPath), data)
 
-		dskey, err := WriteDataset(fs, ds, df, true)
+		dskey, err := WriteDataset(st, ds, df, true)
 		if err != nil {
 			return datasets, nil, fmt.Errorf("dataset: %s write error: %s", k, err.Error())
 		}
 		datasets[k] = dskey
 	}
 
-	return datasets, fs, nil
+	return datasets, st, nil
 }
