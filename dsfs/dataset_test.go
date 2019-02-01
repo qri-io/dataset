@@ -45,9 +45,9 @@ func TestLoadDataset(t *testing.T) {
 		return
 	}
 
-	df := fs.NewMemfileBytes("all_fields.csv", body)
+	ds.SetBodyFile(fs.NewMemfileBytes("all_fields.csv", body))
 
-	apath, err := WriteDataset(store, ds, df, true)
+	apath, err := WriteDataset(store, ds, true)
 	if err != nil {
 		t.Errorf(err.Error())
 		return
@@ -124,7 +124,7 @@ func TestCreateDataset(t *testing.T) {
 		return
 	}
 
-	_, err = CreateDataset(store, nil, nil, nil, nil, nil, false)
+	_, err = CreateDataset(store, nil, nil, nil, false)
 	if err == nil {
 		t.Errorf("expected call without prvate key to error")
 		return
@@ -170,29 +170,7 @@ func TestCreateDataset(t *testing.T) {
 			continue
 		}
 
-		// TODO - this should probs be auto-populated by dstest package
-		if ts, ok := tc.TransformScriptFile(); ok {
-			if tc.Input.Transform == nil {
-				tc.Input.Transform = &dataset.Transform{}
-			}
-			// if data, err := ioutil.ReadAll(ts); err == nil {
-			// 	tc.Input.Transform.ScriptBytes = data
-			// }
-			tc.Input.Transform.SetScriptFile(ts)
-		}
-
-		// TODO - this should probs be auto-populated by dstest package
-		if vs, ok := tc.VizScriptFile(); ok {
-			if tc.Input.Viz == nil {
-				tc.Input.Viz = &dataset.Viz{}
-			}
-			// if data, err := ioutil.ReadAll(vs); err == nil {
-			// 	tc.Input.Viz.ScriptBytes = data
-			// }
-			tc.Input.Viz.SetScriptFile(vs)
-		}
-
-		path, err := CreateDataset(store, tc.Input, c.prev, tc.BodyFile(), nil, privKey, false)
+		path, err := CreateDataset(store, tc.Input, c.prev, privKey, false)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("%s: error mismatch. expected: '%s', got: '%s'", tc.Name, c.err, err)
 			continue
@@ -244,8 +222,8 @@ func TestCreateDataset(t *testing.T) {
 	if err != nil {
 		t.Errorf("case nil body and previous body files, error reading data file: %s", err.Error())
 	}
-	expectedErr := "datafile or previous datafile needed"
-	_, err = CreateDataset(store, ds, nil, nil, nil, privKey, false)
+	expectedErr := "bodyfile or previous bodyfile needed"
+	_, err = CreateDataset(store, ds, nil, privKey, false)
 	if err.Error() != expectedErr {
 		t.Errorf("case nil body and previous body files, error mismatch: expected '%s', got '%s'", expectedErr, err.Error())
 	}
@@ -262,9 +240,9 @@ func TestCreateDataset(t *testing.T) {
 	if err != nil {
 		t.Errorf("case no changes in dataset, error reading body file: %s", err.Error())
 	}
-	bodyFile := fs.NewMemfileBytes("body.csv", bodyBytes)
+	ds.SetBodyFile(fs.NewMemfileBytes("body.csv", bodyBytes))
 
-	_, err = CreateDataset(store, ds, dsPrev, bodyFile, nil, privKey, false)
+	_, err = CreateDataset(store, ds, dsPrev, privKey, false)
 	if err != nil && err.Error() != expectedErr {
 		t.Errorf("case no changes in dataset, error mismatch: expected '%s', got '%s'", expectedErr, err.Error())
 	} else if err == nil {
@@ -288,10 +266,10 @@ func TestWriteDataset(t *testing.T) {
 	defer func() { Timestamp = prev }()
 	Timestamp = func() time.Time { return time.Date(2001, 01, 01, 01, 01, 01, 01, time.UTC) }
 
-	if _, err := WriteDataset(store, nil, nil, true); err == nil || err.Error() != "cannot save empty dataset" {
+	if _, err := WriteDataset(store, nil, true); err == nil || err.Error() != "cannot save empty dataset" {
 		t.Errorf("didn't reject empty dataset: %s", err)
 	}
-	if _, err := WriteDataset(store, &dataset.Dataset{}, nil, true); err == nil || err.Error() != "cannot save empty dataset" {
+	if _, err := WriteDataset(store, &dataset.Dataset{}, true); err == nil || err.Error() != "cannot save empty dataset" {
 		t.Errorf("didn't reject empty dataset: %s", err)
 	}
 
@@ -313,20 +291,20 @@ func TestWriteDataset(t *testing.T) {
 			continue
 		}
 
-		body, err := ioutil.ReadFile(c.bodyPath)
-		if err != nil {
-			t.Errorf("case %d error reading body file: %s", i, err.Error())
-			continue
-		}
-		df := fs.NewMemfileBytes(filepath.Base(c.bodyPath), body)
-
 		ds := &dataset.Dataset{}
 		if err := ds.UnmarshalJSON(indata); err != nil {
 			t.Errorf("case %d error unmarhshalling test file: %s ", i, err.Error())
 			continue
 		}
 
-		got, err := WriteDataset(store, ds, df, true)
+		body, err := ioutil.ReadFile(c.bodyPath)
+		if err != nil {
+			t.Errorf("case %d error reading body file: %s", i, err.Error())
+			continue
+		}
+		ds.SetBodyFile(fs.NewMemfileBytes(filepath.Base(c.bodyPath), body))
+
+		got, err := WriteDataset(store, ds, true)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
 			continue

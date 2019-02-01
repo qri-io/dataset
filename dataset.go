@@ -194,6 +194,9 @@ func (ds *Dataset) Assign(datasets ...*Dataset) {
 		if d.BodyBytes != nil {
 			ds.BodyBytes = d.BodyBytes
 		}
+		if d.bodyFile != nil {
+			ds.bodyFile = d.bodyFile
+		}
 		if d.BodyPath != "" {
 			ds.BodyPath = d.BodyPath
 		}

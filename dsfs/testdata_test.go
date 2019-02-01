@@ -170,9 +170,9 @@ func makeFilestore() (map[string]string, cafs.Filestore, error) {
 			return datasets, nil, err
 		}
 
-		df := fs.NewMemfileBytes(filepath.Base(dataPath), data)
+		ds.SetBodyFile(fs.NewMemfileBytes(filepath.Base(dataPath), data))
 
-		dskey, err := WriteDataset(st, ds, df, true)
+		dskey, err := WriteDataset(st, ds, true)
 		if err != nil {
 			return datasets, nil, fmt.Errorf("dataset: %s write error: %s", k, err.Error())
 		}

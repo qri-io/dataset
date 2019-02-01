@@ -22,7 +22,9 @@ func TestLoadTestCases(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	t.Logf("%d cases", len(tcs))
+	if len(tcs) == 0 {
+		t.Errorf("expected at least one test case to load")
+	}
 }
 
 func TestBodyFilepath(t *testing.T) {
@@ -48,7 +50,6 @@ func TestNewTestCaseFromDir(t *testing.T) {
 		t.Errorf("expected error")
 		return
 	}
-	t.Log(err)
 
 	tc, err := NewTestCaseFromDir("testdata/complete")
 	if err != nil {

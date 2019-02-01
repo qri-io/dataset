@@ -65,15 +65,16 @@ func testStore() (cafs.Filestore, map[string]string, error) {
 			},
 		},
 	}
+	ds.SetBodyFile(dataf)
 
-	fs := cafs.NewMapstore()
-	dskey, err := dsfs.WriteDataset(fs, ds, dataf, true)
+	store := cafs.NewMapstore()
+	dskey, err := dsfs.WriteDataset(store, ds, true)
 	if err != nil {
-		return fs, ns, err
+		return store, ns, err
 	}
 	ns["movies"] = dskey
 
-	return fs, ns, nil
+	return store, ns, nil
 }
 
 func testStoreWithVizAndTransform() (cafs.Filestore, map[string]string, error) {
@@ -107,8 +108,8 @@ func testStoreWithVizAndTransform() (cafs.Filestore, map[string]string, error) {
 	ns := map[string]string{}
 	// Store the files
 	st := cafs.NewMapstore()
-	dataf := fs.NewMemfileBytes("movies.csv", []byte("movie\nup\nthe incredibles"))
-	dskey, err := dsfs.WriteDataset(st, ds, dataf, true)
+	ds.SetBodyFile(fs.NewMemfileBytes("movies.csv", []byte("movie\nup\nthe incredibles")))
+	dskey, err := dsfs.WriteDataset(st, ds, true)
 	if err != nil {
 		return st, ns, err
 	}
