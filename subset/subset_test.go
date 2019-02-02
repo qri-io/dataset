@@ -50,7 +50,7 @@ func TestLoadPreview(t *testing.T) {
 func TestPreview(t *testing.T) {
 	p := Preview(&dataset.Dataset{})
 
-	expect := "a909a887caab333296f92c25e308e66c14d33480"
+	expect := "085e607818aae2920e0e4b57c321c3b58e17b85d"
 	sum := dstest.DatasetChecksum(p)
 	if expect != sum {
 		t.Errorf("empty preview checksum mismatch. expected: %s, got: %s", expect, sum)
@@ -58,7 +58,7 @@ func TestPreview(t *testing.T) {
 
 	p = Preview(&dataset.Dataset{Name: "a", Peername: "b", Path: "c"})
 
-	expect = "ac6225bf511631200bdbb2200554472909d56ca8"
+	expect = "747373b09aed281b2cbdb3655fa19dcd277ae3a5"
 	sum = dstest.DatasetChecksum(p)
 	if expect != sum {
 		t.Errorf("preview with ref details mismatch. expected: %s, got: %s", expect, sum)

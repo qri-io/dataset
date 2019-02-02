@@ -10,7 +10,7 @@ import (
 )
 
 func TestDatasetChecksum(t *testing.T) {
-	expect := "a909a887caab333296f92c25e308e66c14d33480"
+	expect := "085e607818aae2920e0e4b57c321c3b58e17b85d"
 	sum := DatasetChecksum(&dataset.Dataset{})
 	if sum != expect {
 		t.Errorf("empty pod hash mismatch. expected: %s, got: %s", expect, sum)

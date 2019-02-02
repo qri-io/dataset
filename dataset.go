@@ -76,7 +76,7 @@ type Dataset struct {
 	// dataset document definition itself.
 	Qri string `json:"qri"`
 	// Structure of this dataset
-	Structure *Structure `json:"structure"`
+	Structure *Structure `json:"structure,omitempty"`
 	// Transform is a path to the transformation that generated this resource
 	Transform *Transform `json:"transform,omitempty"`
 	// Viz stores configuration data related to representing a dataset as

@@ -100,7 +100,7 @@ func TestDatasetMarshalJSON(t *testing.T) {
 		out []byte
 		err error
 	}{
-		{&Dataset{}, []byte(`{"qri":"ds:0","structure":null}`), nil},
+		{&Dataset{}, []byte(`{"qri":"ds:0"}`), nil},
 		{AirportCodes, []byte(AirportCodesJSON), nil},
 	}
 

@@ -135,6 +135,9 @@ func (v *Viz) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &_v); err != nil {
 		return err
 	}
+	if _v.Qri == "" {
+		_v.Qri = KindViz.String()
+	}
 
 	*v = Viz(_v)
 	return nil
