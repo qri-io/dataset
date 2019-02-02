@@ -292,7 +292,7 @@ func prepareDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, privKey c
 		return "", fmt.Errorf("error signing commit title: %s", err.Error())
 	}
 	ds.Commit.Signature = base64.StdEncoding.EncodeToString(signedBytes)
-	ds.SetBodyFile(qfs.NewMemfileBytes("data."+ds.Structure.Format, buf.Bytes()))
+	ds.SetBodyFile(qfs.NewMemfileBytes("body."+ds.Structure.Format, buf.Bytes()))
 
 	return diffDescription, nil
 }
