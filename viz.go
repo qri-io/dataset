@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/qri-io/fs"
+	"github.com/qri-io/qfs"
 )
 
 // Viz stores configuration data related to representing a dataset as a
@@ -19,7 +19,7 @@ type Viz struct {
 	Qri string `json:"qri,omitempty"`
 
 	// script file reader, doesn't serialize
-	scriptFile fs.File
+	scriptFile qfs.File
 	// ScriptBytes is for representing a script as a slice of bytes, transient
 	ScriptBytes []byte `json:"scriptBytes,omitempty"`
 	// ScriptPath is the path to the script that created this
@@ -38,12 +38,17 @@ func (v *Viz) DropTransientValues() {
 	v.ScriptBytes = nil
 }
 
-// ResolveScriptFile generates a byte stream of script data prioritizing creating an
+// OpenScriptFile generates a byte stream of script data prioritizing creating an
 // in-place file from ScriptBytes when defined, fetching from the
 // passed-in resolver otherwise
-func (v *Viz) ResolveScriptFile(resolver fs.PathResolver) (err error) {
+func (v *Viz) OpenScriptFile(resolver qfs.PathResolver) (err error) {
 	if v.ScriptBytes != nil {
-		v.scriptFile = fs.NewMemfileBytes("transform.star", v.ScriptBytes)
+		v.scriptFile = qfs.NewMemfileBytes("transform.star", v.ScriptBytes)
+		return nil
+	}
+
+	if v.ScriptPath == "" {
+		// nothing to resolve
 		return nil
 	}
 
@@ -55,13 +60,13 @@ func (v *Viz) ResolveScriptFile(resolver fs.PathResolver) (err error) {
 }
 
 // SetScriptFile assigns the unexported scriptFile
-func (v *Viz) SetScriptFile(file fs.File) {
+func (v *Viz) SetScriptFile(file qfs.File) {
 	v.scriptFile = file
 }
 
 // ScriptFile exposes scriptFile if one is set. Callers that use the file in any
 // way (eg. by calling Read) should consume the entire file and call Close
-func (v *Viz) ScriptFile() fs.File {
+func (v *Viz) ScriptFile() qfs.File {
 	return v.scriptFile
 }
 
@@ -91,6 +96,9 @@ func (v *Viz) Assign(visConfigs ...*Viz) {
 		}
 		if vs.ScriptBytes != nil {
 			v.ScriptBytes = vs.ScriptBytes
+		}
+		if vs.scriptFile != nil {
+			v.scriptFile = vs.scriptFile
 		}
 		if vs.ScriptPath != "" {
 			v.ScriptPath = vs.ScriptPath

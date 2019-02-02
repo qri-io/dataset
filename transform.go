@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/qri-io/fs"
+	"github.com/qri-io/qfs"
 )
 
 // Transform is a record of executing a transformation on data.
@@ -26,7 +26,7 @@ type Transform struct {
 	Resources map[string]*TransformResource `json:"resources,omitempty"`
 
 	// script file reader, doesn't serialize
-	scriptFile fs.File
+	scriptFile qfs.File
 	// ScriptBytes is for representing a script as a slice of bytes, transient
 	ScriptBytes []byte `json:"scriptBytes,omitempty"`
 	// ScriptPath is the path to the script that produced this transformation.
@@ -49,12 +49,17 @@ func (q *Transform) DropTransientValues() {
 	q.ScriptBytes = nil
 }
 
-// ResolveScriptFile generates a byte stream of script data prioritizing creating an
+// OpenScriptFile generates a byte stream of script data prioritizing creating an
 // in-place file from ScriptBytes when defined, fetching from the
 // passed-in resolver otherwise
-func (q *Transform) ResolveScriptFile(resolver fs.PathResolver) (err error) {
+func (q *Transform) OpenScriptFile(resolver qfs.PathResolver) (err error) {
 	if q.ScriptBytes != nil {
-		q.scriptFile = fs.NewMemfileBytes("transform.star", q.ScriptBytes)
+		q.scriptFile = qfs.NewMemfileBytes("transform.star", q.ScriptBytes)
+		return nil
+	}
+
+	if q.ScriptPath == "" {
+		// nothing to resolve
 		return nil
 	}
 
@@ -66,13 +71,13 @@ func (q *Transform) ResolveScriptFile(resolver fs.PathResolver) (err error) {
 }
 
 // SetScriptFile assigns the scriptFile
-func (q *Transform) SetScriptFile(file fs.File) {
+func (q *Transform) SetScriptFile(file qfs.File) {
 	q.scriptFile = file
 }
 
 // ScriptFile gives the internal file, if any. Callers that use the file in any
 // way (eg. by calling Read) should consume the entire file and call Close
-func (q *Transform) ScriptFile() fs.File {
+func (q *Transform) ScriptFile() qfs.File {
 	return q.scriptFile
 }
 

@@ -7,11 +7,11 @@ import (
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsio"
-	"github.com/qri-io/fs"
+	"github.com/qri-io/qfs"
 )
 
 // LoadBody loads the data this dataset points to from the store
-func LoadBody(store cafs.Filestore, ds *dataset.Dataset) (fs.File, error) {
+func LoadBody(store cafs.Filestore, ds *dataset.Dataset) (qfs.File, error) {
 	return store.Get(ds.BodyPath)
 }
 

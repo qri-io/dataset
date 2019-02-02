@@ -8,7 +8,7 @@ import (
 
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
-	"github.com/qri-io/fs"
+	"github.com/qri-io/qfs"
 )
 
 var AirportCodes = &dataset.Dataset{
@@ -170,7 +170,7 @@ func makeFilestore() (map[string]string, cafs.Filestore, error) {
 			return datasets, nil, err
 		}
 
-		ds.SetBodyFile(fs.NewMemfileBytes(filepath.Base(dataPath), data))
+		ds.SetBodyFile(qfs.NewMemfileBytes(filepath.Base(dataPath), data))
 
 		dskey, err := WriteDataset(st, ds, true)
 		if err != nil {

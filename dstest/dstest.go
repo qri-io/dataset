@@ -15,7 +15,7 @@ import (
 	logger "github.com/ipfs/go-log"
 	"github.com/jinzhu/copier"
 	"github.com/qri-io/dataset"
-	"github.com/qri-io/fs"
+	"github.com/qri-io/qfs"
 	"github.com/ugorji/go/codec"
 )
 
@@ -74,24 +74,24 @@ func DatasetChecksum(ds *dataset.Dataset) string {
 var testCaseCache = make(map[string]TestCase)
 
 // BodyFile creates a new in-memory file from data & filename properties
-func (t TestCase) BodyFile() fs.File {
-	return fs.NewMemfileBytes(t.BodyFilename, t.Body)
+func (t TestCase) BodyFile() qfs.File {
+	return qfs.NewMemfileBytes(t.BodyFilename, t.Body)
 }
 
-// TransformScriptFile creates a fs.File from testCase transform script data
-func (t TestCase) TransformScriptFile() (fs.File, bool) {
+// TransformScriptFile creates a qfs.File from testCase transform script data
+func (t TestCase) TransformScriptFile() (qfs.File, bool) {
 	if t.TransformScript == nil {
 		return nil, false
 	}
-	return fs.NewMemfileBytes(t.TransformScriptFilename, t.TransformScript), true
+	return qfs.NewMemfileBytes(t.TransformScriptFilename, t.TransformScript), true
 }
 
-// VizScriptFile creates a fs.File from testCase transform script data
-func (t TestCase) VizScriptFile() (fs.File, bool) {
+// VizScriptFile creates a qfs.File from testCase transform script data
+func (t TestCase) VizScriptFile() (qfs.File, bool) {
 	if t.VizScript == nil {
 		return nil, false
 	}
-	return fs.NewMemfileBytes(t.VizScriptFilename, t.VizScript), true
+	return qfs.NewMemfileBytes(t.VizScriptFilename, t.VizScript), true
 }
 
 // BodyFilepath retuns the path to the first valid data file it can find,
@@ -168,7 +168,7 @@ func NewTestCaseFromDir(dir string) (tc TestCase, err error) {
 		}
 	} else {
 		foundTestData = true
-		tc.Input.SetBodyFile(fs.NewMemfileBytes(tc.BodyFilename, tc.Body))
+		tc.Input.SetBodyFile(qfs.NewMemfileBytes(tc.BodyFilename, tc.Body))
 	}
 
 	if tc.TransformScript, tc.TransformScriptFilename, err = ReadInputTransformScript(dir); err != nil {
@@ -183,7 +183,7 @@ func NewTestCaseFromDir(dir string) (tc TestCase, err error) {
 		if tc.Input.Transform == nil {
 			tc.Input.Transform = &dataset.Transform{}
 		}
-		tc.Input.Transform.SetScriptFile(fs.NewMemfileBytes(tc.TransformScriptFilename, tc.TransformScript))
+		tc.Input.Transform.SetScriptFile(qfs.NewMemfileBytes(tc.TransformScriptFilename, tc.TransformScript))
 	}
 
 	if tc.VizScript, tc.VizScriptFilename, err = ReadInputVizScript(dir); err != nil {
@@ -198,7 +198,7 @@ func NewTestCaseFromDir(dir string) (tc TestCase, err error) {
 		if tc.Input.Viz == nil {
 			tc.Input.Viz = &dataset.Viz{}
 		}
-		tc.Input.Viz.SetScriptFile(fs.NewMemfileBytes(tc.VizScriptFilename, tc.VizScript))
+		tc.Input.Viz.SetScriptFile(qfs.NewMemfileBytes(tc.VizScriptFilename, tc.VizScript))
 	}
 
 	tc.Expect, err = ReadDataset(dir, ExpectDatasetFilename)

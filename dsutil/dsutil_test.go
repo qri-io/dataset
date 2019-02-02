@@ -8,7 +8,7 @@ import (
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsfs"
-	"github.com/qri-io/fs"
+	"github.com/qri-io/qfs"
 )
 
 func TestWriteDir(t *testing.T) {
@@ -44,7 +44,7 @@ func TestWriteDir(t *testing.T) {
 }
 
 func testStore() (cafs.Filestore, map[string]string, error) {
-	dataf := fs.NewMemfileBytes("movies.csv", []byte("movie\nup\nthe incredibles"))
+	dataf := qfs.NewMemfileBytes("movies.csv", []byte("movie\nup\nthe incredibles"))
 
 	// Map strings to ds.keys for convenience
 	ns := map[string]string{
@@ -101,14 +101,14 @@ func testStoreWithVizAndTransform() (cafs.Filestore, map[string]string, error) {
 		},
 	}
 	// load scripts into file pointers, time for a NewDataset function?
-	ds.Transform.ResolveScriptFile(nil)
-	ds.Viz.ResolveScriptFile(nil)
+	ds.Transform.OpenScriptFile(nil)
+	ds.Viz.OpenScriptFile(nil)
 
 	// Map strings to ds.keys for convenience
 	ns := map[string]string{}
 	// Store the files
 	st := cafs.NewMapstore()
-	ds.SetBodyFile(fs.NewMemfileBytes("movies.csv", []byte("movie\nup\nthe incredibles")))
+	ds.SetBodyFile(qfs.NewMemfileBytes("movies.csv", []byte("movie\nup\nthe incredibles")))
 	dskey, err := dsfs.WriteDataset(st, ds, true)
 	if err != nil {
 		return st, ns, err

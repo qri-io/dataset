@@ -5,7 +5,7 @@ import (
 
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
-	"github.com/qri-io/fs"
+	"github.com/qri-io/qfs"
 )
 
 // LoadTransform loads a transform from a given path in a store
@@ -46,9 +46,9 @@ func SaveTransform(store cafs.Filestore, q *dataset.Transform, pin bool) (path s
 var ErrNoTransform = fmt.Errorf("this dataset has no transform component")
 
 // LoadTransformScript loads transform script data from a dataset path if the given dataset has a transform script specified
-// the returned cafs.File will be the value of dataset.Transform.ScriptPath
+// the returned qfs.File will be the value of dataset.Transform.ScriptPath
 // TODO - this is broken, assumes file is JSON. fix & test or depricate
-func LoadTransformScript(store cafs.Filestore, dspath string) (fs.File, error) {
+func LoadTransformScript(store cafs.Filestore, dspath string) (qfs.File, error) {
 	ds, err := LoadDataset(store, dspath)
 	if err != nil {
 		return nil, err

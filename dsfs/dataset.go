@@ -17,7 +17,7 @@ import (
 	"github.com/qri-io/dataset/dsio"
 	"github.com/qri-io/dataset/validate"
 	"github.com/qri-io/dsdiff"
-	"github.com/qri-io/fs"
+	"github.com/qri-io/qfs"
 )
 
 // LoadDataset reads a dataset from a cafs and dereferences structure, transform, and commitMsg if they exist,
@@ -225,10 +225,10 @@ func prepareDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, privKey c
 		err error
 		// lock for parallel edits to ds pointer
 		mu sync.Mutex
-		// accumulate reader into a buffer for shasum calculation & passing out another fs.File
+		// accumulate reader into a buffer for shasum calculation & passing out another qfs.File
 		buf    bytes.Buffer
 		bf     = ds.BodyFile()
-		bfPrev fs.File
+		bfPrev qfs.File
 	)
 
 	if dsPrev != nil {
@@ -249,9 +249,9 @@ func prepareDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, privKey c
 	done := make(chan error)
 	tasks := 3
 
-	go setErrCount(ds, fs.NewMemfileReader(bf.FileName(), errR), &mu, done)
-	go setDepthAndEntryCount(ds, fs.NewMemfileReader(bf.FileName(), entryR), &mu, done)
-	go setChecksumAndStats(ds, fs.NewMemfileReader(bf.FileName(), hashR), &buf, &mu, done)
+	go setErrCount(ds, qfs.NewMemfileReader(bf.FileName(), errR), &mu, done)
+	go setDepthAndEntryCount(ds, qfs.NewMemfileReader(bf.FileName(), entryR), &mu, done)
+	go setChecksumAndStats(ds, qfs.NewMemfileReader(bf.FileName(), hashR), &buf, &mu, done)
 
 	go func() {
 		// pipes must be manually closed to trigger EOF
@@ -292,13 +292,13 @@ func prepareDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, privKey c
 		return "", fmt.Errorf("error signing commit title: %s", err.Error())
 	}
 	ds.Commit.Signature = base64.StdEncoding.EncodeToString(signedBytes)
-	ds.SetBodyFile(fs.NewMemfileBytes("data."+ds.Structure.Format, buf.Bytes()))
+	ds.SetBodyFile(qfs.NewMemfileBytes("data."+ds.Structure.Format, buf.Bytes()))
 
 	return diffDescription, nil
 }
 
 // setErrCount consumes sets the ErrCount field of a dataset's Structure
-func setErrCount(ds *dataset.Dataset, data fs.File, mu *sync.Mutex, done chan error) {
+func setErrCount(ds *dataset.Dataset, data qfs.File, mu *sync.Mutex, done chan error) {
 	er, err := dsio.NewEntryReader(ds.Structure, data)
 	if err != nil {
 		log.Debug(err.Error())
@@ -321,7 +321,7 @@ func setErrCount(ds *dataset.Dataset, data fs.File, mu *sync.Mutex, done chan er
 }
 
 // setDepthAndEntryCount set the Entries field of a ds.Structure
-func setDepthAndEntryCount(ds *dataset.Dataset, data fs.File, mu *sync.Mutex, done chan error) {
+func setDepthAndEntryCount(ds *dataset.Dataset, data qfs.File, mu *sync.Mutex, done chan error) {
 	er, err := dsio.NewEntryReader(ds.Structure, data)
 	if err != nil {
 		log.Debug(err.Error())
@@ -380,7 +380,7 @@ func getDepth(x interface{}, depth int) int {
 }
 
 // setChecksumAndStats
-func setChecksumAndStats(ds *dataset.Dataset, data fs.File, buf *bytes.Buffer, mu *sync.Mutex, done chan error) {
+func setChecksumAndStats(ds *dataset.Dataset, data qfs.File, buf *bytes.Buffer, mu *sync.Mutex, done chan error) {
 	if _, err := io.Copy(buf, data); err != nil {
 		done <- err
 		return
@@ -508,7 +508,7 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (string, 
 		ds.Transform.DropTransientValues()
 		if sr != nil {
 			fileTasks++
-			tsFile := fs.NewMemfileReader(transformScriptFilename, sr)
+			tsFile := qfs.NewMemfileReader(transformScriptFilename, sr)
 			defer tsFile.Close()
 			adder.AddFile(tsFile)
 			// NOTE - add wg for the transform.json file ahead of time, which isn't completed
@@ -521,7 +521,7 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (string, 
 			}
 
 			fileTasks++
-			adder.AddFile(fs.NewMemfileBytes(PackageFileTransform.String(), tfdata))
+			adder.AddFile(qfs.NewMemfileBytes(PackageFileTransform.String(), tfdata))
 		}
 	}
 
@@ -550,7 +550,7 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (string, 
 		ds.Viz.DropTransientValues()
 		if vizScript != nil {
 			fileTasks++
-			vsFile := fs.NewMemfileReader(vizScriptFilename, vizScript)
+			vsFile := qfs.NewMemfileReader(vizScriptFilename, vizScript)
 			defer vsFile.Close()
 			adder.AddFile(vsFile)
 			// NOTE - add wg for the viz.json file ahead of time, which isn't completed
@@ -564,7 +564,7 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (string, 
 			}
 
 			fileTasks++
-			adder.AddFile(fs.NewMemfileBytes(PackageFileViz.String(), vizdata))
+			adder.AddFile(qfs.NewMemfileBytes(PackageFileViz.String(), vizdata))
 		}
 	}
 
@@ -594,7 +594,7 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (string, 
 					return
 				}
 				// Add the encoded transform file, decrementing the stray fileTasks from above
-				adder.AddFile(fs.NewMemfileBytes(PackageFileTransform.String(), tfdata))
+				adder.AddFile(qfs.NewMemfileBytes(PackageFileTransform.String(), tfdata))
 			case vizScriptFilename:
 				ds.Viz.ScriptPath = ao.Path
 				vizdata, err := json.Marshal(ds.Viz)
@@ -603,7 +603,7 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (string, 
 					return
 				}
 				// Add the encoded transform file, decrementing the stray fileTasks from above
-				adder.AddFile(fs.NewMemfileBytes(PackageFileViz.String(), vizdata))
+				adder.AddFile(qfs.NewMemfileBytes(PackageFileViz.String(), vizdata))
 			}
 
 			fileTasks--
@@ -616,7 +616,7 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (string, 
 						return
 					}
 
-					adder.AddFile(fs.NewMemfileBytes(PackageFileDataset.String(), dsdata))
+					adder.AddFile(qfs.NewMemfileBytes(PackageFileDataset.String(), dsdata))
 				}
 				//
 				if err := adder.Close(); err != nil {

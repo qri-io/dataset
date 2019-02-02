@@ -28,7 +28,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/qri-io/fs"
+	"github.com/qri-io/qfs"
 )
 
 // Dataset is a document for describing & storing structured data.
@@ -43,7 +43,7 @@ import (
 // definitions or specifications
 type Dataset struct {
 	// body file reader, doesn't serialize
-	bodyFile fs.File
+	bodyFile qfs.File
 	// Body represents dataset data with native go types.
 	// this will often not be populated, transient
 	Body interface{} `json:"body,omitempty"`
@@ -143,20 +143,36 @@ var (
 	ErrNoResolver = fmt.Errorf("no resolver avilable to fetch path")
 )
 
-// ResolveBodyFile sets the byte stream of file data prioritizing:
+// OpenBodyFile sets the byte stream of file data prioritizing:
 // * erroring when the body is inline
 // * creating an in-place file from bytes
 // * passing BodyPath to the resolver
 // once resolved, the file is set to an internal field, which is
 // accessible via the BodyFile method. separating into two steps
 // decouples loading from access
-func (ds *Dataset) ResolveBodyFile(resolver fs.PathResolver) (err error) {
+func (ds *Dataset) OpenBodyFile(resolver qfs.PathResolver) (err error) {
 	if ds.Body != nil {
+		// TODO (b5): this needs thought. Ideally we'd be able to delay
+		// decoding of inline data to present a stream of bytes here but that would
+		// require acrobatics like preserving the format the dataset itself was decoded from.
+		// first glance would be to include an opt-in interface on qfs.File that carries
+		// a data format field, have an "OpenDataset" func that reads & decodes from a
+		// byte stream, have that method set the internal type, or maybe use that
+		// same method to redirect Body to BodyBytes. Either way this feels like it
+		// violates our plain-old-data pattern.
+		// another option: always use the same data format. CBOR? encoding/gob?
+		// option 3: require structure match dataset encoding format for this
+		// exact reason. infor dataset data format to match when missing
 		return ErrInlineBody
 	}
 
 	if ds.BodyBytes != nil {
-		ds.bodyFile = fs.NewMemfileBytes("body", ds.BodyBytes)
+		ds.bodyFile = qfs.NewMemfileBytes("body", ds.BodyBytes)
+		return nil
+	}
+
+	if ds.BodyPath == "" {
+		// nothing to resolve
 		return nil
 	}
 
@@ -165,17 +181,20 @@ func (ds *Dataset) ResolveBodyFile(resolver fs.PathResolver) (err error) {
 	}
 
 	ds.bodyFile, err = resolver.Get(ds.BodyPath)
-	return err
+	if err != nil {
+		return fmt.Errorf("opening dataset.bodyPath '%s': %s", ds.BodyPath, err)
+	}
+	return
 }
 
 // SetBodyFile assigns the bodyFile.
-func (ds *Dataset) SetBodyFile(file fs.File) {
+func (ds *Dataset) SetBodyFile(file qfs.File) {
 	ds.bodyFile = file
 }
 
 // BodyFile exposes bodyFile if one is set. Callers that use the file in any
 // way (eg. by calling Read) should consume the entire file and call Close
-func (ds *Dataset) BodyFile() fs.File {
+func (ds *Dataset) BodyFile() qfs.File {
 	return ds.bodyFile
 }
 

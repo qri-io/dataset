@@ -14,6 +14,10 @@ func TestTransformScript(t *testing.T) {
 	t.Log("TODO (b5)")
 }
 
+func TestTransformOpenScriptFile(t *testing.T) {
+	t.Log("TODO (b5)")
+}
+
 func TestTransformAssign(t *testing.T) {
 	expect := &Transform{
 		Path:          "path",

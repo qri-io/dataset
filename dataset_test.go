@@ -8,6 +8,14 @@ import (
 	"time"
 )
 
+func TestDatasetDropTransientValues(t *testing.T) {
+	t.Log("TODO (b5)")
+}
+
+func TestDatasetOpenBodyFile(t *testing.T) {
+	t.Log("TODO (b5)")
+}
+
 func TestDatasetAssign(t *testing.T) {
 	// TODO - expand test to check all fields
 	cases := []struct {

@@ -15,6 +15,10 @@ func TestVizScript(t *testing.T) {
 	t.Log("TODO (b5)")
 }
 
+func TestVizOpenScriptFile(t *testing.T) {
+	t.Log("TODO (b5)")
+}
+
 var viz1 = &Viz{
 	Format:     "foo",
 	Qri:        KindViz.String(),

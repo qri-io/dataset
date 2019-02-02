@@ -12,7 +12,7 @@ import (
 	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dstest"
-	"github.com/qri-io/fs"
+	"github.com/qri-io/qfs"
 )
 
 // Test Private Key. peerId: QmZePf5LeXow3RW5U1AgEiNbW46YnRGhZ7HPvm1UmPFPwt
@@ -45,7 +45,7 @@ func TestLoadDataset(t *testing.T) {
 		return
 	}
 
-	ds.SetBodyFile(fs.NewMemfileBytes("all_fields.csv", body))
+	ds.SetBodyFile(qfs.NewMemfileBytes("all_fields.csv", body))
 
 	apath, err := WriteDataset(store, ds, true)
 	if err != nil {
@@ -240,7 +240,7 @@ func TestCreateDataset(t *testing.T) {
 	if err != nil {
 		t.Errorf("case no changes in dataset, error reading body file: %s", err.Error())
 	}
-	ds.SetBodyFile(fs.NewMemfileBytes("body.csv", bodyBytes))
+	ds.SetBodyFile(qfs.NewMemfileBytes("body.csv", bodyBytes))
 
 	_, err = CreateDataset(store, ds, dsPrev, privKey, false)
 	if err != nil && err.Error() != expectedErr {
@@ -302,7 +302,7 @@ func TestWriteDataset(t *testing.T) {
 			t.Errorf("case %d error reading body file: %s", i, err.Error())
 			continue
 		}
-		ds.SetBodyFile(fs.NewMemfileBytes(filepath.Base(c.bodyPath), body))
+		ds.SetBodyFile(qfs.NewMemfileBytes(filepath.Base(c.bodyPath), body))
 
 		got, err := WriteDataset(store, ds, true)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
