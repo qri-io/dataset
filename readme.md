@@ -14,7 +14,7 @@ subpackages that build from this base to add functionality as necessary Datasets
 
 * **compression**: defines supported types of compression for interpreting a dataset
 * **detect**: dataset structure & schema inference
-* **dsfs**: "datasets on a content-addressed file system" tools to work with datasets stored with the [cafs](https://github.com/qri-io/qri) interface: `github.com/qri-io/cafs`
+* **dsfs**: "datasets on a content-addressed file system" tools to work with datasets stored with the [cafs](https://github.com/qri-io/qri) interface: `github.com/qri-io/qfs/cafs`
 * **dsgraph**: expressing relationships between and within datasets as graphs
 * **dsio**: `io` primitives for working with dataset bodies as readers, writers, buffers, oriented around row-like "entries".
 * **dstest**: utility functions for working with tests that need datasets

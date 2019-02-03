@@ -47,7 +47,7 @@ jobs:
           name: Install gx-dependant packages
           command: >
             go get -v -d
-            github.com/qri-io/cafs
+            github.com/qri-io/qfs/cafs
       - save_cache:
           key: dependency-cache-{{ checksum "package.json" }}
           paths:
