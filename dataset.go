@@ -45,13 +45,12 @@ type Dataset struct {
 	// body file reader, doesn't serialize
 	bodyFile qfs.File
 	// Body represents dataset data with native go types.
-	// this will often not be populated, transient
+	// Datasets have at most one body. Body, BodyBytes, and BodyPath
+	// work together, often with only one field used at a time
 	Body interface{} `json:"body,omitempty"`
 	// BodyBytes is for representing dataset data as a slice of bytes
-	// this will often not be populated, transient
 	BodyBytes []byte `json:"bodyBytes,omitempty"`
 	// BodyPath is the path to the hash of raw data as it resolves on the network
-	// Datasets have at most one body
 	BodyPath string `json:"bodyPath,omitempty"`
 
 	// Commit contains author & change message information that describes this
@@ -140,10 +139,10 @@ var (
 	// body data is stored as native go types
 	ErrInlineBody = fmt.Errorf("dataset body is inlined")
 	// ErrNoResolver is an error for missing-but-needed resolvers
-	ErrNoResolver = fmt.Errorf("no resolver avilable to fetch path")
+	ErrNoResolver = fmt.Errorf("no resolver available to fetch path")
 )
 
-// OpenBodyFile sets the byte stream of file data prioritizing:
+// OpenBodyFile sets the byte stream of file data, prioritizing:
 // * erroring when the body is inline
 // * creating an in-place file from bytes
 // * passing BodyPath to the resolver
