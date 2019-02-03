@@ -15,8 +15,6 @@ import (
 // other data storage and cataloging systems, meta fields and conventions are
 // derived from existing metadata formats whenever possible
 type Meta struct {
-	// private storage for reference to this object
-	path string
 	// meta holds additional arbitrary metadata not covered by the spec when
 	// encoding & decoding json values here will be hoisted into the meta object
 	meta map[string]interface{}
@@ -48,8 +46,10 @@ type Meta struct {
 	// License will automatically parse to & from a string value if provided as a
 	// raw string
 	License *License `json:"license,omitempty"`
+	// path is the location of meta, transient
+	Path string `json:"path,omitempty"`
 	// Kind is required, must be qri:md:[version]
-	Qri Kind `json:"qri"`
+	Qri string `json:"qri,omitempty"`
 	// path to dataset readme file, not part of the DCAT spec, but a common
 	// convention in software dev
 	ReadmeURL string `json:"readmeURL,omitempty"`
@@ -59,6 +59,12 @@ type Meta struct {
 	Theme []string `json:"theme,omitempty"`
 	// Version is the version identifier for this dataset
 	Version string `json:"version,omitempty"`
+}
+
+// DropTransientValues removes values that cannot be recorded when the
+// dataset is rendered immutable, usually by storing it in a cafs
+func (md *Meta) DropTransientValues() {
+	md.Path = ""
 }
 
 // IsEmpty checks to see if dataset has any fields other than the internal path
@@ -80,15 +86,10 @@ func (md *Meta) IsEmpty() bool {
 		md.Version == ""
 }
 
-// Path gives the internal path reference for this dataset
-func (md *Meta) Path() string {
-	return md.path
-}
-
 // NewMetaRef creates a Meta pointer with the internal
 // path property specified, and no other fields.
 func NewMetaRef(path string) *Meta {
-	return &Meta{path: path}
+	return &Meta{Path: path}
 }
 
 // Meta gives access to additional metadata not covered by dataset metadata
@@ -114,12 +115,6 @@ func UnmarshalMeta(v interface{}) (*Meta, error) {
 	default:
 		return nil, fmt.Errorf("couldn't parse metadata, value is invalid type")
 	}
-}
-
-// SetPath sets the internal path property of a Meta
-// Use with caution. most users should never need to call SetPath
-func (md *Meta) SetPath(path string) {
-	md.path = path
 }
 
 // strVal confirms an interface is a string
@@ -242,23 +237,12 @@ func (md *Meta) Assign(metas ...*Meta) {
 			continue
 		}
 
-		if m.path != "" {
-			md.path = m.path
+		if m.meta != nil {
+			md.meta = m.meta
 		}
-		if m.Qri != "" {
-			md.Qri = m.Qri
-		}
-		if m.Title != "" {
-			md.Title = m.Title
-		}
+
 		if m.AccessURL != "" {
 			md.AccessURL = m.AccessURL
-		}
-		if m.DownloadURL != "" {
-			md.DownloadURL = m.DownloadURL
-		}
-		if m.ReadmeURL != "" {
-			md.ReadmeURL = m.ReadmeURL
 		}
 		if m.AccrualPeriodicity != "" {
 			md.AccrualPeriodicity = m.AccrualPeriodicity
@@ -266,8 +250,14 @@ func (md *Meta) Assign(metas ...*Meta) {
 		if m.Citations != nil {
 			md.Citations = m.Citations
 		}
+		if m.Contributors != nil {
+			md.Contributors = m.Contributors
+		}
 		if m.Description != "" {
 			md.Description = m.Description
+		}
+		if m.DownloadURL != "" {
+			md.DownloadURL = m.DownloadURL
 		}
 		if m.HomeURL != "" {
 			md.HomeURL = m.HomeURL
@@ -275,26 +265,32 @@ func (md *Meta) Assign(metas ...*Meta) {
 		if m.Identifier != "" {
 			md.Identifier = m.Identifier
 		}
-		if m.License != nil {
-			md.License = m.License
-		}
-		if m.Version != "" {
-			md.Version = m.Version
-		}
 		if m.Keywords != nil {
 			md.Keywords = m.Keywords
-		}
-		if m.Contributors != nil {
-			md.Contributors = m.Contributors
 		}
 		if m.Language != nil {
 			md.Language = m.Language
 		}
+		if m.License != nil {
+			md.License = m.License
+		}
+		if m.Path != "" {
+			md.Path = m.Path
+		}
+		if m.Qri != "" {
+			md.Qri = m.Qri
+		}
+		if m.ReadmeURL != "" {
+			md.ReadmeURL = m.ReadmeURL
+		}
 		if m.Theme != nil {
 			md.Theme = m.Theme
 		}
-		if m.meta != nil {
-			md.meta = m.meta
+		if m.Title != "" {
+			md.Title = m.Title
+		}
+		if m.Version != "" {
+			md.Version = m.Version
 		}
 	}
 }
@@ -304,8 +300,8 @@ func (md *Meta) Assign(metas ...*Meta) {
 func (md *Meta) MarshalJSON() ([]byte, error) {
 	// if we're dealing with an empty object that has a path specified
 	// marshal to a string instead
-	if md.path != "" && md.IsEmpty() {
-		return json.Marshal(md.path)
+	if md.Path != "" && md.IsEmpty() {
+		return json.Marshal(md.Path)
 	}
 
 	return md.MarshalJSONObject()
@@ -316,7 +312,7 @@ func (md *Meta) MarshalJSON() ([]byte, error) {
 func (md *Meta) MarshalJSONObject() ([]byte, error) {
 	data := md.Meta()
 
-	data["qri"] = KindMeta
+	data["qri"] = KindMeta.String()
 
 	if md.AccessURL != "" {
 		data["accessURL"] = md.AccessURL
@@ -375,7 +371,7 @@ func (md *Meta) UnmarshalJSON(data []byte) error {
 	// first check to see if this is a valid path ref
 	var path string
 	if err := json.Unmarshal(data, &path); err == nil {
-		*md = Meta{path: path}
+		*md = Meta{Path: path}
 		return nil
 	}
 
@@ -401,6 +397,7 @@ func (md *Meta) UnmarshalJSON(data []byte) error {
 		"identifier",
 		"image",
 		"keyword",
+		"path",
 		"qri",
 		"language",
 		"length",

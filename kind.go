@@ -59,7 +59,6 @@ func (k Kind) Version() string {
 func (k *Kind) UnmarshalJSON(data []byte) error {
 	var _k string
 	if err := json.Unmarshal(data, &_k); err != nil {
-		log.Debug(err.Error())
 		return err
 	}
 	*k = Kind(_k)

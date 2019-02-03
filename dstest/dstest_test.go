@@ -9,9 +9,9 @@ import (
 	"github.com/qri-io/dataset"
 )
 
-func TestDatasetPodChecksum(t *testing.T) {
-	expect := "a909a887caab333296f92c25e308e66c14d33480"
-	sum := DatasetPodChecksum(&dataset.DatasetPod{})
+func TestDatasetChecksum(t *testing.T) {
+	expect := "085e607818aae2920e0e4b57c321c3b58e17b85d"
+	sum := DatasetChecksum(&dataset.Dataset{})
 	if sum != expect {
 		t.Errorf("empty pod hash mismatch. expected: %s, got: %s", expect, sum)
 	}
@@ -22,7 +22,9 @@ func TestLoadTestCases(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	t.Logf("%d cases", len(tcs))
+	if len(tcs) == 0 {
+		t.Errorf("expected at least one test case to load")
+	}
 }
 
 func TestBodyFilepath(t *testing.T) {
@@ -48,7 +50,6 @@ func TestNewTestCaseFromDir(t *testing.T) {
 		t.Errorf("expected error")
 		return
 	}
-	t.Log(err)
 
 	tc, err := NewTestCaseFromDir("testdata/complete")
 	if err != nil {

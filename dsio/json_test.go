@@ -10,7 +10,6 @@ import (
 
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dstest"
-	"github.com/qri-io/jsonschema"
 )
 
 func TestJSONReader(t *testing.T) {
@@ -21,37 +20,37 @@ func TestJSONReader(t *testing.T) {
 		err       string
 	}{
 		{"city", &dataset.Structure{}, 0, "schema required for JSON reader"},
-		{"city", &dataset.Structure{Schema: jsonschema.Must(`false`)}, 0, "invalid schema. root must be either an array or object type"},
+		{"city", &dataset.Structure{Schema: map[string]interface{}{"type": "number"}}, 0, "invalid schema. root must be either an array or object type"},
 		{"city", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaArray,
 		}, 6, ""},
 		{"sitemap_object", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaObject,
 		}, 7, ""},
 		{"links_object", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaObject,
 		}, 20, ""},
 		{"links_array", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaArray,
 		}, 20, ""},
 		{"array", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaArray,
 		}, 10, ""},
 		{"object", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaObject,
 		}, 10, ""},
 		{"craigslist", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaArray,
 		}, 1200, ""},
 		{"sitemap", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaObject,
 		}, 1, ""},
 	}
@@ -107,51 +106,51 @@ func TestJSONReaderBasicParsing(t *testing.T) {
 		expect    interface{}
 	}{
 		{"{\"a\":1}", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaObject,
 		}, 1},
 		{"{\"a\": 1}", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaObject,
 		}, 1},
 		{"{\"a\":\"abc\"}", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaObject,
 		}, "abc"},
 		{"{\"a\":4.56}", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaObject,
 		}, 4.56},
 		{"{\"a\":\"\"}", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaObject,
 		}, ""},
 		{"{\"a\":null}", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaObject,
 		}, nil},
 		{"{\"a\":true}", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaObject,
 		}, true},
 		{"{\"a\":false}", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaObject,
 		}, false},
 		{"{\"a\":\"\xe7\x8a\xac\"}", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaObject,
 		}, "\xe7\x8a\xac"},
 		{"{\"a\":\"say \\\"dog\\\"\"}", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaObject,
 		}, "say \"dog\""},
 		{"{\"a\":\"say \\\"\\u72ac\\\"\"}", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaObject,
 		}, "say \"\xe7\x8a\xac\""},
 		{"{\n  \"a\" : \"b\" }", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaObject,
 		}, "b"},
 	}
@@ -176,7 +175,7 @@ func TestJSONReaderSmallerBufferForHugeToken(t *testing.T) {
 		err       string
 	}{
 		{"craigslist", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaArray,
 		}, 1200, ""},
 	}
@@ -232,27 +231,27 @@ func TestJSONSizeReader(t *testing.T) {
 		data      string
 	}{
 		{&dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaArray,
 		}, 16, `[["a","b","cdef"]]`},
 		{&dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaArray,
 		}, 16, `[[12345,67890,12345,67890]]`},
 		{&dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaArray,
 		}, 18, `[{"a":"b","c":"d","e":"f"}]`},
 		{&dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaArray,
 		}, 16, `[[  "a"  ,  "b"  ,  "c"  ,  "d"  ]]`},
 		{&dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaArray,
 		}, 16, `[[false, false, false , false]]`},
 		{&dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaArray,
 		}, 16, `[[true, true, true, true]]`},
 	}
@@ -287,67 +286,67 @@ func TestJSONReaderErrors(t *testing.T) {
 		err       string
 	}{
 		{"{\"a\":1}", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaObject,
 		}, 1, ""},
 		{"{\"a\"\"b\":1}", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaObject,
 		}, 0, "Expected: ':' to separate key and value"},
 		{"{:\"a\"1}", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaObject,
 		}, 0, "Expected: string"},
 		{"{\"abc:def\"1}", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaObject,
 		}, 0, "Expected: ':' to separate key and value"},
 		{"{\"a\"\x01:\x02\"b\"}", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaObject,
 		}, 0, "Expected: ':' to separate key and value"},
 		{"{\"abc\",1,,,,,\"def\",2,,\"ghi\",3,,,\"jkl\"4:}", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaObject,
 		}, 0, "Expected: ':' to separate key and value"},
 		{"{\"abc\":{\"inner\":1}}", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaObject,
 		}, 1, ""},
 		{"{\"abc\":[1,2,3]}", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaObject,
 		}, 1, ""},
 		{"{\"abc\":{\"inner\":[1,2,3]}}", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaObject,
 		}, 1, ""},
 		{"{\"abc\":1,", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaObject,
 		}, 1, "Expected: string"},
 		{"{\"abc\":1", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaObject,
 		}, 1, "Expected: separator ','"},
 		{"[\"abc\",1]", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaArray,
 		}, 2, ""},
 		{"[]", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaArray,
 		}, 0, ""},
 		{"[{}]", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaArray,
 		}, 1, ""},
 		{"[\"abc\",1", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaArray,
 		}, 2, "Expected: separator ','"},
 		{"[\"abc\",1,", &dataset.Structure{
-			Format: dataset.JSONDataFormat,
+			Format: "json",
 			Schema: dataset.BaseSchemaArray,
 		}, 3, "Expected: separator ','"},
 	}
@@ -391,7 +390,7 @@ func TestJSONWriter(t *testing.T) {
 		err       string
 	}{
 		{&dataset.Structure{}, []Entry{}, "[]", "schema required for JSON writer"},
-		{&dataset.Structure{Schema: jsonschema.Must(`true`)}, []Entry{}, "[]", "invalid schema. root must be either an array or object type"},
+		{&dataset.Structure{Schema: map[string]interface{}{"type": "string"}}, []Entry{}, "[]", "invalid schema. root must be either an array or object type"},
 
 		{arrst, []Entry{}, "[]", ""},
 		{objst, []Entry{}, "{}", ""},
@@ -438,7 +437,7 @@ func TestJSONWriter(t *testing.T) {
 
 func TestJSONWriterNonObjectEntry(t *testing.T) {
 	buf := &bytes.Buffer{}
-	w, err := NewJSONWriter(&dataset.Structure{Format: dataset.JSONDataFormat, Schema: dataset.BaseSchemaObject}, buf)
+	w, err := NewJSONWriter(&dataset.Structure{Format: "json", Schema: dataset.BaseSchemaObject}, buf)
 	if err != nil {
 		t.Errorf("unexpected error creating writer: %s", err.Error())
 		return
@@ -454,7 +453,7 @@ func TestJSONWriterNonObjectEntry(t *testing.T) {
 
 func TestJSONWriterDoubleKey(t *testing.T) {
 	buf := &bytes.Buffer{}
-	w, err := NewJSONWriter(&dataset.Structure{Format: dataset.JSONDataFormat, Schema: dataset.BaseSchemaObject}, buf)
+	w, err := NewJSONWriter(&dataset.Structure{Format: "json", Schema: dataset.BaseSchemaObject}, buf)
 	if err != nil {
 		t.Errorf("unexpected error creating writer: %s", err.Error())
 		return
@@ -484,7 +483,7 @@ func TestJSONWriterDoubleKey(t *testing.T) {
 
 func BenchmarkJSONWriterArrays(b *testing.B) {
 	const NumWrites = 1000
-	st := &dataset.Structure{Format: dataset.JSONDataFormat, Schema: dataset.BaseSchemaObject}
+	st := &dataset.Structure{Format: "json", Schema: dataset.BaseSchemaObject}
 
 	for n := 0; n < b.N; n++ {
 		buf := &bytes.Buffer{}
@@ -504,7 +503,7 @@ func BenchmarkJSONWriterArrays(b *testing.B) {
 
 func BenchmarkJSONWriterObjects(b *testing.B) {
 	const NumWrites = 1000
-	st := &dataset.Structure{Format: dataset.JSONDataFormat, Schema: dataset.BaseSchemaObject}
+	st := &dataset.Structure{Format: "json", Schema: dataset.BaseSchemaObject}
 
 	for n := 0; n < b.N; n++ {
 		buf := &bytes.Buffer{}
@@ -523,7 +522,7 @@ func BenchmarkJSONWriterObjects(b *testing.B) {
 }
 
 func BenchmarkJSONReader(b *testing.B) {
-	st := &dataset.Structure{Format: dataset.JSONDataFormat, Schema: dataset.BaseSchemaArray}
+	st := &dataset.Structure{Format: "json", Schema: dataset.BaseSchemaArray}
 
 	for n := 0; n < b.N; n++ {
 		file, err := os.Open(testdataFile("../dsio/testdata/movies/body.json"))

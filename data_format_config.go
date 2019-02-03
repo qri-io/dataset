@@ -26,7 +26,7 @@ func ParseFormatConfigMap(f DataFormat, opts map[string]interface{}) (FormatConf
 }
 
 // NewCSVOptions creates a CSVOptions pointer from a map
-func NewCSVOptions(opts map[string]interface{}) (FormatConfig, error) {
+func NewCSVOptions(opts map[string]interface{}) (*CSVOptions, error) {
 	o := &CSVOptions{}
 	if opts == nil {
 		return o, nil
@@ -115,7 +115,7 @@ func (o *CSVOptions) Map() map[string]interface{} {
 }
 
 // NewJSONOptions creates a JSONOptions pointer from a map
-func NewJSONOptions(opts map[string]interface{}) (FormatConfig, error) {
+func NewJSONOptions(opts map[string]interface{}) (*JSONOptions, error) {
 	o := &JSONOptions{}
 	if opts == nil {
 		return o, nil

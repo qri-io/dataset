@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/qri-io/dataset"
-	"github.com/qri-io/jsonschema"
 )
 
 func TestJSONSchema(t *testing.T) {
@@ -22,7 +21,7 @@ func TestJSONSchema(t *testing.T) {
 	cases := []struct {
 		st     *dataset.Structure
 		data   string
-		expect *jsonschema.RootSchema
+		expect map[string]interface{}
 		err    string
 	}{
 		{&dataset.Structure{}, "", nil, "invalid json data"},
@@ -41,10 +40,8 @@ func TestJSONSchema(t *testing.T) {
 			return
 		}
 
-		// TODO - this is just basic pointer comparison for now,
-		// if JSONSchema ever returns a fresh schema this'll have to be improved
-		if got != c.expect {
-			t.Errorf("case %d return mismatch", i)
+		if err := dataset.CompareSchemas(got, c.expect); err != nil {
+			t.Errorf("case %d returned schema mismatch: %s", i, err)
 		}
 	}
 }

@@ -4,6 +4,8 @@ import (
 	"archive/zip"
 	"bytes"
 	"io/ioutil"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/qri-io/dataset"
@@ -75,13 +77,14 @@ func TestWriteZipArchiveFullDataset(t *testing.T) {
 		return
 	}
 
-	// tmppath := filepath.Join(os.TempDir(), "exported.zip")
+	tmppath := filepath.Join(os.TempDir(), "exported.zip")
 	// defer os.RemoveAll(tmppath)
-	// err = ioutil.WriteFile(tmppath, buf.Bytes(), os.ModePerm)
-	// if err != nil {
-	// 	t.Errorf("error writing temp zip file: %s", err.Error())
-	// 	return
-	// }
+	t.Log(tmppath)
+	err = ioutil.WriteFile(tmppath, buf.Bytes(), os.ModePerm)
+	if err != nil {
+		t.Errorf("error writing temp zip file: %s", err.Error())
+		return
+	}
 
 	expectFile := testdataFile("zip/exported.zip")
 	expectBytes, err := ioutil.ReadFile(expectFile)
@@ -102,13 +105,13 @@ func TestUnzipDatasetBytes(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	dsp := &dataset.DatasetPod{}
+	dsp := &dataset.Dataset{}
 	if err := UnzipDatasetBytes(zipBytes, dsp); err != nil {
 		t.Error(err)
 	}
 }
 func TestUnzipDataset(t *testing.T) {
-	if err := UnzipDataset(bytes.NewReader([]byte{}), 0, &dataset.DatasetPod{}); err == nil {
+	if err := UnzipDataset(bytes.NewReader([]byte{}), 0, &dataset.Dataset{}); err == nil {
 		t.Error("expected passing bad reader to error")
 	}
 
@@ -118,7 +121,7 @@ func TestUnzipDataset(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	dsp := &dataset.DatasetPod{}
+	dsp := &dataset.Dataset{}
 	if err := UnzipDataset(bytes.NewReader(zipBytes), int64(len(zipBytes)), dsp); err != nil {
 		t.Error(err)
 	}

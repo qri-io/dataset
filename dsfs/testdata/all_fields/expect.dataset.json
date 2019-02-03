@@ -45,35 +45,11 @@
       "foo": {"path":"/not/a/real/path"}
     },
     "scriptPath": "/map/QmaCHzMEoDKF21Qd3emkT1mWEBS5uZG5BxLeJNbaXxghWc",
-    "structure": {
-      "errCount": 0,
-      "format": "csv",
-      "formatConfig": {
-        "headerRow": true
-      },
-      "qri": "st:0",
-      "schema": {
-        "items": {
-          "items": [
-            {
-              "title": "title",
-              "type": "string"
-            },
-            {
-              "title": "duration",
-              "type": "integer"
-            }
-          ],
-          "type": "array"
-        },
-        "type": "array"
-      }
-    },
     "syntax": "sql"
   },
   "viz":{
     "format": "foo",
     "qri": "vz:0",
-    "scriptPath": "bar"
+    "scriptPath": "/map/QmedXhMECTMY5x92PavJMAef4g5bW1KT5PpATvxJYmu4Fv"
   }
 }

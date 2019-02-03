@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
+	"os"
+
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsio"
 	"github.com/qri-io/dataset/generate"
-	"github.com/qri-io/jsonschema"
-	"math/rand"
-	"os"
 )
 
 func main() {
@@ -15,8 +15,8 @@ func main() {
 	generateExamples(dataset.BaseSchemaArray, 40, "data_array_%d")
 }
 
-func generateExamples(schema *jsonschema.RootSchema, numExamples int, template string) {
-	sta := dataset.Structure{Format: dataset.JSONDataFormat, Schema: schema}
+func generateExamples(schema map[string]interface{}, numExamples int, template string) {
+	sta := dataset.Structure{Format: "json", Schema: schema}
 	g, _ := generate.NewGenerator(&sta, generate.AssignUseRandomType)
 	for i := 0; i < numExamples; i++ {
 		filename := fmt.Sprintf("out/"+template+".json", i)

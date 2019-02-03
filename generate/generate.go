@@ -3,11 +3,11 @@ package generate
 
 import (
 	"fmt"
+	"math/rand"
+	"time"
+
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsio"
-	"math/rand"
-	"strings"
-	"time"
 )
 
 // Generator is a dsio.EntryReader that creates a new entry on each call to ReadEntry
@@ -113,12 +113,15 @@ func NewGenerator(st *dataset.Structure, options ...func(*Config)) (*Generator, 
 	}
 
 	// Convert the schema to a string, check for "array" string in the result.
-	// TODO: Inspect the structure more deeply than simply "array" vs "object".
-	pather := fmt.Sprintf("%s", st.Schema.Schema.JSONChildren()["type"])
-	schemaIsArray := false
-	if strings.Contains(pather, "array") {
-		schemaIsArray = true
+	// TODO (dlong): Inspect the structure more deeply than simply "array" vs "object".
+	if st.Schema == nil {
+		return nil, fmt.Errorf("structure.Schema is required")
 	}
+	tlt, ok := st.Schema["type"].(string)
+	if !ok {
+		return nil, fmt.Errorf("structure.Schema top level type must be a string")
+	}
+	schemaIsArray := tlt == "array"
 	return &Generator{
 		structure:     st,
 		maxLen:        cfg.maxLen,

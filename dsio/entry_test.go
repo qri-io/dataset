@@ -17,7 +17,7 @@ func TestEachEntry(t *testing.T) {
 	}
 
 	st := &dataset.Structure{
-		Format: dataset.JSONDataFormat,
+		Format: "json",
 		Schema: dataset.BaseSchemaArray,
 	}
 	r, err := NewEntryReader(st, tc.BodyFile())

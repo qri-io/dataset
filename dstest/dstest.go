@@ -14,8 +14,8 @@ import (
 
 	logger "github.com/ipfs/go-log"
 	"github.com/jinzhu/copier"
-	"github.com/qri-io/cafs"
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/qfs"
 	"github.com/ugorji/go/codec"
 )
 
@@ -57,9 +57,9 @@ type TestCase struct {
 	Expect *dataset.Dataset
 }
 
-// DatasetPodChecksum generates a fast, insecure hash of an encoded dataset,
+// DatasetChecksum generates a fast, insecure hash of an encoded dataset,
 // useful for checking that expected dataset values haven't changed
-func DatasetPodChecksum(ds *dataset.DatasetPod) string {
+func DatasetChecksum(ds *dataset.Dataset) string {
 	buf := &bytes.Buffer{}
 	h := &codec.CborHandle{}
 	h.Canonical = true
@@ -74,24 +74,24 @@ func DatasetPodChecksum(ds *dataset.DatasetPod) string {
 var testCaseCache = make(map[string]TestCase)
 
 // BodyFile creates a new in-memory file from data & filename properties
-func (t TestCase) BodyFile() cafs.File {
-	return cafs.NewMemfileBytes(t.BodyFilename, t.Body)
+func (t TestCase) BodyFile() qfs.File {
+	return qfs.NewMemfileBytes(t.BodyFilename, t.Body)
 }
 
-// TransformScriptFile creates a cafs.File from testCase transform script data
-func (t TestCase) TransformScriptFile() (cafs.File, bool) {
+// TransformScriptFile creates a qfs.File from testCase transform script data
+func (t TestCase) TransformScriptFile() (qfs.File, bool) {
 	if t.TransformScript == nil {
 		return nil, false
 	}
-	return cafs.NewMemfileBytes(t.TransformScriptFilename, t.TransformScript), true
+	return qfs.NewMemfileBytes(t.TransformScriptFilename, t.TransformScript), true
 }
 
-// VizScriptFile creates a cafs.File from testCase transform script data
-func (t TestCase) VizScriptFile() (cafs.File, bool) {
+// VizScriptFile creates a qfs.File from testCase transform script data
+func (t TestCase) VizScriptFile() (qfs.File, bool) {
 	if t.VizScript == nil {
 		return nil, false
 	}
-	return cafs.NewMemfileBytes(t.VizScriptFilename, t.VizScript), true
+	return qfs.NewMemfileBytes(t.VizScriptFilename, t.VizScript), true
 }
 
 // BodyFilepath retuns the path to the first valid data file it can find,
@@ -127,49 +127,21 @@ func LoadTestCases(dir string) (tcs map[string]TestCase, err error) {
 // dir should be the path to the directory to check, and any parsing errors will
 // be logged using t.Log methods
 func NewTestCaseFromDir(dir string) (tc TestCase, err error) {
-	if got, ok := testCaseCache[dir]; ok {
-		tc = TestCase{}
-		copier.Copy(&tc, &got)
-		return
-	}
+	// TODO (b5): for now we need to disable the cache b/c copier.Copy can't
+	// copy unexported fields, which includes script files. We should switch
+	// the testcase.Input field to a method that creates new datset instances
+	// with fresh files on each call of input, this'll let us restore cache use
+	// and speed tests up again
+	// if got, ok := testCaseCache[dir]; ok {
+	// 	tc = TestCase{}
+	// 	copier.Copy(&tc, &got)
+	// 	return
+	// }
 	foundTestData := false
 
 	tc = TestCase{
 		Path: dir,
 		Name: filepath.Base(dir),
-	}
-	tc.Body, tc.BodyFilename, err = ReadBodyData(dir)
-	if err != nil {
-		if err == os.ErrNotExist {
-			// Body is optional
-			err = nil
-		} else {
-			return tc, fmt.Errorf("error reading test case body for dir: %s: %s", dir, err.Error())
-		}
-	} else {
-		foundTestData = true
-	}
-
-	if tc.TransformScript, tc.TransformScriptFilename, err = ReadInputTransformScript(dir); err != nil {
-		if err == os.ErrNotExist {
-			// TransformScript is optional
-			err = nil
-		} else {
-			return tc, fmt.Errorf("reading transform script: %s", err.Error())
-		}
-	} else {
-		foundTestData = true
-	}
-
-	if tc.VizScript, tc.VizScriptFilename, err = ReadInputVizScript(dir); err != nil {
-		if err == os.ErrNotExist {
-			// VizScript is optional
-			err = nil
-		} else {
-			return tc, fmt.Errorf("reading viz script: %s", err.Error())
-		}
-	} else {
-		foundTestData = true
 	}
 
 	tc.Input, err = ReadDataset(dir, InputDatasetFilename)
@@ -181,6 +153,52 @@ func NewTestCaseFromDir(dir string) (tc TestCase, err error) {
 		}
 	} else {
 		foundTestData = true
+	}
+	if tc.Input == nil {
+		tc.Input = &dataset.Dataset{}
+	}
+	tc.Input.Name = tc.Name
+
+	if tc.Body, tc.BodyFilename, err = ReadBodyData(dir); err != nil {
+		if err == os.ErrNotExist {
+			// Body is optional
+			err = nil
+		} else {
+			return tc, fmt.Errorf("error reading test case body for dir: %s: %s", dir, err.Error())
+		}
+	} else {
+		foundTestData = true
+		tc.Input.SetBodyFile(qfs.NewMemfileBytes(tc.BodyFilename, tc.Body))
+	}
+
+	if tc.TransformScript, tc.TransformScriptFilename, err = ReadInputTransformScript(dir); err != nil {
+		if err == os.ErrNotExist {
+			// TransformScript is optional
+			err = nil
+		} else {
+			return tc, fmt.Errorf("reading transform script: %s", err.Error())
+		}
+	} else {
+		foundTestData = true
+		if tc.Input.Transform == nil {
+			tc.Input.Transform = &dataset.Transform{}
+		}
+		tc.Input.Transform.SetScriptFile(qfs.NewMemfileBytes(tc.TransformScriptFilename, tc.TransformScript))
+	}
+
+	if tc.VizScript, tc.VizScriptFilename, err = ReadInputVizScript(dir); err != nil {
+		if err == os.ErrNotExist {
+			// VizScript is optional
+			err = nil
+		} else {
+			return tc, fmt.Errorf("reading viz script: %s", err.Error())
+		}
+	} else {
+		foundTestData = true
+		if tc.Input.Viz == nil {
+			tc.Input.Viz = &dataset.Viz{}
+		}
+		tc.Input.Viz.SetScriptFile(qfs.NewMemfileBytes(tc.VizScriptFilename, tc.VizScript))
 	}
 
 	tc.Expect, err = ReadDataset(dir, ExpectDatasetFilename)

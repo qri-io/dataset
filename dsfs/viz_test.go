@@ -7,14 +7,14 @@ import (
 	"testing"
 
 	crypto "github.com/libp2p/go-libp2p-crypto"
-	"github.com/qri-io/cafs"
+	"github.com/qri-io/qfs/cafs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dstest"
 )
 
 var Viz1 = &dataset.Viz{
 	Format:     "foo",
-	Qri:        dataset.KindViz,
+	Qri:        dataset.KindViz.String(),
 	ScriptPath: "bar",
 }
 
@@ -47,7 +47,7 @@ func TestLoadVizScript(t *testing.T) {
 	if err != nil {
 		t.Fatal(err.Error())
 	}
-	path, err := CreateDataset(store, tc.Input, nil, tc.BodyFile(), nil, privKey, true)
+	path, err := CreateDataset(store, tc.Input, nil, privKey, true)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
@@ -66,7 +66,7 @@ func TestLoadVizScript(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 	tc.Input.Viz.ScriptPath = vizPath
-	path, err = CreateDataset(store, tc.Input, nil, tc.BodyFile(), nil, privKey, true)
+	path, err = CreateDataset(store, tc.Input, nil, privKey, true)
 	if err != nil {
 		t.Fatal(err.Error())
 	}

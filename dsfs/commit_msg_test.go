@@ -3,7 +3,7 @@ package dsfs
 import (
 	"testing"
 
-	"github.com/qri-io/cafs"
+	"github.com/qri-io/qfs/cafs"
 	"github.com/qri-io/dataset"
 )
 

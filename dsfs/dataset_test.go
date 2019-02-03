@@ -9,9 +9,10 @@ import (
 	"time"
 
 	"github.com/libp2p/go-libp2p-crypto"
-	"github.com/qri-io/cafs"
+	"github.com/qri-io/qfs/cafs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dstest"
+	"github.com/qri-io/qfs"
 )
 
 // Test Private Key. peerId: QmZePf5LeXow3RW5U1AgEiNbW46YnRGhZ7HPvm1UmPFPwt
@@ -44,9 +45,9 @@ func TestLoadDataset(t *testing.T) {
 		return
 	}
 
-	df := cafs.NewMemfileBytes("all_fields.csv", body)
+	ds.SetBodyFile(qfs.NewMemfileBytes("all_fields.csv", body))
 
-	apath, err := WriteDataset(store, ds, df, true)
+	apath, err := WriteDataset(store, ds, true)
 	if err != nil {
 		t.Errorf(err.Error())
 		return
@@ -85,7 +86,7 @@ func TestLoadDataset(t *testing.T) {
 	}
 
 	for i, c := range cases {
-		path := c.ds.Path()
+		path := c.ds.Path
 		if !c.ds.IsEmpty() {
 			dsf, err := JSONFile(PackageFileDataset.String(), c.ds)
 			if err != nil {
@@ -123,7 +124,7 @@ func TestCreateDataset(t *testing.T) {
 		return
 	}
 
-	_, err = CreateDataset(store, nil, nil, nil, nil, nil, false)
+	_, err = CreateDataset(store, nil, nil, nil, false)
 	if err == nil {
 		t.Errorf("expected call without prvate key to error")
 		return
@@ -146,13 +147,13 @@ func TestCreateDataset(t *testing.T) {
 		{"invalid",
 			"", nil, 0, "commit is required"},
 		{"cities",
-			"/map/QmPm1VvN3PjZLuA12NSEUTwCft8JruHPwcL2zmKf4SGnWd", nil, 6, ""},
+			"/map/QmYDVHBmGHWV7h8iCU9H6BrYoXXnm8pCFhhJzZw5jJitoq", nil, 6, ""},
 		{"all_fields",
-			"/map/QmYHRKiQ52CETCBrMZR2c9hh1Je7292YBeD9gjQyWwEhtE", nil, 14, ""},
+			"/map/Qmd68bR6duBY2V5qWyCHbQxJCNdBpp6nNQE1xXvg64FkTw", nil, 14, ""},
 		{"cities_no_commit_title",
-			"/map/QmX3JQrS5oZ8SdkJQRMhmV4qRD2tBMwcwktoECbmK4BpfH", nil, 16, ""},
+			"/map/QmXuq1NExBmfQ9Fw6TFwTcq8G1QJHbbEPWPykX7D3E14Fa", nil, 16, ""},
 		{"craigslist",
-			"/map/QmUAn7Fm8KF2uVDSoafXfEvJj6EErRF9WxiCQtNED2k8HE", nil, 20, ""},
+			"/map/QmVxYECmX3URNr1pZkWbBGYe61kKGo7biEadYKuKLNw1zz", nil, 20, ""},
 		// should error when previous dataset won't dereference.
 		{"craigslist",
 			"", &dataset.Dataset{Structure: dataset.NewStructureRef("/bad/path")}, 20, "error loading dataset structure: error loading structure file: cafs: path not found"},
@@ -169,53 +170,42 @@ func TestCreateDataset(t *testing.T) {
 			continue
 		}
 
-		// TODO - this should probs be auto-populated by dstest package
-		if ts, ok := tc.TransformScriptFile(); ok {
-			if tc.Input.Transform == nil {
-				tc.Input.Transform = &dataset.Transform{}
-			}
-			tc.Input.Transform.Script = ts
-		}
-
-		// TODO - this should probs be auto-populated by dstest package
-		if vs, ok := tc.VizScriptFile(); ok {
-			if tc.Input.Viz == nil {
-				tc.Input.Viz = &dataset.Viz{}
-			}
-			tc.Input.Viz.Script = vs
-		}
-
-		path, err := CreateDataset(store, tc.Input, c.prev, tc.BodyFile(), nil, privKey, false)
+		path, err := CreateDataset(store, tc.Input, c.prev, privKey, false)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("%s: error mismatch. expected: '%s', got: '%s'", tc.Name, c.err, err)
 			continue
+		} else if c.err != "" {
+			continue
 		}
 
-		if c.err == "" {
-			if c.resultPath != path {
-				t.Errorf("%s: result path mismatch: expected: '%s', got: '%s'", tc.Name, c.resultPath, path)
-			}
+		ds, err := LoadDataset(store, path)
+		if err != nil {
+			t.Errorf("%s: error loading dataset: %s", tc.Name, err.Error())
+			continue
+		}
+		ds.Path = ""
 
-			if len(store.Files) != c.repoFiles {
-				t.Errorf("%s: invalid number of mapstore entries: %d != %d", tc.Name, c.repoFiles, len(store.Files))
-				_, err := store.Print()
-				if err != nil {
-					panic(err)
-				}
-				continue
+		if tc.Expect != nil {
+			if err := dataset.CompareDatasets(tc.Expect, ds); err != nil {
+				// expb, _ := json.Marshal(tc.Expect)
+				// fmt.Println(string(expb))
+				// dsb, _ := json.Marshal(ds)
+				// fmt.Println(string(dsb))
+				t.Errorf("%s: dataset comparison error: %s", tc.Name, err.Error())
 			}
+		}
 
-			ds, err := LoadDataset(store, c.resultPath)
+		if c.resultPath != path {
+			t.Errorf("%s: result path mismatch: expected: '%s', got: '%s'", tc.Name, c.resultPath, path)
+		}
+
+		if len(store.Files) != c.repoFiles {
+			t.Errorf("%s: invalid number of mapstore entries: %d != %d", tc.Name, c.repoFiles, len(store.Files))
+			_, err := store.Print()
 			if err != nil {
-				t.Errorf("%s: error loading dataset: %s", tc.Name, err.Error())
-				continue
+				panic(err)
 			}
-
-			if tc.Expect != nil {
-				if err := dataset.CompareDatasets(tc.Expect, ds); err != nil {
-					t.Errorf("%s: dataset comparison error: %s", tc.Name, err.Error())
-				}
-			}
+			continue
 		}
 	}
 
@@ -232,8 +222,8 @@ func TestCreateDataset(t *testing.T) {
 	if err != nil {
 		t.Errorf("case nil body and previous body files, error reading data file: %s", err.Error())
 	}
-	expectedErr := "datafile or previous datafile needed"
-	_, err = CreateDataset(store, ds, nil, nil, nil, privKey, false)
+	expectedErr := "bodyfile or previous bodyfile needed"
+	_, err = CreateDataset(store, ds, nil, privKey, false)
 	if err.Error() != expectedErr {
 		t.Errorf("case nil body and previous body files, error mismatch: expected '%s', got '%s'", expectedErr, err.Error())
 	}
@@ -250,9 +240,9 @@ func TestCreateDataset(t *testing.T) {
 	if err != nil {
 		t.Errorf("case no changes in dataset, error reading body file: %s", err.Error())
 	}
-	bodyFile := cafs.NewMemfileBytes("body.csv", bodyBytes)
+	ds.SetBodyFile(qfs.NewMemfileBytes("body.csv", bodyBytes))
 
-	_, err = CreateDataset(store, ds, dsPrev, bodyFile, nil, privKey, false)
+	_, err = CreateDataset(store, ds, dsPrev, privKey, false)
 	if err != nil && err.Error() != expectedErr {
 		t.Errorf("case no changes in dataset, error mismatch: expected '%s', got '%s'", expectedErr, err.Error())
 	} else if err == nil {
@@ -276,10 +266,10 @@ func TestWriteDataset(t *testing.T) {
 	defer func() { Timestamp = prev }()
 	Timestamp = func() time.Time { return time.Date(2001, 01, 01, 01, 01, 01, 01, time.UTC) }
 
-	if _, err := WriteDataset(store, nil, nil, true); err == nil || err.Error() != "cannot save empty dataset" {
+	if _, err := WriteDataset(store, nil, true); err == nil || err.Error() != "cannot save empty dataset" {
 		t.Errorf("didn't reject empty dataset: %s", err)
 	}
-	if _, err := WriteDataset(store, &dataset.Dataset{}, nil, true); err == nil || err.Error() != "cannot save empty dataset" {
+	if _, err := WriteDataset(store, &dataset.Dataset{}, true); err == nil || err.Error() != "cannot save empty dataset" {
 		t.Errorf("didn't reject empty dataset: %s", err)
 	}
 
@@ -301,20 +291,20 @@ func TestWriteDataset(t *testing.T) {
 			continue
 		}
 
-		body, err := ioutil.ReadFile(c.bodyPath)
-		if err != nil {
-			t.Errorf("case %d error reading body file: %s", i, err.Error())
-			continue
-		}
-		df := cafs.NewMemfileBytes(filepath.Base(c.bodyPath), body)
-
 		ds := &dataset.Dataset{}
 		if err := ds.UnmarshalJSON(indata); err != nil {
 			t.Errorf("case %d error unmarhshalling test file: %s ", i, err.Error())
 			continue
 		}
 
-		got, err := WriteDataset(store, ds, df, true)
+		body, err := ioutil.ReadFile(c.bodyPath)
+		if err != nil {
+			t.Errorf("case %d error reading body file: %s", i, err.Error())
+			continue
+		}
+		ds.SetBodyFile(qfs.NewMemfileBytes(filepath.Base(c.bodyPath), body))
+
+		got, err := WriteDataset(store, ds, true)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
 			continue
@@ -329,11 +319,11 @@ func TestWriteDataset(t *testing.T) {
 		// total count expected of files in repo after test execution
 		if len(store.Files) != c.repoFiles {
 			t.Errorf("case expected %d invalid number of entries: %d != %d", i, c.repoFiles, len(store.Files))
-			str, err := store.Print()
-			if err != nil {
-				panic(err)
-			}
-			t.Log(str)
+			// str, err := store.Print()
+			// if err != nil {
+			// 	panic(err)
+			// }
+			// t.Log(str)
 			continue
 		}
 
@@ -353,26 +343,26 @@ func TestWriteDataset(t *testing.T) {
 			if !ref.Transform.IsEmpty() {
 				t.Errorf("expected stored dataset.Transform to be a reference")
 			}
-			ds.Transform.Assign(dataset.NewTransformRef(ref.Transform.Path()))
+			ds.Transform.Assign(dataset.NewTransformRef(ref.Transform.Path))
 		}
 		if ref.Meta != nil {
 			if !ref.Meta.IsEmpty() {
 				t.Errorf("expected stored dataset.Meta to be a reference")
 			}
 			// Abstract transforms aren't loaded
-			ds.Meta.Assign(dataset.NewMetaRef(ref.Meta.Path()))
+			ds.Meta.Assign(dataset.NewMetaRef(ref.Meta.Path))
 		}
 		if ref.Structure != nil {
 			if !ref.Structure.IsEmpty() {
 				t.Errorf("expected stored dataset.Structure to be a reference")
 			}
-			ds.Structure.Assign(dataset.NewStructureRef(ref.Structure.Path()))
+			ds.Structure.Assign(dataset.NewStructureRef(ref.Structure.Path))
 		}
 		if ref.Viz != nil {
 			if !ref.Viz.IsEmpty() {
 				t.Errorf("expected stored dataset.Viz to be a reference")
 			}
-			ds.Viz.Assign(dataset.NewVizRef(ref.Viz.Path()))
+			ds.Viz.Assign(dataset.NewVizRef(ref.Viz.Path))
 		}
 		ds.BodyPath = ref.BodyPath
 

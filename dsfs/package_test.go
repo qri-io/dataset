@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/qri-io/cafs"
-	ipfsfs "github.com/qri-io/cafs/ipfs"
+	"github.com/qri-io/qfs/cafs"
+	ipfsfs "github.com/qri-io/qfs/cafs/ipfs"
 )
 
 func TestPackageFilepath(t *testing.T) {

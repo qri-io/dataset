@@ -7,41 +7,34 @@ import (
 	"testing"
 )
 
+func TestVizDropTransientValues(t *testing.T) {
+	t.Log("TODO (b5)")
+}
+
+func TestVizScript(t *testing.T) {
+	t.Log("TODO (b5)")
+}
+
+func TestVizOpenScriptFile(t *testing.T) {
+	t.Log("TODO (b5)")
+}
+
 var viz1 = &Viz{
 	Format:     "foo",
-	Qri:        KindViz,
+	Qri:        KindViz.String(),
 	ScriptPath: "one",
 }
 
 var viz2 = &Viz{
 	Format:     "bar",
-	Qri:        KindViz,
+	Qri:        KindViz.String(),
 	ScriptPath: "two",
 }
 
 var viz3 = &Viz{
 	Format:     "bar",
-	Qri:        KindViz,
+	Qri:        KindViz.String(),
 	ScriptPath: "three",
-}
-
-func TestVizSetPath(t *testing.T) {
-	cases := []struct {
-		path   string
-		expect *Viz
-	}{
-		{"", &Viz{}},
-		{"path", &Viz{path: "path"}},
-	}
-
-	for i, c := range cases {
-		got := &Viz{}
-		got.SetPath(c.path)
-		if err := CompareVizs(c.expect, got); err != nil {
-			t.Errorf("case %d error: %s", i, err)
-			continue
-		}
-	}
 }
 
 func TestVizAssign(t *testing.T) {
@@ -55,27 +48,27 @@ func TestVizAssign(t *testing.T) {
 		{&Viz{}, viz1, viz1, ""},
 		{&Viz{
 			Format:     "bar",
-			Qri:        KindViz,
+			Qri:        KindViz.String(),
 			ScriptPath: "replace me",
 		},
 			viz2, viz2, ""},
 		{&Viz{
 			Format:     "bar",
-			Qri:        KindViz,
+			Qri:        KindViz.String(),
 			ScriptPath: "replace me",
 		},
 			viz2, viz3, "ScriptPath: three != two"},
 		{&Viz{
-			path:       "foo",
+			Path:       "foo",
 			Format:     "foo",
-			Qri:        KindViz,
+			Qri:        KindViz.String(),
 			ScriptPath: "bat",
 		},
-			&Viz{path: "bar", Format: "bar"},
+			&Viz{Path: "bar", Format: "bar"},
 			&Viz{
-				path:       "foo",
+				Path:       "foo",
 				Format:     "bar",
-				Qri:        KindViz,
+				Qri:        KindViz.String(),
 				ScriptPath: "bat",
 			}, ""},
 	}
@@ -94,10 +87,10 @@ func TestVizIsEmpty(t *testing.T) {
 		vc       *Viz
 		expected bool
 	}{
-		{&Viz{Qri: KindViz}, true},
+		{&Viz{Qri: KindViz.String()}, true},
 		{&Viz{ScriptPath: "foo"}, false},
 		{&Viz{}, true},
-		{&Viz{path: "foo"}, true},
+		{&Viz{Path: "foo"}, true},
 	}
 
 	for i, c := range cases {
@@ -150,8 +143,8 @@ func TestVizUnmarshalJSON(t *testing.T) {
 		return
 	}
 
-	if vc.path != path {
-		t.Errorf("unmarshal didn't set proper path: %s != %s", path, vc.path)
+	if vc.Path != path {
+		t.Errorf("unmarshal didn't set proper path: %s != %s", path, vc.Path)
 		return
 	}
 }
@@ -163,11 +156,11 @@ func TestVizMarshalJSON(t *testing.T) {
 		err string
 	}{
 		{&Viz{}, []byte(`{"qri":"vz:0"}`), ""},
-		{&Viz{Qri: KindViz}, []byte(`{"qri":"vz:0"}`), ""},
-		{&Viz{Format: "foo", Qri: KindViz}, []byte(`{"format":"foo","qri":"vz:0"}`), ""},
+		{&Viz{Qri: KindViz.String()}, []byte(`{"qri":"vz:0"}`), ""},
+		{&Viz{Format: "foo", Qri: KindViz.String()}, []byte(`{"format":"foo","qri":"vz:0"}`), ""},
 		{viz1, []byte(`{"format":"foo","qri":"vz:0","scriptPath":"one"}`), ""},
-		{&Viz{path: "/map/QmXo5LE3WVfKZKzTrrgtUUX3nMK4VREKTAoBu5WAGECz4U"}, []byte(`"/map/QmXo5LE3WVfKZKzTrrgtUUX3nMK4VREKTAoBu5WAGECz4U"`), ""},
-		{&Viz{path: "/map/QmUaMozKVkjPf7CVf3Zd8Cy5Ex1i9oUdhYhU8uTJph5iFD"}, []byte(`"/map/QmUaMozKVkjPf7CVf3Zd8Cy5Ex1i9oUdhYhU8uTJph5iFD"`), ""},
+		{&Viz{Path: "/map/QmXo5LE3WVfKZKzTrrgtUUX3nMK4VREKTAoBu5WAGECz4U"}, []byte(`"/map/QmXo5LE3WVfKZKzTrrgtUUX3nMK4VREKTAoBu5WAGECz4U"`), ""},
+		{&Viz{Path: "/map/QmUaMozKVkjPf7CVf3Zd8Cy5Ex1i9oUdhYhU8uTJph5iFD"}, []byte(`"/map/QmUaMozKVkjPf7CVf3Zd8Cy5Ex1i9oUdhYhU8uTJph5iFD"`), ""},
 	}
 
 	for i, c := range cases {
@@ -183,7 +176,7 @@ func TestVizMarshalJSON(t *testing.T) {
 		}
 	}
 
-	vcbytes, err := json.Marshal(&Viz{path: "/path/to/Viz"})
+	vcbytes, err := json.Marshal(&Viz{Path: "/path/to/Viz"})
 	if err != nil {
 		t.Errorf("unexpected string marshal error: %s", err.Error())
 		return
@@ -201,8 +194,8 @@ func TestVizMarshalJSONObject(t *testing.T) {
 		err string
 	}{
 		{&Viz{}, []byte(`{"qri":"vz:0"}`), ""},
-		{&Viz{Qri: KindViz}, []byte(`{"qri":"vz:0"}`), ""},
-		{&Viz{Format: "foo", Qri: KindViz}, []byte(`{"format":"foo","qri":"vz:0"}`), ""},
+		{&Viz{Qri: KindViz.String()}, []byte(`{"qri":"vz:0"}`), ""},
+		{&Viz{Format: "foo", Qri: KindViz.String()}, []byte(`{"format":"foo","qri":"vz:0"}`), ""},
 		{viz1, []byte(`{"format":"foo","qri":"vz:0","visualizations":{"colors":{"background":"#000000","bars":"#ffffff"},"type":"bar"}}`), ""},
 	}
 
@@ -223,7 +216,7 @@ func TestVizMarshalJSONObject(t *testing.T) {
 }
 
 func TestUnmarshalViz(t *testing.T) {
-	vc := Viz{Qri: KindViz, Format: "foo"}
+	vc := Viz{Qri: KindViz.String(), Format: "foo"}
 	cases := []struct {
 		value interface{}
 		out   *Viz
@@ -231,7 +224,7 @@ func TestUnmarshalViz(t *testing.T) {
 	}{
 		{vc, &vc, ""},
 		{&vc, &vc, ""},
-		{[]byte("{\"qri\":\"vz:0\"}"), &Viz{Qri: KindViz}, ""},
+		{[]byte("{\"qri\":\"vz:0\"}"), &Viz{Qri: KindViz.String()}, ""},
 		{5, nil, "couldn't parse Viz, value is invalid type"},
 	}
 

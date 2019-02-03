@@ -7,10 +7,10 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// UnmarshalYAMLDatasetPod reads yaml bytes into a DatasetPod, dealing with the issue that
+// UnmarshalYAMLDataset reads yaml bytes into a Dataset, dealing with the issue that
 // YAML likes to unmarshal unknown values to map[interface{}]interface{} instead of
 // map[string]interface{}
-func UnmarshalYAMLDatasetPod(data []byte, ds *dataset.DatasetPod) error {
+func UnmarshalYAMLDataset(data []byte, ds *dataset.Dataset) error {
 	if err := yaml.Unmarshal(data, ds); err != nil {
 		return err
 	}

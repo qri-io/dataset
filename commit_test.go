@@ -13,27 +13,8 @@ func TestCommit(t *testing.T) {
 		t.Errorf("expected reference to be empty")
 	}
 
-	if ref.path != "a" {
+	if ref.Path != "a" {
 		t.Errorf("expected ref path to equal /a")
-	}
-}
-
-func TestCommitSetPath(t *testing.T) {
-	cases := []struct {
-		path   string
-		expect *Commit
-	}{
-		{"", &Commit{}},
-		{"path", &Commit{path: "path"}},
-	}
-
-	for i, c := range cases {
-		got := &Commit{}
-		got.SetPath(c.path)
-		if err := CompareCommits(c.expect, got); err != nil {
-			t.Errorf("case %d error: %s", i, err)
-			continue
-		}
 	}
 }
 
@@ -41,8 +22,8 @@ func TestCommitAssign(t *testing.T) {
 	t1 := time.Now()
 	doug := &User{ID: "doug_id", Email: "doug@example.com"}
 	expect := &Commit{
-		path:      "a",
-		Qri:       KindCommit,
+		Path:      "a",
+		Qri:       KindCommit.String(),
 		Author:    doug,
 		Timestamp: t1,
 		Title:     "expect title",
@@ -57,10 +38,10 @@ func TestCommitAssign(t *testing.T) {
 
 	got.Assign(&Commit{
 		Author: doug,
-		Qri:    KindCommit,
+		Qri:    KindCommit.String(),
 		Title:  "expect title",
 	}, &Commit{
-		path:      "a",
+		Path:      "a",
 		Timestamp: t1,
 		Message:   "expect message",
 		Signature: "sig",
@@ -125,7 +106,7 @@ func TestCommitMarshalJSON(t *testing.T) {
 		}
 	}
 
-	strbytes, err := json.Marshal(&Commit{path: "/path/to/dataset"})
+	strbytes, err := json.Marshal(&Commit{Path: "/path/to/dataset"})
 	if err != nil {
 		t.Errorf("unexpected string marshal error: %s", err.Error())
 		return
@@ -197,14 +178,14 @@ func TestCommitUnmarshalJSON(t *testing.T) {
 		return
 	}
 
-	if strq.path != path {
-		t.Errorf("unmarshal didn't set proper path: %s != %s", path, strq.path)
+	if strq.Path != path {
+		t.Errorf("unmarshal didn't set proper Path: %s != %s", path, strq.Path)
 		return
 	}
 }
 
 func TestUnmarshalCommit(t *testing.T) {
-	cma := Commit{Qri: KindCommit, Message: "foo"}
+	cma := Commit{Qri: KindCommit.String(), Message: "foo"}
 	cases := []struct {
 		value interface{}
 		out   *Commit
@@ -212,7 +193,7 @@ func TestUnmarshalCommit(t *testing.T) {
 	}{
 		{cma, &cma, ""},
 		{&cma, &cma, ""},
-		{[]byte("{\"qri\":\"cm:0\"}"), &Commit{Qri: KindCommit}, ""},
+		{[]byte("{\"qri\":\"cm:0\"}"), &Commit{Qri: KindCommit.String()}, ""},
 		{5, nil, "couldn't parse commitMsg, value is invalid type"},
 	}
 
@@ -224,52 +205,6 @@ func TestUnmarshalCommit(t *testing.T) {
 		}
 		if err := CompareCommits(c.out, got); err != nil {
 			t.Errorf("case %d dataset mismatch: %s", i, err.Error())
-			continue
-		}
-	}
-}
-
-func TestCommitCoding(t *testing.T) {
-	cases := []*Commit{
-		{},
-		{Author: &User{Email: "foo"}},
-		{Message: "foo"},
-		{path: "/foo"},
-		{Qri: KindCommit},
-		{Signature: "foo"},
-		{Timestamp: time.Date(2001, 1, 1, 1, 1, 1, 1, time.UTC)},
-		{Title: "foo"},
-	}
-
-	for i, c := range cases {
-		cd := c.Encode()
-		got := &Commit{}
-		if err := got.Decode(cd); err != nil {
-			t.Errorf("case %d unexpected error '%s'", i, err)
-			continue
-		}
-
-		if err := CompareCommits(c, got); err != nil {
-			t.Errorf("case %d mismatch: %s", i, err.Error())
-			continue
-		}
-	}
-}
-
-func TestCommitDecode(t *testing.T) {
-	cases := []struct {
-		cm  *CommitPod
-		err string
-	}{
-		{&CommitPod{}, ""},
-		{&CommitPod{Qri: "foo"}, "invalid commit 'qri' value: foo"},
-	}
-
-	for i, c := range cases {
-		got := &Commit{}
-		err := got.Decode(c.cm)
-		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
-			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
 			continue
 		}
 	}

@@ -14,10 +14,10 @@ import (
 )
 
 // FormFileDataset extracts a dataset document from a http Request
-func FormFileDataset(r *http.Request, dsp *dataset.DatasetPod) (err error) {
-	dsp.Peername = r.FormValue("peername")
-	dsp.Name = r.FormValue("name")
-	dsp.BodyPath = r.FormValue("body_path")
+func FormFileDataset(r *http.Request, ds *dataset.Dataset) (err error) {
+	ds.Peername = r.FormValue("peername")
+	ds.Name = r.FormValue("name")
+	ds.BodyPath = r.FormValue("body_path")
 
 	datafile, dataHeader, err := r.FormFile("file")
 	if err == http.ErrMissingFile {
@@ -35,12 +35,12 @@ func FormFileDataset(r *http.Request, dsp *dataset.DatasetPod) (err error) {
 				err = fmt.Errorf("error reading dataset file: %s", err)
 				return
 			}
-			if err = UnmarshalYAMLDatasetPod(data, dsp); err != nil {
+			if err = UnmarshalYAMLDataset(data, ds); err != nil {
 				err = fmt.Errorf("error unmarshaling yaml file: %s", err)
 				return
 			}
 		case ".json":
-			if err = json.NewDecoder(datafile).Decode(dsp); err != nil {
+			if err = json.NewDecoder(datafile).Decode(ds); err != nil {
 				err = fmt.Errorf("error decoding json file: %s", err)
 				return
 			}
@@ -59,12 +59,12 @@ func FormFileDataset(r *http.Request, dsp *dataset.DatasetPod) (err error) {
 		if tfData, err = ioutil.ReadAll(tfFile); err != nil {
 			return
 		}
-		if dsp.Transform == nil {
-			dsp.Transform = &dataset.TransformPod{}
+		if ds.Transform == nil {
+			ds.Transform = &dataset.Transform{}
 		}
-		dsp.Transform.Syntax = "starlark"
-		dsp.Transform.ScriptBytes = tfData
-		dsp.Transform.ScriptPath = tfHeader.Filename
+		ds.Transform.Syntax = "starlark"
+		ds.Transform.ScriptBytes = tfData
+		ds.Transform.ScriptPath = tfHeader.Filename
 	}
 
 	vizFile, vizHeader, err := r.FormFile("viz")
@@ -79,12 +79,12 @@ func FormFileDataset(r *http.Request, dsp *dataset.DatasetPod) (err error) {
 		if vizData, err = ioutil.ReadAll(vizFile); err != nil {
 			return
 		}
-		if dsp.Viz == nil {
-			dsp.Viz = &dataset.Viz{}
+		if ds.Viz == nil {
+			ds.Viz = &dataset.Viz{}
 		}
-		dsp.Viz.Format = "html"
-		dsp.Viz.ScriptBytes = vizData
-		dsp.Viz.ScriptPath = vizHeader.Filename
+		ds.Viz.Format = "html"
+		ds.Viz.ScriptBytes = vizData
+		ds.Viz.ScriptPath = vizHeader.Filename
 	}
 
 	bodyfile, bodyHeader, err := r.FormFile("body")
@@ -99,21 +99,21 @@ func FormFileDataset(r *http.Request, dsp *dataset.DatasetPod) (err error) {
 		if bodyData, err = ioutil.ReadAll(bodyfile); err != nil {
 			return
 		}
-		dsp.BodyPath = bodyHeader.Filename
-		dsp.BodyBytes = bodyData
+		ds.BodyPath = bodyHeader.Filename
+		ds.BodyBytes = bodyData
 
-		if dsp.Structure == nil {
+		if ds.Structure == nil {
 			// TODO - this is silly and should move into base.PrepareDataset funcs
-			dsp.Structure = &dataset.StructurePod{}
+			ds.Structure = &dataset.Structure{}
 			format, err := detect.ExtensionDataFormat(bodyHeader.Filename)
 			if err != nil {
 				return err
 			}
-			st, _, err := detect.FromReader(format, bytes.NewReader(dsp.BodyBytes))
+			st, _, err := detect.FromReader(format, bytes.NewReader(ds.BodyBytes))
 			if err != nil {
 				return err
 			}
-			dsp.Structure = st.Encode()
+			ds.Structure = st
 		}
 	}
 

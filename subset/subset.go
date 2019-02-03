@@ -19,27 +19,27 @@
 package subset
 
 import (
-	"github.com/qri-io/cafs"
+	"github.com/qri-io/qfs/cafs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsfs"
 )
 
 // LoadPreview loads a dataset preview for a given hash path
-func LoadPreview(s cafs.Filestore, path string) (*dataset.DatasetPod, error) {
+func LoadPreview(s cafs.Filestore, path string) (*dataset.Dataset, error) {
 	// TODO - this is overfetching. Refine.
 	ds, err := dsfs.LoadDataset(s, path)
 	if err != nil {
 		return nil, err
 	}
-	return Preview(ds.Encode()), nil
+	return Preview(ds), nil
 }
 
 // Preview creates a new preview from a given dataset
 // dataset preivews contain the entire contents of commit, with selected fields from meta & structure
 // preview is intended to be used when listing dataset, containing important details
 // previews also contain all information necessary to verify the commit signature
-func Preview(ds *dataset.DatasetPod) *dataset.DatasetPod {
-	return &dataset.DatasetPod{
+func Preview(ds *dataset.Dataset) *dataset.Dataset {
+	return &dataset.Dataset{
 		Path:         ds.Path,
 		Name:         ds.Name,
 		Peername:     ds.Peername,
@@ -63,11 +63,11 @@ func previewMeta(md *dataset.Meta) *dataset.Meta {
 	}
 }
 
-func previewStructure(st *dataset.StructurePod) *dataset.StructurePod {
+func previewStructure(st *dataset.Structure) *dataset.Structure {
 	if st == nil {
 		return nil
 	}
-	return &dataset.StructurePod{
+	return &dataset.Structure{
 		Format:   st.Format,
 		Length:   st.Length,
 		ErrCount: st.ErrCount,

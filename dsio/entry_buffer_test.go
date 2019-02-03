@@ -18,7 +18,7 @@ func TestEntryBuffer(t *testing.T) {
 	ds := tc.Input
 
 	outst := &dataset.Structure{
-		Format: dataset.JSONDataFormat,
+		Format: "json",
 		Schema: ds.Structure.Schema,
 	}
 

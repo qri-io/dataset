@@ -47,7 +47,7 @@ type EntryReadWriter interface {
 
 // NewEntryReader allocates a EntryReader based on a given structure
 func NewEntryReader(st *dataset.Structure, r io.Reader) (EntryReader, error) {
-	switch st.Format {
+	switch st.DataFormat() {
 	case dataset.CBORDataFormat:
 		return NewCBORReader(st, r)
 	case dataset.JSONDataFormat:
@@ -59,7 +59,7 @@ func NewEntryReader(st *dataset.Structure, r io.Reader) (EntryReader, error) {
 		log.Debug(err.Error())
 		return nil, err
 	default:
-		err := fmt.Errorf("invalid format to create reader: %s", st.Format.String())
+		err := fmt.Errorf("invalid format to create reader: %s", st.Format)
 		log.Debug(err.Error())
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func NewEntryReader(st *dataset.Structure, r io.Reader) (EntryReader, error) {
 
 // NewEntryWriter allocates a EntryWriter based on a given structure
 func NewEntryWriter(st *dataset.Structure, w io.Writer) (EntryWriter, error) {
-	switch st.Format {
+	switch st.DataFormat() {
 	case dataset.CBORDataFormat:
 		return NewCBORWriter(st, w)
 	case dataset.JSONDataFormat:
@@ -79,7 +79,7 @@ func NewEntryWriter(st *dataset.Structure, w io.Writer) (EntryWriter, error) {
 		log.Debug(err.Error())
 		return nil, err
 	default:
-		err := fmt.Errorf("invalid format to create writer: %s", st.Format.String())
+		err := fmt.Errorf("invalid format to create writer: %s", st.Format)
 		log.Debug(err.Error())
 		return nil, err
 	}
@@ -88,7 +88,14 @@ func NewEntryWriter(st *dataset.Structure, w io.Writer) (EntryWriter, error) {
 // GetTopLevelType returns the top-level type of the structure, only if it is
 // a valid type ("array" or "object"), otherwise returns an error
 func GetTopLevelType(st *dataset.Structure) (string, error) {
-	tlt := st.Schema.TopLevelType()
+	// tlt := st.Schema.TopLevelType()
+	if st.Schema == nil {
+		return "", fmt.Errorf("a schema object is required")
+	}
+	tlt, ok := st.Schema["type"].(string)
+	if !ok {
+		return "", fmt.Errorf("schema top level 'type' value must be either 'array' or 'object'")
+	}
 	if tlt != "array" && tlt != "object" {
 		return "", fmt.Errorf("invalid schema. root must be either an array or object type")
 	}
