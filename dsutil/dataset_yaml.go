@@ -11,7 +11,7 @@ import (
 // YAML likes to unmarshal unknown values to map[interface{}]interface{} instead of
 // map[string]interface{}
 func UnmarshalYAMLDataset(data []byte, ds *dataset.Dataset) error {
-	if err := yaml.Unmarshal(data, ds); err != nil {
+	if err := yaml.UnmarshalStrict(data, ds); err != nil {
 		return err
 	}
 	if ds.Structure != nil && ds.Structure.Schema != nil {
