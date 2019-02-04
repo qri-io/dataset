@@ -37,6 +37,12 @@ func (r *PagedReader) ReadEntry() (Entry, error) {
 	return r.Reader.ReadEntry()
 }
 
+// Close finalizes the writer, indicating no more records
+// will be written
+func (r *PagedReader) Close() error {
+	return r.Reader.Close()
+}
+
 // Copy reads all entries from the reader and writes them to the writer
 func Copy(reader EntryReader, writer EntryWriter) error {
 	for {

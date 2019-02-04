@@ -30,6 +30,7 @@ jobs:
             github.com/ghodss/yaml
             github.com/ipfs/go-log
             gopkg.in/yaml.v2
+            github.com/360EntSecGroup-Skylar/excelize
       - run: 
           name: Run Lint Tests
           command: golint ./...

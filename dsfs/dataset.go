@@ -12,12 +12,12 @@ import (
 
 	"github.com/libp2p/go-libp2p-crypto"
 	"github.com/multiformats/go-multihash"
-	"github.com/qri-io/qfs/cafs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsio"
 	"github.com/qri-io/dataset/validate"
 	"github.com/qri-io/dsdiff"
 	"github.com/qri-io/qfs"
+	"github.com/qri-io/qfs/cafs"
 )
 
 // LoadDataset reads a dataset from a cafs and dereferences structure, transform, and commitMsg if they exist,
@@ -283,6 +283,15 @@ func prepareDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, privKey c
 	}
 
 	cleanTitleAndMessage(&ds.Commit.Title, &ds.Commit.Message, diffDescription)
+
+	// TODO (b5): this is a hack until we have a better dataset differ
+	// "Structure: 2 changes" implies that the underlying bytes that represent the
+	// data has changed, but the acutal data itself hasn't.
+	// two elements in structure are byte-sensitive: checksum and length
+	// we. need. better. diffing. tools.
+	if ds.Commit.Title == "Structure: 2 changes" {
+		return "", fmt.Errorf("no meaningful changes detected")
+	}
 
 	ds.Commit.Timestamp = Timestamp()
 	sb, _ := ds.SignableBytes()

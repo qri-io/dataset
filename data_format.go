@@ -30,9 +30,9 @@ const (
 	// XMLDataFormat specifies eXtensible Markup Language-formatted data
 	// currently not supported.
 	XMLDataFormat
-	// XLSDataFormat specifies microsoft excel formatted data
+	// XLSXDataFormat specifies microsoft excel formatted data
 	// currently not supported.
-	XLSDataFormat
+	XLSXDataFormat
 )
 
 // SupportedDataFormats gives a slice of data formats that are
@@ -44,6 +44,7 @@ func SupportedDataFormats() []DataFormat {
 		CBORDataFormat,
 		JSONDataFormat,
 		CSVDataFormat,
+		XLSXDataFormat,
 	}
 }
 
@@ -54,7 +55,7 @@ func (f DataFormat) String() string {
 		CSVDataFormat:     "csv",
 		JSONDataFormat:    "json",
 		XMLDataFormat:     "xml",
-		XLSDataFormat:     "xls",
+		XLSXDataFormat:    "xlsx",
 		CBORDataFormat:    "cbor",
 	}[f]
 
@@ -76,8 +77,8 @@ func ParseDataFormatString(s string) (df DataFormat, err error) {
 		"json":  JSONDataFormat,
 		".xml":  XMLDataFormat,
 		"xml":   XMLDataFormat,
-		".xls":  XLSDataFormat,
-		"xls":   XLSDataFormat,
+		".xlsx": XLSXDataFormat,
+		"xlsx":  XLSXDataFormat,
 		"cbor":  CBORDataFormat,
 		".cbor": CBORDataFormat,
 	}[s]

@@ -20,6 +20,8 @@ type CSVReader struct {
 	types      []string
 }
 
+var _ EntryReader = (*CSVReader)(nil)
+
 // NewCSVReader creates a reader from a structure and read source
 func NewCSVReader(st *dataset.Structure, r io.Reader) *CSVReader {
 	// TODO - handle error
@@ -78,6 +80,13 @@ func (r *CSVReader) ReadEntry() (Entry, error) {
 	}
 
 	return Entry{Value: value}, nil
+}
+
+// Close finalizes the reader
+func (r *CSVReader) Close() error {
+	// TODO (b5): we should retain a reference to the underlying reader &
+	// check if it's an io.ReadCloser, calling close here if so
+	return nil
 }
 
 // decode uses specified types from structure's schema to cast csv string values to their

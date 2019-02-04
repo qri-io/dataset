@@ -30,7 +30,7 @@ func TestParseFormatConfigMap(t *testing.T) {
 	}{
 		{CSVDataFormat, map[string]interface{}{}, &CSVOptions{}, ""},
 		{JSONDataFormat, map[string]interface{}{}, &JSONOptions{}, ""},
-		{XLSDataFormat, map[string]interface{}{}, nil, "cannot parse configuration for format: xls"},
+		{XLSXDataFormat, map[string]interface{}{}, &XLSXOptions{}, ""},
 	}
 
 	for i, c := range cases {
@@ -125,6 +125,59 @@ func TestJSONOptionsMap(t *testing.T) {
 	}{
 		{nil, nil},
 		{&JSONOptions{}, map[string]interface{}{}},
+	}
+
+	for i, c := range cases {
+		got := c.opt.Map()
+		for key, val := range c.res {
+			if got[key] != val {
+				t.Errorf("case %d, key '%s' expected: '%s' got:'%s'", i, key, val, got[key])
+			}
+		}
+	}
+}
+
+func TestNewXLSXOptions(t *testing.T) {
+	cases := []struct {
+		opts map[string]interface{}
+		res  *XLSXOptions
+		err  string
+	}{
+		{nil, &XLSXOptions{}, ""},
+		{map[string]interface{}{}, &XLSXOptions{}, ""},
+		{map[string]interface{}{"sheetName": "foo"}, &XLSXOptions{SheetName: "foo"}, ""},
+		{map[string]interface{}{"sheetName": true}, nil, "invalid sheetName value: true"},
+	}
+
+	for i, c := range cases {
+		got, err := NewXLSXOptions(c.opts)
+		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
+			t.Errorf("case %d error expected: '%s', got: '%s'", i, c.err, err)
+			continue
+		}
+		if c.err == "" {
+			xlsxo, ok := got.(*XLSXOptions)
+			if !ok {
+				t.Errorf("case %d didn't return a CSVOptions pointer", i)
+				continue
+			}
+
+			if xlsxo.SheetName != c.res.SheetName {
+				t.Errorf("case %d SheetName expected: %s, got: %s", i, xlsxo.SheetName, c.res.SheetName)
+				continue
+			}
+		}
+	}
+}
+
+func TestXLSXOptionsMap(t *testing.T) {
+	cases := []struct {
+		opt *XLSXOptions
+		res map[string]interface{}
+	}{
+		{nil, nil},
+		{&XLSXOptions{}, map[string]interface{}{}},
+		{&XLSXOptions{SheetName: "foo"}, map[string]interface{}{"sheetName": "foo"}},
 	}
 
 	for i, c := range cases {

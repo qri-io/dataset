@@ -28,6 +28,8 @@ type EntryReader interface {
 	Structure() *dataset.Structure
 	// ReadVal reads one row of structured data from the reader
 	ReadEntry() (Entry, error)
+	// Close finalizes the Reader
+	Close() error
 }
 
 // EntryReadWriter combines EntryWriter and EntryReader behaviors
@@ -54,6 +56,8 @@ func NewEntryReader(st *dataset.Structure, r io.Reader) (EntryReader, error) {
 		return NewJSONReader(st, r)
 	case dataset.CSVDataFormat:
 		return NewCSVReader(st, r), nil
+	case dataset.XLSXDataFormat:
+		return NewXLSXReader(st, r)
 	case dataset.UnknownDataFormat:
 		err := fmt.Errorf("structure must have a data format")
 		log.Debug(err.Error())
@@ -74,6 +78,8 @@ func NewEntryWriter(st *dataset.Structure, w io.Writer) (EntryWriter, error) {
 		return NewJSONWriter(st, w)
 	case dataset.CSVDataFormat:
 		return NewCSVWriter(st, w), nil
+	case dataset.XLSXDataFormat:
+		return NewXLSXWriter(st, w)
 	case dataset.UnknownDataFormat:
 		err := fmt.Errorf("structure must have a data format")
 		log.Debug(err.Error())

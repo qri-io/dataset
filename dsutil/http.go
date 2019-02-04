@@ -15,10 +15,6 @@ import (
 
 // FormFileDataset extracts a dataset document from a http Request
 func FormFileDataset(r *http.Request, ds *dataset.Dataset) (err error) {
-	ds.Peername = r.FormValue("peername")
-	ds.Name = r.FormValue("name")
-	ds.BodyPath = r.FormValue("body_path")
-
 	datafile, dataHeader, err := r.FormFile("file")
 	if err == http.ErrMissingFile {
 		err = nil
@@ -45,6 +41,16 @@ func FormFileDataset(r *http.Request, ds *dataset.Dataset) (err error) {
 				return
 			}
 		}
+	}
+
+	if peername := r.FormValue("peername"); peername != "" {
+		ds.Peername = peername
+	}
+	if name := r.FormValue("name"); name != "" {
+		ds.Name = name
+	}
+	if bp := r.FormValue("body_path"); bp != "" {
+		ds.BodyPath = bp
 	}
 
 	tfFile, tfHeader, err := r.FormFile("transform")
