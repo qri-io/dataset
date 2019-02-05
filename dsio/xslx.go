@@ -51,7 +51,7 @@ func NewXLSXReader(st *dataset.Structure, r io.Reader) (*XLSXReader, error) {
 		rdr.r, rdr.err = rdr.file.Rows(rdr.sheetName)
 	}
 
-	return rdr, nil
+	return rdr, rdr.err
 }
 
 // Structure gives this reader's structure
@@ -247,18 +247,16 @@ func ColIndexToLetters(colRef int) string {
 	return formatColumnName(smooshBase26Slice(parts))
 }
 
-// Get the largestDenominator that is a multiple of a basedDenominator
-// and fits at least once into a given numerator.
-func getLargestDenominator(numerator, multiple, baseDenominator, power int) (int, int) {
-	if numerator/multiple == 0 {
-		return 1, power
+// largestLesserExponent returns the largest exponent of base that does not exceed num
+// equivalent to pow(floor(log(num, base)), base)
+func largestLesserExponent(num, base int) int {
+	prev := 1
+	exp := base
+	for num >= exp {
+		prev = exp
+		exp = exp * base
 	}
-	next, nextPower := getLargestDenominator(
-		numerator, multiple*baseDenominator, baseDenominator, power+1)
-	if next > multiple {
-		return next, nextPower
-	}
-	return multiple, power
+	return prev
 }
 
 // Converts a list of numbers representing a column into a alphabetic
@@ -305,7 +303,7 @@ func smooshBase26Slice(b26 []int) []int {
 func intToBase26(x int) (parts []int) {
 	// Excel column codes are pure evil - in essence they're just
 	// base26, but they don't represent the number 0.
-	b26Denominator, _ := getLargestDenominator(x, 1, 26, 0)
+	b26Denominator := largestLesserExponent(x, 26)
 
 	// This loop terminates because integer division of 1 / 26
 	// returns 0.

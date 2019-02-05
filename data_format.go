@@ -31,7 +31,6 @@ const (
 	// currently not supported.
 	XMLDataFormat
 	// XLSXDataFormat specifies microsoft excel formatted data
-	// currently not supported.
 	XLSXDataFormat
 )
 
