@@ -59,8 +59,8 @@ func ExtensionDataFormat(path string) (format dataset.DataFormat, err error) {
 		return dataset.CSVDataFormat, nil
 	case ".xml":
 		return dataset.XMLDataFormat, nil
-	case ".xls":
-		return dataset.XLSDataFormat, nil
+	case ".xlsx":
+		return dataset.XLSXDataFormat, nil
 	case "":
 		return dataset.UnknownDataFormat, errors.New("no file extension provided")
 	default:

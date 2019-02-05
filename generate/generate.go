@@ -62,6 +62,11 @@ func (g Generator) Structure() *dataset.Structure {
 	return g.structure
 }
 
+// Close finalizes the generator
+func (g Generator) Close() error {
+	return nil
+}
+
 var alphaNumericRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 
 // randString generates a random string of alpha numeric characters up to maxLen runes long.

@@ -20,6 +20,8 @@ func ParseFormatConfigMap(f DataFormat, opts map[string]interface{}) (FormatConf
 		return NewCSVOptions(opts)
 	case JSONDataFormat:
 		return NewJSONOptions(opts)
+	case XLSXDataFormat:
+		return NewXLSXOptions(opts)
 	default:
 		return nil, fmt.Errorf("cannot parse configuration for format: %s", f.String())
 	}
@@ -140,4 +142,45 @@ func (o *JSONOptions) Map() map[string]interface{} {
 		return nil
 	}
 	return map[string]interface{}{}
+}
+
+// XLSXOptions specifies configuraiton details for the xlsx file format
+type XLSXOptions struct {
+	SheetName string `json:"sheetName,omitempty"`
+}
+
+// NewXLSXOptions creates a XLSXOptions pointer from a map
+func NewXLSXOptions(opts map[string]interface{}) (FormatConfig, error) {
+	o := &XLSXOptions{}
+	if opts == nil {
+		return o, nil
+	}
+
+	if opts["sheetName"] != nil {
+		if sheetName, ok := opts["sheetName"].(string); ok {
+			o.SheetName = sheetName
+		} else {
+			return nil, fmt.Errorf("invalid sheetName value: %v", opts["sheetName"])
+		}
+	}
+
+	return o, nil
+}
+
+// Format announces the XLSX data format for the FormatConfig interface
+func (*XLSXOptions) Format() DataFormat {
+	return XLSXDataFormat
+}
+
+// Map structures XLSXOptions as a map of string keys to values
+func (o *XLSXOptions) Map() map[string]interface{} {
+	if o == nil {
+		return nil
+	}
+	opt := map[string]interface{}{}
+	if o.SheetName != "" {
+		opt["sheetName"] = o.SheetName
+	}
+
+	return opt
 }

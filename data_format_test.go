@@ -10,6 +10,7 @@ func TestSupportedDataFormats(t *testing.T) {
 		CBORDataFormat,
 		JSONDataFormat,
 		CSVDataFormat,
+		XLSXDataFormat,
 	}
 
 	for i, f := range SupportedDataFormats() {
@@ -28,7 +29,7 @@ func TestDataFormatString(t *testing.T) {
 		{CSVDataFormat, "csv"},
 		{JSONDataFormat, "json"},
 		{XMLDataFormat, "xml"},
-		{XLSDataFormat, "xls"},
+		{XLSXDataFormat, "xlsx"},
 		{CBORDataFormat, "cbor"},
 	}
 
@@ -53,8 +54,8 @@ func TestParseDataFormatString(t *testing.T) {
 		{"json", JSONDataFormat, ""},
 		{".xml", XMLDataFormat, ""},
 		{"xml", XMLDataFormat, ""},
-		{".xls", XLSDataFormat, ""},
-		{"xls", XLSDataFormat, ""},
+		{".xlsx", XLSXDataFormat, ""},
+		{"xlsx", XLSXDataFormat, ""},
 		{"cbor", CBORDataFormat, ""},
 		{".cbor", CBORDataFormat, ""},
 	}
@@ -81,7 +82,7 @@ func TestDataFormatMarshalJSON(t *testing.T) {
 		{CSVDataFormat, []byte(`"csv"`), ""},
 		{JSONDataFormat, []byte(`"json"`), ""},
 		{XMLDataFormat, []byte(`"xml"`), ""},
-		{XLSDataFormat, []byte(`"xls"`), ""},
+		{XLSXDataFormat, []byte(`"xlsx"`), ""},
 		{CBORDataFormat, []byte(`"cbor"`), ""},
 	}
 	for i, c := range cases {
@@ -106,7 +107,7 @@ func TestDataFormatUnmarshalJSON(t *testing.T) {
 		{[]byte(`"csv"`), CSVDataFormat, ""},
 		{[]byte(`"json"`), JSONDataFormat, ""},
 		{[]byte(`"xml"`), XMLDataFormat, ""},
-		{[]byte(`"xls"`), XLSDataFormat, ""},
+		{[]byte(`"xlsx"`), XLSXDataFormat, ""},
 		{[]byte(`"cbor"`), CBORDataFormat, ""},
 	}
 

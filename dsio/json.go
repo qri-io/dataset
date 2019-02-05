@@ -22,6 +22,8 @@ type JSONReader struct {
 	prevSize    int // when buffer is extended, remember how much of the old buffer to discard
 }
 
+var _ EntryReader = (*JSONReader)(nil)
+
 // NewJSONReader creates a reader from a structure and read source
 func NewJSONReader(st *dataset.Structure, r io.Reader) (*JSONReader, error) {
 	// Huge buffer (a quarter of a MB) to speed up string reads.
@@ -113,6 +115,13 @@ func (r *JSONReader) ReadEntry() (Entry, error) {
 	}
 	r.entriesRead++
 	return ent, nil
+}
+
+// Close finalizes the reader
+func (r *JSONReader) Close() error {
+	// TODO (b5): we should retain a reference to the underlying reader &
+	// check if it's an io.ReadCloser, calling close here if so
+	return nil
 }
 
 func isWhitespace(ch byte) bool {

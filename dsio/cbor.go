@@ -21,6 +21,8 @@ type CBORReader struct {
 	length   int
 }
 
+var _ EntryReader = (*CBORReader)(nil)
+
 var (
 	bigen = binary.BigEndian
 )
@@ -92,6 +94,12 @@ func (r *CBORReader) ReadEntry() (ent Entry, err error) {
 
 	r.rowsRead++
 	return
+}
+
+// Close finalizes the reader
+func (r *CBORReader) Close() error {
+	// TODO (b5): check if underlying reader is an io.ReadCloser, call close here if so
+	return nil
 }
 
 const (

@@ -7,7 +7,7 @@ import (
 )
 
 // EntryBuffer mimics the behaviour of bytes.Buffer, but with structured Dataa
-// Read and Write are replaced with ReadRow and WriteEntry. It's worth noting
+// Read and Write are replaced with ReadEntry and WriteEntry. It's worth noting
 // that different data formats have idisyncrcies that affect the behavior
 // of buffers and their output. For example, EntryBuffer won't write things like
 // CSV header rows or enclosing JSON arrays until after the writer's
