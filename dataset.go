@@ -166,7 +166,11 @@ func (ds *Dataset) OpenBodyFile(resolver qfs.PathResolver) (err error) {
 	}
 
 	if ds.BodyBytes != nil {
-		ds.bodyFile = qfs.NewMemfileBytes("body", ds.BodyBytes)
+		bodyPath := ds.BodyPath
+		if bodyPath == "" {
+			bodyPath = "body"
+		}
+		ds.bodyFile = qfs.NewMemfileBytes(bodyPath, ds.BodyBytes)
 		return nil
 	}
 
