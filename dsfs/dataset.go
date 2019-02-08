@@ -308,6 +308,8 @@ func prepareDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, privKey c
 
 // setErrCount consumes sets the ErrCount field of a dataset's Structure
 func setErrCount(ds *dataset.Dataset, data qfs.File, mu *sync.Mutex, done chan error) {
+	defer data.Close()
+
 	er, err := dsio.NewEntryReader(ds.Structure, data)
 	if err != nil {
 		log.Debug(err.Error())
@@ -331,6 +333,8 @@ func setErrCount(ds *dataset.Dataset, data qfs.File, mu *sync.Mutex, done chan e
 
 // setDepthAndEntryCount set the Entries field of a ds.Structure
 func setDepthAndEntryCount(ds *dataset.Dataset, data qfs.File, mu *sync.Mutex, done chan error) {
+	defer data.Close()
+
 	er, err := dsio.NewEntryReader(ds.Structure, data)
 	if err != nil {
 		log.Debug(err.Error())
@@ -390,6 +394,8 @@ func getDepth(x interface{}, depth int) int {
 
 // setChecksumAndStats
 func setChecksumAndStats(ds *dataset.Dataset, data qfs.File, buf *bytes.Buffer, mu *sync.Mutex, done chan error) {
+	defer data.Close()
+
 	if _, err := io.Copy(buf, data); err != nil {
 		done <- err
 		return
