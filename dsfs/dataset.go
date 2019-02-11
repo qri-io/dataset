@@ -284,14 +284,9 @@ func prepareDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, privKey c
 
 	cleanTitleAndMessage(&ds.Commit.Title, &ds.Commit.Message, diffDescription)
 
-	// TODO (b5): this is a hack until we have a better dataset differ
-	// "Structure: 2 changes" implies that the underlying bytes that represent the
-	// data has changed, but the acutal data itself hasn't.
-	// two elements in structure are byte-sensitive: checksum and length
-	// we. need. better. diffing. tools.
-	if !force && ds.Commit.Title == "Structure: 2 changes" {
-		return "", fmt.Errorf("no meaningful changes detected")
-	}
+	// TODO (b5): we should check the delta between versions for meaninful changes here,
+	// ignoring fields we know will change every time. Can only do this with a proper set
+	// of change deltas
 
 	ds.Commit.Timestamp = Timestamp()
 	sb, _ := ds.SignableBytes()
