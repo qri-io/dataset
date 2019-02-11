@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"github.com/libp2p/go-libp2p-crypto"
-	"github.com/qri-io/qfs/cafs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dstest"
 	"github.com/qri-io/qfs"
+	"github.com/qri-io/qfs/cafs"
 )
 
 // Test Private Key. peerId: QmZePf5LeXow3RW5U1AgEiNbW46YnRGhZ7HPvm1UmPFPwt
@@ -124,7 +124,7 @@ func TestCreateDataset(t *testing.T) {
 		return
 	}
 
-	_, err = CreateDataset(store, nil, nil, nil, false)
+	_, err = CreateDataset(store, nil, nil, nil, false, false)
 	if err == nil {
 		t.Errorf("expected call without prvate key to error")
 		return
@@ -170,7 +170,7 @@ func TestCreateDataset(t *testing.T) {
 			continue
 		}
 
-		path, err := CreateDataset(store, tc.Input, c.prev, privKey, false)
+		path, err := CreateDataset(store, tc.Input, c.prev, privKey, false, false)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("%s: error mismatch. expected: '%s', got: '%s'", tc.Name, c.err, err)
 			continue
@@ -223,7 +223,7 @@ func TestCreateDataset(t *testing.T) {
 		t.Errorf("case nil body and previous body files, error reading data file: %s", err.Error())
 	}
 	expectedErr := "bodyfile or previous bodyfile needed"
-	_, err = CreateDataset(store, ds, nil, privKey, false)
+	_, err = CreateDataset(store, ds, nil, privKey, false, false)
 	if err.Error() != expectedErr {
 		t.Errorf("case nil body and previous body files, error mismatch: expected '%s', got '%s'", expectedErr, err.Error())
 	}
@@ -242,7 +242,7 @@ func TestCreateDataset(t *testing.T) {
 	}
 	ds.SetBodyFile(qfs.NewMemfileBytes("body.csv", bodyBytes))
 
-	_, err = CreateDataset(store, ds, dsPrev, privKey, false)
+	_, err = CreateDataset(store, ds, dsPrev, privKey, false, false)
 	if err != nil && err.Error() != expectedErr {
 		t.Errorf("case no changes in dataset, error mismatch: expected '%s', got '%s'", expectedErr, err.Error())
 	} else if err == nil {
@@ -389,19 +389,22 @@ func TestWriteDataset(t *testing.T) {
 func TestGenerateCommitMessage(t *testing.T) {
 	cases := []struct {
 		ds, prev *dataset.Dataset
+		force    bool
 		expected string
 		errMsg   string
 	}{
 		// empty prev
-		{&dataset.Dataset{Meta: &dataset.Meta{Title: "new dataset"}}, &dataset.Dataset{}, "created dataset", ""},
+		{&dataset.Dataset{Meta: &dataset.Meta{Title: "new dataset"}}, &dataset.Dataset{}, false, "created dataset", ""},
 		// different datasets
-		{&dataset.Dataset{Meta: &dataset.Meta{Title: "changes to dataset"}}, &dataset.Dataset{Meta: &dataset.Meta{Title: "new dataset"}}, "Meta: 1 change\n\t- modified title", ""},
+		{&dataset.Dataset{Meta: &dataset.Meta{Title: "changes to dataset"}}, &dataset.Dataset{Meta: &dataset.Meta{Title: "new dataset"}}, false, "Meta: 1 change\n\t- modified title", ""},
 		// same datasets
-		{&dataset.Dataset{Meta: &dataset.Meta{Title: "same dataset"}}, &dataset.Dataset{Meta: &dataset.Meta{Title: "same dataset"}}, "", "no changes detected"},
+		{&dataset.Dataset{Meta: &dataset.Meta{Title: "same dataset"}}, &dataset.Dataset{Meta: &dataset.Meta{Title: "same dataset"}}, false, "", "no changes detected"},
+		// same datasets, forced
+		{&dataset.Dataset{Meta: &dataset.Meta{Title: "same dataset"}}, &dataset.Dataset{Meta: &dataset.Meta{Title: "same dataset"}}, true, "forced update", ""},
 	}
 
 	for i, c := range cases {
-		got, err := generateCommitMsg(c.ds, c.prev)
+		got, err := generateCommitMsg(c.ds, c.prev, c.force)
 		if err != nil && c.errMsg != err.Error() {
 			t.Errorf("case %d, error mismatch, expect: %s, got: %s", i, c.errMsg, err.Error())
 			continue

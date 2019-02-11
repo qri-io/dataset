@@ -173,7 +173,7 @@ func DerefDatasetCommit(store cafs.Filestore, ds *dataset.Dataset) error {
 // Dataset to be saved
 // Pin the dataset if the underlying store supports the pinning interface
 // All streaming files (Body, Transform Script, Viz Script) Must be Resolved before calling if data their data is to be saved
-func CreateDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, pk crypto.PrivKey, pin bool) (path string, err error) {
+func CreateDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, pk crypto.PrivKey, pin, force bool) (path string, err error) {
 
 	if pk == nil {
 		err = fmt.Errorf("private key is required to create a dataset")
@@ -198,7 +198,7 @@ func CreateDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, pk crypto.
 			return
 		}
 	}
-	_, err = prepareDataset(store, ds, dsPrev, pk)
+	_, err = prepareDataset(store, ds, dsPrev, pk, force)
 	if err != nil {
 		log.Debug(err.Error())
 		return
@@ -220,7 +220,7 @@ var Timestamp = func() time.Time {
 
 // prepareDataset modifies a dataset in preparation for adding to a dsfs
 // it returns a new data file for use in WriteDataset
-func prepareDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, privKey crypto.PrivKey) (string, error) {
+func prepareDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, privKey crypto.PrivKey, force bool) (string, error) {
 	var (
 		err error
 		// lock for parallel edits to ds pointer
@@ -276,7 +276,7 @@ func prepareDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, privKey c
 	// func generateCommit(ds, prev *dataset.Dataset, privKey crypto.PrivKey) error
 	// Lots of stuff happening in prepareDataset and the steps to creating the
 	// proper commit can be abstracted out
-	diffDescription, err := generateCommitMsg(ds, dsPrev)
+	diffDescription, err := generateCommitMsg(ds, dsPrev, force)
 	if err != nil {
 		log.Debug(fmt.Errorf("error saving: %s", err))
 		return "", fmt.Errorf("error saving: %s", err)
@@ -289,7 +289,7 @@ func prepareDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, privKey c
 	// data has changed, but the acutal data itself hasn't.
 	// two elements in structure are byte-sensitive: checksum and length
 	// we. need. better. diffing. tools.
-	if ds.Commit.Title == "Structure: 2 changes" {
+	if !force && ds.Commit.Title == "Structure: 2 changes" {
 		return "", fmt.Errorf("no meaningful changes detected")
 	}
 
@@ -419,7 +419,7 @@ func setChecksumAndStats(ds *dataset.Dataset, data qfs.File, buf *bytes.Buffer, 
 // returns a commit message based on the diff of the two datasets
 // if there is no previous dataset, it returns "created dataset"
 // if there is no difference, the func returns an error
-func generateCommitMsg(ds, prev *dataset.Dataset) (string, error) {
+func generateCommitMsg(ds, prev *dataset.Dataset, force bool) (string, error) {
 	if prev == nil || prev.IsEmpty() {
 		return "created dataset", nil
 	}
@@ -436,6 +436,9 @@ func generateCommitMsg(ds, prev *dataset.Dataset) (string, error) {
 	}
 
 	if diffDescription == "" {
+		if force {
+			return "forced update", nil
+		}
 		return "", fmt.Errorf("no changes detected")
 	}
 
