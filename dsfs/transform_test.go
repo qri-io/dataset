@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	crypto "github.com/libp2p/go-libp2p-crypto"
-	"github.com/qri-io/qfs/cafs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dstest"
+	"github.com/qri-io/qfs/cafs"
 )
 
 func TestLoadTransform(t *testing.T) {
@@ -93,7 +93,7 @@ func TestLoadTransformScript(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 
-	path, err := CreateDataset(store, tc.Input, nil, privKey, true)
+	path, err := CreateDataset(store, tc.Input, nil, privKey, true, false)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
@@ -112,7 +112,7 @@ func TestLoadTransformScript(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 	tc.Input.Transform.ScriptPath = transformPath
-	path, err = CreateDataset(store, tc.Input, nil, privKey, true)
+	path, err = CreateDataset(store, tc.Input, nil, privKey, true, false)
 	if err != nil {
 		t.Fatal(err.Error())
 	}

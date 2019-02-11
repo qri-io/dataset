@@ -6,9 +6,9 @@ import (
 
 	"github.com/qri-io/dataset"
 
-	"github.com/qri-io/qfs/cafs"
 	"github.com/qri-io/dataset/dsfs"
 	"github.com/qri-io/dataset/dstest"
+	"github.com/qri-io/qfs/cafs"
 )
 
 func addMovies(t *testing.T, s cafs.Filestore) string {
@@ -23,7 +23,7 @@ func addMovies(t *testing.T, s cafs.Filestore) string {
 		t.Fatal(err)
 	}
 
-	path, err := dsfs.CreateDataset(s, tc.Input, nil, dstest.PrivKey, true)
+	path, err := dsfs.CreateDataset(s, tc.Input, nil, dstest.PrivKey, true, false)
 	if err != nil {
 		t.Fatal(err)
 	}
