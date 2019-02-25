@@ -9,7 +9,32 @@ import (
 )
 
 func TestDatasetDropTransientValues(t *testing.T) {
-	t.Log("TODO (b5)")
+	ds := Dataset{
+		Body: []int{1,2,3},
+		Name: "three numbers",
+		Path: "/tmp/ds",
+		ProfileID: "QmBlahBlah",
+		NumVersions: 4,
+	}
+	ds.DropTransientValues()
+	if !ds.IsEmpty() {
+		t.Errorf("error, dropping transient values should leave an empty dataset")
+	}
+
+	ds = Dataset{
+		Body: []int{1,2,3},
+		Name: "three numbers",
+		Path: "/tmp/ds",
+		ProfileID: "QmBlahBlah",
+		NumVersions: 4,
+		Meta: &Meta{
+			Title: "a title",
+		},
+	}
+	ds.DropTransientValues()
+	if ds.IsEmpty() {
+		t.Errorf("error dataset should not be empty")
+	}
 }
 
 func TestDatasetOpenBodyFile(t *testing.T) {
