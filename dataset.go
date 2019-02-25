@@ -71,6 +71,8 @@ type Dataset struct {
 	PreviousPath string `json:"previousPath,omitempty"`
 	// ProfileID of dataset owner, transient
 	ProfileID string `json:"profileID,omitempty"`
+	// Number of versions this dataset has, transient
+	NumVersions int `json:"numVersions,omitempty"`
 	// Qri is a key for both identifying this document type, and versioning the
 	// dataset document definition itself.
 	Qri string `json:"qri"`
@@ -132,6 +134,7 @@ func (ds *Dataset) DropTransientValues() {
 	ds.Name = ""
 	ds.Path = ""
 	ds.ProfileID = ""
+	ds.NumVersions = 0
 }
 
 var (
