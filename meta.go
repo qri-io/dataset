@@ -229,6 +229,15 @@ func (md *Meta) Set(key string, val interface{}) (err error) {
 	return
 }
 
+// SetKeyVal is for implementing the KeyValSetter defined by base/fill_struct.go
+func (md *Meta) SetKeyVal(key string, val interface{}) (err error) {
+	if md.meta == nil {
+		md.meta = map[string]interface{}{}
+	}
+	md.meta[key] = val
+	return nil
+}
+
 // Assign collapses all properties of a group of metadata structs onto one.
 // this is directly inspired by Javascript's Object.assign
 func (md *Meta) Assign(metas ...*Meta) {
