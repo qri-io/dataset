@@ -23,7 +23,6 @@ import (
 // LoadDataset reads a dataset from a cafs and dereferences structure, transform, and commitMsg if they exist,
 // returning a fully-hydrated dataset
 func LoadDataset(store cafs.Filestore, path string) (*dataset.Dataset, error) {
-	path = PackageFilepath(store, path, PackageFileDataset)
 	ds, err := LoadDatasetRefs(store, path)
 	if err != nil {
 		log.Debug(err.Error())
@@ -42,8 +41,8 @@ func LoadDataset(store cafs.Filestore, path string) (*dataset.Dataset, error) {
 func LoadDatasetRefs(store cafs.Filestore, path string) (*dataset.Dataset, error) {
 	ds := dataset.NewDatasetRef(path)
 
-	path = PackageFilepath(store, path, PackageFileDataset)
-	data, err := fileBytes(store.Get(path))
+	pathWithExt := PackageFilepath(store, path, PackageFileDataset)
+	data, err := fileBytes(store.Get(pathWithExt))
 	// if err != nil {
 	// 	return nil, fmt.Errorf("error getting file bytes: %s", err.Error())
 	// }
@@ -51,7 +50,7 @@ func LoadDatasetRefs(store cafs.Filestore, path string) (*dataset.Dataset, error
 	// TODO - for some reason files are sometimes coming back empty from IPFS,
 	// every now & then. In the meantime, let's give a second try if data is empty
 	if err != nil || len(data) == 0 {
-		data, err = fileBytes(store.Get(path))
+		data, err = fileBytes(store.Get(pathWithExt))
 		if err != nil {
 			log.Debug(err.Error())
 			return nil, fmt.Errorf("error getting file bytes: %s", err.Error())
