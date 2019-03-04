@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -53,10 +54,14 @@ func TestLoadDataset(t *testing.T) {
 		return
 	}
 
-	_, err = LoadDataset(store, apath)
+	loadedDataset, err := LoadDataset(store, apath)
 	if err != nil {
 		t.Errorf(err.Error())
 		return
+	}
+	// prove we aren't returning a path to a dataset that ends with `/dataset.json`
+	if strings.Contains(loadedDataset.Path, "/dataset.json") {
+		t.Errorf("path should not contain the basename of the dataset file: %s", loadedDataset.Path)
 	}
 
 	cases := []struct {
