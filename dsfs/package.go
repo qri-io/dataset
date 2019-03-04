@@ -86,7 +86,8 @@ func getHashBase(in, network string) string {
 
 // PackageFilepath returns the path to a package file for a given base path
 // It relies relies on package storage conventions and cafs.Filestore path prefixes
-// A path that does not match the filestore's naming conventions will return an invalid path
+// If you supply a path that does not match the filestore's naming conventions will
+// return an invalid path
 func PackageFilepath(store cafs.Filestore, path string, pf PackageFile) string {
 	prefix := store.PathPrefix()
 	if prefix == "" {
