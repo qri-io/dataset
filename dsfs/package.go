@@ -23,7 +23,7 @@ const (
 	// should be erroneous, as there is no sensible default
 	// for PackageFile
 	PackageFileUnknown PackageFile = iota
-	// PackageFileDataset is the maind dataset.json file
+	// PackageFileDataset is the main dataset.json file
 	// that contains all dataset metadata, and is the only
 	// required file to constitute a dataset
 	PackageFileDataset
@@ -76,22 +76,22 @@ func (p PackageFile) Filename() string {
 	return filenames[p]
 }
 
-// PackageFilepath relies on package storage conventions and cafs.Filestore path prefixes
-// to deliver the path to a package file for a given base path
-func PackageFilepath(store cafs.Filestore, path string, pf PackageFile) string {
-	switch store.PathPrefix() {
-	case "ipfs":
-		// TODO (b5): this convention should be generalized for other stores,
-		// may be a source of bugs, especially when working with mapstore
-		return filepath.Join("/ipfs", ipfsHashBase(path), pf.String())
-	default:
-		return path
-	}
+// getHashBase strips paths to return just the hash
+func getHashBase(in, network string) string {
+	in = strings.TrimLeft(in, "/")
+	in = strings.TrimPrefix(in, network)
+	in = strings.TrimLeft(in, "/")
+	return strings.Split(in, "/")[0]
 }
 
-// ipfsHashBase strips paths to return just the hash
-func ipfsHashBase(in string) string {
-	in = strings.TrimLeft(in, "/")
-	in = strings.TrimPrefix(in, "ipfs/")
-	return strings.Split(in, "/")[0]
+// PackageFilepath returns the path to a package file for a given base path
+// It relies relies on package storage conventions and cafs.Filestore path prefixes
+// If you supply a path that does not match the filestore's naming conventions will
+// return an invalid path
+func PackageFilepath(store cafs.Filestore, path string, pf PackageFile) string {
+	prefix := store.PathPrefix()
+	if prefix == "" {
+		return path
+	}
+	return filepath.Join("/", prefix, getHashBase(path, prefix), pf.String())
 }
