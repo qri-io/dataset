@@ -76,8 +76,8 @@ func (p PackageFile) Filename() string {
 	return filenames[p]
 }
 
-// getHashBase strips paths to return just the hash
-func getHashBase(in, network string) string {
+// GetHashBase strips paths to return just the hash
+func GetHashBase(in, network string) string {
 	in = strings.TrimLeft(in, "/")
 	in = strings.TrimPrefix(in, network)
 	in = strings.TrimLeft(in, "/")
@@ -93,5 +93,5 @@ func PackageFilepath(store cafs.Filestore, path string, pf PackageFile) string {
 	if prefix == "" {
 		return path
 	}
-	return filepath.Join("/", prefix, getHashBase(path, prefix), pf.String())
+	return filepath.Join("/", prefix, GetHashBase(path, prefix), pf.String())
 }
