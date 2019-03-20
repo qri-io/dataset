@@ -20,6 +20,8 @@ type Viz struct {
 
 	// script file reader, doesn't serialize
 	scriptFile qfs.File
+	// rendered file reader, doesn't serialize
+	renderedFile qfs.File
 	// ScriptBytes is for representing a script as a slice of bytes, transient
 	ScriptBytes []byte `json:"scriptBytes,omitempty"`
 	// ScriptPath is the path to the script that created this
@@ -66,10 +68,21 @@ func (v *Viz) SetScriptFile(file qfs.File) {
 	v.scriptFile = file
 }
 
+// SetRenderedFile assigns the unexported renderedFile
+func (v *Viz) SetRenderedFile(file qfs.File) {
+	v.renderedFile = file
+}
+
 // ScriptFile exposes scriptFile if one is set. Callers that use the file in any
 // way (eg. by calling Read) should consume the entire file and call Close
 func (v *Viz) ScriptFile() qfs.File {
 	return v.scriptFile
+}
+
+// RenderedFile exposes renderedFile if one is set. Callers that use the file in any
+// way (eg. by calling Read) should consume the entire file and call Close
+func (v *Viz) RenderedFile() qfs.File {
+	return v.renderedFile
 }
 
 // IsEmpty checks to see if Viz has any fields other than the internal path
