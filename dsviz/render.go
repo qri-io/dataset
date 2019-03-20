@@ -15,7 +15,7 @@ import (
 
 const htmlTmplName = "index.html"
 
-// Render executes the vize component of a dataset, returning a "rendered" output that is the result
+// Render executes the viz component of a dataset, returning a "rendered" output that is the result
 // of running the viz script template, providing the dataset as input
 // the provided dataset must be loaded, with script files ready for consumption
 // Render replaces any file readers it consumes, making the dataset safe for reuse after calling
@@ -26,7 +26,6 @@ func Render(ds *dataset.Dataset) (qfs.File, error) {
 	if ds.Viz.Format != "html" {
 		return nil, fmt.Errorf("render format must be 'html'")
 	}
-
 	return renderHTML(ds)
 }
 
@@ -43,7 +42,7 @@ func renderHTML(ds *dataset.Dataset) (qfs.File, error) {
 	}
 
 	// restore consumed script file
-	ds.Viz.SetScriptFile(qfs.NewMemfileBytes(script.FileName(), vizScriptBuf.Bytes()))
+	ds.Viz.SetScriptFile(qfs.NewMemfileReader(script.FileName(), vizScriptBuf))
 
 	// parse template
 	tmpl, err := template.New(htmlTmplName).Parse(string(tmplBytes))
@@ -55,8 +54,7 @@ func renderHTML(ds *dataset.Dataset) (qfs.File, error) {
 	bodyFile := ds.BodyFile()
 	bodyBytesBuf := &bytes.Buffer{}
 	tr = io.TeeReader(bodyFile, bodyBytesBuf)
-
-	rr, err := dsio.NewEntryReader(ds.Structure, bodyFile)
+	rr, err := dsio.NewEntryReader(ds.Structure, tr)
 	if err != nil {
 		return nil, fmt.Errorf("error allocating data reader: %s", err)
 	}
@@ -82,8 +80,7 @@ func renderHTML(ds *dataset.Dataset) (qfs.File, error) {
 	ds.Body = nil
 	// restore body file
 	ds.SetBodyFile(qfs.NewMemfileReader(bodyFile.FileName(), bodyBytesBuf))
-
-	return qfs.NewMemfileReader("index.html", tmplBuf), nil
+	return qfs.NewMemfileReader(htmlTmplName, tmplBuf), nil
 }
 
 // readEntries reads entries and returns them as a native go array or map
