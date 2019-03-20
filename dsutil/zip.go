@@ -10,9 +10,9 @@ import (
 	"strings"
 
 	"github.com/ghodss/yaml"
-	"github.com/qri-io/qfs/cafs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsfs"
+	"github.com/qri-io/qfs/cafs"
 )
 
 // WriteZipArchive generates a zip archive of a dataset and writes it to w
@@ -75,18 +75,34 @@ func WriteZipArchive(store cafs.Filestore, ds *dataset.Dataset, format string, r
 	}
 
 	// Viz template
-	if ds.Viz != nil && ds.Viz.ScriptPath != "" {
-		script, err := store.Get(ds.Viz.ScriptPath)
-		if err != nil {
-			return err
+	if ds.Viz != nil {
+		if ds.Viz.ScriptPath != "" {
+			script, err := store.Get(ds.Viz.ScriptPath)
+			if err != nil {
+				return err
+			}
+			target, err := zw.Create("viz.html")
+			if err != nil {
+				return err
+			}
+			_, err = io.Copy(target, script)
+			if err != nil {
+				return err
+			}
 		}
-		target, err := zw.Create("viz.html")
-		if err != nil {
-			return err
-		}
-		_, err = io.Copy(target, script)
-		if err != nil {
-			return err
+		if ds.Viz.RenderedPath != "" {
+			rendered, err := store.Get(ds.Viz.RenderedPath)
+			if err != nil {
+				return err
+			}
+			target, err := zw.Create("index.html")
+			if err != nil {
+				return err
+			}
+			_, err = io.Copy(target, rendered)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -107,7 +123,6 @@ func WriteZipArchive(store cafs.Filestore, ds *dataset.Dataset, format string, r
 		log.Debug(err.Error())
 		return err
 	}
-
 	return zw.Close()
 }
 
