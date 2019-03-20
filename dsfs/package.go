@@ -50,6 +50,8 @@ const (
 	PackageFileMeta
 	// PackageFileViz isolates the data related to representing a dataset as a visualization
 	PackageFileViz
+	// PackageFileRendered is the rendered visualization of the dataset
+	PackageFileRendered
 )
 
 // filenames maps PackageFile to their filename counterparts
@@ -64,6 +66,7 @@ var filenames = map[PackageFile]string{
 	PackageFileTransform:         "transform.json",
 	PackageFileMeta:              "meta.json",
 	PackageFileViz:               "viz.json",
+	PackageFileRendered:          "index.html",
 }
 
 // String implements the io.Stringer interface for PackageFile
