@@ -154,18 +154,18 @@ func TestCreateDataset(t *testing.T) {
 		{"cities",
 			"/map/QmYDVHBmGHWV7h8iCU9H6BrYoXXnm8pCFhhJzZw5jJitoq", nil, 6, ""},
 		{"all_fields",
-			"/map/Qmd68bR6duBY2V5qWyCHbQxJCNdBpp6nNQE1xXvg64FkTw", nil, 14, ""},
+			"/map/QmVzXTaBkeibMzEbLX8Na7d5wFr4pmqAVs7iwy3WH1J4qs", nil, 15, ""},
 		{"cities_no_commit_title",
-			"/map/QmXuq1NExBmfQ9Fw6TFwTcq8G1QJHbbEPWPykX7D3E14Fa", nil, 16, ""},
+			"/map/QmXuq1NExBmfQ9Fw6TFwTcq8G1QJHbbEPWPykX7D3E14Fa", nil, 17, ""},
 		{"craigslist",
-			"/map/QmVxYECmX3URNr1pZkWbBGYe61kKGo7biEadYKuKLNw1zz", nil, 20, ""},
+			"/map/QmVxYECmX3URNr1pZkWbBGYe61kKGo7biEadYKuKLNw1zz", nil, 21, ""},
 		// should error when previous dataset won't dereference.
 		{"craigslist",
-			"", &dataset.Dataset{Structure: dataset.NewStructureRef("/bad/path")}, 20, "error loading dataset structure: error loading structure file: cafs: path not found"},
+			"", &dataset.Dataset{Structure: dataset.NewStructureRef("/bad/path")}, 21, "error loading dataset structure: error loading structure file: cafs: path not found"},
 		// should error when previous dataset isn't valid. Aka, when it isn't empty, but missing
 		// either structure or commit. Commit is checked for first.
 		{"craigslist",
-			"", &dataset.Dataset{Meta: &dataset.Meta{Title: "previous"}, Structure: nil}, 20, "commit is required"},
+			"", &dataset.Dataset{Meta: &dataset.Meta{Title: "previous"}, Structure: nil}, 21, "commit is required"},
 	}
 
 	for _, c := range cases {
@@ -203,7 +203,6 @@ func TestCreateDataset(t *testing.T) {
 		if c.resultPath != path {
 			t.Errorf("%s: result path mismatch: expected: '%s', got: '%s'", tc.Name, c.resultPath, path)
 		}
-
 		if len(store.Files) != c.repoFiles {
 			t.Errorf("%s: invalid number of mapstore entries: %d != %d", tc.Name, c.repoFiles, len(store.Files))
 			_, err := store.Print()
@@ -254,7 +253,7 @@ func TestCreateDataset(t *testing.T) {
 		t.Errorf("case no changes in dataset, expected error got 'nil'")
 	}
 
-	if len(store.Files) != 20 {
+	if len(store.Files) != 21 {
 		t.Errorf("case nil datafile and PreviousPath, invalid number of entries: %d != %d", 20, len(store.Files))
 		_, err := store.Print()
 		if err != nil {
