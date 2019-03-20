@@ -298,6 +298,16 @@ func prepareDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, privKey c
 	ds.Commit.Signature = base64.StdEncoding.EncodeToString(signedBytes)
 	ds.SetBodyFile(qfs.NewMemfileBytes("body."+ds.Structure.Format, buf.Bytes()))
 
+	if ds.Viz != nil && ds.Viz.ScriptFile() != nil {
+		// render the viz
+		renderedFile, err := dsviz.Render(ds)
+		if err != nil {
+			log.Debug(err.Error())
+			return "", fmt.Errorf("error rendering visualization: %s", err.Error())
+		}
+		ds.Viz.SetRenderedFile(renderedFile)
+	}
+
 	return diffDescription, nil
 }
 
@@ -499,28 +509,21 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (string, 
 	}
 
 	if ds.Viz != nil {
-		vizScript := ds.Viz.ScriptFile()
 		ds.Viz.DropTransientValues()
-		if vizScript != nil {
-			// create vizScript file and add to adder
-			// we need to create working groups for the scriptPath, renderedFile, and
-			// viz.json files ahead of time. renderedFile won't complete until
-			// scriptPath has been added, and viz.json won't be complete until
-			// scriptPath and renderedFile have both been added.
-			fileTasks += 3
-			renderedFile, err := dsviz.Render(ds)
-			if err != nil {
-				return "", fmt.Errorf("error rendering visualization: %s", err.Error())
-			}
-			defer renderedFile.Close()
-			adder.AddFile(renderedFile)
+		vizRenderedFile := ds.Viz.RenderedFile()
+		// add task for the viz.json
+		fileTasks++
+		if vizRenderedFile != nil {
+			// add the rendered visualization
+			// and add working group for adding the viz script file
+			fileTasks += 2
+			vrFile := qfs.NewMemfileReader(PackageFileRendered.String(), vizRenderedFile)
+			adder.AddFile(vrFile)
 		} else {
 			vizdata, err := json.Marshal(ds.Viz)
 			if err != nil {
 				return "", fmt.Errorf("error marshalling dataset viz to json: %s", err.Error())
 			}
-
-			fileTasks++
 			adder.AddFile(qfs.NewMemfileBytes(PackageFileViz.String(), vizdata))
 		}
 	}
