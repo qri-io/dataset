@@ -63,7 +63,7 @@
     }
   },
   "viz":{
-    "format": "foo",
+    "format": "html",
     "qri": "vz:0",
     "scriptPath": "bar"
   }
