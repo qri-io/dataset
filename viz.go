@@ -24,6 +24,8 @@ type Viz struct {
 	ScriptBytes []byte `json:"scriptBytes,omitempty"`
 	// ScriptPath is the path to the script that created this
 	ScriptPath string `json:"scriptPath,omitempty"`
+	// RenderedPath is the path to the file rendered using the viz script and the body
+	RenderedPath string `json:"renderedPath,omitempty"`
 }
 
 // NewVizRef creates an empty struct with it's internal path set
@@ -103,6 +105,9 @@ func (v *Viz) Assign(visConfigs ...*Viz) {
 		if vs.ScriptPath != "" {
 			v.ScriptPath = vs.ScriptPath
 		}
+		if vs.RenderedPath != "" {
+			v.RenderedPath = vs.RenderedPath
+		}
 	}
 }
 
@@ -176,6 +181,9 @@ func (v *Viz) MarshalJSONObject() ([]byte, error) {
 	}
 	if v.ScriptPath != "" {
 		data["scriptPath"] = v.ScriptPath
+	}
+	if v.RenderedPath != "" {
+		data["renderedPath"] = v.RenderedPath
 	}
 
 	return json.Marshal(data)
