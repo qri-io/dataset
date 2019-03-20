@@ -510,15 +510,23 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (string, 
 
 	if ds.Viz != nil {
 		ds.Viz.DropTransientValues()
-		vizRenderedFile := ds.Viz.RenderedFile()
+		vizScript := ds.Viz.ScriptFile()
+		vizRendered := ds.Viz.RenderedFile()
 		// add task for the viz.json
 		fileTasks++
-		if vizRenderedFile != nil {
+		if vizRendered != nil {
 			// add the rendered visualization
 			// and add working group for adding the viz script file
 			fileTasks += 2
-			vrFile := qfs.NewMemfileReader(PackageFileRendered.String(), vizRenderedFile)
+			vrFile := qfs.NewMemfileReader(PackageFileRendered.String(), vizRendered)
+			defer vrFile.Close()
 			adder.AddFile(vrFile)
+		} else if vizScript != nil {
+			// add the vizScript
+			fileTasks++
+			vsFile := qfs.NewMemfileReader(vizScriptFilename, vizScript)
+			defer vsFile.Close()
+			adder.AddFile(vsFile)
 		} else {
 			vizdata, err := json.Marshal(ds.Viz)
 			if err != nil {
