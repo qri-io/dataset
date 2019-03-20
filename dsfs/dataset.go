@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io"
 	"strings"
 	"sync"
@@ -561,14 +562,15 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (string, 
 		vizScript := ds.Viz.ScriptFile()
 		ds.Viz.DropTransientValues()
 		if vizScript != nil {
-			fileTasks++
+			// create vizScript file and add to adder
+			// we need to create working groups for the scriptPath, renderedFile, and
+			// viz.json files ahead of time. renderedFile won't complete until
+			// scriptPath has been added, and viz.json won't be complete until
+			// scriptPath and renderedFile have both been added.
+			fileTasks += 3
 			vsFile := qfs.NewMemfileReader(vizScriptFilename, vizScript)
 			defer vsFile.Close()
 			adder.AddFile(vsFile)
-			// NOTE - add wg for the viz.json file ahead of time, which isn't completed
-			// until after scriptPath has been added
-			fileTasks++
-
 		} else {
 			vizdata, err := json.Marshal(ds.Viz)
 			if err != nil {
@@ -609,6 +611,16 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (string, 
 				adder.AddFile(qfs.NewMemfileBytes(PackageFileTransform.String(), tfdata))
 			case vizScriptFilename:
 				ds.Viz.ScriptPath = ao.Path
+				// create rendered file and add to adder
+				renderedFile, err := renderViz()
+				if err != nil {
+					done <- err
+					return
+				}
+				defer renderedFile.Close()
+				adder.AddFile(renderedFile)
+			case PackageFileRendered.String():
+				ds.Viz.RenderedPath = ao.Path
 				vizdata, err := json.Marshal(ds.Viz)
 				if err != nil {
 					done <- err
@@ -644,7 +656,6 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (string, 
 	if err != nil {
 		return path, err
 	}
-
 	// TODO (b5): currently we're loading to keep the ds pointer hydrated post-write
 	// we should remove that assumption, allowing callers to skip this load step, which may
 	// be unnecessary
@@ -654,4 +665,26 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (string, 
 	*ds = *loaded
 
 	return path, err
+}
+
+func renderViz() (*qfs.Memfile, error) {
+	var DefaultTemplate = []byte(`<!DOCTYPE html>
+<html>
+<body>{{.Greeting}}
+</body>
+</html>`)
+	data := struct {
+		Greeting string
+	}{Greeting: "Hello World!"}
+
+	tmpl, err := template.New("template").Parse(string(DefaultTemplate))
+	if err != nil {
+		return nil, fmt.Errorf("parsing template %s", err.Error())
+	}
+	tmplBuf := &bytes.Buffer{}
+	if err := tmpl.Execute(tmplBuf, data); err != nil {
+		return nil, err
+	}
+	renderedFile := qfs.NewMemfileBytes(PackageFileRendered.String(), tmplBuf.Bytes())
+	return renderedFile, nil
 }
