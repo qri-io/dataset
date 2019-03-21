@@ -499,8 +499,6 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (string, 
 	}
 	name := ds.Name // preserve name for body file
 	bodyFile := ds.BodyFile()
-	// bodyBytesBuf := &bytes.Buffer{}
-	// tr := io.TeeReader(bodyFile, bodyBytesBuf)
 	fileTasks := 0
 	addedDataset := false
 	adder, err := store.NewAdder(pin, true)
@@ -518,7 +516,7 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (string, 
 			// add the rendered visualization
 			// and add working group for adding the viz script file
 			fileTasks += 2
-			vrFile := qfs.NewMemfileReader(PackageFileRendered.String(), vizRendered)
+			vrFile := qfs.NewMemfileReader(PackageFileRenderedViz.String(), vizRendered)
 			defer vrFile.Close()
 			adder.AddFile(vrFile)
 		} else if vizScript != nil {
@@ -626,7 +624,7 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (string, 
 				}
 				// Add the encoded transform file, decrementing the stray fileTasks from above
 				adder.AddFile(qfs.NewMemfileBytes(PackageFileTransform.String(), tfdata))
-			case PackageFileRendered.String():
+			case PackageFileRenderedViz.String():
 				ds.Viz.RenderedPath = ao.Path
 				vsFile := qfs.NewMemfileReader(vizScriptFilename, ds.Viz.ScriptFile())
 				defer vsFile.Close()
