@@ -4,10 +4,10 @@ package dsviz
 import (
 	"bytes"
 	"fmt"
+	"html/template"
 	"io"
 	"io/ioutil"
 
-	"github.com/alecthomas/template"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsio"
 	"github.com/qri-io/qfs"

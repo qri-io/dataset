@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"io/ioutil"
-	"path/filepath"
+	// "path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -278,35 +278,22 @@ func TestWriteDataset(t *testing.T) {
 	}
 
 	cases := []struct {
-		infile    string
-		bodyPath  string
-		path      string
+		casePath  string
 		repoFiles int // expected total count of files in repo after test execution
 		err       string
 	}{
-		{"testdata/cities/input.dataset.json", "testdata/cities/body.csv", "/map/", 6, ""},
-		{"testdata/all_fields/input.dataset.json", "testdata/all_fields/body.csv", "/map/", 12, ""},
+		{"cities", 6, ""},      // dataset, commit, structure, meta, viz, body
+		{"all_fields", 14, ""}, // dataset, commit, structure, meta, viz, viz_script, transform, transform_script, SAME BODY as cities -> gets de-duped
 	}
 
 	for i, c := range cases {
-		indata, err := ioutil.ReadFile(c.infile)
+		tc, err := dstest.NewTestCaseFromDir("testdata/" + c.casePath)
 		if err != nil {
-			t.Errorf("case %d error opening test infile: %s", i, err.Error())
+			t.Errorf("%s: error creating test case: %s", c.casePath, err)
 			continue
 		}
 
-		ds := &dataset.Dataset{}
-		if err := ds.UnmarshalJSON(indata); err != nil {
-			t.Errorf("case %d error unmarhshalling test file: %s ", i, err.Error())
-			continue
-		}
-
-		body, err := ioutil.ReadFile(c.bodyPath)
-		if err != nil {
-			t.Errorf("case %d error reading body file: %s", i, err.Error())
-			continue
-		}
-		ds.SetBodyFile(qfs.NewMemfileBytes(filepath.Base(c.bodyPath), body))
+		ds := tc.Input
 
 		got, err := WriteDataset(store, ds, true)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
@@ -314,20 +301,14 @@ func TestWriteDataset(t *testing.T) {
 			continue
 		}
 
-		// path := datastore.NewKey(c.path)
-		// if !path.Equal(got) {
-		// 	t.Errorf("case %d path mismatch. expected: '%s', got: '%s'", i, path, got)
-		// 	continue
-		// }
-
 		// total count expected of files in repo after test execution
 		if len(store.Files) != c.repoFiles {
 			t.Errorf("case expected %d invalid number of entries: %d != %d", i, c.repoFiles, len(store.Files))
-			// str, err := store.Print()
-			// if err != nil {
-			// 	panic(err)
-			// }
-			// t.Log(str)
+			str, err := store.Print()
+			if err != nil {
+				panic(err)
+			}
+			t.Log(str)
 			continue
 		}
 
