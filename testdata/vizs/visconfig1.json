@@ -1,5 +1,6 @@
 {
   "format": "foo",
   "qri": "vz:0",
-  "scriptPath": "one"
+  "scriptPath": "one",
+  "renderedPath": "one"
 }

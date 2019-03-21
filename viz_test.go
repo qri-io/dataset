@@ -20,9 +20,10 @@ func TestVizOpenScriptFile(t *testing.T) {
 }
 
 var viz1 = &Viz{
-	Format:     "foo",
-	Qri:        KindViz.String(),
-	ScriptPath: "one",
+	Format:       "foo",
+	Qri:          KindViz.String(),
+	ScriptPath:   "one",
+	RenderedPath: "one",
 }
 
 var viz2 = &Viz{
@@ -64,12 +65,13 @@ func TestVizAssign(t *testing.T) {
 			Qri:        KindViz.String(),
 			ScriptPath: "bat",
 		},
-			&Viz{Path: "bar", Format: "bar"},
+			&Viz{Path: "bar", Format: "bar", RenderedPath: "rendered"},
 			&Viz{
-				Path:       "foo",
-				Format:     "bar",
-				Qri:        KindViz.String(),
-				ScriptPath: "bat",
+				Path:         "foo",
+				Format:       "bar",
+				Qri:          KindViz.String(),
+				ScriptPath:   "bat",
+				RenderedPath: "rendered",
 			}, ""},
 	}
 	for i, c := range cases {
@@ -89,6 +91,7 @@ func TestVizIsEmpty(t *testing.T) {
 	}{
 		{&Viz{Qri: KindViz.String()}, true},
 		{&Viz{ScriptPath: "foo"}, false},
+		{&Viz{RenderedPath: "foo"}, false},
 		{&Viz{}, true},
 		{&Viz{Path: "foo"}, true},
 	}
@@ -158,7 +161,7 @@ func TestVizMarshalJSON(t *testing.T) {
 		{&Viz{}, []byte(`{"qri":"vz:0"}`), ""},
 		{&Viz{Qri: KindViz.String()}, []byte(`{"qri":"vz:0"}`), ""},
 		{&Viz{Format: "foo", Qri: KindViz.String()}, []byte(`{"format":"foo","qri":"vz:0"}`), ""},
-		{viz1, []byte(`{"format":"foo","qri":"vz:0","scriptPath":"one"}`), ""},
+		{viz1, []byte(`{"format":"foo","qri":"vz:0","renderedPath":"one","scriptPath":"one"}`), ""},
 		{&Viz{Path: "/map/QmXo5LE3WVfKZKzTrrgtUUX3nMK4VREKTAoBu5WAGECz4U"}, []byte(`"/map/QmXo5LE3WVfKZKzTrrgtUUX3nMK4VREKTAoBu5WAGECz4U"`), ""},
 		{&Viz{Path: "/map/QmUaMozKVkjPf7CVf3Zd8Cy5Ex1i9oUdhYhU8uTJph5iFD"}, []byte(`"/map/QmUaMozKVkjPf7CVf3Zd8Cy5Ex1i9oUdhYhU8uTJph5iFD"`), ""},
 	}

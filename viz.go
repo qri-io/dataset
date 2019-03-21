@@ -89,7 +89,8 @@ func (v *Viz) RenderedFile() qfs.File {
 func (v *Viz) IsEmpty() bool {
 	return v.Format == "" &&
 		v.ScriptBytes == nil &&
-		v.ScriptPath == ""
+		v.ScriptPath == "" &&
+		v.RenderedPath == ""
 }
 
 // Assign collapses all properties of a group of structures on to one this is
