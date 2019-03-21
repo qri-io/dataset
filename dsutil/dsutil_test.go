@@ -5,10 +5,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/qri-io/qfs/cafs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsfs"
 	"github.com/qri-io/qfs"
+	"github.com/qri-io/qfs/cafs"
 )
 
 func TestWriteDir(t *testing.T) {
@@ -97,12 +97,13 @@ func testStoreWithVizAndTransform() (cafs.Filestore, map[string]string, error) {
 		},
 		Viz: &dataset.Viz{
 			ScriptPath:  "viz_script",
-			ScriptBytes: []byte("<html></html>\n"),
+			ScriptBytes: []byte("<html>template</html>\n"),
 		},
 	}
 	// load scripts into file pointers, time for a NewDataset function?
 	ds.Transform.OpenScriptFile(nil)
 	ds.Viz.OpenScriptFile(nil)
+	ds.Viz.SetRenderedFile(qfs.NewMemfileBytes("index.html", []byte("<html>rendered</html<\n")))
 
 	// Map strings to ds.keys for convenience
 	ns := map[string]string{}
@@ -116,6 +117,7 @@ func testStoreWithVizAndTransform() (cafs.Filestore, map[string]string, error) {
 	ns["movies"] = dskey
 	ns["transform_script"] = ds.Transform.ScriptPath
 	ns["viz_template"] = ds.Viz.ScriptPath
+	ns["index.html"] = ds.Viz.RenderedPath
 	return st, ns, nil
 }
 

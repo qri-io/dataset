@@ -48,7 +48,7 @@
     "syntax": "sql"
   },
   "viz":{
-    "format": "foo",
+    "format": "html",
     "qri": "vz:0",
     "scriptPath": "/map/QmedXhMECTMY5x92PavJMAef4g5bW1KT5PpATvxJYmu4Fv"
   }

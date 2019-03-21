@@ -72,16 +72,16 @@ func NewStructureRef(path string) *Structure {
 
 // DropTransientValues removes values that cannot be recorded when the
 // dataset is rendered immutable, usually by storing it in a cafs
-func (st *Structure) DropTransientValues() {
-	st.Path = ""
+func (s *Structure) DropTransientValues() {
+	s.Path = ""
 }
 
 // JSONSchema parses the Schema field into a json-schema
-func (st *Structure) JSONSchema() (*jsonschema.RootSchema, error) {
+func (s *Structure) JSONSchema() (*jsonschema.RootSchema, error) {
 	// TODO (b5): SLOW. we should teach the jsonschema package to parse native go types,
 	// replacing this nonsense. Someone's even filed an issue on regarding this:
 	// https://github.comqri-io/jsonschema/issues/32
-	data, err := json.Marshal(st.Schema)
+	data, err := json.Marshal(s.Schema)
 	if err != nil {
 		return nil, err
 	}
@@ -96,8 +96,8 @@ func (st *Structure) JSONSchema() (*jsonschema.RootSchema, error) {
 
 // DataFormat gives format as a DataFormat type, returning UnknownDataFormat in
 // any case where st.DataFormat is an invalid string
-func (st *Structure) DataFormat() DataFormat {
-	df, _ := ParseDataFormatString(st.Format)
+func (s *Structure) DataFormat() DataFormat {
+	df, _ := ParseDataFormatString(s.Format)
 	return df
 }
 

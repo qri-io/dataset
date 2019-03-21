@@ -141,7 +141,14 @@ func TestUnzipGetContents(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	expectLen := 5
+	expectLen := 6
+	// files include:
+	// dataset.json
+	// body.csv
+	// index.html
+	// ref.txt
+	// transform.star
+	// viz.html
 	if len(res) != expectLen {
 		t.Errorf("contents length mismatch. expected: %d, got: %d", expectLen, len(res))
 	}

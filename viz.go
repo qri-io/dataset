@@ -20,10 +20,14 @@ type Viz struct {
 
 	// script file reader, doesn't serialize
 	scriptFile qfs.File
+	// rendered file reader, doesn't serialize
+	renderedFile qfs.File
 	// ScriptBytes is for representing a script as a slice of bytes, transient
 	ScriptBytes []byte `json:"scriptBytes,omitempty"`
 	// ScriptPath is the path to the script that created this
 	ScriptPath string `json:"scriptPath,omitempty"`
+	// RenderedPath is the path to the file rendered using the viz script and the body
+	RenderedPath string `json:"renderedPath,omitempty"`
 }
 
 // NewVizRef creates an empty struct with it's internal path set
@@ -64,17 +68,29 @@ func (v *Viz) SetScriptFile(file qfs.File) {
 	v.scriptFile = file
 }
 
+// SetRenderedFile assigns the unexported renderedFile
+func (v *Viz) SetRenderedFile(file qfs.File) {
+	v.renderedFile = file
+}
+
 // ScriptFile exposes scriptFile if one is set. Callers that use the file in any
 // way (eg. by calling Read) should consume the entire file and call Close
 func (v *Viz) ScriptFile() qfs.File {
 	return v.scriptFile
 }
 
+// RenderedFile exposes renderedFile if one is set. Callers that use the file in any
+// way (eg. by calling Read) should consume the entire file and call Close
+func (v *Viz) RenderedFile() qfs.File {
+	return v.renderedFile
+}
+
 // IsEmpty checks to see if Viz has any fields other than the internal path
 func (v *Viz) IsEmpty() bool {
 	return v.Format == "" &&
 		v.ScriptBytes == nil &&
-		v.ScriptPath == ""
+		v.ScriptPath == "" &&
+		v.RenderedPath == ""
 }
 
 // Assign collapses all properties of a group of structures on to one this is
@@ -102,6 +118,9 @@ func (v *Viz) Assign(visConfigs ...*Viz) {
 		}
 		if vs.ScriptPath != "" {
 			v.ScriptPath = vs.ScriptPath
+		}
+		if vs.RenderedPath != "" {
+			v.RenderedPath = vs.RenderedPath
 		}
 	}
 }
@@ -176,6 +195,9 @@ func (v *Viz) MarshalJSONObject() ([]byte, error) {
 	}
 	if v.ScriptPath != "" {
 		data["scriptPath"] = v.ScriptPath
+	}
+	if v.RenderedPath != "" {
+		data["renderedPath"] = v.RenderedPath
 	}
 
 	return json.Marshal(data)

@@ -14,6 +14,7 @@ import (
 	"github.com/multiformats/go-multihash"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsio"
+	"github.com/qri-io/dataset/dsviz"
 	"github.com/qri-io/dataset/validate"
 	"github.com/qri-io/dsdiff"
 	"github.com/qri-io/qfs"
@@ -297,6 +298,16 @@ func prepareDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, privKey c
 	ds.Commit.Signature = base64.StdEncoding.EncodeToString(signedBytes)
 	ds.SetBodyFile(qfs.NewMemfileBytes("body."+ds.Structure.Format, buf.Bytes()))
 
+	if ds.Viz != nil && ds.Viz.ScriptFile() != nil {
+		// render the viz
+		renderedFile, err := dsviz.Render(ds)
+		if err != nil {
+			log.Debug(err.Error())
+			return "", fmt.Errorf("error rendering visualization: %s", err.Error())
+		}
+		ds.Viz.SetRenderedFile(renderedFile)
+	}
+
 	return diffDescription, nil
 }
 
@@ -495,6 +506,34 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (string, 
 		return "", fmt.Errorf("error creating new adder: %s", err.Error())
 	}
 
+	if ds.Viz != nil {
+		ds.Viz.DropTransientValues()
+		vizScript := ds.Viz.ScriptFile()
+		vizRendered := ds.Viz.RenderedFile()
+		// add task for the viz.json
+		fileTasks++
+		if vizRendered != nil {
+			// add the rendered visualization
+			// and add working group for adding the viz script file
+			fileTasks += 2
+			vrFile := qfs.NewMemfileReader(PackageFileRenderedViz.String(), vizRendered)
+			defer vrFile.Close()
+			adder.AddFile(vrFile)
+		} else if vizScript != nil {
+			// add the vizScript
+			fileTasks++
+			vsFile := qfs.NewMemfileReader(vizScriptFilename, vizScript)
+			defer vsFile.Close()
+			adder.AddFile(vsFile)
+		} else {
+			vizdata, err := json.Marshal(ds.Viz)
+			if err != nil {
+				return "", fmt.Errorf("error marshalling dataset viz to json: %s", err.Error())
+			}
+			adder.AddFile(qfs.NewMemfileBytes(PackageFileViz.String(), vizdata))
+		}
+	}
+
 	if ds.Meta != nil {
 		mdf, err := JSONFile(PackageFileMeta.String(), ds.Meta)
 		if err != nil {
@@ -503,9 +542,6 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (string, 
 		fileTasks++
 		adder.AddFile(mdf)
 	}
-
-	fileTasks++
-	adder.AddFile(bodyFile)
 
 	if ds.Transform != nil {
 		// TODO (b5): this is validation logic, should happen before WriteDataset is ever called
@@ -557,28 +593,8 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (string, 
 		adder.AddFile(stf)
 	}
 
-	if ds.Viz != nil {
-		vizScript := ds.Viz.ScriptFile()
-		ds.Viz.DropTransientValues()
-		if vizScript != nil {
-			fileTasks++
-			vsFile := qfs.NewMemfileReader(vizScriptFilename, vizScript)
-			defer vsFile.Close()
-			adder.AddFile(vsFile)
-			// NOTE - add wg for the viz.json file ahead of time, which isn't completed
-			// until after scriptPath has been added
-			fileTasks++
-
-		} else {
-			vizdata, err := json.Marshal(ds.Viz)
-			if err != nil {
-				return "", fmt.Errorf("error marshalling dataset viz to json: %s", err.Error())
-			}
-
-			fileTasks++
-			adder.AddFile(qfs.NewMemfileBytes(PackageFileViz.String(), vizdata))
-		}
-	}
+	fileTasks++
+	adder.AddFile(bodyFile)
 
 	var path string
 	done := make(chan error, 0)
@@ -598,6 +614,7 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (string, 
 				ds.Viz = dataset.NewVizRef(ao.Path)
 			case bodyFile.FileName():
 				ds.BodyPath = ao.Path
+				// ds.SetBodyFile(qfs.NewMemfileBytes(bodyFile.FileName(), bodyBytesBuf.Bytes()))
 			case transformScriptFilename:
 				ds.Transform.ScriptPath = ao.Path
 				tfdata, err := json.Marshal(ds.Transform)
@@ -607,6 +624,11 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (string, 
 				}
 				// Add the encoded transform file, decrementing the stray fileTasks from above
 				adder.AddFile(qfs.NewMemfileBytes(PackageFileTransform.String(), tfdata))
+			case PackageFileRenderedViz.String():
+				ds.Viz.RenderedPath = ao.Path
+				vsFile := qfs.NewMemfileReader(vizScriptFilename, ds.Viz.ScriptFile())
+				defer vsFile.Close()
+				adder.AddFile(vsFile)
 			case vizScriptFilename:
 				ds.Viz.ScriptPath = ao.Path
 				vizdata, err := json.Marshal(ds.Viz)
@@ -644,7 +666,6 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (string, 
 	if err != nil {
 		return path, err
 	}
-
 	// TODO (b5): currently we're loading to keep the ds pointer hydrated post-write
 	// we should remove that assumption, allowing callers to skip this load step, which may
 	// be unnecessary
