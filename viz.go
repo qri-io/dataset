@@ -47,7 +47,7 @@ func (v *Viz) DropTransientValues() {
 // passed-in resolver otherwise
 func (v *Viz) OpenScriptFile(resolver qfs.PathResolver) (err error) {
 	if v.ScriptBytes != nil {
-		v.scriptFile = qfs.NewMemfileBytes("transform.star", v.ScriptBytes)
+		v.scriptFile = qfs.NewMemfileBytes("template.html", v.ScriptBytes)
 		return nil
 	}
 
@@ -66,6 +66,20 @@ func (v *Viz) OpenScriptFile(resolver qfs.PathResolver) (err error) {
 // SetScriptFile assigns the unexported scriptFile
 func (v *Viz) SetScriptFile(file qfs.File) {
 	v.scriptFile = file
+}
+
+// OpenRenderedFile generates a byte stream of the rendered data
+func (v *Viz) OpenRenderedFile(resolver qfs.PathResolver) (err error) {
+	if v.RenderedPath == "" {
+		// nothing to resolve
+		return nil
+	}
+
+	if resolver == nil {
+		return ErrNoResolver
+	}
+	v.renderedFile, err = resolver.Get(v.RenderedPath)
+	return err
 }
 
 // SetRenderedFile assigns the unexported renderedFile
