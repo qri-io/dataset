@@ -173,7 +173,7 @@ func DerefDatasetCommit(store cafs.Filestore, ds *dataset.Dataset) error {
 // Dataset to be saved
 // Pin the dataset if the underlying store supports the pinning interface
 // All streaming files (Body, Transform Script, Viz Script) Must be Resolved before calling if data their data is to be saved
-func CreateDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, pk crypto.PrivKey, pin, force bool) (path string, err error) {
+func CreateDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, pk crypto.PrivKey, pin, force, shouldRender bool) (path string, err error) {
 
 	if pk == nil {
 		err = fmt.Errorf("private key is required to create a dataset")
@@ -198,7 +198,7 @@ func CreateDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, pk crypto.
 			return
 		}
 	}
-	_, err = prepareDataset(store, ds, dsPrev, pk, force)
+	_, err = prepareDataset(store, ds, dsPrev, pk, force, shouldRender)
 	if err != nil {
 		log.Debug(err.Error())
 		return
@@ -220,7 +220,7 @@ var Timestamp = func() time.Time {
 
 // prepareDataset modifies a dataset in preparation for adding to a dsfs
 // it returns a new data file for use in WriteDataset
-func prepareDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, privKey crypto.PrivKey, force bool) (string, error) {
+func prepareDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, privKey crypto.PrivKey, force, shouldRender bool) (string, error) {
 	var (
 		err error
 		// lock for parallel edits to ds pointer
@@ -298,7 +298,7 @@ func prepareDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, privKey c
 	ds.Commit.Signature = base64.StdEncoding.EncodeToString(signedBytes)
 	ds.SetBodyFile(qfs.NewMemfileBytes("body."+ds.Structure.Format, buf.Bytes()))
 
-	if ds.Viz != nil && ds.Viz.ScriptFile() != nil {
+	if shouldRender && ds.Viz != nil && ds.Viz.ScriptFile() != nil {
 		// render the viz
 		renderedFile, err := dsviz.Render(ds)
 		if err != nil {

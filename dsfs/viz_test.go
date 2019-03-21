@@ -47,7 +47,7 @@ func TestLoadVizScript(t *testing.T) {
 	if err != nil {
 		t.Fatal(err.Error())
 	}
-	path, err := CreateDataset(store, tc.Input, nil, privKey, true, false)
+	path, err := CreateDataset(store, tc.Input, nil, privKey, true, false, true)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
@@ -66,7 +66,7 @@ func TestLoadVizScript(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 	tc.Input.Viz.ScriptPath = vizPath
-	path, err = CreateDataset(store, tc.Input, nil, privKey, true, false)
+	path, err = CreateDataset(store, tc.Input, nil, privKey, true, false, true)
 	if err != nil {
 		t.Fatal(err.Error())
 	}

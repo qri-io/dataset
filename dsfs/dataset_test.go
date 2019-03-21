@@ -128,7 +128,7 @@ func TestCreateDataset(t *testing.T) {
 		return
 	}
 
-	_, err = CreateDataset(store, nil, nil, nil, false, false)
+	_, err = CreateDataset(store, nil, nil, nil, false, false, true)
 	if err == nil {
 		t.Errorf("expected call without prvate key to error")
 		return
@@ -174,7 +174,7 @@ func TestCreateDataset(t *testing.T) {
 			continue
 		}
 
-		path, err := CreateDataset(store, tc.Input, c.prev, privKey, false, false)
+		path, err := CreateDataset(store, tc.Input, c.prev, privKey, false, false, true)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("%s: error mismatch. expected: '%s', got: '%s'", tc.Name, c.err, err)
 			continue
@@ -226,7 +226,7 @@ func TestCreateDataset(t *testing.T) {
 		t.Errorf("case nil body and previous body files, error reading data file: %s", err.Error())
 	}
 	expectedErr := "bodyfile or previous bodyfile needed"
-	_, err = CreateDataset(store, ds, nil, privKey, false, false)
+	_, err = CreateDataset(store, ds, nil, privKey, false, false, true)
 	if err.Error() != expectedErr {
 		t.Errorf("case nil body and previous body files, error mismatch: expected '%s', got '%s'", expectedErr, err.Error())
 	}
@@ -245,7 +245,7 @@ func TestCreateDataset(t *testing.T) {
 	}
 	ds.SetBodyFile(qfs.NewMemfileBytes("body.csv", bodyBytes))
 
-	_, err = CreateDataset(store, ds, dsPrev, privKey, false, false)
+	_, err = CreateDataset(store, ds, dsPrev, privKey, false, false, true)
 	if err != nil && err.Error() != expectedErr {
 		t.Errorf("case no changes in dataset, error mismatch: expected '%s', got '%s'", expectedErr, err.Error())
 	} else if err == nil {
