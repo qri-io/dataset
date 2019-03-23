@@ -67,7 +67,11 @@ func (r *XLSXReader) ReadEntry() (Entry, error) {
 	if !r.r.Next() {
 		return Entry{}, io.EOF
 	}
-	vals, err := r.decode(r.r.Columns())
+	cols, err := r.r.Columns()
+	if err != nil {
+		return Entry{}, err
+	}
+	vals, err := r.decode(cols)
 	if err != nil {
 		return Entry{}, err
 	}
