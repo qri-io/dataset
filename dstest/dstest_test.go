@@ -115,4 +115,9 @@ raleigh,250000,50.65,true
 	if !bytes.Equal(mfdata, data) {
 		t.Errorf("memfile data mismatch")
 	}
+
+	rendered, err := tc.RenderedFile()
+	if err != nil {
+		t.Errorf("reading %s: %s", RenderedFilename, rendered)
+	}
 }

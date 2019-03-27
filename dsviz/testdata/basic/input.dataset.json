@@ -1,0 +1,25 @@
+{
+  "peername" : "steve",
+  "name" : "world_pop",
+  "meta": {
+    "title": "World Population",
+    "description": "a dataset showing the population of the world"
+  },
+  "structure" : {
+    "format": "json",
+    "schema": { 
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": [
+          { "title": "year", "type": "integer" },
+          { "title": "population", "type": "integer" }
+        ]
+      }
+     }
+  },
+  "viz":{
+    "format": "html",
+    "scriptPath": "bar"
+  }
+}
