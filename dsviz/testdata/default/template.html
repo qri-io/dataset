@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    {{- block "stylesheet" . }}
+    <style>
+      body { font-family: Arial, Helvetica, sans-serif; }
+      #wrap { max-width: 960px; margin: 0 auto; }
+      header, section, footer { padding: 3em 0; background: #bbb; }
+    </style>
+    {{ end -}}
+    <title>{{ title }}</title>
+  </head>
+  <body>
+    <div id="wrap">
+      {{ block "header" . -}}
+      <header>
+        <h1>{{ title }}</h1>
+      </header>
+      {{ end -}}
+      {{- block "summary" . -}}
+      <section>
+        <p>{{ ds.meta.description }}</p>
+      </section>
+      {{ end -}}
+      {{- block "stats" . }}{{ if ds.stats -}}
+      <p>stats</p>
+      {{ end }}{{ end -}}
+      {{- block "citations" . -}}
+      <footer>
+        <small>dataset details:</small>
+        <p><a href="https://data.qri.io/{{ ds.peername }}/{{ ds.name }}">{{ ds.peername}}/{{ ds.name }}</a></p>
+        <p>{{ ds.path }}</p>
+        <p>{{ ds.commit.timestamp }}</p>
+        {{- if ds.structure }}
+        <p>{{ filesize ds.structure.length }} | {{ ds.structure.entries }} entries | {{ ds.structure.format }} format</p>
+        {{ end -}}
+      </footer>
+      {{- end }}
+    </div>
+  </body>
+</html>
