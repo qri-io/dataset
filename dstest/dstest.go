@@ -26,6 +26,8 @@ const (
 	InputDatasetFilename = "input.dataset.json"
 	// ExpectDatasetFilename is the filename to use to compare expected outputs
 	ExpectDatasetFilename = "expect.dataset.json"
+	// RenderedFilename is the file that represents an executed viz script
+	RenderedFilename = "rendered.html"
 )
 
 // TestCase is a dataset test case, usually built from a
@@ -92,6 +94,15 @@ func (t TestCase) VizScriptFile() (qfs.File, bool) {
 		return nil, false
 	}
 	return qfs.NewMemfileBytes(t.VizScriptFilename, t.VizScript), true
+}
+
+// RenderedFile returns a qfs.File of the rendered file if one exists
+func (t TestCase) RenderedFile() (qfs.File, error) {
+	path := filepath.Join(t.Path, RenderedFilename)
+	if f, err := os.Open(path); err == nil {
+		return qfs.NewMemfileReader(RenderedFilename, f), nil
+	}
+	return nil, os.ErrNotExist
 }
 
 // BodyFilepath retuns the path to the first valid data file it can find,
