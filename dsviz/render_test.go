@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/qri-io/dataset/dstest"
+	"github.com/qri-io/qfs"
 )
 
 func TestRender(t *testing.T) {
@@ -13,13 +14,22 @@ func TestRender(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	tc := tcs["basic"]
 
+	tc := tcs["custom"]
 	rendered, err := Render(tc.Input)
 	if err != nil {
 		t.Error(err)
 	}
+	checkResult(t, tc, rendered)
 
+	tc = tcs["default"]
+	if rendered, err = Render(tc.Input); err != nil {
+		t.Fatal(err)
+	}
+	checkResult(t, tc, rendered)
+}
+
+func checkResult(t *testing.T, tc dstest.TestCase, rendered qfs.File) {
 	got, err := ioutil.ReadAll(rendered)
 	if err != nil {
 		t.Error(err)
@@ -35,5 +45,7 @@ func TestRender(t *testing.T) {
 		t.Error(err)
 	}
 
-	bytes.Equal(expect, got)
+	if !bytes.Equal(expect, got) {
+		t.Errorf("result mismatch. expected:\n%s\ngot:\n%s", string(expect), string(got))
+	}
 }

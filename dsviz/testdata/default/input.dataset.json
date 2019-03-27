@@ -1,0 +1,31 @@
+{
+  "path" : "/ipfs/QmSH2WNg8x3ckC8GYTZDY6kVtxfMo2RNJSMgcc2Ewb7iiJ",
+  "peername" : "steve",
+  "name" : "world_pop",
+  "commit" : {
+    "timestamp": "2019-03-20T20:02:24.689938Z"
+  },
+  "meta": {
+    "title": "World Population",
+    "description": "a dataset showing the population of the world"
+  },
+  "structure" : {
+    "format": "json",
+    "length" : 234567,
+    "entries" : 234,
+    "schema": { 
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": [
+          { "title": "year", "type": "integer" },
+          { "title": "population", "type": "integer" }
+        ]
+      }
+     }
+  },
+  "viz":{
+    "format": "html",
+    "scriptPath": "bar"
+  }
+}
