@@ -30,6 +30,11 @@ func Render(ds *dataset.Dataset) (qfs.File, error) {
 	return renderHTML(ds)
 }
 
+// PredefinedHTMLTemplates is a key-value set of templates to be add to HTML
+// renders. {{ block }} elements defined in any templates here will be available
+// to passed-in dataset template files used during Render
+var PredefinedHTMLTemplates map[string]string
+
 func renderHTML(ds *dataset.Dataset) (qfs.File, error) {
 	script := ds.Viz.ScriptFile()
 	// tee the viz file to avoid losing script data
@@ -67,22 +72,35 @@ func renderHTML(ds *dataset.Dataset) (qfs.File, error) {
 		},
 	})
 
+	for name, tmplText := range PredefinedHTMLTemplates {
+		tmpl.New(name).Parse(tmplText)
+	}
+
 	if tmpl, err = tmpl.Parse(string(tmplBytes)); err != nil {
 		return nil, fmt.Errorf("parsing template: %s", err.Error())
 	}
 
-	// load all body data
-	bodyFile := ds.BodyFile()
-	bodyBytesBuf := &bytes.Buffer{}
-	tr = io.TeeReader(bodyFile, bodyBytesBuf)
-	rr, err := dsio.NewEntryReader(ds.Structure, tr)
-	if err != nil {
-		return nil, fmt.Errorf("error allocating data reader: %s", err)
-	}
+	if ds.Structure != nil {
+		// load all body data
+		bodyFile := ds.BodyFile()
+		bodyBytesBuf := &bytes.Buffer{}
+		tr = io.TeeReader(bodyFile, bodyBytesBuf)
+		rr, err := dsio.NewEntryReader(ds.Structure, tr)
+		if err != nil {
+			return nil, fmt.Errorf("error allocating data reader: %s", err)
+		}
 
-	bodyEntries, err := readEntries(rr)
-	if err != nil {
-		return nil, err
+		bodyEntries, err := readEntries(rr)
+		if err != nil {
+			return nil, err
+		}
+
+		ds.Body = bodyEntries
+		defer func() {
+			ds.Body = nil
+			// restore body file
+			ds.SetBodyFile(qfs.NewMemfileReader(bodyFile.FileName(), bodyBytesBuf))
+		}()
 	}
 
 	// make sure there's a meta component, lots of templates reference meta
@@ -90,17 +108,12 @@ func renderHTML(ds *dataset.Dataset) (qfs.File, error) {
 		ds.Meta = &dataset.Meta{}
 	}
 
-	ds.Body = bodyEntries
-
 	// do the render
 	tmplBuf := &bytes.Buffer{}
 	if err := tmpl.Execute(tmplBuf, ds); err != nil {
 		return nil, err
 	}
 
-	ds.Body = nil
-	// restore body file
-	ds.SetBodyFile(qfs.NewMemfileReader(bodyFile.FileName(), bodyBytesBuf))
 	return qfs.NewMemfileReader(htmlTmplName, tmplBuf), nil
 }
 
@@ -167,16 +180,6 @@ func printByteInfo(n int64) string {
 	}{"", 0}
 
 	switch {
-	// yottabyte and zettabyte overflow int
-	// case l > yottabyte:
-	//  length.name = "YB"
-	//  length.value = l / yottabyte
-	// case l > zettabyte:
-	//  length.name = "ZB"
-	//  length.value = l / zettabyte
-	case l >= exabyte:
-		length.name = "EB"
-		length.value = l / exabyte
 	case l >= petabyte:
 		length.name = "PB"
 		length.value = l / petabyte
