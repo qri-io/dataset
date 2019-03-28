@@ -5,5 +5,12 @@
 </head>
 <body>
   <h1>{{ ds.meta.title }}</h1>
+  <table>
+  {{- range getBody }}
+  <tr>
+    {{ range . }}<td>{{ . }}</td>{{ end }}
+  </tr>
+  {{- end }}
+  </table>
 </body>
 </html>

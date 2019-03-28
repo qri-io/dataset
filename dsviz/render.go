@@ -16,10 +16,11 @@ import (
 
 const htmlTmplName = "index.html"
 
-// Render executes the viz component of a dataset, returning a "rendered" output that is the result
-// of running the viz script template, providing the dataset as input
-// the provided dataset must be loaded, with script files ready for consumption
-// Render replaces any file readers it consumes, making the dataset safe for reuse after calling
+// Render executes the viz component of a dataset, returning a resulting file of
+// running the viz script template file, with the host dataset as input. The
+// provided dataset must be fully deserialized, with all files Opened
+// Render replaces any file readers it consumes, making the dataset safe for
+// reuse after calling render
 func Render(ds *dataset.Dataset) (qfs.File, error) {
 	if ds.Viz == nil {
 		return nil, fmt.Errorf("no viz component")
@@ -61,8 +62,9 @@ func renderHTML(ds *dataset.Dataset) (qfs.File, error) {
 		"ds": func() map[string]interface{} {
 			return vizDs
 		},
+		"getBody": getBodyFunc(ds),
 		"filesize": func(n float64) string {
-			return printByteInfo(int64(n))
+			return printByteInfo(int(n))
 		},
 		"title": func() string {
 			if ds.Meta != nil && ds.Meta.Title != "" {
@@ -80,11 +82,36 @@ func renderHTML(ds *dataset.Dataset) (qfs.File, error) {
 		return nil, fmt.Errorf("parsing template: %s", err.Error())
 	}
 
-	if ds.Structure != nil {
+	// do the render
+	tmplBuf := &bytes.Buffer{}
+	if err := tmpl.Execute(tmplBuf, ds); err != nil {
+		return nil, err
+	}
+
+	return qfs.NewMemfileReader(htmlTmplName, tmplBuf), nil
+}
+
+func vizDataset(ds *dataset.Dataset) (vizDs map[string]interface{}, err error) {
+	data, err := json.Marshal(ds)
+	if err != nil {
+		return nil, err
+	}
+	vizDs = map[string]interface{}{}
+	err = json.Unmarshal(data, &vizDs)
+	return
+}
+
+func getBodyFunc(ds *dataset.Dataset) func() (interface{}, error) {
+	return func() (interface{}, error) {
+
+		if ds.Structure == nil {
+			return nil, fmt.Errorf("can't get_body. dataset has no structure component")
+		}
+
 		// load all body data
 		bodyFile := ds.BodyFile()
 		bodyBytesBuf := &bytes.Buffer{}
-		tr = io.TeeReader(bodyFile, bodyBytesBuf)
+		tr := io.TeeReader(bodyFile, bodyBytesBuf)
 		rr, err := dsio.NewEntryReader(ds.Structure, tr)
 		if err != nil {
 			return nil, fmt.Errorf("error allocating data reader: %s", err)
@@ -95,29 +122,17 @@ func renderHTML(ds *dataset.Dataset) (qfs.File, error) {
 			return nil, err
 		}
 
-		ds.Body = bodyEntries
 		defer func() {
-			ds.Body = nil
 			// restore body file
 			ds.SetBodyFile(qfs.NewMemfileReader(bodyFile.FileName(), bodyBytesBuf))
 		}()
-	}
 
-	// make sure there's a meta component, lots of templates reference meta
-	if ds.Meta == nil {
-		ds.Meta = &dataset.Meta{}
+		return bodyEntries, nil
 	}
-
-	// do the render
-	tmplBuf := &bytes.Buffer{}
-	if err := tmpl.Execute(tmplBuf, ds); err != nil {
-		return nil, err
-	}
-
-	return qfs.NewMemfileReader(htmlTmplName, tmplBuf), nil
 }
 
 // readEntries reads entries and returns them as a native go array or map
+// COPIED from github.com/qri-io/qri/base/entries.go
 func readEntries(reader dsio.EntryReader) (interface{}, error) {
 	obj := make(map[string]interface{})
 	array := make([]interface{}, 0)
@@ -148,16 +163,6 @@ func readEntries(reader dsio.EntryReader) (interface{}, error) {
 	return array, nil
 }
 
-func vizDataset(ds *dataset.Dataset) (vizDs map[string]interface{}, err error) {
-	data, err := json.Marshal(ds)
-	if err != nil {
-		return nil, err
-	}
-	vizDs = map[string]interface{}{}
-	err = json.Unmarshal(data, &vizDs)
-	return
-}
-
 const (
 	bite = 1 << (10 * iota)
 	kilobyte
@@ -170,9 +175,11 @@ const (
 	yottabyte
 )
 
-func printByteInfo(n int64) string {
-	// Use 64-bit ints to support platforms on which int is not large enough to represent
-	// the constants below (exabyte, petabyte, etc). For example: Raspberry Pi running arm6.
+// COPIED (b5): github.com/qri-io/qri/cmd/print.go
+func printByteInfo(n int) string {
+	// Use 64-bit ints to support platforms on which int is not large enough to
+	// represent the constants below (exabyte, petabyte, etc).
+	// For example: Raspberry Pi running arm6.
 	l := int64(n)
 	length := struct {
 		name  string

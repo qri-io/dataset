@@ -118,6 +118,9 @@ raleigh,250000,50.65,true
 
 	rendered, err := tc.RenderedFile()
 	if err != nil {
-		t.Errorf("reading %s: %s", RenderedFilename, rendered)
+		t.Errorf("reading %s: %s", RenderedFilename, err)
+	}
+	if rendered == nil {
+		t.Error("expected rendered to not equal nil")
 	}
 }
