@@ -26,7 +26,7 @@ func TestRenderHTML(t *testing.T) {
 	tc := tcs["custom"]
 	rendered, err := Render(tc.Input)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	checkResult(t, tc, rendered)
 
@@ -105,5 +105,16 @@ func TestHTMLFuncs(t *testing.T) {
 
 	if _, err := Render(ds); err != nil {
 		t.Fatal(err)
+	}
+
+	// getBody when there's no body should fail
+	ds = &dataset.Dataset{
+		Name:     "a",
+		Peername: "b",
+		Viz:      &dataset.Viz{Format: "html"},
+	}
+	ds.Viz.SetScriptFile(qfs.NewMemfileBytes("template.html", []byte(`{{ getBody }}`)))
+	if _, err := Render(ds); err == nil {
+		t.Errorf("expected render to error")
 	}
 }

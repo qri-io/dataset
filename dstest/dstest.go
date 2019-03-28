@@ -99,10 +99,8 @@ func (t TestCase) VizScriptFile() (qfs.File, bool) {
 // RenderedFile returns a qfs.File of the rendered file if one exists
 func (t TestCase) RenderedFile() (qfs.File, error) {
 	path := filepath.Join(t.Path, RenderedFilename)
-	if f, err := os.Open(path); err == nil {
-		return qfs.NewMemfileReader(RenderedFilename, f), nil
-	}
-	return nil, os.ErrNotExist
+	f, err := os.Open(path)
+	return qfs.NewMemfileReader(RenderedFilename, f), err
 }
 
 // BodyFilepath retuns the path to the first valid data file it can find,
