@@ -5,8 +5,17 @@
 </head>
 <body>
   <h1>{{ ds.meta.title }}</h1>
+  <h3>First Row:</h3>
   <table>
-  {{- range getBody }}
+  {{- range bodyEntries 0 1 }}
+  <tr>
+    {{ range . }}<td>{{ . }}</td>{{ end }}
+  </tr>
+  {{- end }}
+  </table>
+  <h3>Full Body:</h3>
+  <table>
+  {{- range allBodyEntries }}
   <tr>
     {{ range . }}<td>{{ . }}</td>{{ end }}
   </tr>
