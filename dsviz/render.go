@@ -62,7 +62,8 @@ func renderHTML(ds *dataset.Dataset) (qfs.File, error) {
 		"ds": func() map[string]interface{} {
 			return vizDs
 		},
-		"getBody": getBodyFunc(ds),
+		"bodyEntries":    bodyEntriesFunc(ds),
+		"allBodyEntries": allBodyEntriesFunc(ds),
 		"filesize": func(n float64) string {
 			return printByteInfo(int(n))
 		},
@@ -101,34 +102,51 @@ func vizDataset(ds *dataset.Dataset) (vizDs map[string]interface{}, err error) {
 	return
 }
 
-func getBodyFunc(ds *dataset.Dataset) func() (interface{}, error) {
+func allBodyEntriesFunc(ds *dataset.Dataset) func() (interface{}, error) {
 	return func() (interface{}, error) {
-
-		if ds.Structure == nil {
-			return nil, fmt.Errorf("can't get_body. dataset has no structure component")
-		}
-
-		// load all body data
-		bodyFile := ds.BodyFile()
-		bodyBytesBuf := &bytes.Buffer{}
-		tr := io.TeeReader(bodyFile, bodyBytesBuf)
-		rr, err := dsio.NewEntryReader(ds.Structure, tr)
-		if err != nil {
-			return nil, fmt.Errorf("error allocating data reader: %s", err)
-		}
-
-		bodyEntries, err := readEntries(rr)
-		if err != nil {
-			return nil, err
-		}
-
-		defer func() {
-			// restore body file
-			ds.SetBodyFile(qfs.NewMemfileReader(bodyFile.FileName(), bodyBytesBuf))
-		}()
-
-		return bodyEntries, nil
+		return bodyEntries(ds, 0, -1)
 	}
+}
+
+func bodyEntriesFunc(ds *dataset.Dataset) func(offset int, limit int) (interface{}, error) {
+	return func(offset, limit int) (interface{}, error) {
+		return bodyEntries(ds, offset, limit)
+	}
+}
+
+func bodyEntries(ds *dataset.Dataset, offset, limit int) (interface{}, error) {
+	if ds.Structure == nil {
+		return nil, fmt.Errorf("can't get_body. dataset has no structure component")
+	}
+
+	// load all body data
+	bodyFile := ds.BodyFile()
+	bodyBytesBuf := &bytes.Buffer{}
+	tr := io.TeeReader(bodyFile, bodyBytesBuf)
+	rr, err := dsio.NewEntryReader(ds.Structure, tr)
+	if err != nil {
+		return nil, fmt.Errorf("error allocating data reader: %s", err)
+	}
+
+	if offset >= 0 && limit >= 0 {
+		rr = &dsio.PagedReader{
+			Reader: rr,
+			Offset: offset,
+			Limit:  limit,
+		}
+	}
+
+	bodyEntries, err := readEntries(rr)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		// restore body file
+		ds.SetBodyFile(qfs.NewMemfileReader(bodyFile.FileName(), bodyBytesBuf))
+	}()
+
+	return bodyEntries, nil
 }
 
 // readEntries reads entries and returns them as a native go array or map
