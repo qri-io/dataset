@@ -671,8 +671,10 @@ func WriteDataset(store cafs.Filestore, ds *dataset.Dataset, pin bool) (string, 
 	// be unnecessary
 	var loaded *dataset.Dataset
 	loaded, err = LoadDataset(store, path)
+	if err != nil {
+		return "", err
+	}
 	loaded.Name = name
 	*ds = *loaded
-
-	return path, err
+	return path, nil
 }

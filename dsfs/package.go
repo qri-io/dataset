@@ -1,7 +1,6 @@
 package dsfs
 
 import (
-	"path/filepath"
 	"strings"
 
 	"github.com/qri-io/qfs/cafs"
@@ -96,5 +95,8 @@ func PackageFilepath(store cafs.Filestore, path string, pf PackageFile) string {
 	if prefix == "" {
 		return path
 	}
-	return filepath.Join("/", prefix, GetHashBase(path, prefix), pf.String())
+	// Keep forward slashes in the path by using strings.Join instead of filepath.Join. This
+	// will make IPFS happy on Windows, since it always wants "/" and not "\". The blank
+	// path component in the front of this join ensures that the path begins with a "/" character.
+	return strings.Join([]string{"", prefix, GetHashBase(path, prefix), pf.String()}, "/")
 }
