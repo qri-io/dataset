@@ -18,18 +18,15 @@ func TestCopyJSONToJSON(t *testing.T) {
 	}
 	r, err := NewJSONReader(st, strings.NewReader(text))
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
 	w, err := NewJSONWriter(st, sink)
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
 	err = Copy(r, w)
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
 	w.Close()
 	str := sink.String()
@@ -47,18 +44,15 @@ func TestCopyJSONToBytes(t *testing.T) {
 	}
 	r, err := NewJSONReader(st, strings.NewReader(text))
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
 	w, err := NewEntryBuffer(st)
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
 	err = Copy(r, w)
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
 	w.Close()
 	b := w.Bytes()
@@ -77,18 +71,15 @@ func TestCopyJSONToCBOR(t *testing.T) {
 	}
 	r, err := NewJSONReader(st, strings.NewReader(text))
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
 	w, err := NewCBORWriter(st, &sink)
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
 	err = Copy(r, w)
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
 	w.Close()
 	b := sink.Bytes()
@@ -107,19 +98,16 @@ func TestCopyJSONToJSONWithPaging(t *testing.T) {
 	}
 	r, err := NewJSONReader(st, strings.NewReader(text))
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
 	w, err := NewJSONWriter(st, sink)
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
 	p := &PagedReader{Reader: r, Limit: 2, Offset: 1}
 	err = Copy(p, w)
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
 	w.Close()
 	str := sink.String()
@@ -138,23 +126,67 @@ func TestCopyJSONToJSONPagingRunsOut(t *testing.T) {
 	}
 	r, err := NewJSONReader(st, strings.NewReader(text))
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
 	w, err := NewJSONWriter(st, sink)
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
 	p := &PagedReader{Reader: r, Limit: 2, Offset: 1}
 	err = Copy(p, w)
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
 	w.Close()
 	str := sink.String()
 	if str != expected {
 		t.Errorf("Copy limited due to paging did not succeed: %v <> %v", str, expected)
+	}
+}
+
+// We've had lots of problems with qri eating csv header rows in other parts of the
+// codebase. This is less silly than it looks
+func TestCopyCSVToCSV(t *testing.T) {
+	text := `title,count,is great
+foo,1,true
+bar,2,false
+bat,3,meh
+`
+	sink := bytes.NewBufferString("")
+	st := &dataset.Structure{
+		Format: "csv",
+		FormatConfig: map[string]interface{}{
+			"headerRow": true,
+		},
+		Schema: map[string]interface{}{
+			"type": "array",
+			"items": map[string]interface{}{
+				"type": "array",
+				"items": []interface{}{
+					map[string]interface{}{"title": "title", "type": "string"},
+					map[string]interface{}{"title": "count", "type": "integer"},
+					map[string]interface{}{"title": "is great", "type": "string"},
+				},
+			},
+		},
+	}
+
+	r, err := NewEntryReader(st, strings.NewReader(text))
+	if err != nil {
+		t.Fatal(err)
+	}
+	w, err := NewEntryWriter(st, sink)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = Copy(r, w)
+	if err != nil {
+		t.Fatal(err)
+	}
+	w.Close()
+	got := sink.String()
+	if text != got {
+		t.Errorf("result mismatch. expected: '%s'\ngot: '%s'", text, got)
 	}
 }
