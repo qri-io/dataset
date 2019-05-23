@@ -1,4 +1,3 @@
-// Package dsviz performs actions on viz components of a dataset
 package dsviz
 
 import (
@@ -73,6 +72,12 @@ func renderHTML(ds *dataset.Dataset) (qfs.File, error) {
 			}
 			return fmt.Sprintf("%s/%s", ds.Peername, ds.Name)
 		},
+		// TODO (b5):
+		// {{ timeParse }}
+		// 	parse a timestamp string, returning a golang *time.Time struct
+		// {{ timeFormat }}
+		// 	convert the textual representation of the datetime into the specified
+		// 	format using a template date
 	})
 
 	for name, tmplText := range PredefinedHTMLTemplates {
