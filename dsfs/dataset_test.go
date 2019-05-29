@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/libp2p/go-libp2p-crypto"
+	crypto "github.com/libp2p/go-libp2p-crypto"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dstest"
 	"github.com/qri-io/qfs"
@@ -150,6 +150,8 @@ func TestCreateDataset(t *testing.T) {
 			"", nil, 0, "error loading dataset commit: error loading commit file: cafs: path not found"},
 		{"invalid",
 			"", nil, 0, "commit is required"},
+		{"strict_fail",
+			"", nil, 0, "strict dataset body is invalid"},
 		{"cities",
 			"/map/QmYDVHBmGHWV7h8iCU9H6BrYoXXnm8pCFhhJzZw5jJitoq", nil, 6, ""},
 		{"all_fields",
@@ -233,8 +235,8 @@ func TestCreateDataset(t *testing.T) {
 
 	// Case: no changes in dataset
 	expectedErr = "error saving: no changes detected"
-	dsPrev, err := LoadDataset(store, cases[2].resultPath)
-	ds.PreviousPath = cases[2].resultPath
+	dsPrev, err := LoadDataset(store, cases[3].resultPath)
+	ds.PreviousPath = cases[3].resultPath
 	if err != nil {
 		t.Errorf("case no changes in dataset, error loading previous dataset file: %s", err.Error())
 	}

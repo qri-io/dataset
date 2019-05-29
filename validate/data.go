@@ -14,6 +14,8 @@ import (
 func EntryReader(r dsio.EntryReader) ([]jsonschema.ValError, error) {
 	st := r.Structure()
 
+	// TODO (b5) - do we really need to parse this as JSON? can't we just read and
+	// valudate golang values?
 	buf, err := dsio.NewEntryBuffer(&dataset.Structure{
 		Format: "json",
 		Schema: st.Schema,
