@@ -62,6 +62,10 @@ type Structure struct {
 	// are defined using the IETF json-schema specification. for more info
 	// on json-schema see: https://json-schema.org
 	Schema map[string]interface{} `json:"schema,omitempty"`
+	// Strict requires schema validation to pass without error. Datasets with
+	// strict: true can have additional functionality and performance speedups
+	// that comes with being able to assume that all data is valid
+	Strict bool `json:"strict,omitempty"`
 }
 
 // NewStructureRef creates an empty struct with it's
@@ -109,6 +113,7 @@ func (s *Structure) Abstract() *Structure {
 		Format:       s.Format,
 		FormatConfig: s.FormatConfig,
 		Encoding:     s.Encoding,
+		Strict:       s.Strict,
 	}
 	if s.Schema != nil {
 		// TODO - Fix meeeeeeee
@@ -171,6 +176,7 @@ func (s Structure) MarshalJSONObject() ([]byte, error) {
 		Length:       s.Length,
 		Qri:          kind,
 		Schema:       s.Schema,
+		Strict:       s.Strict,
 	})
 }
 
@@ -203,7 +209,8 @@ func (s *Structure) IsEmpty() bool {
 		s.Format == "" &&
 		s.FormatConfig == nil &&
 		s.Length == 0 &&
-		s.Schema == nil
+		s.Schema == nil &&
+		s.Strict == false
 }
 
 // Assign collapses all properties of a group of structures on to one
@@ -254,6 +261,9 @@ func (s *Structure) Assign(structures ...*Structure) {
 			// }
 			// s.Schema.Assign(st.Schema)
 			s.Schema = st.Schema
+		}
+		if st.Strict != false {
+			s.Strict = st.Strict
 		}
 	}
 }

@@ -82,6 +82,7 @@ func TestStructureIsEmpty(t *testing.T) {
 		{&Structure{FormatConfig: map[string]interface{}{}}},
 		{&Structure{Length: 1}},
 		{&Structure{Schema: map[string]interface{}{}}},
+		{&Structure{Strict: true}},
 	}
 
 	for i, c := range cases {
@@ -102,6 +103,7 @@ func TestStructureAssign(t *testing.T) {
 		Encoding:    "UTF-8",
 		Entries:     3000000000,
 		Format:      "csv",
+		Strict:      true,
 	}
 	got := &Structure{
 		Length: 2000,
@@ -117,6 +119,7 @@ func TestStructureAssign(t *testing.T) {
 		Encoding:    "UTF-8",
 		Entries:     3000000000,
 		Format:      "csv",
+		Strict:      true,
 	})
 
 	if err := CompareStructures(expect, got); err != nil {

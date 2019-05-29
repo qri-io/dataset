@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/libp2p/go-libp2p-crypto"
+	crypto "github.com/libp2p/go-libp2p-crypto"
 	"github.com/multiformats/go-multihash"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsio"
@@ -327,6 +327,13 @@ func setErrCount(ds *dataset.Dataset, data qfs.File, mu *sync.Mutex, done chan e
 		log.Debug(err.Error())
 		done <- fmt.Errorf("validating data: %s", err.Error())
 		return
+	}
+
+	if ds.Structure != nil {
+		if ds.Structure.Strict && len(validationErrors) > 0 {
+			done <- fmt.Errorf("strict dataset body is invalid")
+			return
+		}
 	}
 
 	mu.Lock()
