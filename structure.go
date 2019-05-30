@@ -210,7 +210,7 @@ func (s *Structure) IsEmpty() bool {
 		s.FormatConfig == nil &&
 		s.Length == 0 &&
 		s.Schema == nil &&
-		s.Strict == false
+		!s.Strict
 }
 
 // Assign collapses all properties of a group of structures on to one
@@ -262,7 +262,7 @@ func (s *Structure) Assign(structures ...*Structure) {
 			// s.Schema.Assign(st.Schema)
 			s.Schema = st.Schema
 		}
-		if st.Strict != false {
+		if st.Strict {
 			s.Strict = st.Strict
 		}
 	}
