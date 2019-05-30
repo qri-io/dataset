@@ -29,12 +29,13 @@ type crlfReplaceReader struct {
 
 // Read implements io.Reader for crlfReplaceReader
 func (c crlfReplaceReader) Read(p []byte) (n int, err error) {
-	if len(p) == 0 {
+	lenP := len(p)
+	if lenP == 0 {
 		return
 	}
 
 	for {
-		if n == len(p) {
+		if n == lenP {
 			return
 		}
 
@@ -45,7 +46,7 @@ func (c crlfReplaceReader) Read(p []byte) (n int, err error) {
 
 		// any time we encounter \r & still have space, check to see if \n follows
 		// ff next char is not \n, add it in manually
-		if p[n] == '\r' && n < len(p) {
+		if p[n] == '\r' && n < lenP-1 {
 			if pk, err := c.rdr.Peek(1); (err == nil && pk[0] != '\n') || (err != nil && err.Error() == "EOF") {
 				n++
 				p[n] = '\n'
