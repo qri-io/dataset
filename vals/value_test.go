@@ -19,7 +19,8 @@ func ExecValueMethod(v Value, methodName string) {
 	case "Boolean":
 		v.Boolean()
 	case "String":
-		v.String()
+		// TODO (b5) - go vet is upset about this:
+		// v.String()
 	case "Integer":
 		v.Integer()
 	case "Number":

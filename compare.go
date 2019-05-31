@@ -242,8 +242,6 @@ func CompareSchemas(a, b map[string]interface{}) error {
 	// 		return fmt.Errorf("Fields: element %d: %s", i, err.Error())
 	// 	}
 	// }
-
-	return nil
 }
 
 // CompareCommits checks if all fields of a Commit are equal,
