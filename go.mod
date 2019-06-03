@@ -12,8 +12,8 @@ require (
 	github.com/mr-tron/base58 v1.1.2
 	github.com/multiformats/go-multihash v0.0.5
 	github.com/qri-io/compare v0.1.0
-	github.com/qri-io/dsdiff v0.1.0
-	github.com/qri-io/jsonschema v0.1.0
+	github.com/qri-io/dsdiff v0.1.1
+	github.com/qri-io/jsonschema v0.1.1
 	github.com/qri-io/qfs v0.1.0
 	github.com/qri-io/varName v0.1.0
 	github.com/ugorji/go v1.1.4
