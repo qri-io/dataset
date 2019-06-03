@@ -13,10 +13,10 @@ import (
 	crypto "github.com/libp2p/go-libp2p-crypto"
 	"github.com/multiformats/go-multihash"
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/dataset/dsdiff"
 	"github.com/qri-io/dataset/dsio"
 	"github.com/qri-io/dataset/dsviz"
 	"github.com/qri-io/dataset/validate"
-	"github.com/qri-io/dsdiff"
 	"github.com/qri-io/qfs"
 	"github.com/qri-io/qfs/cafs"
 )
