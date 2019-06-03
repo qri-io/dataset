@@ -189,6 +189,7 @@ github.com/ipfs/go-fs-lock v0.0.1 h1:XHX8uW4jQBYWHj59XXcjg7BHlHxV9ZOYs6Y43yb7/l0
 github.com/ipfs/go-fs-lock v0.0.1/go.mod h1:DNBekbboPKcxs1aukPSaOtFA3QfSdi5C855v0i9XJ8Y=
 github.com/ipfs/go-ipfs v0.4.21-rc3 h1:GeSJJ9+r6nRHlaQNvUB2yAZ2aUQcJs7zuCa1cpMVCuM=
 github.com/ipfs/go-ipfs v0.4.21-rc3/go.mod h1:kh51IS+/hCyR4DLH6+821iiIs/7413OK7ZPRtX4oWkM=
+github.com/ipfs/go-ipfs v0.4.21/go.mod h1:T9zAmGO+rzbvLjDUm0DHtYXtdT4GhWOZeCPztgmt2V8=
 github.com/ipfs/go-ipfs-addr v0.0.1 h1:DpDFybnho9v3/a1dzJ5KnWdThWD1HrFLpQ+tWIyBaFI=
 github.com/ipfs/go-ipfs-addr v0.0.1/go.mod h1:uKTDljHT3Q3SUWzDLp3aYUi8MrY32fgNgogsIa0npjg=
 github.com/ipfs/go-ipfs-blockstore v0.0.1 h1:O9n3PbmTYZoNhkgkEyrXTznbmktIXif62xLX+8dPHzc=
@@ -198,6 +199,7 @@ github.com/ipfs/go-ipfs-chunker v0.0.1 h1:cHUUxKFQ99pozdahi+uSC/3Y6HeRpi9oTeUHbE
 github.com/ipfs/go-ipfs-chunker v0.0.1/go.mod h1:tWewYK0we3+rMbOh7pPFGDyypCtvGcBFymgY4rSDLAw=
 github.com/ipfs/go-ipfs-cmds v0.0.7 h1:0N2NXxYAZn1kHpHrZMHZYRcVGJSxQogDD89oKc0GZMg=
 github.com/ipfs/go-ipfs-cmds v0.0.7/go.mod h1:E5ou2OpwkAtR8LdneNdq4w1vPcrTWvh/6WPhjxGaX/Y=
+github.com/ipfs/go-ipfs-cmds v0.0.8/go.mod h1:TiK4e7/V31tuEb8YWDF8lN3qrnDH+BS7ZqWIeYJlAs8=
 github.com/ipfs/go-ipfs-config v0.0.1/go.mod h1:KDbHjNyg4e6LLQSQpkgQMBz6Jf4LXiWAcmnkcwmH0DU=
 github.com/ipfs/go-ipfs-config v0.0.3 h1:Ep4tRdP1iVK76BgOprD9B/qtOEdpno+1Xb57BqydgGk=
 github.com/ipfs/go-ipfs-config v0.0.3/go.mod h1:KDbHjNyg4e6LLQSQpkgQMBz6Jf4LXiWAcmnkcwmH0DU=
@@ -286,6 +288,7 @@ github.com/jonboulle/clockwork v0.1.0/go.mod h1:Ii8DK3G1RaLaWxj9trq07+26W01tbo22
 github.com/jrick/logrotate v1.0.0/go.mod h1:LNinyqDIJnpAur+b8yyulnQw/wDuN1+BYKlTRt3OuAQ=
 github.com/jtolds/gls v4.2.1+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfVYBRgL+9YlvaHOwJU=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
+github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88/go.mod h1:3w7q1U84EfirKl04SVQ/s7nPm1ZPhiXd34z40TNz36k=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=
 github.com/kisielk/errcheck v1.2.0/go.mod h1:/BMXB+zMLi60iA8Vv6Ksmxu/1UDYcXs4uQLJ+jE2L00=
 github.com/kisielk/gotool v0.0.0-20161130080628-0de1eaf82fa3/go.mod h1:jxZFDH7ILpTPQTk+E2s+z4CUas9lVNjIuKR4c5/zKgM=
@@ -465,11 +468,13 @@ github.com/marten-seemann/qtls v0.2.3/go.mod h1:xzjG7avBwGGbdZ8dTGxlBnLArsVKLvwm
 github.com/mattn/go-colorable v0.0.9/go.mod h1:9vuHe8Xs5qXnSaW/c/ABM9alt+Vo+STaOChaDxuIBZU=
 github.com/mattn/go-colorable v0.1.1 h1:G1f5SKeVxmagw/IyvzvtZE4Gybcc4Tr1tf7I8z0XgOg=
 github.com/mattn/go-colorable v0.1.1/go.mod h1:FuOcm+DKB9mbwrcAfNl7/TZVBZ6rcnceauSikq3lYCQ=
+github.com/mattn/go-colorable v0.1.2/go.mod h1:U0ppj6V5qS13XJ6of8GYAs25YV2eR4EVcfRqFIhoBtE=
 github.com/mattn/go-isatty v0.0.3/go.mod h1:M+lRXTBqGeGNdLjl/ufCoiOlB5xdOkqRJdNxMWT7Zi4=
 github.com/mattn/go-isatty v0.0.5 h1:tHXDdz1cpzGaovsTB+TVB8q90WEokoVmfMqoVcrLUgw=
 github.com/mattn/go-isatty v0.0.5/go.mod h1:Iq45c/XA43vh69/j3iqttzPXn0bhXyGjM0Hdxcsrc5s=
 github.com/mattn/go-isatty v0.0.7 h1:UvyT9uN+3r7yLEYSlJsbQGdsaB/a0DlgWP3pql6iwOc=
 github.com/mattn/go-isatty v0.0.7/go.mod h1:Iq45c/XA43vh69/j3iqttzPXn0bhXyGjM0Hdxcsrc5s=
+github.com/mattn/go-isatty v0.0.8/go.mod h1:Iq45c/XA43vh69/j3iqttzPXn0bhXyGjM0Hdxcsrc5s=
 github.com/mattn/go-runewidth v0.0.4 h1:2BvfKmzob6Bmd4YsL0zygOqfdFnK7GR4QL06Do4/p7Y=
 github.com/mattn/go-runewidth v0.0.4/go.mod h1:LwmH8dsx7+W8Uxz3IHJYH5QSwggIsqBzpuz5H//U1FU=
 github.com/mattn/goveralls v0.0.2/go.mod h1:8d1ZMHsd7fW6IRPKQh46F2WRpyib5/X4FOpevwGNQEw=
@@ -566,6 +571,8 @@ github.com/qri-io/compare v0.0.0-20190530172149-34374beada23 h1:f2Dbp1yyUU29MiSk
 github.com/qri-io/compare v0.0.0-20190530172149-34374beada23/go.mod h1:i/tVuDGRXVxhuZ8ZUieF23u6rQ6wLGJl7KKWpoMRaTE=
 github.com/qri-io/compare v0.0.0-20190530173932-be40b875611a h1:KDBluvaqHzB5vsY6fwVK7WQPbpPFPkqsar9cmmt7siY=
 github.com/qri-io/compare v0.0.0-20190530173932-be40b875611a/go.mod h1:i/tVuDGRXVxhuZ8ZUieF23u6rQ6wLGJl7KKWpoMRaTE=
+github.com/qri-io/compare v0.1.0 h1:A/MRx3uEnJ/iMjfJY1VOqH9CYs9zFSEYaFVeXuGfmis=
+github.com/qri-io/compare v0.1.0/go.mod h1:i/tVuDGRXVxhuZ8ZUieF23u6rQ6wLGJl7KKWpoMRaTE=
 github.com/qri-io/dataset v0.0.0-20190516191825-5a7de4a0f2d4/go.mod h1:JF7Gsqd+3LU7lmOriBRtNVJ0HkciNX6aVjoMAM3bOdA=
 github.com/qri-io/dsdiff v0.0.0-20190503213616-4125cbf6b2a4 h1:iofVbBCWcsACpgOj4c8tKHBIPwa0RuFXtuqENsohTOs=
 github.com/qri-io/dsdiff v0.0.0-20190503213616-4125cbf6b2a4/go.mod h1:0pO3Ix31c7J64SP/5bbrIONHkM4UgF8hexpJUm9AjTw=
@@ -573,6 +580,8 @@ github.com/qri-io/dsdiff v0.0.0-20190530161248-3ce708540d1e h1:CTiR46SN0oOUoCUfU
 github.com/qri-io/dsdiff v0.0.0-20190530161248-3ce708540d1e/go.mod h1:L3XVy5VBZo6ImJ9u1noEpPnXg2lw9TITVa5cOnLzSW8=
 github.com/qri-io/dsdiff v0.0.0-20190530174105-54ea83fb77de h1:ZDsXk8ZInwyysXQIJ8us5dbdDBOSNMr+4y6faY1x69g=
 github.com/qri-io/dsdiff v0.0.0-20190530174105-54ea83fb77de/go.mod h1:L3XVy5VBZo6ImJ9u1noEpPnXg2lw9TITVa5cOnLzSW8=
+github.com/qri-io/dsdiff v0.1.0 h1:ZD6DHMxLxHRpzh3zauSM/9fn9VWjKdtskfHHfJ+kguU=
+github.com/qri-io/dsdiff v0.1.0/go.mod h1:2plYpE3DAqSStJr/wcLearcFHvlxQ28DVwZdzGih57E=
 github.com/qri-io/jsonpointer v0.0.0-20190212172158-7f104febd1fd h1:A/otcrPitGkmouHBoyuvt7xFMVeGbNq2HLQGMgshdJE=
 github.com/qri-io/jsonpointer v0.0.0-20190212172158-7f104febd1fd/go.mod h1:DnJPaYgiKu56EuDp8TU5wFLdZIcAnb/uH9v37ZaMV64=
 github.com/qri-io/jsonschema v0.1.0 h1:ASQbkkRJzJfTo+Lg84jPfFlwYtneNl3ZYx3vikIc8ac=
@@ -581,6 +590,8 @@ github.com/qri-io/qfs v0.0.0-20190501193101-ff186312ecbf h1:3gN7/ICmIyEO35p68Bd4
 github.com/qri-io/qfs v0.0.0-20190501193101-ff186312ecbf/go.mod h1:ktO5tP5Q15r4ti35CwCwSdVKsxSaKaSRdsSwYR+RTOA=
 github.com/qri-io/qfs v0.0.0-20190530013237-79e96bfa8956 h1:SOGqOuhezviQ/Rlp8+os+/Ioj2bdu232ox8MAP53aZ8=
 github.com/qri-io/qfs v0.0.0-20190530013237-79e96bfa8956/go.mod h1:hb0DEY9qaBTFTeMVXmjylsZjSY/ysMSJHJzQRoPPNhk=
+github.com/qri-io/qfs v0.1.0 h1:XgDhon13qLlwJHI2m0FAc2EhZEcrqMPwizvgfQXHzB8=
+github.com/qri-io/qfs v0.1.0/go.mod h1:vZ5gVAYKaW8bDLh8U8DEr3s/1JyNzQJg1Rg9HYS+VZo=
 github.com/qri-io/varName v0.0.0-20190524184947-4ddbc61d2693 h1:7MbsVhQGbtBFFljgpa1DfRh0hshZh/cbUHzWv1BTvDc=
 github.com/qri-io/varName v0.0.0-20190524184947-4ddbc61d2693/go.mod h1:IGWuuGOHhLJ9ZZg28C/+oMYm1QYP+pAorNZKQpdXhxQ=
 github.com/qri-io/varName v0.1.0 h1:dFP5qZHrxnn5fNoMbjfpMCRBYDrOsoyls7R07r+emk0=
@@ -661,6 +672,7 @@ github.com/yudai/gojsondiff v1.0.0 h1:27cbfqXLVEJ1o8I6v3y9lg8Ydm53EKqHXAOMxEGlCO
 github.com/yudai/gojsondiff v1.0.0/go.mod h1:AY32+k2cwILAkW1fbgxQ5mUmMiZFgLIV+FBNExI05xg=
 github.com/yudai/golcs v0.0.0-20170316035057-ecda9a501e82 h1:BHyfKlQyqbsFN5p3IfnEUduWvb9is428/nNb5L3U01M=
 github.com/yudai/golcs v0.0.0-20170316035057-ecda9a501e82/go.mod h1:lgjkn3NuSvDfVJdfcVVdX+jpBxNmX4rDAzaS45IcYoM=
+github.com/yudai/pp v2.0.1+incompatible/go.mod h1:PuxR/8QJ7cyCkFp/aUDS+JY727OFEZkTdatxwunjIkc=
 go.opencensus.io v0.21.0 h1:mU6zScU4U1YAFPHEHYk+3JC4SY7JxgkqS10ZOSyksNg=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
 go.uber.org/atomic v1.4.0 h1:cxzIVoETapQEqDhQu3QfnvXAV4AlzcvUCxkVUFw3+EU=

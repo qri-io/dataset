@@ -11,10 +11,10 @@ require (
 	github.com/libp2p/go-libp2p-crypto v0.0.2
 	github.com/mr-tron/base58 v1.1.2
 	github.com/multiformats/go-multihash v0.0.5
-	github.com/qri-io/compare v0.0.0-20190530173932-be40b875611a
-	github.com/qri-io/dsdiff v0.0.0-20190530174105-54ea83fb77de
+	github.com/qri-io/compare v0.1.0
+	github.com/qri-io/dsdiff v0.1.0
 	github.com/qri-io/jsonschema v0.1.0
-	github.com/qri-io/qfs v0.0.0-20190530013237-79e96bfa8956
+	github.com/qri-io/qfs v0.1.0
 	github.com/qri-io/varName v0.1.0
 	github.com/ugorji/go v1.1.4
 	gopkg.in/yaml.v2 v2.2.2
