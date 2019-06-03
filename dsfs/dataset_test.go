@@ -13,6 +13,7 @@ import (
 	"github.com/qri-io/dataset/dstest"
 	"github.com/qri-io/qfs"
 	"github.com/qri-io/qfs/cafs"
+	ipfs_filestore "github.com/qri-io/qfs/cafs/ipfs"
 )
 
 // Test Private Key. peerId: QmZePf5LeXow3RW5U1AgEiNbW46YnRGhZ7HPvm1UmPFPwt
@@ -25,6 +26,12 @@ func init() {
 		panic(err)
 	}
 	testPk = data
+
+	// call LoadPlugins once with the empty string b/c we only rely on standard
+	// plugins
+	if err := ipfs_filestore.LoadPlugins(""); err != nil {
+		panic(err)
+	}
 }
 
 func TestLoadDataset(t *testing.T) {

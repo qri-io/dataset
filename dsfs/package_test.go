@@ -2,6 +2,7 @@ package dsfs
 
 import (
 	"os"
+	"io/ioutil"
 	"path/filepath"
 	"testing"
 
@@ -47,7 +48,11 @@ func TestPackageFilepath(t *testing.T) {
 
 func makeTestIPFSRepo(path string) (fs *ipfsfs.Filestore, destroy func(), err error) {
 	if path == "" {
-		path = filepath.Join(os.TempDir(), ".ipfs")
+		tmp, err := ioutil.TempDir("", "temp-ipfs-repo")
+		if err != nil {
+			panic(err)
+		}
+		path = filepath.Join(tmp, ".ipfs")
 	}
 	err = ipfsfs.InitRepo(path, "")
 	if err != nil {

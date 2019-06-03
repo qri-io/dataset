@@ -31,5 +31,4 @@ func CheckCsvRowLengths(r io.Reader) error {
 			return fmt.Errorf("error: inconsistent column length on line %d of length %d (rather than %d). ensure all csv columns same length", i, len(record), rowLen)
 		}
 	}
-	return nil
 }

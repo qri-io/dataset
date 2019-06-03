@@ -3,62 +3,33 @@ jobs:
   build:
     working_directory: /go/src/github.com/qri-io/dataset
     docker:
-      - image: circleci/golang:1.11
-        environment:
-          GOLANG_ENV: test
-          PORT: 3000
+      - image: circleci/golang:1.12
     environment:
       TEST_RESULTS: /tmp/test-results
+      GO111MODULE: "on"
     steps:
       - checkout
       - run: mkdir -p $TEST_RESULTS
-      - run: go get -v github.com/jstemmer/go-junit-report golang.org/x/lint/golint github.com/qri-io/dsdiff
-      - run:
-          name: Install non-gx deps
-          command: >
-            go get -v -d -u
-            github.com/ipfs/go-datastore
-            github.com/jbenet/go-base58
-            github.com/jinzhu/copier
-            github.com/multiformats/go-multihash
-            github.com/qri-io/compare
-            github.com/datatogether/cdxj
-            github.com/sergi/go-diff/diffmatchpatch
-            github.com/qri-io/varName
-            github.com/qri-io/jsonschema
-            github.com/ugorji/go/codec
-            github.com/ghodss/yaml
-            github.com/ipfs/go-log
-            gopkg.in/yaml.v2
-            github.com/360EntSecGroup-Skylar/excelize
-      - run: 
-          name: Run Lint Tests
-          command: golint ./...
       - restore_cache:
-          key: dependency-cache-{{ checksum "package.json" }}
+          key: dependency-cache-{{ checksum "go.sum" }}
       - run: 
-          name: Install gx
-          command: >
-            go get -v -u
-            github.com/whyrusleeping/gx 
-            github.com/whyrusleeping/gx-go
+          name: Get CI Deps
+          command: go get github.com/jstemmer/go-junit-report golang.org/x/lint/golint
       - run:
-          name: Install gx deps
-          command: gx install
+          name: Lint
+          command: golint -set_exit_status ./...
       - run:
-          name: Install gx-dependant packages
-          command: >
-            go get -v -d
-            github.com/qri-io/qfs
-      - save_cache:
-          key: dependency-cache-{{ checksum "package.json" }}
-          paths:
-            - /go/src/gx/
+          name: Go Vet
+          command: go vet ./...
       - run:
           name: Run Tests
           command: |
             trap "go-junit-report <${TEST_RESULTS}/go-test.out > ${TEST_RESULTS}/go-test-report.xml" EXIT
-            ./.circleci/cover.test.sh | tee ${TEST_RESULTS}/go-test.out
+            make test | tee ${TEST_RESULTS}/go-test.out
+      - save_cache:
+          key: dependency-cache-{{ checksum "go.sum" }}
+          paths:
+            - /go/pkg/mod
       - run:
           name: Publish coverage info to codecov.io
           command: bash <(curl -s https://codecov.io/bash)
