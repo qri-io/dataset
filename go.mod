@@ -17,5 +17,6 @@ require (
 	github.com/qri-io/qfs v0.1.0
 	github.com/qri-io/varName v0.1.0
 	github.com/ugorji/go v1.1.4
+	github.com/yudai/gojsondiff v1.0.0
 	gopkg.in/yaml.v2 v2.2.2
 )

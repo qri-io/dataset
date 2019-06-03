@@ -1,3 +1,14 @@
+<a name="v0.1.1"></a>
+# [v0.1.1](https://github.com/qri-io/dataset/compare/v0.1.0...v0.1.1) (2019-06-03)
+
+Due to a circular module dependency, we've move `github.com/qri-io/dsdiff` into `github.com/qri-io/dataset/dsdiff`.
+
+### Features
+
+* **dsdiff:** merge dsdiff into dataset ([b5a6945](https://github.com/qri-io/dataset/commit/b5a6945))
+
+
+
 <a name="v0.1.0"></a>
 #  (2019-06-03)
 
