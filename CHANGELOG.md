@@ -1,3 +1,14 @@
+<a name="v0.1.2"></a>
+# [v0.1.2](https://github.com/qri-io/dataset/compare/v0.1.1...v0.1.2) (2019-06-10)
+
+Quick patch release that adds a utility function to dsviz templates: `isType`.
+
+### Features
+
+* **dsviz:** add isType method ([d3e7c24](https://github.com/qri-io/dataset/commit/d3e7c24))
+
+
+
 <a name="v0.1.1"></a>
 # [v0.1.1](https://github.com/qri-io/dataset/compare/v0.1.0...v0.1.1) (2019-06-03)
 
