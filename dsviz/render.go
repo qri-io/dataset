@@ -66,6 +66,7 @@ func renderHTML(ds *dataset.Dataset) (qfs.File, error) {
 		"filesize": func(n float64) string {
 			return printByteInfo(int(n))
 		},
+		"isType": isType,
 		"title": func() string {
 			if ds.Meta != nil && ds.Meta.Title != "" {
 				return ds.Meta.Title
@@ -95,6 +96,41 @@ func renderHTML(ds *dataset.Dataset) (qfs.File, error) {
 	}
 
 	return qfs.NewMemfileReader(htmlTmplName, tmplBuf), nil
+}
+
+// isType
+func isType(in interface{}, eq string) (bool, error) {
+	switch eq {
+	case "string":
+		_, ok := in.(string)
+		return ok, nil
+	case "object":
+		_, ok := in.(map[interface{}]interface{})
+		if !ok {
+			_, ok = in.(map[string]interface{})
+		}
+		return ok, nil
+	case "array":
+		_, ok := in.([]interface{})
+		return ok, nil
+	case "boolean":
+		_, ok := in.(bool)
+		return ok, nil
+	case "number":
+		_, ok := in.(float64)
+		if !ok {
+			_, ok = in.(int)
+		}
+		return ok, nil
+
+	// TODO (b5):
+	// case "integer":
+	// TODO (b5):
+	// case "null":
+	// 	return in == nil, nil
+	default:
+		return false, fmt.Errorf("invalid type comparison value: '%s'", eq)
+	}
 }
 
 func vizDataset(ds *dataset.Dataset) (vizDs map[string]interface{}, err error) {
