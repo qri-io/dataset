@@ -28,5 +28,8 @@ UpperCamelCase naming conventions
 				convert byte count to kb/mb/etc string
 			{{ title }}
 				give the title of a dataset
+			{{ isType $val "type" }}
+				return true or false if the type of $val matches the given type string
+				possible type values are "string", "object", "array", "boolean", "number"
 */
 package dsviz

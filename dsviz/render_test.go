@@ -118,3 +118,58 @@ func TestHTMLFuncs(t *testing.T) {
 		t.Errorf("expected render to error")
 	}
 }
+
+func TestIsType(t *testing.T) {
+	tmpl := `{{- $data := allBodyEntries -}}
+{{- if isType $data.obj "object" }}object{{ end }}
+{{- if isType $data.obj "array" }}NO!{{ end }}
+{{ if isType $data.arr "array" }}array{{ end }}
+{{- if isType $data.arra "object" }}NO!{{ end }}
+{{ if isType $data.str "string" }}string{{ end }}
+{{- if isType $data.str "boolean" }}NO!{{ end }}
+{{ if isType $data.bool "boolean" }}boolean{{ end }}
+{{ if isType $data.num "number" }}number{{ end }}
+`
+
+	body := `{
+		"obj" : {},
+		"arr": [],
+		"str": "",
+		"bool": false,
+		"null": null,
+		"num": 4
+	}`
+
+	ds := &dataset.Dataset{
+		Name:     "a",
+		Peername: "b",
+		Viz:      &dataset.Viz{Format: "html"},
+		Structure: &dataset.Structure{
+			Format: "json",
+			Schema: dataset.BaseSchemaObject,
+		},
+	}
+	ds.SetBodyFile(qfs.NewMemfileBytes("body.json", []byte(body)))
+	ds.Viz.SetScriptFile(qfs.NewMemfileBytes("template.html", []byte(tmpl)))
+
+	file, err := Render(ds)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := ioutil.ReadAll(file)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	exp := `object
+array
+string
+boolean
+number
+`
+
+	if string(got) != exp {
+		t.Errorf("response mismatch.\nexpected:\n'%s'\ngot:\n'%s'", exp, string(got))
+	}
+}
