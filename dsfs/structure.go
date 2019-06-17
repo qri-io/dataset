@@ -3,8 +3,8 @@ package dsfs
 import (
 	"fmt"
 
-	"github.com/qri-io/qfs/cafs"
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/qfs/cafs"
 )
 
 // SaveStructure saves a query's structure to a given store

@@ -6,9 +6,9 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
-	"github.com/qri-io/qfs/cafs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/qfs"
+	"github.com/qri-io/qfs/cafs"
 )
 
 var AirportCodes = &dataset.Dataset{

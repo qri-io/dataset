@@ -1,8 +1,8 @@
 package dsfs
 
 import (
-	"os"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
