@@ -118,17 +118,15 @@ func (o *CSVOptions) Map() map[string]interface{} {
 
 // NewJSONOptions creates a JSONOptions pointer from a map
 func NewJSONOptions(opts map[string]interface{}) (*JSONOptions, error) {
-	o := &JSONOptions{}
 	if opts == nil {
-		return o, nil
+		opts = make(map[string]interface{})
 	}
-	return o, nil
+	return &JSONOptions{Options: opts}, nil
 }
 
 // JSONOptions specifies configuration details for json file format
 type JSONOptions struct {
-	// TODO:
-	// Indent string
+	Options map[string]interface{}
 }
 
 // Format announces the JSON Data Format for the FormatConfig interface
@@ -139,9 +137,9 @@ func (*JSONOptions) Format() DataFormat {
 // Map returns a map[string]interface representation of the configuration
 func (o *JSONOptions) Map() map[string]interface{} {
 	if o == nil {
-		return nil
+		return make(map[string]interface{})
 	}
-	return map[string]interface{}{}
+	return o.Options
 }
 
 // XLSXOptions specifies configuraiton details for the xlsx file format

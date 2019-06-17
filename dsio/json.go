@@ -390,6 +390,7 @@ func (r *JSONReader) readKeyValuePair() (string, interface{}, error) {
 type JSONWriter struct {
 	rowsWritten int
 	tlt         string
+	indent      string
 	st          *dataset.Structure
 	wr          io.Writer
 	keysWritten map[string]bool
@@ -416,6 +417,16 @@ func NewJSONWriter(st *dataset.Structure, w io.Writer) (*JSONWriter, error) {
 	if jw.tlt == "object" {
 		jw.keysWritten = map[string]bool{}
 	}
+	return jw, nil
+}
+
+// NewJSONPrettyWriter creates a Writer that writes pretty indented JSON
+func NewJSONPrettyWriter(st *dataset.Structure, w io.Writer, indent string) (*JSONWriter, error) {
+	jw, err := NewJSONWriter(st, w)
+	if err != nil {
+		return nil, err
+	}
+	jw.indent = indent
 	return jw, nil
 }
 
@@ -446,18 +457,27 @@ func (w *JSONWriter) WriteEntry(ent Entry) error {
 		return err
 	}
 
+	// If between elems, put a comma. If pretty, newline as well.
 	enc := []byte{','}
 	if w.rowsWritten == 0 {
 		enc = []byte{}
+	}
+	if w.indent != "" {
+		enc = append(enc, []byte{'\n'}...)
 	}
 
 	_, err = w.wr.Write(append(enc, data...))
 	return err
 }
 
-func (w *JSONWriter) valBytes(ent Entry) ([]byte, error) {
+func (w *JSONWriter) valBytes(ent Entry) (data []byte, err error) {
 	if w.tlt == "array" {
 		// TODO - add test that checks this is recording values & not entries
+		if w.indent != "" {
+			data, err = json.MarshalIndent(ent.Value, w.indent, w.indent)
+			data = append([]byte(w.indent), data...)
+			return data, err
+		}
 		return json.Marshal(ent.Value)
 	}
 
@@ -470,13 +490,27 @@ func (w *JSONWriter) valBytes(ent Entry) ([]byte, error) {
 	}
 	w.keysWritten[ent.Key] = true
 
-	data, err := json.Marshal(ent.Key)
+	// Write the key
+	if w.indent != "" {
+		data, err = json.MarshalIndent(ent.Key, w.indent, w.indent)
+		data = append([]byte(w.indent), data...)
+	} else {
+		data, err = json.Marshal(ent.Key)
+	}
 	if err != nil {
 		log.Debug(err.Error())
 		return data, err
 	}
+
+	// Write the value
 	data = append(data, ':')
-	val, err := json.Marshal(ent.Value)
+	var val []byte
+	if w.indent != "" {
+		val, err = json.MarshalIndent(ent.Value, w.indent, w.indent)
+		val = append([]byte(w.indent), data...)
+	} else {
+		val, err = json.Marshal(ent.Value)
+	}
 	if err != nil {
 		log.Debug(err.Error())
 		return data, err
@@ -500,6 +534,11 @@ func (w *JSONWriter) Close() error {
 			return fmt.Errorf("error writing empty closure '%s': %s", string(data), err.Error())
 		}
 		return nil
+	}
+
+	// If pretty, newline
+	if w.indent != "" {
+		w.wr.Write([]byte{'\n'})
 	}
 
 	cloze := []byte{']'}

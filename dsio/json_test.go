@@ -501,6 +501,43 @@ func BenchmarkJSONWriterArrays(b *testing.B) {
 	}
 }
 
+func TestJSONPrettyWriter(t *testing.T) {
+	st := &dataset.Structure{Schema: dataset.BaseSchemaArray}
+	buf := &bytes.Buffer{}
+	w, err := NewJSONPrettyWriter(st, buf, " ")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = w.WriteEntry(Entry{Value: map[string]string{"a": "hello"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = w.WriteEntry(Entry{Value: map[string]string{"b": "goodbye"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = w.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	result := string(buf.Bytes())
+	expect := `[
+ {
+  "a": "hello"
+ },
+ {
+  "b": "goodbye"
+ }
+]`
+	if result != expect {
+		t.Errorf("result mismatch: expected: \"%s\", got: \"%s\"", result, expect)
+	}
+}
+
 func BenchmarkJSONWriterObjects(b *testing.B) {
 	const NumWrites = 1000
 	st := &dataset.Structure{Format: "json", Schema: dataset.BaseSchemaObject}
