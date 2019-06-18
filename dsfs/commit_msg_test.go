@@ -3,8 +3,8 @@ package dsfs
 import (
 	"testing"
 
-	"github.com/qri-io/qfs/cafs"
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/qfs/cafs"
 )
 
 func TestSaveCommit(t *testing.T) {

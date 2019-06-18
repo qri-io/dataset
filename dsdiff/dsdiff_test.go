@@ -178,10 +178,10 @@ func TestDiffTransform(t *testing.T) {
 	// Same structs
 	diff, err := DiffTransform(&dataset.Transform{
 		ScriptBytes: []byte("return [1,2]"),
-		ScriptPath: "path/to/script.star",
+		ScriptPath:  "path/to/script.star",
 	}, &dataset.Transform{
 		ScriptBytes: []byte("return [1,2]"),
-		ScriptPath: "path/to/script.star",
+		ScriptPath:  "path/to/script.star",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -193,10 +193,10 @@ func TestDiffTransform(t *testing.T) {
 	// Different bytes
 	diff, err = DiffTransform(&dataset.Transform{
 		ScriptBytes: []byte("return [1,2]"),
-		ScriptPath: "path/to/script.star",
+		ScriptPath:  "path/to/script.star",
 	}, &dataset.Transform{
 		ScriptBytes: []byte("return [1,2,3]"),
-		ScriptPath: "path/to/script.star",
+		ScriptPath:  "path/to/script.star",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -208,10 +208,10 @@ func TestDiffTransform(t *testing.T) {
 	// A blank path, so different
 	diff, err = DiffTransform(&dataset.Transform{
 		ScriptBytes: []byte("return [1,2]"),
-		ScriptPath: "",
+		ScriptPath:  "",
 	}, &dataset.Transform{
 		ScriptBytes: []byte("return [1,2]"),
-		ScriptPath: "path/to/script.star",
+		ScriptPath:  "path/to/script.star",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -223,10 +223,10 @@ func TestDiffTransform(t *testing.T) {
 	// A blank path, on the other one, so different
 	diff, err = DiffTransform(&dataset.Transform{
 		ScriptBytes: []byte("return [1,2]"),
-		ScriptPath: "path/to/script.star",
+		ScriptPath:  "path/to/script.star",
 	}, &dataset.Transform{
 		ScriptBytes: []byte("return [1,2]"),
-		ScriptPath: "",
+		ScriptPath:  "",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -238,10 +238,10 @@ func TestDiffTransform(t *testing.T) {
 	// Paths are different, but both non-blank, so considered the same
 	diff, err = DiffTransform(&dataset.Transform{
 		ScriptBytes: []byte("return [1,2]"),
-		ScriptPath: "path/to/script.star",
+		ScriptPath:  "path/to/script.star",
 	}, &dataset.Transform{
 		ScriptBytes: []byte("return [1,2]"),
-		ScriptPath: "path/to/renamed-file.star",
+		ScriptPath:  "path/to/renamed-file.star",
 	})
 	if err != nil {
 		t.Fatal(err)

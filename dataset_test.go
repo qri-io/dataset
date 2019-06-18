@@ -10,10 +10,10 @@ import (
 
 func TestDatasetDropTransientValues(t *testing.T) {
 	ds := Dataset{
-		Body: []int{1,2,3},
-		Name: "three numbers",
-		Path: "/tmp/ds",
-		ProfileID: "QmBlahBlah",
+		Body:        []int{1, 2, 3},
+		Name:        "three numbers",
+		Path:        "/tmp/ds",
+		ProfileID:   "QmBlahBlah",
 		NumVersions: 4,
 	}
 	ds.DropTransientValues()
@@ -22,10 +22,10 @@ func TestDatasetDropTransientValues(t *testing.T) {
 	}
 
 	ds = Dataset{
-		Body: []int{1,2,3},
-		Name: "three numbers",
-		Path: "/tmp/ds",
-		ProfileID: "QmBlahBlah",
+		Body:        []int{1, 2, 3},
+		Name:        "three numbers",
+		Path:        "/tmp/ds",
+		ProfileID:   "QmBlahBlah",
 		NumVersions: 4,
 		Meta: &Meta{
 			Title: "a title",

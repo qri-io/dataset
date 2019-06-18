@@ -3,9 +3,9 @@ package dsfs
 import (
 	"fmt"
 
-	"github.com/qri-io/qfs/cafs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/qfs"
+	"github.com/qri-io/qfs/cafs"
 )
 
 // SaveViz saves a query's viz to a given store

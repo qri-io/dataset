@@ -12,9 +12,9 @@ import (
 	"path/filepath"
 
 	logger "github.com/ipfs/go-log"
-	"github.com/qri-io/qfs/cafs"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsfs"
+	"github.com/qri-io/qfs/cafs"
 )
 
 var log = logger.Logger("dsutil")
