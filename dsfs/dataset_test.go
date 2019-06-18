@@ -158,7 +158,7 @@ func TestCreateDataset(t *testing.T) {
 		{"invalid",
 			"", nil, 0, "commit is required"},
 		{"strict_fail",
-			"", nil, 0, "strict dataset body is invalid"},
+			"", nil, 0, "strict mode: dataset body did not validate against its schema"},
 		{"cities",
 			"/map/QmYDVHBmGHWV7h8iCU9H6BrYoXXnm8pCFhhJzZw5jJitoq", nil, 6, ""},
 		{"all_fields",
