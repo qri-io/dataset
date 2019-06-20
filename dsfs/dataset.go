@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -281,9 +282,9 @@ func prepareDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, privKey c
 
 	// If in strict mode, fail if there were any errors.
 	if ds.Structure.Strict && ds.Structure.ErrCount > 0 {
-		fmt.Printf("\nShowing errors at each /row/column of the dataset body:\n")
+		fmt.Fprintf(os.Stderr, "\nShowing errors at each /row/column of the dataset body:\n")
 		for i, v := range validationErrors {
-			fmt.Printf("%d) %v\n", i, v)
+			fmt.Fprintf(os.Stderr, "%d) %v\n", i, v)
 		}
 		return "", fmt.Errorf("strict mode: dataset body did not validate against its schema")
 	}
