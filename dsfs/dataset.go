@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -17,6 +18,7 @@ import (
 	"github.com/qri-io/dataset/dsio"
 	"github.com/qri-io/dataset/dsviz"
 	"github.com/qri-io/dataset/validate"
+	"github.com/qri-io/jsonschema"
 	"github.com/qri-io/qfs"
 	"github.com/qri-io/qfs/cafs"
 )
@@ -248,8 +250,9 @@ func prepareDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, privKey c
 	hashR, hashW := io.Pipe()
 	done := make(chan error)
 	tasks := 3
+	valChan := make(chan []jsonschema.ValError)
 
-	go setErrCount(ds, qfs.NewMemfileReader(bf.FileName(), errR), &mu, done)
+	go setErrCount(ds, qfs.NewMemfileReader(bf.FileName(), errR), &mu, done, valChan)
 	go setDepthAndEntryCount(ds, qfs.NewMemfileReader(bf.FileName(), entryR), &mu, done)
 	go setChecksumAndStats(ds, qfs.NewMemfileReader(bf.FileName(), hashR), &buf, &mu, done)
 
@@ -266,10 +269,24 @@ func prepareDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, privKey c
 		io.Copy(mw, bf)
 	}()
 
+	// Get validation errors because trying to join the main tasks.
+	var validationErrors []jsonschema.ValError
+	validationErrors = <-valChan
+
+	// Join the outstanding tasks, wait until all are cmoplete.
 	for i := 0; i < tasks; i++ {
 		if err := <-done; err != nil {
 			return "", err
 		}
+	}
+
+	// If in strict mode, fail if there were any errors.
+	if ds.Structure.Strict && ds.Structure.ErrCount > 0 {
+		fmt.Fprintf(os.Stderr, "\nShowing errors at each /row/column of the dataset body:\n")
+		for i, v := range validationErrors {
+			fmt.Fprintf(os.Stderr, "%d) %v\n", i, v)
+		}
+		return "", fmt.Errorf("strict mode: dataset body did not validate against its schema")
 	}
 
 	// TODO (ramfox): This whole section can be wrapped:
@@ -312,28 +329,25 @@ func prepareDataset(store cafs.Filestore, ds, dsPrev *dataset.Dataset, privKey c
 }
 
 // setErrCount consumes sets the ErrCount field of a dataset's Structure
-func setErrCount(ds *dataset.Dataset, data qfs.File, mu *sync.Mutex, done chan error) {
+func setErrCount(ds *dataset.Dataset, data qfs.File, mu *sync.Mutex, done chan error, valChan chan []jsonschema.ValError) {
 	defer data.Close()
 
 	er, err := dsio.NewEntryReader(ds.Structure, data)
 	if err != nil {
 		log.Debug(err.Error())
+		valChan <- nil
 		done <- fmt.Errorf("reading data values: %s", err.Error())
 		return
 	}
 
+	// Send validation errors immediately, before main thread blocks.
 	validationErrors, err := validate.EntryReader(er)
+	valChan <- validationErrors
+
 	if err != nil {
 		log.Debug(err.Error())
 		done <- fmt.Errorf("validating data: %s", err.Error())
 		return
-	}
-
-	if ds.Structure != nil {
-		if ds.Structure.Strict && len(validationErrors) > 0 {
-			done <- fmt.Errorf("strict dataset body is invalid")
-			return
-		}
 	}
 
 	mu.Lock()
