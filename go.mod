@@ -5,6 +5,7 @@ go 1.12
 require (
 	github.com/360EntSecGroup-Skylar/excelize v1.4.1
 	github.com/ghodss/yaml v1.0.0
+	github.com/google/go-cmp v0.2.0
 	github.com/ipfs/go-datastore v0.0.5
 	github.com/ipfs/go-log v0.0.1
 	github.com/jinzhu/copier v0.0.0-20180308034124-7e38e58719c3

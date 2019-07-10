@@ -5,10 +5,26 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 func TestVizDropTransientValues(t *testing.T) {
 	t.Log("TODO (b5)")
+}
+
+func TestVizDropDerivedValues(t *testing.T) {
+	vz := &Viz{
+		Path: "/ipfs/QmHash",
+		Qri:  "oh you know it's qri",
+	}
+
+	vz.DropDerivedValues()
+
+	if !cmp.Equal(vz, &Viz{}, cmpopts.IgnoreUnexported(Viz{})) {
+		t.Errorf("expected dropping a viz of only derived values to be empt")
+	}
 }
 
 func TestVizScript(t *testing.T) {

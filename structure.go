@@ -30,19 +30,24 @@ type Structure struct {
 	// Checksum is a bas58-encoded multihash checksum of the entire data
 	// file this structure points to. This is different from IPFS
 	// hashes, which are calculated after breaking the file into blocks
+	// derived
 	Checksum string `json:"checksum,omitempty"`
 	// Compression specifies any compression on the source data,
 	// if empty assume no compression
 	Compression string `json:"compression,omitempty"`
-	// Maximum nesting level of composite types in the dataset. eg: depth 1 == [], depth 2 == [[]]
+	// Maximum nesting level of composite types in the dataset.
+	// eg: depth 1 == [], depth 2 == [[]]
+	// derived
 	Depth int `json:"depth,omitempty"`
 	// Encoding specifics character encoding, assume utf-8 if not specified
 	Encoding string `json:"encoding,omitempty"`
 	// ErrCount is the number of errors returned by validating data
 	// against this schema. required
+	// derived
 	ErrCount int `json:"errCount"`
 	// Entries is number of top-level entries in the dataset. With tablular data
 	// this is the same as the number of "rows"
+	// derived
 	Entries int `json:"entries,omitempty"`
 	// Format specifies the format of the raw data MIME type
 	Format string `json:"format"`
@@ -53,10 +58,13 @@ type Structure struct {
 
 	// Length is the length of the data object in bytes.
 	// must always match & be present
+	// derived
 	Length int `json:"length,omitempty"`
 	// location of this structure, transient
+	// derived
 	Path string `json:"path,omitempty"`
 	// Qri should always be KindStructure
+	// derived
 	Qri string `json:"qri"`
 	// Schema contains the schema definition for the underlying data, schemas
 	// are defined using the IETF json-schema specification. for more info
@@ -78,6 +86,17 @@ func NewStructureRef(path string) *Structure {
 // dataset is rendered immutable, usually by storing it in a cafs
 func (s *Structure) DropTransientValues() {
 	s.Path = ""
+}
+
+// DropDerivedValues resets all derived fields to their default values
+func (s *Structure) DropDerivedValues() {
+	s.Checksum = ""
+	s.Depth = 0
+	s.ErrCount = 0
+	s.Entries = 0
+	s.Length = 0
+	s.Path = ""
+	s.Qri = ""
 }
 
 // JSONSchema parses the Schema field into a json-schema

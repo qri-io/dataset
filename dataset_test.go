@@ -6,6 +6,9 @@ import (
 	"io/ioutil"
 	"testing"
 	"time"
+
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 func TestDatasetDropTransientValues(t *testing.T) {
@@ -34,6 +37,61 @@ func TestDatasetDropTransientValues(t *testing.T) {
 	ds.DropTransientValues()
 	if ds.IsEmpty() {
 		t.Errorf("error dataset should not be empty")
+	}
+}
+
+func TestDatasetDropDerivedValues(t *testing.T) {
+	ds := &Dataset{
+		Qri:  "definitely qri",
+		Path: "/ntwk/QmDsHash",
+		Meta: &Meta{
+			Qri:  "foo",
+			Path: "/ntwk/QmHash",
+		},
+		Structure: &Structure{
+			Checksum: "checksum",
+			Depth:    120,
+			ErrCount: 4,
+			Entries:  1234567890,
+			Length:   90210,
+			Path:     "/ipfs/QmHash",
+			Qri:      "oh you know it's qri",
+		},
+		Viz: &Viz{
+			Qri:  "yep, is qri",
+			Path: "/ntwk/QmViz",
+		},
+		Commit: &Commit{
+			Qri:  "qri bird",
+			Path: "/ntwk/QmCommit",
+		},
+		Transform: &Transform{
+			Qri:  "qri qri",
+			Path: "/ntwk/QmTf",
+		},
+	}
+
+	ds.DropDerivedValues()
+
+	exp := &Dataset{
+		Commit:    &Commit{},
+		Meta:      &Meta{},
+		Structure: &Structure{},
+		Viz:       &Viz{},
+		Transform: &Transform{},
+	}
+
+	if !cmp.Equal(ds, exp, cmpopts.IgnoreUnexported(Dataset{}, Meta{}, Viz{}, Transform{})) {
+		t.Errorf("expected dropping a dataset of only derived values to be empty")
+		t.Logf("%#v", ds)
+		// data, _ := json.MarshalIndent(ds, "", "  ")
+		// t.Logf(string(data))
+	}
+	if ds.Path != "" {
+		t.Errorf("expected dataset .Path field to be empty")
+	}
+	if ds.Qri != "" {
+		t.Errorf("expected dataset .Qri field to be empty")
 	}
 }
 

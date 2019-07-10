@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"testing"
 	"time"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestCommit(t *testing.T) {
@@ -60,6 +62,31 @@ func TestCommitAssign(t *testing.T) {
 	emptyMsg.Assign(expect)
 	if err := CompareCommits(expect, emptyMsg); err != nil {
 		t.Error(err)
+	}
+}
+
+func TestCommitDropTransientValues(t *testing.T) {
+	cm := &Commit{
+		Path: "/ipfs/QmHash",
+	}
+
+	cm.DropTransientValues()
+
+	if !cmp.Equal(cm, &Commit{}) {
+		t.Errorf("expected dropping a commit of only transient values to be empty")
+	}
+}
+
+func TestCommitDropDerivedValues(t *testing.T) {
+	cm := &Commit{
+		Path: "/ipfs/QmHash",
+		Qri:  "oh you know it's qri",
+	}
+
+	cm.DropDerivedValues()
+
+	if !cmp.Equal(cm, &Commit{}) {
+		t.Errorf("expected dropping commit of only derived values to be empty")
 	}
 }
 
