@@ -17,8 +17,10 @@ type Commit struct {
 	// Message is an optional
 	Message string `json:"message,omitempty"`
 	// Path is the location of this commit, transient
+	// derived
 	Path string `json:"path,omitempty"`
 	// Qri is this commit's qri kind
+	// derived
 	Qri string `json:"qri,omitempty"`
 	// Signature is a base58 encoded privateKey signing of Title
 	Signature string `json:"signature,omitempty"`
@@ -38,6 +40,13 @@ func NewCommitRef(path string) *Commit {
 // dataset is rendered immutable, usually by storing it in a cafs
 func (cm *Commit) DropTransientValues() {
 	cm.Path = ""
+}
+
+// DropDerivedValues removes values that cannot be recorded when the
+// dataset is rendered immutable, usually by storing it in a cafs
+func (cm *Commit) DropDerivedValues() {
+	cm.Path = ""
+	cm.Qri = ""
 }
 
 // IsEmpty checks to see if any fields are filled out other than Path and Qri

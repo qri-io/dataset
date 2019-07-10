@@ -6,7 +6,22 @@ import (
 	"io/ioutil"
 	"testing"
 	"time"
+
+	"github.com/google/go-cmp/cmp"
 )
+
+func TestMetaDropDerivedValues(t *testing.T) {
+	md := &Meta{
+		Path: "/ipfs/QmHash",
+		Qri:  "oh you know it's qri",
+	}
+
+	md.DropDerivedValues()
+
+	if !cmp.Equal(md, &Meta{}, cmp.AllowUnexported(Meta{})) {
+		t.Errorf("expected dropping a commit of only derived values to be empty")
+	}
+}
 
 func TestMetaAssign(t *testing.T) {
 	// TODO - expand test to check all fields

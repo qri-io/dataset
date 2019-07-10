@@ -13,9 +13,11 @@ type Viz struct {
 	// Format designates the visualization configuration syntax. currently the
 	// only supported syntax is "html"
 	Format string `json:"format,omitempty"`
-	// path is the location of a viz, transient
+	// Path is the location of a viz, transient
+	// derived
 	Path string `json:"path,omitempty"`
 	// Qri should always be "vc:0"
+	// derived
 	Qri string `json:"qri,omitempty"`
 
 	// script file reader, doesn't serialize
@@ -40,6 +42,12 @@ func NewVizRef(path string) *Viz {
 func (v *Viz) DropTransientValues() {
 	v.Path = ""
 	v.ScriptBytes = nil
+}
+
+// DropDerivedValues resets all set-on-save fields to their default values
+func (v *Viz) DropDerivedValues() {
+	v.Qri = ""
+	v.Path = ""
 }
 
 // OpenScriptFile generates a byte stream of script data prioritizing creating an

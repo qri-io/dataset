@@ -47,8 +47,10 @@ type Meta struct {
 	// raw string
 	License *License `json:"license,omitempty"`
 	// path is the location of meta, transient
+	// derived
 	Path string `json:"path,omitempty"`
 	// Kind is required, must be qri:md:[version]
+	// derived
 	Qri string `json:"qri,omitempty"`
 	// path to dataset readme file, not part of the DCAT spec, but a common
 	// convention in software dev
@@ -65,6 +67,12 @@ type Meta struct {
 // dataset is rendered immutable, usually by storing it in a cafs
 func (md *Meta) DropTransientValues() {
 	md.Path = ""
+}
+
+// DropDerivedValues resets all set-on-save fields to their default values
+func (md *Meta) DropDerivedValues() {
+	md.Path = ""
+	md.Qri = ""
 }
 
 // IsEmpty checks to see if dataset has any fields other than the internal path

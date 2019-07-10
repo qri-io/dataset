@@ -4,10 +4,26 @@ import (
 	"bytes"
 	"encoding/json"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 func TestTransformDropTransientValues(t *testing.T) {
 	t.Log("TODO (b5)")
+}
+
+func TestTransformDropDerivedValues(t *testing.T) {
+	tf := &Transform{
+		Path: "/ipfs/QmHash",
+		Qri:  "oh you know it's qri",
+	}
+
+	tf.DropDerivedValues()
+
+	if !cmp.Equal(tf, &Transform{}, cmpopts.IgnoreUnexported(Transform{})) {
+		t.Errorf("expected dropping a struct only derived values to be empty")
+	}
 }
 
 func TestTransformScript(t *testing.T) {

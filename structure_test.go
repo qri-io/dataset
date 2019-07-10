@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/qri-io/dataset/compression"
 )
 
@@ -42,6 +43,24 @@ func TestAbstractColumnName(t *testing.T) {
 	}
 	if AbstractColumnName(30000) != "ariw" {
 		t.Errorf("expected 300 == ariw, got: %s", AbstractColumnName(30000))
+	}
+}
+
+func TestStructureDropDerivedValues(t *testing.T) {
+	st := &Structure{
+		Checksum: "checksum",
+		Depth:    120,
+		ErrCount: 4,
+		Entries:  1234567890,
+		Length:   90210,
+		Path:     "/ipfs/QmHash",
+		Qri:      "oh you know it's qri",
+	}
+
+	st.DropDerivedValues()
+
+	if !cmp.Equal(st, &Structure{}) {
+		t.Errorf("expected dropping a structure of only derived values to be empty")
 	}
 }
 

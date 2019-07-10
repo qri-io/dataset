@@ -49,6 +49,12 @@ func (q *Transform) DropTransientValues() {
 	q.ScriptBytes = nil
 }
 
+// DropDerivedValues resets all set-on-save fields to their default values
+func (q *Transform) DropDerivedValues() {
+	q.Qri = ""
+	q.Path = ""
+}
+
 // OpenScriptFile generates a byte stream of script data prioritizing creating an
 // in-place file from ScriptBytes when defined, fetching from the
 // passed-in resolver otherwise

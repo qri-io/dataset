@@ -74,7 +74,7 @@ type Dataset struct {
 	// Number of versions this dataset has, transient
 	NumVersions int `json:"numVersions,omitempty"`
 	// Qri is a key for both identifying this document type, and versioning the
-	// dataset document definition itself.
+	// dataset document definition itself. derived
 	Qri string `json:"qri"`
 	// Structure of this dataset
 	Structure *Structure `json:"structure,omitempty"`
@@ -135,6 +135,28 @@ func (ds *Dataset) DropTransientValues() {
 	ds.Path = ""
 	ds.ProfileID = ""
 	ds.NumVersions = 0
+}
+
+// DropDerivedValues resets all set-on-save fields to their default values
+func (ds *Dataset) DropDerivedValues() {
+	ds.Qri = ""
+	ds.Path = ""
+
+	if ds.Commit != nil {
+		ds.Commit.DropDerivedValues()
+	}
+	if ds.Meta != nil {
+		ds.Meta.DropDerivedValues()
+	}
+	if ds.Structure != nil {
+		ds.Structure.DropDerivedValues()
+	}
+	if ds.Transform != nil {
+		ds.Transform.DropDerivedValues()
+	}
+	if ds.Viz != nil {
+		ds.Viz.DropDerivedValues()
+	}
 }
 
 var (
