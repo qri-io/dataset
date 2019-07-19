@@ -16,7 +16,8 @@ func TestStrucureHash(t *testing.T) {
 		hash string
 		err  error
 	}{
-		{&Structure{Qri: KindStructure.String(), Format: "csv"}, "QmUqNTfVuJamhRfXLC1QUZ8RLaGhUaTY31ChX4GbtamW2o", nil},
+		{&Structure{Qri: KindStructure.String(), Format: "csv"}, "QmXKrm8qWRuY5HeU12Y6Ld83L9SGCxWfi4BW87a9yGpwfj", nil},
+		//QmUqNTfVuJamhRfXLC1QUZ8RLaGhUaTY31ChX4GbtamW2o", nil},
 	}
 
 	for i, c := range cases {
@@ -205,8 +206,8 @@ func TestStructureMarshalJSON(t *testing.T) {
 		out []byte
 		err error
 	}{
-		{&Structure{Format: "csv"}, []byte(`{"errCount":0,"format":"csv","qri":"st:0"}`), nil},
-		{&Structure{Format: "csv", Qri: KindStructure.String()}, []byte(`{"errCount":0,"format":"csv","qri":"st:0"}`), nil},
+		{&Structure{Format: "csv"}, []byte(`{"format":"csv","qri":"st:0"}`), nil},
+		{&Structure{Format: "csv", Qri: KindStructure.String()}, []byte(`{"format":"csv","qri":"st:0"}`), nil},
 		{AirportCodesStructure, []byte(`{"errCount":5,"format":"csv","formatConfig":{"headerRow":true},"qri":"st:0","schema":{"items":{"items":[{"title":"ident","type":"string"},{"title":"type","type":"string"},{"title":"name","type":"string"},{"title":"latitude_deg","type":"number"},{"title":"longitude_deg","type":"number"},{"title":"elevation_ft","type":"integer"},{"title":"continent","type":"string"},{"title":"iso_country","type":"string"},{"title":"iso_region","type":"string"},{"title":"municipality","type":"string"},{"title":"gps_code","type":"string"},{"title":"iata_code","type":"string"},{"title":"local_code","type":"string"}],"type":"array"},"type":"array"}}`), nil},
 		{&Structure{Path: "/map/QmUaMozKVkjPf7CVf3Zd8Cy5Ex1i9oUdhYhU8uTJph5iFD"}, []byte(`"/map/QmUaMozKVkjPf7CVf3Zd8Cy5Ex1i9oUdhYhU8uTJph5iFD"`), nil},
 	}

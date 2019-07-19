@@ -44,7 +44,7 @@ type Structure struct {
 	// ErrCount is the number of errors returned by validating data
 	// against this schema. required
 	// derived
-	ErrCount int `json:"errCount"`
+	ErrCount int `json:"errCount,omitempty"`
 	// Entries is number of top-level entries in the dataset. With tablular data
 	// this is the same as the number of "rows"
 	// derived
