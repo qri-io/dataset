@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"strings"
 
 	"github.com/qri-io/dataset"
 )
@@ -269,11 +270,21 @@ func (r *JSONReader) readString() (string, error) {
 			i++
 		} else if buff[i] == '"' {
 			i++
-			return strconv.Unquote(r.extractFromBuffer(buff, i))
+			str := removeEscapes(r.extractFromBuffer(buff, i))
+			return strconv.Unquote(str)
 		}
 		i++
 	}
 	return "", fmt.Errorf("Expected: closing '\"' for string")
+}
+
+// JSON allows at least one escape sequence that upsets strconv.Unquote:
+// escaping the forward slash: \/
+// TODO (b5) - this will silently convert "\/" to "/", which isn't great.
+// This might need to be expressed as a formatConfig option to override a default
+// we should also think about having this operate as the buffer is reading
+func removeEscapes(str string) string {
+	return strings.ReplaceAll(str, `\/`, "/")
 }
 
 func (r *JSONReader) readNumber() (interface{}, error) {

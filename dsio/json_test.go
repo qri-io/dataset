@@ -100,59 +100,29 @@ func TestJSONReader(t *testing.T) {
 }
 
 func TestJSONReaderBasicParsing(t *testing.T) {
+	objSt := &dataset.Structure{
+		Format: "json",
+		Schema: dataset.BaseSchemaObject,
+	}
+
 	cases := []struct {
 		text      string
 		structure *dataset.Structure
 		expect    interface{}
 	}{
-		{"{\"a\":1}", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, 1},
-		{"{\"a\": 1}", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, 1},
-		{"{\"a\":\"abc\"}", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, "abc"},
-		{"{\"a\":4.56}", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, 4.56},
-		{"{\"a\":\"\"}", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, ""},
-		{"{\"a\":null}", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, nil},
-		{"{\"a\":true}", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, true},
-		{"{\"a\":false}", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, false},
-		{"{\"a\":\"\xe7\x8a\xac\"}", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, "\xe7\x8a\xac"},
-		{"{\"a\":\"say \\\"dog\\\"\"}", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, "say \"dog\""},
-		{"{\"a\":\"say \\\"\\u72ac\\\"\"}", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, "say \"\xe7\x8a\xac\""},
-		{"{\n  \"a\" : \"b\" }", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, "b"},
+		{`{"a":1}`, objSt, 1},
+		{`{"a": 1}`, objSt, 1},
+		{`{"a":"abc"}`, objSt, "abc"},
+		{`{"a":4.56}`, objSt, 4.56},
+		{`{"a":""}`, objSt, ""},
+		{`{"a":null}`, objSt, nil},
+		{`{"a":true}`, objSt, true},
+		{`{"a":false}`, objSt, false},
+		{"{\"a\":\"\xe7\x8a\xac\"}", objSt, "\xe7\x8a\xac"},
+		{"{\"a\":\"say \\\"dog\\\"\"}", objSt, "say \"dog\""},
+		{"{\"a\":\"say \\\"\\u72ac\\\"\"}", objSt, "say \"\xe7\x8a\xac\""},
+		{"{\n  \"a\" : \"b\" }", objSt, "b"},
+		{`{"a": "\/"}`, objSt, "/"},
 	}
 
 	for i, c := range cases {
