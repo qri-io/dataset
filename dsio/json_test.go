@@ -13,6 +13,16 @@ import (
 )
 
 func TestJSONReader(t *testing.T) {
+	arrSt := &dataset.Structure{
+		Format: "json",
+		Schema: dataset.BaseSchemaArray,
+	}
+
+	objSt := &dataset.Structure{
+		Format: "json",
+		Schema: dataset.BaseSchemaObject,
+	}
+
 	cases := []struct {
 		name      string
 		structure *dataset.Structure
@@ -21,38 +31,14 @@ func TestJSONReader(t *testing.T) {
 	}{
 		{"city", &dataset.Structure{}, 0, "schema required for JSON reader"},
 		{"city", &dataset.Structure{Schema: map[string]interface{}{"type": "number"}}, 0, "invalid schema. root must be either an array or object type"},
-		{"city", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaArray,
-		}, 6, ""},
-		{"sitemap_object", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, 7, ""},
-		{"links_object", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, 20, ""},
-		{"links_array", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaArray,
-		}, 20, ""},
-		{"array", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaArray,
-		}, 10, ""},
-		{"object", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, 10, ""},
-		{"craigslist", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaArray,
-		}, 1200, ""},
-		{"sitemap", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, 1, ""},
+		{"city", arrSt, 6, ""},
+		{"sitemap_object", objSt, 7, ""},
+		{"links_object", objSt, 20, ""},
+		{"links_array", arrSt, 20, ""},
+		{"array", arrSt, 10, ""},
+		{"object", objSt, 10, ""},
+		{"craigslist", arrSt, 1200, ""},
+		{"sitemap", objSt, 1, ""},
 	}
 
 	for i, c := range cases {
@@ -100,59 +86,29 @@ func TestJSONReader(t *testing.T) {
 }
 
 func TestJSONReaderBasicParsing(t *testing.T) {
+	objSt := &dataset.Structure{
+		Format: "json",
+		Schema: dataset.BaseSchemaObject,
+	}
+
 	cases := []struct {
 		text      string
 		structure *dataset.Structure
 		expect    interface{}
 	}{
-		{"{\"a\":1}", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, 1},
-		{"{\"a\": 1}", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, 1},
-		{"{\"a\":\"abc\"}", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, "abc"},
-		{"{\"a\":4.56}", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, 4.56},
-		{"{\"a\":\"\"}", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, ""},
-		{"{\"a\":null}", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, nil},
-		{"{\"a\":true}", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, true},
-		{"{\"a\":false}", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, false},
-		{"{\"a\":\"\xe7\x8a\xac\"}", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, "\xe7\x8a\xac"},
-		{"{\"a\":\"say \\\"dog\\\"\"}", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, "say \"dog\""},
-		{"{\"a\":\"say \\\"\\u72ac\\\"\"}", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, "say \"\xe7\x8a\xac\""},
-		{"{\n  \"a\" : \"b\" }", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, "b"},
+		{`{"a":1}`, objSt, 1},
+		{`{"a": 1}`, objSt, 1},
+		{`{"a":"abc"}`, objSt, "abc"},
+		{`{"a":4.56}`, objSt, 4.56},
+		{`{"a":""}`, objSt, ""},
+		{`{"a":null}`, objSt, nil},
+		{`{"a":true}`, objSt, true},
+		{`{"a":false}`, objSt, false},
+		{"{\"a\":\"\xe7\x8a\xac\"}", objSt, "\xe7\x8a\xac"},
+		{"{\"a\":\"say \\\"dog\\\"\"}", objSt, "say \"dog\""},
+		{"{\"a\":\"say \\\"\\u72ac\\\"\"}", objSt, "say \"\xe7\x8a\xac\""},
+		{"{\n  \"a\" : \"b\" }", objSt, "b"},
+		{`{"a": "\/"}`, objSt, "/"},
 	}
 
 	for i, c := range cases {
@@ -225,35 +181,22 @@ func TestJSONReaderSmallerBufferForHugeToken(t *testing.T) {
 }
 
 func TestJSONSizeReader(t *testing.T) {
+	arrSt := &dataset.Structure{
+		Format: "json",
+		Schema: dataset.BaseSchemaArray,
+	}
+
 	cases := []struct {
 		structure *dataset.Structure
 		size      int
 		data      string
 	}{
-		{&dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaArray,
-		}, 16, `[["a","b","cdef"]]`},
-		{&dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaArray,
-		}, 16, `[[12345,67890,12345,67890]]`},
-		{&dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaArray,
-		}, 18, `[{"a":"b","c":"d","e":"f"}]`},
-		{&dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaArray,
-		}, 16, `[[  "a"  ,  "b"  ,  "c"  ,  "d"  ]]`},
-		{&dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaArray,
-		}, 16, `[[false, false, false , false]]`},
-		{&dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaArray,
-		}, 16, `[[true, true, true, true]]`},
+		{arrSt, 16, `[["a","b","cdef"]]`},
+		{arrSt, 16, `[[12345,67890,12345,67890]]`},
+		{arrSt, 18, `[{"a":"b","c":"d","e":"f"}]`},
+		{arrSt, 16, `[[  "a"  ,  "b"  ,  "c"  ,  "d"  ]]`},
+		{arrSt, 16, `[[false, false, false , false]]`},
+		{arrSt, 16, `[[true, true, true, true]]`},
 	}
 
 	for i, c := range cases {
@@ -279,76 +222,38 @@ func TestJSONSizeReader(t *testing.T) {
 }
 
 func TestJSONReaderErrors(t *testing.T) {
+	objSt := &dataset.Structure{
+		Format: "json",
+		Schema: dataset.BaseSchemaObject,
+	}
+
+	arrSt := &dataset.Structure{
+		Format: "json",
+		Schema: dataset.BaseSchemaArray,
+	}
+
 	cases := []struct {
 		text      string
 		structure *dataset.Structure
 		count     int
 		err       string
 	}{
-		{"{\"a\":1}", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, 1, ""},
-		{"{\"a\"\"b\":1}", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, 0, "Expected: ':' to separate key and value"},
-		{"{:\"a\"1}", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, 0, "Expected: string"},
-		{"{\"abc:def\"1}", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, 0, "Expected: ':' to separate key and value"},
-		{"{\"a\"\x01:\x02\"b\"}", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, 0, "Expected: ':' to separate key and value"},
-		{"{\"abc\",1,,,,,\"def\",2,,\"ghi\",3,,,\"jkl\"4:}", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, 0, "Expected: ':' to separate key and value"},
-		{"{\"abc\":{\"inner\":1}}", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, 1, ""},
-		{"{\"abc\":[1,2,3]}", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, 1, ""},
-		{"{\"abc\":{\"inner\":[1,2,3]}}", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, 1, ""},
-		{"{\"abc\":1,", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, 1, "Expected: string"},
-		{"{\"abc\":1", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaObject,
-		}, 1, "Expected: separator ','"},
-		{"[\"abc\",1]", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaArray,
-		}, 2, ""},
-		{"[]", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaArray,
-		}, 0, ""},
-		{"[{}]", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaArray,
-		}, 1, ""},
-		{"[\"abc\",1", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaArray,
-		}, 2, "Expected: separator ','"},
-		{"[\"abc\",1,", &dataset.Structure{
-			Format: "json",
-			Schema: dataset.BaseSchemaArray,
-		}, 3, "Expected: separator ','"},
+		{`{"a":1}`, objSt, 1, ""},
+		{`{"a""b":1}`, objSt, 0, "Expected: ':' to separate key and value"},
+		{`{:"a"1}`, objSt, 0, "Expected: string"},
+		{`{"abc:def"1}`, objSt, 0, "Expected: ':' to separate key and value"},
+		{"{\"a\"\x01:\x02\"b\"}", objSt, 0, "Expected: ':' to separate key and value"},
+		{`{"abc",1,,,,,"def",2,,"ghi",3,,,"jkl"4:}`, objSt, 0, "Expected: ':' to separate key and value"},
+		{`{"abc":{"inner":1}}`, objSt, 1, ""},
+		{`{"abc":[1,2,3]}`, objSt, 1, ""},
+		{`{"abc":{"inner":[1,2,3]}}`, objSt, 1, ""},
+		{`{"abc":1,`, objSt, 1, "Expected: string"},
+		{`{"abc":1`, objSt, 1, "Expected: separator ','"},
+		{`["abc",1]`, arrSt, 2, ""},
+		{`[]`, arrSt, 0, ""},
+		{`[{}]`, arrSt, 1, ""},
+		{`["abc",1`, arrSt, 2, "Expected: separator ','"},
+		{`["abc",1,`, arrSt, 3, "Expected: separator ','"},
 	}
 
 	for i, c := range cases {
