@@ -1,3 +1,23 @@
+# [0.1.4](https://github.com/qri-io/dataset/compare/v0.1.2...v0.1.4) (2019-09-04)
+
+This patch release include small fixes for dsio.JSON format reader, strict valdation error returns in dsfs.SaveDataset, and a method for Dropping _derived_ values from a Dataset & Components
+
+
+### Bug Fixes
+
+* **dsio:** don't fail on escaped forward slashes ([8a6c7b0](https://github.com/qri-io/dataset/commit/8a6c7b0))
+* **strict:** If strict dataset fails to validate, show errors ([ea472ce](https://github.com/qri-io/dataset/commit/ea472ce))
+* **strict:** Write errors to stderr not stdout ([06e5a4f](https://github.com/qri-io/dataset/commit/06e5a4f))
+* **structure:** Omit errCount if empty ([1af25ff](https://github.com/qri-io/dataset/commit/1af25ff))
+
+
+### Features
+
+* **DropDerived:** add methods for dropping derived values ([#200](https://github.com/qri-io/dataset/issues/200)) ([f9ddda7](https://github.com/qri-io/dataset/commit/f9ddda7))
+* **json:** JSONOptions has a map. JSONWriter can pretty-print. ([51c9c4c](https://github.com/qri-io/dataset/commit/51c9c4c))
+
+
+
 <a name="v0.1.2"></a>
 # [v0.1.2](https://github.com/qri-io/dataset/compare/v0.1.1...v0.1.2) (2019-06-10)
 
