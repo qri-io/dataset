@@ -1,6 +1,7 @@
 package dsfs
 
 import (
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"testing"
@@ -28,6 +29,7 @@ func TestLoadTransform(t *testing.T) {
 }
 
 func TestSaveTransform(t *testing.T) {
+	ctx := context.Background()
 	dsa := dataset.NewDatasetRef("/path/to/dataset/a")
 	dsa.Assign(&dataset.Dataset{Meta: &dataset.Meta{Title: "now dataset isn't empty"}})
 
@@ -39,7 +41,7 @@ func TestSaveTransform(t *testing.T) {
 		},
 	}
 
-	key, err := SaveTransform(store, q, true)
+	key, err := SaveTransform(ctx, store, q, true)
 	if err != nil {
 		t.Error(err.Error())
 		return
@@ -57,7 +59,7 @@ func TestSaveTransform(t *testing.T) {
 		return
 	}
 
-	f, err := store.Get(hash)
+	f, err := store.Get(ctx, hash)
 	if err != nil {
 		t.Errorf("error getting dataset file: %s", err.Error())
 		return
@@ -77,13 +79,14 @@ func TestSaveTransform(t *testing.T) {
 }
 
 func TestLoadTransformScript(t *testing.T) {
+	ctx := context.Background()
 	store := cafs.NewMapstore()
 	privKey, err := crypto.UnmarshalPrivateKey(testPk)
 	if err != nil {
 		t.Fatalf("error unmarshaling private key: %s", err.Error())
 	}
 
-	_, err = LoadTransformScript(store, "")
+	_, err = LoadTransformScript(ctx, store, "")
 	if err == nil {
 		t.Error("expected load empty key to fail")
 	}
@@ -93,12 +96,12 @@ func TestLoadTransformScript(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 
-	path, err := CreateDataset(store, tc.Input, nil, privKey, true, false, true)
+	path, err := CreateDataset(ctx, store, tc.Input, nil, privKey, true, false, true)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
 
-	if _, err = LoadTransformScript(store, path); err != ErrNoTransform {
+	if _, err = LoadTransformScript(ctx, store, path); err != ErrNoTransform {
 		t.Errorf("expected no transform script error. got: %s", err)
 	}
 
@@ -107,17 +110,17 @@ func TestLoadTransformScript(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 	tsf, _ := tc.TransformScriptFile()
-	transformPath, err := store.Put(tsf, true)
+	transformPath, err := store.Put(ctx, tsf, true)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
 	tc.Input.Transform.ScriptPath = transformPath
-	path, err = CreateDataset(store, tc.Input, nil, privKey, true, false, true)
+	path, err = CreateDataset(ctx, store, tc.Input, nil, privKey, true, false, true)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
 
-	file, err := LoadTransformScript(store, path)
+	file, err := LoadTransformScript(ctx, store, path)
 	if err != nil {
 		t.Fatalf("expected transform script to load. got: %s", err)
 	}

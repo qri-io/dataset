@@ -24,6 +24,7 @@
 package dataset
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -174,7 +175,7 @@ var (
 // once resolved, the file is set to an internal field, which is
 // accessible via the BodyFile method. separating into two steps
 // decouples loading from access
-func (ds *Dataset) OpenBodyFile(resolver qfs.PathResolver) (err error) {
+func (ds *Dataset) OpenBodyFile(ctx context.Context, resolver qfs.PathResolver) (err error) {
 	if ds.Body != nil {
 		// TODO (b5): this needs thought. Ideally we'd be able to delay
 		// decoding of inline data to present a stream of bytes here but that would
@@ -208,7 +209,7 @@ func (ds *Dataset) OpenBodyFile(resolver qfs.PathResolver) (err error) {
 		return ErrNoResolver
 	}
 
-	ds.bodyFile, err = resolver.Get(ds.BodyPath)
+	ds.bodyFile, err = resolver.Get(ctx, ds.BodyPath)
 	if err != nil {
 		return fmt.Errorf("opening dataset.bodyPath '%s': %s", ds.BodyPath, err)
 	}

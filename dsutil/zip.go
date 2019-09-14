@@ -3,6 +3,7 @@ package dsutil
 import (
 	"archive/zip"
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -16,7 +17,7 @@ import (
 )
 
 // WriteZipArchive generates a zip archive of a dataset and writes it to w
-func WriteZipArchive(store cafs.Filestore, ds *dataset.Dataset, format string, ref string, w io.Writer) error {
+func WriteZipArchive(ctx context.Context, store cafs.Filestore, ds *dataset.Dataset, format string, ref string, w io.Writer) error {
 	zw := zip.NewWriter(w)
 
 	// Dataset header, contains meta, structure, and commit
@@ -60,7 +61,7 @@ func WriteZipArchive(store cafs.Filestore, ds *dataset.Dataset, format string, r
 
 	// Transform script
 	if ds.Transform != nil && ds.Transform.ScriptPath != "" {
-		script, err := store.Get(ds.Transform.ScriptPath)
+		script, err := store.Get(ctx, ds.Transform.ScriptPath)
 		if err != nil {
 			return err
 		}
@@ -77,7 +78,7 @@ func WriteZipArchive(store cafs.Filestore, ds *dataset.Dataset, format string, r
 	// Viz template
 	if ds.Viz != nil {
 		if ds.Viz.ScriptPath != "" {
-			script, err := store.Get(ds.Viz.ScriptPath)
+			script, err := store.Get(ctx, ds.Viz.ScriptPath)
 			if err != nil {
 				return err
 			}
@@ -91,7 +92,7 @@ func WriteZipArchive(store cafs.Filestore, ds *dataset.Dataset, format string, r
 			}
 		}
 		if ds.Viz.RenderedPath != "" {
-			rendered, err := store.Get(ds.Viz.RenderedPath)
+			rendered, err := store.Get(ctx, ds.Viz.RenderedPath)
 			if err != nil {
 				return err
 			}
@@ -113,7 +114,7 @@ func WriteZipArchive(store cafs.Filestore, ds *dataset.Dataset, format string, r
 		return err
 	}
 
-	datasrc, err := dsfs.LoadBody(store, ds)
+	datasrc, err := dsfs.LoadBody(ctx, store, ds)
 	if err != nil {
 		log.Debug(err.Error())
 		return err

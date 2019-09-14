@@ -1,6 +1,7 @@
 package dsfs
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -19,26 +20,28 @@ var Viz1 = &dataset.Viz{
 }
 
 func TestLoadViz(t *testing.T) {
+	ctx := context.Background()
 	store := cafs.NewMapstore()
-	a, err := SaveViz(store, Viz1, true)
+	a, err := SaveViz(ctx, store, Viz1, true)
 	if err != nil {
 		t.Errorf(err.Error())
 		return
 	}
 
-	if _, err := LoadViz(store, a); err != nil {
+	if _, err := LoadViz(ctx, store, a); err != nil {
 		t.Errorf(err.Error())
 	}
 }
 
 func TestLoadVizScript(t *testing.T) {
+	ctx := context.Background()
 	store := cafs.NewMapstore()
 	privKey, err := crypto.UnmarshalPrivateKey(testPk)
 	if err != nil {
 		t.Fatalf("error unmarshaling private key: %s", err.Error())
 	}
 
-	_, err = LoadVizScript(store, "")
+	_, err = LoadVizScript(ctx, store, "")
 	if err == nil {
 		t.Error("expected load empty key to fail")
 	}
@@ -47,12 +50,12 @@ func TestLoadVizScript(t *testing.T) {
 	if err != nil {
 		t.Fatal(err.Error())
 	}
-	path, err := CreateDataset(store, tc.Input, nil, privKey, true, false, true)
+	path, err := CreateDataset(ctx, store, tc.Input, nil, privKey, true, false, true)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
 
-	if _, err = LoadVizScript(store, path); err != ErrNoViz {
+	if _, err = LoadVizScript(ctx, store, path); err != ErrNoViz {
 		t.Errorf("expected no viz script error. got: %s", err)
 	}
 
@@ -61,17 +64,17 @@ func TestLoadVizScript(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 	vsf, _ := tc.VizScriptFile()
-	vizPath, err := store.Put(vsf, true)
+	vizPath, err := store.Put(ctx, vsf, true)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
 	tc.Input.Viz.ScriptPath = vizPath
-	path, err = CreateDataset(store, tc.Input, nil, privKey, true, false, true)
+	path, err = CreateDataset(ctx, store, tc.Input, nil, privKey, true, false, true)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
 
-	file, err := LoadVizScript(store, path)
+	file, err := LoadVizScript(ctx, store, path)
 	if err != nil {
 		t.Fatalf("expected viz script to load. got: %s", err)
 	}

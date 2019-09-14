@@ -1,6 +1,7 @@
 package dsfs
 
 import (
+	"context"
 	"testing"
 
 	"github.com/qri-io/dataset"
@@ -8,13 +9,14 @@ import (
 )
 
 func TestSaveCommit(t *testing.T) {
+	ctx := context.Background()
 	store := cafs.NewMapstore()
-	path, err := SaveCommit(store, AirportCodesCommit, true)
+	path, err := SaveCommit(ctx, store, AirportCodesCommit, true)
 	if err != nil {
 		t.Errorf(err.Error())
 		return
 	}
-	cmt, err := LoadCommit(store, path)
+	cmt, err := LoadCommit(ctx, store, path)
 	if err != nil {
 		t.Errorf("error loading saved commit message: %s", err.Error())
 		return
@@ -38,17 +40,18 @@ func TestSaveCommit(t *testing.T) {
 }
 
 func TestLoadCommit(t *testing.T) {
+	ctx := context.Background()
 	store := cafs.NewMapstore()
-	a, err := SaveCommit(store, AirportCodesCommit, true)
+	a, err := SaveCommit(ctx, store, AirportCodesCommit, true)
 	if err != nil {
 		t.Errorf(err.Error())
 		return
 	}
-	if _, err := LoadCommit(store, a); err != nil {
+	if _, err := LoadCommit(ctx, store, a); err != nil {
 		t.Errorf(err.Error())
 	}
 
-	_, err = LoadCommit(store, "/bad/path")
+	_, err = LoadCommit(ctx, store, "/bad/path")
 	if err == nil {
 		t.Errorf("expected loading a bad path to error. got nil")
 		return

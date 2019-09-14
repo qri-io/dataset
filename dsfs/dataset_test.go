@@ -1,6 +1,7 @@
 package dsfs
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"io/ioutil"
@@ -35,6 +36,7 @@ func init() {
 }
 
 func TestLoadDataset(t *testing.T) {
+	ctx := context.Background()
 	store := cafs.NewMapstore()
 	dsData, err := ioutil.ReadFile("testdata/all_fields/input.dataset.json")
 	if err != nil {
@@ -54,13 +56,13 @@ func TestLoadDataset(t *testing.T) {
 
 	ds.SetBodyFile(qfs.NewMemfileBytes("all_fields.csv", body))
 
-	apath, err := WriteDataset(store, ds, true)
+	apath, err := WriteDataset(ctx, store, ds, true)
 	if err != nil {
 		t.Errorf(err.Error())
 		return
 	}
 
-	loadedDataset, err := LoadDataset(store, apath)
+	loadedDataset, err := LoadDataset(ctx, store, apath)
 	if err != nil {
 		t.Errorf(err.Error())
 		return
@@ -104,14 +106,14 @@ func TestLoadDataset(t *testing.T) {
 				t.Errorf("case %d error generating json file: %s", i, err.Error())
 				continue
 			}
-			path, err = store.Put(dsf, true)
+			path, err = store.Put(ctx, dsf, true)
 			if err != nil {
 				t.Errorf("case %d error putting file in store: %s", i, err.Error())
 				continue
 			}
 		}
 
-		_, err = LoadDataset(store, path)
+		_, err = LoadDataset(ctx, store, path)
 		if !(err != nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
 			continue
@@ -121,6 +123,7 @@ func TestLoadDataset(t *testing.T) {
 }
 
 func TestCreateDataset(t *testing.T) {
+	ctx := context.Background()
 	store := cafs.NewMapstore()
 	prev := Timestamp
 	// shameless call to timestamp to get the coverge points
@@ -135,7 +138,7 @@ func TestCreateDataset(t *testing.T) {
 		return
 	}
 
-	_, err = CreateDataset(store, nil, nil, nil, false, false, true)
+	_, err = CreateDataset(ctx, store, nil, nil, nil, false, false, true)
 	if err == nil {
 		t.Errorf("expected call without prvate key to error")
 		return
@@ -183,7 +186,7 @@ func TestCreateDataset(t *testing.T) {
 			continue
 		}
 
-		path, err := CreateDataset(store, tc.Input, c.prev, privKey, false, false, true)
+		path, err := CreateDataset(ctx, store, tc.Input, c.prev, privKey, false, false, true)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("%s: error mismatch. expected: '%s', got: '%s'", tc.Name, c.err, err)
 			continue
@@ -191,7 +194,7 @@ func TestCreateDataset(t *testing.T) {
 			continue
 		}
 
-		ds, err := LoadDataset(store, path)
+		ds, err := LoadDataset(ctx, store, path)
 		if err != nil {
 			t.Errorf("%s: error loading dataset: %s", tc.Name, err.Error())
 			continue
@@ -235,14 +238,14 @@ func TestCreateDataset(t *testing.T) {
 		t.Errorf("case nil body and previous body files, error reading data file: %s", err.Error())
 	}
 	expectedErr := "bodyfile or previous bodyfile needed"
-	_, err = CreateDataset(store, ds, nil, privKey, false, false, true)
+	_, err = CreateDataset(ctx, store, ds, nil, privKey, false, false, true)
 	if err.Error() != expectedErr {
 		t.Errorf("case nil body and previous body files, error mismatch: expected '%s', got '%s'", expectedErr, err.Error())
 	}
 
 	// Case: no changes in dataset
 	expectedErr = "error saving: no changes detected"
-	dsPrev, err := LoadDataset(store, cases[3].resultPath)
+	dsPrev, err := LoadDataset(ctx, store, cases[3].resultPath)
 	ds.PreviousPath = cases[3].resultPath
 	if err != nil {
 		t.Errorf("case no changes in dataset, error loading previous dataset file: %s", err.Error())
@@ -254,7 +257,7 @@ func TestCreateDataset(t *testing.T) {
 	}
 	ds.SetBodyFile(qfs.NewMemfileBytes("body.csv", bodyBytes))
 
-	_, err = CreateDataset(store, ds, dsPrev, privKey, false, false, true)
+	_, err = CreateDataset(ctx, store, ds, dsPrev, privKey, false, false, true)
 	if err != nil && err.Error() != expectedErr {
 		t.Errorf("case no changes in dataset, error mismatch: expected '%s', got '%s'", expectedErr, err.Error())
 	} else if err == nil {
@@ -273,15 +276,16 @@ func TestCreateDataset(t *testing.T) {
 }
 
 func TestWriteDataset(t *testing.T) {
+	ctx := context.Background()
 	store := cafs.NewMapstore()
 	prev := Timestamp
 	defer func() { Timestamp = prev }()
 	Timestamp = func() time.Time { return time.Date(2001, 01, 01, 01, 01, 01, 01, time.UTC) }
 
-	if _, err := WriteDataset(store, nil, true); err == nil || err.Error() != "cannot save empty dataset" {
+	if _, err := WriteDataset(ctx, store, nil, true); err == nil || err.Error() != "cannot save empty dataset" {
 		t.Errorf("didn't reject empty dataset: %s", err)
 	}
-	if _, err := WriteDataset(store, &dataset.Dataset{}, true); err == nil || err.Error() != "cannot save empty dataset" {
+	if _, err := WriteDataset(ctx, store, &dataset.Dataset{}, true); err == nil || err.Error() != "cannot save empty dataset" {
 		t.Errorf("didn't reject empty dataset: %s", err)
 	}
 
@@ -303,7 +307,7 @@ func TestWriteDataset(t *testing.T) {
 
 		ds := tc.Input
 
-		got, err := WriteDataset(store, ds, true)
+		got, err := WriteDataset(ctx, store, ds, true)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
 			continue
@@ -320,7 +324,7 @@ func TestWriteDataset(t *testing.T) {
 			continue
 		}
 
-		f, err := store.Get(got)
+		f, err := store.Get(ctx, got)
 		if err != nil {
 			t.Errorf("error getting dataset file: %s", err.Error())
 			continue
@@ -360,7 +364,7 @@ func TestWriteDataset(t *testing.T) {
 		ds.BodyPath = ref.BodyPath
 
 		ds.Assign(dataset.NewDatasetRef(got))
-		result, err := LoadDataset(store, got)
+		result, err := LoadDataset(ctx, store, got)
 		if err != nil {
 			t.Errorf("case %d unexpected error loading dataset: %s", i, err)
 			continue

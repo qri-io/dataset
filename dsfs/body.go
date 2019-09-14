@@ -1,6 +1,7 @@
 package dsfs
 
 import (
+	"context"
 	"fmt"
 	"io"
 
@@ -11,14 +12,14 @@ import (
 )
 
 // LoadBody loads the data this dataset points to from the store
-func LoadBody(store cafs.Filestore, ds *dataset.Dataset) (qfs.File, error) {
-	return store.Get(ds.BodyPath)
+func LoadBody(ctx context.Context, store cafs.Filestore, ds *dataset.Dataset) (qfs.File, error) {
+	return store.Get(ctx, ds.BodyPath)
 }
 
 // LoadRows loads a slice of raw bytes inside a limit/offset row range
-func LoadRows(store cafs.Filestore, ds *dataset.Dataset, limit, offset int) ([]byte, error) {
+func LoadRows(ctx context.Context, store cafs.Filestore, ds *dataset.Dataset, limit, offset int) ([]byte, error) {
 
-	datafile, err := LoadBody(store, ds)
+	datafile, err := LoadBody(ctx, store, ds)
 	if err != nil {
 		log.Debug(err.Error())
 		return nil, fmt.Errorf("error loading dataset data: %s", err.Error())
