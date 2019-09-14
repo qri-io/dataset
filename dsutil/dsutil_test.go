@@ -1,6 +1,7 @@
 package dsutil
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -12,13 +13,14 @@ import (
 )
 
 func TestWriteDir(t *testing.T) {
+	ctx := context.Background()
 	store, names, err := testStore()
 	if err != nil {
 		t.Errorf("error creating store: %s", err.Error())
 		return
 	}
 
-	ds, err := dsfs.LoadDataset(store, names["movies"])
+	ds, err := dsfs.LoadDataset(ctx, store, names["movies"])
 	if err != nil {
 		t.Errorf("error fetching movies dataset from store: %s", err.Error())
 		return
@@ -30,7 +32,7 @@ func TestWriteDir(t *testing.T) {
 		return
 	}
 
-	if err = WriteDir(store, ds, dir); err != nil {
+	if err = WriteDir(ctx, store, ds, dir); err != nil {
 		t.Errorf("error writing directory: %s", err.Error())
 		return
 	}
@@ -44,6 +46,7 @@ func TestWriteDir(t *testing.T) {
 }
 
 func testStore() (cafs.Filestore, map[string]string, error) {
+	ctx := context.Background()
 	dataf := qfs.NewMemfileBytes("movies.csv", []byte("movie\nup\nthe incredibles"))
 
 	// Map strings to ds.keys for convenience
@@ -68,7 +71,7 @@ func testStore() (cafs.Filestore, map[string]string, error) {
 	ds.SetBodyFile(dataf)
 
 	store := cafs.NewMapstore()
-	dskey, err := dsfs.WriteDataset(store, ds, true)
+	dskey, err := dsfs.WriteDataset(ctx, store, ds, true)
 	if err != nil {
 		return store, ns, err
 	}
@@ -78,6 +81,7 @@ func testStore() (cafs.Filestore, map[string]string, error) {
 }
 
 func testStoreWithVizAndTransform() (cafs.Filestore, map[string]string, error) {
+	ctx := context.Background()
 	ds := &dataset.Dataset{
 		Structure: &dataset.Structure{
 			Format: "csv",
@@ -101,8 +105,8 @@ func testStoreWithVizAndTransform() (cafs.Filestore, map[string]string, error) {
 		},
 	}
 	// load scripts into file pointers, time for a NewDataset function?
-	ds.Transform.OpenScriptFile(nil)
-	ds.Viz.OpenScriptFile(nil)
+	ds.Transform.OpenScriptFile(ctx, nil)
+	ds.Viz.OpenScriptFile(ctx, nil)
 	ds.Viz.SetRenderedFile(qfs.NewMemfileBytes("index.html", []byte("<html>rendered</html<\n")))
 
 	// Map strings to ds.keys for convenience
@@ -110,7 +114,7 @@ func testStoreWithVizAndTransform() (cafs.Filestore, map[string]string, error) {
 	// Store the files
 	st := cafs.NewMapstore()
 	ds.SetBodyFile(qfs.NewMemfileBytes("movies.csv", []byte("movie\nup\nthe incredibles")))
-	dskey, err := dsfs.WriteDataset(st, ds, true)
+	dskey, err := dsfs.WriteDataset(ctx, st, ds, true)
 	if err != nil {
 		return st, ns, err
 	}

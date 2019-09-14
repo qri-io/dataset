@@ -2,24 +2,26 @@ package dsfs
 
 import (
 	"bytes"
+	"context"
 	"io/ioutil"
 	"testing"
 )
 
 func TestLoadBody(t *testing.T) {
+	ctx := context.Background()
 	datasets, store, err := makeFilestore()
 	if err != nil {
 		t.Errorf("error creating test filestore: %s", err.Error())
 		return
 	}
 
-	ds, err := LoadDataset(store, datasets["movies"])
+	ds, err := LoadDataset(ctx, store, datasets["movies"])
 	if err != nil {
 		t.Errorf("error loading dataset: %s", err.Error())
 		return
 	}
 
-	f, err := LoadBody(store, ds)
+	f, err := LoadBody(ctx, store, ds)
 	if err != nil {
 		t.Errorf("error loading data: %s", err.Error())
 		return
@@ -43,6 +45,7 @@ func TestLoadBody(t *testing.T) {
 }
 
 func TestLoadRows(t *testing.T) {
+	ctx := context.Background()
 	datasets, store, err := makeFilestore()
 	if err != nil {
 		t.Errorf("error creating test filestore: %s", err.Error())
@@ -63,13 +66,13 @@ chatham,35000,65.25,true
 	}
 
 	for i, c := range cases {
-		ds, err := LoadDataset(store, datasets[c.dsname])
+		ds, err := LoadDataset(ctx, store, datasets[c.dsname])
 		if err != nil {
 			t.Errorf("case %d error loading dataset: %s", i, err.Error())
 			continue
 		}
 
-		data, err := LoadRows(store, ds, c.limit, c.offset)
+		data, err := LoadRows(ctx, store, ds, c.limit, c.offset)
 		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
 			t.Errorf("case %d unexpected error: %s", i, err.Error())
 			continue

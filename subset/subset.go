@@ -19,15 +19,17 @@
 package subset
 
 import (
+	"context"
+
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsfs"
 	"github.com/qri-io/qfs/cafs"
 )
 
 // LoadPreview loads a dataset preview for a given hash path
-func LoadPreview(s cafs.Filestore, path string) (*dataset.Dataset, error) {
+func LoadPreview(ctx context.Context, s cafs.Filestore, path string) (*dataset.Dataset, error) {
 	// TODO - this is overfetching. Refine.
-	ds, err := dsfs.LoadDataset(s, path)
+	ds, err := dsfs.LoadDataset(ctx, s, path)
 	if err != nil {
 		return nil, err
 	}

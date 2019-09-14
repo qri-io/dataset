@@ -1,6 +1,7 @@
 package dataset
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -58,7 +59,7 @@ func (q *Transform) DropDerivedValues() {
 // OpenScriptFile generates a byte stream of script data prioritizing creating an
 // in-place file from ScriptBytes when defined, fetching from the
 // passed-in resolver otherwise
-func (q *Transform) OpenScriptFile(resolver qfs.PathResolver) (err error) {
+func (q *Transform) OpenScriptFile(ctx context.Context, resolver qfs.PathResolver) (err error) {
 	if q.ScriptBytes != nil {
 		q.scriptFile = qfs.NewMemfileBytes("transform.star", q.ScriptBytes)
 		return nil
@@ -72,7 +73,7 @@ func (q *Transform) OpenScriptFile(resolver qfs.PathResolver) (err error) {
 	if resolver == nil {
 		return ErrNoResolver
 	}
-	q.scriptFile, err = resolver.Get(q.ScriptPath)
+	q.scriptFile, err = resolver.Get(ctx, q.ScriptPath)
 	return err
 }
 

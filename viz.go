@@ -1,6 +1,7 @@
 package dataset
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -53,7 +54,7 @@ func (v *Viz) DropDerivedValues() {
 // OpenScriptFile generates a byte stream of script data prioritizing creating an
 // in-place file from ScriptBytes when defined, fetching from the
 // passed-in resolver otherwise
-func (v *Viz) OpenScriptFile(resolver qfs.PathResolver) (err error) {
+func (v *Viz) OpenScriptFile(ctx context.Context, resolver qfs.PathResolver) (err error) {
 	if v.ScriptBytes != nil {
 		v.scriptFile = qfs.NewMemfileBytes("template.html", v.ScriptBytes)
 		return nil
@@ -67,7 +68,7 @@ func (v *Viz) OpenScriptFile(resolver qfs.PathResolver) (err error) {
 	if resolver == nil {
 		return ErrNoResolver
 	}
-	v.scriptFile, err = resolver.Get(v.ScriptPath)
+	v.scriptFile, err = resolver.Get(ctx, v.ScriptPath)
 	return err
 }
 
@@ -77,7 +78,7 @@ func (v *Viz) SetScriptFile(file qfs.File) {
 }
 
 // OpenRenderedFile generates a byte stream of the rendered data
-func (v *Viz) OpenRenderedFile(resolver qfs.PathResolver) (err error) {
+func (v *Viz) OpenRenderedFile(ctx context.Context, resolver qfs.PathResolver) (err error) {
 	if v.RenderedPath == "" {
 		// nothing to resolve
 		return nil
@@ -86,7 +87,7 @@ func (v *Viz) OpenRenderedFile(resolver qfs.PathResolver) (err error) {
 	if resolver == nil {
 		return ErrNoResolver
 	}
-	v.renderedFile, err = resolver.Get(v.RenderedPath)
+	v.renderedFile, err = resolver.Get(ctx, v.RenderedPath)
 	return err
 }
 

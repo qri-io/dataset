@@ -1,6 +1,7 @@
 package dsfs
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -146,6 +147,7 @@ var HoursStructure = &dataset.Structure{
 }
 
 func makeFilestore() (map[string]string, cafs.Filestore, error) {
+	ctx := context.Background()
 	st := cafs.NewMapstore()
 
 	datasets := map[string]string{
@@ -172,7 +174,7 @@ func makeFilestore() (map[string]string, cafs.Filestore, error) {
 
 		ds.SetBodyFile(qfs.NewMemfileBytes(filepath.Base(dataPath), data))
 
-		dskey, err := WriteDataset(st, ds, true)
+		dskey, err := WriteDataset(ctx, st, ds, true)
 		if err != nil {
 			return datasets, nil, fmt.Errorf("dataset: %s write error: %s", k, err.Error())
 		}

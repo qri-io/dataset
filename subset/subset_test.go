@@ -1,17 +1,18 @@
 package subset
 
 import (
+	"context"
 	"testing"
 	"time"
 
 	"github.com/qri-io/dataset"
-
 	"github.com/qri-io/dataset/dsfs"
 	"github.com/qri-io/dataset/dstest"
 	"github.com/qri-io/qfs/cafs"
 )
 
 func addMovies(t *testing.T, s cafs.Filestore) string {
+	ctx := context.Background()
 	prev := dsfs.Timestamp
 	dsfs.Timestamp = func() time.Time { return time.Time{}.UTC() }
 	defer func() {
@@ -23,7 +24,7 @@ func addMovies(t *testing.T, s cafs.Filestore) string {
 		t.Fatal(err)
 	}
 
-	path, err := dsfs.CreateDataset(s, tc.Input, nil, dstest.PrivKey, true, false, true)
+	path, err := dsfs.CreateDataset(ctx, s, tc.Input, nil, dstest.PrivKey, true, false, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -32,10 +33,11 @@ func addMovies(t *testing.T, s cafs.Filestore) string {
 }
 
 func TestLoadPreview(t *testing.T) {
+	ctx := context.Background()
 	s := cafs.NewMapstore()
 	path := addMovies(t, s)
 
-	res, err := LoadPreview(s, path)
+	res, err := LoadPreview(ctx, s, path)
 	if err != nil {
 		t.Error(err)
 	}

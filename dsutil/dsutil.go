@@ -4,6 +4,7 @@
 package dsutil
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -20,7 +21,7 @@ import (
 var log = logger.Logger("dsutil")
 
 // WriteDir loads a dataset & writes all contents to a directory specified by path
-func WriteDir(store cafs.Filestore, ds *dataset.Dataset, path string) error {
+func WriteDir(ctx context.Context, store cafs.Filestore, ds *dataset.Dataset, path string) error {
 	if err := os.MkdirAll(path, os.ModePerm); err != nil {
 		log.Debug(err.Error())
 		return err
@@ -37,7 +38,7 @@ func WriteDir(store cafs.Filestore, ds *dataset.Dataset, path string) error {
 		return err
 	}
 
-	datasrc, err := dsfs.LoadBody(store, ds)
+	datasrc, err := dsfs.LoadBody(ctx, store, ds)
 	if err != nil {
 		log.Debug(err.Error())
 		return err

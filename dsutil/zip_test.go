@@ -3,6 +3,7 @@ package dsutil
 import (
 	"archive/zip"
 	"bytes"
+	"context"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -13,20 +14,21 @@ import (
 )
 
 func TestWriteZipArchive(t *testing.T) {
+	ctx := context.Background()
 	store, names, err := testStore()
 	if err != nil {
 		t.Errorf("error creating store: %s", err.Error())
 		return
 	}
 
-	ds, err := dsfs.LoadDataset(store, names["movies"])
+	ds, err := dsfs.LoadDataset(ctx, store, names["movies"])
 	if err != nil {
 		t.Errorf("error fetching movies dataset from store: %s", err.Error())
 		return
 	}
 
 	buf := &bytes.Buffer{}
-	if err = WriteZipArchive(store, ds, "yaml", "peer/ref@a/ipfs/b", buf); err != nil {
+	if err = WriteZipArchive(ctx, store, ds, "yaml", "peer/ref@a/ipfs/b", buf); err != nil {
 		t.Errorf("error writing zip archive: %s", err.Error())
 		return
 	}
@@ -53,26 +55,27 @@ func TestWriteZipArchive(t *testing.T) {
 }
 
 func TestWriteZipArchiveFullDataset(t *testing.T) {
+	ctx := context.Background()
 	store, names, err := testStoreWithVizAndTransform()
 	if err != nil {
 		t.Errorf("error creating store: %s", err.Error())
 		return
 	}
 
-	ds, err := dsfs.LoadDataset(store, names["movies"])
+	ds, err := dsfs.LoadDataset(ctx, store, names["movies"])
 	if err != nil {
 		t.Errorf("error fetching movies dataset from store: %s", err.Error())
 		return
 	}
 
-	_, err = store.Get(names["transform_script"])
+	_, err = store.Get(ctx, names["transform_script"])
 	if err != nil {
 		t.Errorf("error fetching movies dataset from store: %s", err.Error())
 		return
 	}
 
 	buf := &bytes.Buffer{}
-	if err = WriteZipArchive(store, ds, "json", "peer/ref@a/ipfs/b", buf); err != nil {
+	if err = WriteZipArchive(ctx, store, ds, "json", "peer/ref@a/ipfs/b", buf); err != nil {
 		t.Errorf("error writing zip archive: %s", err.Error())
 		return
 	}
