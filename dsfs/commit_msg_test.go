@@ -11,7 +11,7 @@ import (
 func TestSaveCommit(t *testing.T) {
 	ctx := context.Background()
 	store := cafs.NewMapstore()
-	path, err := SaveCommit(ctx, store, AirportCodesCommit, true)
+	path, err := SaveCommit(ctx, store, AirportCodesCommit)
 	if err != nil {
 		t.Errorf(err.Error())
 		return
@@ -42,7 +42,7 @@ func TestSaveCommit(t *testing.T) {
 func TestLoadCommit(t *testing.T) {
 	ctx := context.Background()
 	store := cafs.NewMapstore()
-	a, err := SaveCommit(ctx, store, AirportCodesCommit, true)
+	a, err := SaveCommit(ctx, store, AirportCodesCommit)
 	if err != nil {
 		t.Errorf(err.Error())
 		return

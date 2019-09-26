@@ -77,34 +77,35 @@ func WriteZipArchive(ctx context.Context, store cafs.Filestore, ds *dataset.Data
 
 	// Viz template
 	if ds.Viz != nil {
-		if ds.Viz.ScriptPath != "" {
-			script, err := store.Get(ctx, ds.Viz.ScriptPath)
-			if err != nil {
-				return err
-			}
-			target, err := zw.Create("viz.html")
-			if err != nil {
-				return err
-			}
-			_, err = io.Copy(target, script)
-			if err != nil {
-				return err
-			}
-		}
-		if ds.Viz.RenderedPath != "" {
-			rendered, err := store.Get(ctx, ds.Viz.RenderedPath)
-			if err != nil {
-				return err
-			}
-			target, err := zw.Create("index.html")
-			if err != nil {
-				return err
-			}
-			_, err = io.Copy(target, rendered)
-			if err != nil {
-				return err
-			}
-		}
+		// if ds.Viz.ScriptPath != "" {
+		// 	script, err := store.Get(ctx, ds.Viz.ScriptPath)
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// 	target, err := zw.Create("viz.html")
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// 	_, err = io.Copy(target, script)
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// }
+
+		// if ds.Viz.RenderedPath != "" {
+		// 	rendered, err := store.Get(ctx, ds.Viz.RenderedPath)
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// 	target, err := zw.Create("index.html")
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// 	_, err = io.Copy(target, rendered)
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// }
 	}
 
 	// Body

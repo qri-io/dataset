@@ -41,7 +41,7 @@ func TestSaveTransform(t *testing.T) {
 		},
 	}
 
-	key, err := SaveTransform(ctx, store, q, true)
+	key, err := SaveTransform(ctx, store, q)
 	if err != nil {
 		t.Error(err.Error())
 		return
@@ -110,7 +110,7 @@ func TestLoadTransformScript(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 	tsf, _ := tc.TransformScriptFile()
-	transformPath, err := store.Put(ctx, tsf, true)
+	transformPath, err := store.Put(ctx, tsf)
 	if err != nil {
 		t.Fatal(err.Error())
 	}

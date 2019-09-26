@@ -9,13 +9,13 @@ import (
 )
 
 // SaveCommit writes a commit message to a cafs
-func SaveCommit(ctx context.Context, store cafs.Filestore, s *dataset.Commit, pin bool) (path string, err error) {
+func SaveCommit(ctx context.Context, store cafs.Filestore, s *dataset.Commit) (path string, err error) {
 	file, err := JSONFile(PackageFileCommit.String(), s)
 	if err != nil {
 		log.Debug(err.Error())
 		return "", fmt.Errorf("error saving json commit file: %s", err.Error())
 	}
-	return store.Put(ctx, file, pin)
+	return store.Put(ctx, file)
 }
 
 // LoadCommit loads a commit from a given path in a store

@@ -27,7 +27,7 @@ require (
 	github.com/qri-io/compare v0.1.0
 	github.com/qri-io/dsdiff v0.1.1
 	github.com/qri-io/jsonschema v0.1.1
-	github.com/qri-io/qfs v0.1.1-0.20190914113707-830d3ea8232d
+	github.com/qri-io/qfs v0.1.1-0.20190927121847-9e99025ffde6
 	github.com/qri-io/varName v0.1.0
 	github.com/ugorji/go v1.1.4
 	github.com/yudai/gojsondiff v1.0.0

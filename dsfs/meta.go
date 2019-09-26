@@ -9,13 +9,13 @@ import (
 )
 
 // SaveMeta saves a query's metadata to a given store
-func SaveMeta(ctx context.Context, store cafs.Filestore, s *dataset.Meta, pin bool) (path string, err error) {
+func SaveMeta(ctx context.Context, store cafs.Filestore, s *dataset.Meta) (path string, err error) {
 	file, err := JSONFile(PackageFileMeta.String(), s)
 	if err != nil {
 		log.Debug(err.Error())
 		return "", fmt.Errorf("error saving json metadata file: %s", err.Error())
 	}
-	return store.Put(ctx, file, pin)
+	return store.Put(ctx, file)
 }
 
 // LoadMeta loads a metadata from a given path in a store

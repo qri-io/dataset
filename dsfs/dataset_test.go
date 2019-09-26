@@ -106,7 +106,7 @@ func TestLoadDataset(t *testing.T) {
 				t.Errorf("case %d error generating json file: %s", i, err.Error())
 				continue
 			}
-			path, err = store.Put(ctx, dsf, true)
+			path, err = store.Put(ctx, dsf)
 			if err != nil {
 				t.Errorf("case %d error putting file in store: %s", i, err.Error())
 				continue
