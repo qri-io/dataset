@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsfs"
 )
@@ -95,10 +96,14 @@ func TestWriteZipArchiveFullDataset(t *testing.T) {
 		t.Errorf("error reading expected bytes: %s", err.Error())
 		return
 	}
-	if !bytes.Equal(buf.Bytes(), expectBytes) {
-		t.Errorf("error bytes of exported zip did not match")
-		return
+	if diff := cmp.Diff(expectBytes, buf.Bytes()); diff != "" {
+		t.Errorf("byte mismatch (-want +got):\n%s", diff)
 	}
+	// if !bytes.Equal(buf.Bytes(), expectBytes) {
+
+	// 	t.Errorf("error bytes of exported zip did not match")
+	// 	return
+	// }
 }
 
 func TestUnzipDatasetBytes(t *testing.T) {
