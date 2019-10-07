@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/qri-io/dataset"
@@ -115,7 +116,10 @@ func CSVSchema(resource *dataset.Structure, data io.Reader) (schema map[string]i
 	}
 
 	for i, tally := range types {
-		for typ, count := range tally {
+		// Iterate keys in a deterministic manner.
+		keys := getKeys(tally)
+		for _, typ := range keys {
+			count := tally[typ]
 			if count > tally[fields[i].Type] {
 				fields[i].Type = typ
 			}
@@ -135,6 +139,17 @@ func CSVSchema(resource *dataset.Structure, data io.Reader) (schema map[string]i
 	}
 
 	return sch, tr.BytesRead(), nil
+}
+
+func getKeys(m map[vals.Type]int) []vals.Type {
+	keys := make([]vals.Type, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Slice(keys, func(i, j int) bool {
+		return keys[i] < keys[j]
+	})
+	return keys
 }
 
 // PossibleHeaderRow makes an educated guess about weather or not this csv file has a header row.
