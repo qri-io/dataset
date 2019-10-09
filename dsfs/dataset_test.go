@@ -169,7 +169,7 @@ func TestCreateDataset(t *testing.T) {
 		{"cities_no_commit_title",
 			"/map/QmYEcxjtU7oJXeEtp2B5ZaGbw1g5YEyuf6GhL1R3LBo5fh", nil, 17, ""},
 		{"craigslist",
-			"/map/QmYfE9ZmRMjwChFoSaK1GxLXEftUGrZ528HLLc5zBpHmcg", nil, 21, ""},
+			"/map/QmTDcyxadjji59eLEch6KmwEtTVwRzQC9RjdHFRdncZGxV", nil, 21, ""},
 		// should error when previous dataset won't dereference.
 		{"craigslist",
 			"", &dataset.Dataset{Structure: dataset.NewStructureRef("/bad/path")}, 21, "error loading dataset structure: error loading structure file: cafs: path not found"},
@@ -453,5 +453,100 @@ func TestCleanTitleAndMessage(t *testing.T) {
 			t.Errorf("case %d, message mismatch, expect: %s, got: %s", i, c.expectMessage, ds.Commit.Message)
 		}
 
+	}
+}
+
+func TestGetDepth(t *testing.T) {
+	good := []struct {
+		val      string
+		expected int
+	}{
+		{`"foo"`, 0},
+		{`1000`, 0},
+		{`true`, 0},
+		{`{"foo": "bar"}`, 1},
+		{`{"foo": "bar","bar": "baz"}`, 1},
+		{`{
+			"foo":"bar",
+			"bar": "baz",
+			"baz": {
+				"foo": "bar",
+				"bar": "baz"
+			}
+		}`, 2},
+		{`{
+			"foo": "bar",
+			"bar": "baz",
+			"baz": {
+				"foo": "bar",
+				"bar": [
+					"foo",
+					"bar",
+					"baz"
+				]
+			}
+		}`, 3},
+		{`{
+			"foo": "bar",
+			"bar": "baz",
+			"baz": [
+				"foo",
+				"bar",
+				"baz"
+			]
+		}`, 2},
+		{`["foo","bar","baz"]`, 1},
+		{`["a","b",[1, 2, 3]]`, 2},
+		{`[
+			"foo",
+			"bar",
+			{"baz": {
+				"foo": "bar",
+				"bar": "baz",
+				"baz": "foo"
+				}
+			}
+		]`, 3},
+		{`{
+			"foo": "bar",
+			"foo1": {
+				"foo2": 2,
+				"foo3": false
+			},
+			"foo4": "bar",
+			"foo5": {
+				"foo6": 100
+			}
+		}`, 2},
+		{`{
+			"foo":  "bar",
+			"foo1": "bar",
+			"foo2": {
+				"foo3": 100,
+				"foo4": 100
+			},
+			"foo5": {
+				"foo6": 100,
+				"foo7": 100,
+				"foo8": 100,
+				"foo9": 100
+			},
+			"foo10": {
+				"foo11": 100,
+				"foo12": 100
+			}
+		}`, 2},
+	}
+
+	var val interface{}
+
+	for i, c := range good {
+		if err := json.Unmarshal([]byte(c.val), &val); err != nil {
+			t.Fatal(err)
+		}
+		depth := getDepth(val)
+		if c.expected != depth {
+			t.Errorf("case %d, depth mismatch, expected %d, got %d", i, c.expected, depth)
+		}
 	}
 }
