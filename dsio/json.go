@@ -518,7 +518,7 @@ func (w *JSONWriter) valBytes(ent Entry) (data []byte, err error) {
 	var val []byte
 	if w.indent != "" {
 		val, err = json.MarshalIndent(ent.Value, w.indent, w.indent)
-		val = append([]byte(w.indent), data...)
+		val = append([]byte(w.indent), val...)
 	} else {
 		val, err = json.Marshal(ent.Value)
 	}

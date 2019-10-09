@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dstest"
 )
@@ -217,7 +218,6 @@ func TestJSONSizeReader(t *testing.T) {
 			t.Errorf("case %d: unexpected error: %s", i, err.Error())
 			continue
 		}
-
 	}
 }
 
@@ -407,39 +407,50 @@ func BenchmarkJSONWriterArrays(b *testing.B) {
 }
 
 func TestJSONPrettyWriter(t *testing.T) {
-	st := &dataset.Structure{Schema: dataset.BaseSchemaArray}
-	buf := &bytes.Buffer{}
-	w, err := NewJSONPrettyWriter(st, buf, " ")
-	if err != nil {
-		t.Fatal(err)
+	good := []struct {
+		structure *dataset.Structure
+		entries   []Entry
+		expect    string
+	}{
+		{
+			&dataset.Structure{Schema: dataset.BaseSchemaArray},
+			[]Entry{
+				Entry{Value: map[string]string{"a": "hello"}},
+				Entry{Value: map[string]string{"b": "goodbye"}},
+			},
+			"[\n {\n  \"a\": \"hello\"\n },\n {\n  \"b\": \"goodbye\"\n }\n]",
+		},
+		{
+			&dataset.Structure{Schema: dataset.BaseSchemaObject},
+			[]Entry{
+				Entry{Key: "a", Value: "foo"},
+				Entry{Key: "b", Value: true},
+				Entry{Key: "c", Value: map[string]int{"depth_2": 2}},
+			},
+			"{\n \"a\": \"foo\",\n \"b\": true,\n \"c\": {\n  \"depth_2\": 2\n }\n}",
+		},
 	}
 
-	err = w.WriteEntry(Entry{Value: map[string]string{"a": "hello"}})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	err = w.WriteEntry(Entry{Value: map[string]string{"b": "goodbye"}})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	err = w.Close()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	result := string(buf.Bytes())
-	expect := `[
- {
-  "a": "hello"
- },
- {
-  "b": "goodbye"
- }
-]`
-	if result != expect {
-		t.Errorf("result mismatch: expected: \"%s\", got: \"%s\"", result, expect)
+	for _, c := range good {
+		buf := &bytes.Buffer{}
+		w, err := NewJSONPrettyWriter(c.structure, buf, " ")
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, entry := range c.entries {
+			err = w.WriteEntry(entry)
+			if err != nil {
+				t.Fatal(err)
+			}
+		}
+		err = w.Close()
+		if err != nil {
+			t.Fatal(err)
+		}
+		result := string(buf.Bytes())
+		if diff := cmp.Diff(c.expect, result); diff != "" {
+			t.Errorf("JSON Pretty Print contents (-want +got):\n%s", diff)
+		}
 	}
 }
 
