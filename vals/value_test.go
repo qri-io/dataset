@@ -480,8 +480,8 @@ func TestArrayIndexMethod(t *testing.T) {
 	}{
 		{*testArr1, 0, num1, ""},
 		{*testArr1, 1, num2, ""},
-		{*testArr1, 2, num2, "runtime error: index out of range"},
-		{*testArr2, 0, num2, "runtime error: index out of range"},
+		{*testArr1, 2, num2, "runtime error: index out of range [2] with length 2"},
+		{*testArr2, 0, num2, "runtime error: index out of range [0] with length 0"},
 	}
 	for i, c := range cases {
 		func() {
