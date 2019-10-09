@@ -29,7 +29,8 @@ require (
 	github.com/qri-io/jsonschema v0.1.1
 	github.com/qri-io/qfs v0.1.1-0.20190914113707-830d3ea8232d
 	github.com/qri-io/varName v0.1.0
-	github.com/ugorji/go v1.1.4
+	github.com/ugorji/go v1.1.7
+	github.com/ugorji/go/codec v1.1.7
 	github.com/yudai/gojsondiff v1.0.0
 	gopkg.in/yaml.v2 v2.2.2
 )
