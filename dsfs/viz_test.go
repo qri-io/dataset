@@ -22,7 +22,7 @@ var Viz1 = &dataset.Viz{
 func TestLoadViz(t *testing.T) {
 	ctx := context.Background()
 	store := cafs.NewMapstore()
-	a, err := SaveViz(ctx, store, Viz1, true)
+	a, err := SaveViz(ctx, store, Viz1)
 	if err != nil {
 		t.Errorf(err.Error())
 		return
@@ -64,7 +64,7 @@ func TestLoadVizScript(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 	vsf, _ := tc.VizScriptFile()
-	vizPath, err := store.Put(ctx, vsf, true)
+	vizPath, err := store.Put(ctx, vsf)
 	if err != nil {
 		t.Fatal(err.Error())
 	}

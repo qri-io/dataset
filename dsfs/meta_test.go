@@ -10,7 +10,7 @@ import (
 func TestLoadMeta(t *testing.T) {
 	ctx := context.Background()
 	store := cafs.NewMapstore()
-	a, err := SaveMeta(ctx, store, AirportCodes.Meta, true)
+	a, err := SaveMeta(ctx, store, AirportCodes.Meta)
 	if err != nil {
 		t.Errorf(err.Error())
 		return

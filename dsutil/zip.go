@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/ioutil"
 	"strings"
+	"time"
 
 	"github.com/ghodss/yaml"
 	"github.com/qri-io/dataset"
@@ -91,8 +92,15 @@ func WriteZipArchive(ctx context.Context, store cafs.Filestore, ds *dataset.Data
 				return err
 			}
 		}
+
 		if ds.Viz.RenderedPath != "" {
-			rendered, err := store.Get(ctx, ds.Viz.RenderedPath)
+			// TODO (b5) - rendered viz isn't always being properly added to the
+			// encoded DAG, causing this to hang indefinitely on a network lookup.
+			// Use a short timeout for now to prevent the process from running too
+			// long. We should come up with a more permanent fix for this.
+			withTimeout, done := context.WithTimeout(ctx, time.Millisecond*250)
+			defer done()
+			rendered, err := store.Get(withTimeout, ds.Viz.RenderedPath)
 			if err != nil {
 				return err
 			}

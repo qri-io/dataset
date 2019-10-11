@@ -27,7 +27,7 @@ func loadTransform(ctx context.Context, store cafs.Filestore, path string) (q *d
 }
 
 // SaveTransform writes a transform to a cafs
-func SaveTransform(ctx context.Context, store cafs.Filestore, q *dataset.Transform, pin bool) (path string, err error) {
+func SaveTransform(ctx context.Context, store cafs.Filestore, q *dataset.Transform) (path string, err error) {
 	// copy transform
 	save := &dataset.Transform{}
 	save.Assign(q)
@@ -40,7 +40,7 @@ func SaveTransform(ctx context.Context, store cafs.Filestore, q *dataset.Transfo
 		return "", fmt.Errorf("error marshaling transform data to json: %s", err.Error())
 	}
 
-	return store.Put(ctx, tf, pin)
+	return store.Put(ctx, tf)
 }
 
 // ErrNoTransform is the error for asking a dataset without a tranform component for viz info

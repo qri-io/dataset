@@ -10,13 +10,13 @@ import (
 )
 
 // SaveViz saves a query's viz to a given store
-func SaveViz(ctx context.Context, store cafs.Filestore, v *dataset.Viz, pin bool) (path string, err error) {
+func SaveViz(ctx context.Context, store cafs.Filestore, v *dataset.Viz) (path string, err error) {
 	file, err := JSONFile(PackageFileViz.String(), v)
 	if err != nil {
 		log.Debug(err.Error())
 		return "", fmt.Errorf("error saving json viz file: %s", err.Error())
 	}
-	return store.Put(ctx, file, pin)
+	return store.Put(ctx, file)
 }
 
 // LoadViz loads a viz from a given path in a store
