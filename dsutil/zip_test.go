@@ -99,11 +99,6 @@ func TestWriteZipArchiveFullDataset(t *testing.T) {
 	if diff := cmp.Diff(expectBytes, buf.Bytes()); diff != "" {
 		t.Errorf("byte mismatch (-want +got):\n%s", diff)
 	}
-	// if !bytes.Equal(buf.Bytes(), expectBytes) {
-
-	// 	t.Errorf("error bytes of exported zip did not match")
-	// 	return
-	// }
 }
 
 func TestUnzipDatasetBytes(t *testing.T) {
