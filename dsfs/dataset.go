@@ -370,8 +370,8 @@ func setDepthAndEntryCount(ds *dataset.Dataset, data qfs.File, mu *sync.Mutex, d
 	}
 
 	entries := 0
-	// baseline of 1 for the original closure
-	depth := 1
+
+	depth := 0
 	var ent dsio.Entry
 	for {
 		if ent, err = er.ReadEntry(); err != nil {
@@ -379,7 +379,7 @@ func setDepthAndEntryCount(ds *dataset.Dataset, data qfs.File, mu *sync.Mutex, d
 			break
 		}
 		// get the depth of this entry, update depth if larger
-		if d := getDepth(ent.Value, 1); d > depth {
+		if d := getDepth(ent.Value); d > depth {
 			depth = d
 		}
 		entries++
@@ -391,32 +391,32 @@ func setDepthAndEntryCount(ds *dataset.Dataset, data qfs.File, mu *sync.Mutex, d
 
 	mu.Lock()
 	ds.Structure.Entries = entries
-	ds.Structure.Depth = depth
+	ds.Structure.Depth = depth + 1 // need to add one for the original enclosure
 	mu.Unlock()
 
 	done <- nil
 }
 
 // getDepth finds the deepest value in a given interface value
-func getDepth(x interface{}, depth int) int {
+func getDepth(x interface{}) (depth int) {
 	switch v := x.(type) {
 	case map[string]interface{}:
-		depth++
 		for _, el := range v {
-			if d := getDepth(el, depth); d > depth {
+			if d := getDepth(el); d > depth {
 				depth = d
 			}
 		}
+		return depth + 1
 	case []interface{}:
-		depth++
 		for _, el := range v {
-			if d := getDepth(el, depth); d > depth {
+			if d := getDepth(el); d > depth {
 				depth = d
 			}
 		}
+		return depth + 1
+	default:
+		return depth
 	}
-
-	return depth
 }
 
 // setChecksumAndStats
