@@ -60,14 +60,16 @@ func TypeFromString(t string) Type {
 // it's type, starting with the more specific possible types, then falling
 // back to more general types. ParseType always returns a type
 func ParseType(value []byte) Type {
+	if IsBoolean(value) {
+		return TypeBoolean
+	}
+	if bytes.Compare(value, []byte("null")) == 0 {
+		return TypeNull
+	}
 	for _, b := range value {
 		switch b {
 		case '"':
 			return TypeString
-		case 't', 'f':
-			return TypeBoolean
-		case 'n':
-			return TypeNull
 		case '-', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'e':
 			if _, e := strconv.ParseFloat(string(value), 32); e != nil {
 				return TypeString
@@ -282,7 +284,7 @@ func IsInteger(value []byte) bool {
 // IsBoolean checks if a slice of bytes is a boolean value
 func IsBoolean(value []byte) bool {
 	switch string(value) {
-	case "1", "0", "t", "f", "T", "F", "true", "false", "TRUE", "FALSE", "True", "False":
+	case "t", "f", "T", "F", "true", "false", "TRUE", "FALSE", "True", "False":
 		return true
 	default:
 		return false
