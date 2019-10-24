@@ -17,10 +17,12 @@ const (
 	KindStructure = Kind("st:" + CurrentSpecVersion)
 	// KindTransform is the current kind for dataset transforms
 	KindTransform = Kind("tf:" + CurrentSpecVersion)
-	// KindCommit is the current kind for dataset transforms
+	// KindCommit is the current kind for dataset commit
 	KindCommit = Kind("cm:" + CurrentSpecVersion)
-	// KindViz is the current kind for dataset transforms
+	// KindViz is the current kind for dataset viz
 	KindViz = Kind("vz:" + CurrentSpecVersion)
+	// KindReadme is the current kind for dataset readme
+	KindReadme = Kind("rm:" + CurrentSpecVersion)
 )
 
 // Kind is a short identifier for all types of qri dataset objects

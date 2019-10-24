@@ -1,6 +1,7 @@
 package vals
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -480,8 +481,8 @@ func TestArrayIndexMethod(t *testing.T) {
 	}{
 		{*testArr1, 0, num1, ""},
 		{*testArr1, 1, num2, ""},
-		{*testArr1, 2, num2, "runtime error: index out of range [2] with length 2"},
-		{*testArr2, 0, num2, "runtime error: index out of range [0] with length 0"},
+		{*testArr1, 2, num2, "runtime error: index out of range"},
+		{*testArr2, 0, num2, "runtime error: index out of range"},
 	}
 	for i, c := range cases {
 		func() {
@@ -489,7 +490,7 @@ func TestArrayIndexMethod(t *testing.T) {
 				if r := recover(); r != nil {
 					if err, ok := r.(error); ok {
 						if err != nil {
-							if err.Error() != c.expectedError {
+							if !strings.Contains(err.Error(), c.expectedError) {
 								t.Errorf("case %d error mismatch: expected: '%s', got: '%s'", i, c.expectedError, err.Error())
 							}
 						}

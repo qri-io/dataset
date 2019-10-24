@@ -72,6 +72,8 @@ type Dataset struct {
 	PreviousPath string `json:"previousPath,omitempty"`
 	// ProfileID of dataset owner, transient
 	ProfileID string `json:"profileID,omitempty"`
+	// Readme is a path to the readme file for this dataset
+	Readme *Readme `json:"readme,omitempty"`
 	// Number of versions this dataset has, transient
 	NumVersions int `json:"numVersions,omitempty"`
 	// Qri is a key for both identifying this document type, and versioning the
@@ -99,6 +101,7 @@ func (ds *Dataset) IsEmpty() bool {
 		ds.ProfileID == "" &&
 		ds.Structure == nil &&
 		ds.Transform == nil &&
+		ds.Readme == nil &&
 		ds.Viz == nil
 }
 
@@ -154,6 +157,9 @@ func (ds *Dataset) DropDerivedValues() {
 	}
 	if ds.Transform != nil {
 		ds.Transform.DropDerivedValues()
+	}
+	if ds.Readme != nil {
+		ds.Readme.DropDerivedValues()
 	}
 	if ds.Viz != nil {
 		ds.Viz.DropDerivedValues()
@@ -289,6 +295,11 @@ func (ds *Dataset) Assign(datasets ...*Dataset) {
 			ds.Viz = d.Viz
 		} else if ds.Viz != nil {
 			ds.Viz.Assign(d.Viz)
+		}
+		if ds.Readme == nil && d.Readme != nil {
+			ds.Readme = d.Readme
+		} else if ds.Readme != nil {
+			ds.Readme.Assign(d.Readme)
 		}
 
 		// TODO - wut dis?

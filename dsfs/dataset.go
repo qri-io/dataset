@@ -88,6 +88,9 @@ func DerefDataset(ctx context.Context, store cafs.Filestore, ds *dataset.Dataset
 	if err := DerefDatasetViz(ctx, store, ds); err != nil {
 		return err
 	}
+	if err := DerefDatasetReadme(ctx, store, ds); err != nil {
+		return err
+	}
 	return DerefDatasetCommit(ctx, store, ds)
 }
 
@@ -111,14 +114,30 @@ func DerefDatasetStructure(ctx context.Context, store cafs.Filestore, ds *datase
 // should be a no-op if ds.Viz is nil or isn't a reference
 func DerefDatasetViz(ctx context.Context, store cafs.Filestore, ds *dataset.Dataset) error {
 	if ds.Viz != nil && ds.Viz.IsEmpty() && ds.Viz.Path != "" {
-		st, err := loadViz(ctx, store, ds.Viz.Path)
+		vz, err := loadViz(ctx, store, ds.Viz.Path)
 		if err != nil {
 			log.Debug(err.Error())
 			return fmt.Errorf("error loading dataset viz: %s", err.Error())
 		}
 		// assign path to retain internal reference to path
-		// st.Assign(dataset.NewVizRef(ds.Viz.Path))
-		ds.Viz = st
+		// vz.Assign(dataset.NewVizRef(ds.Viz.Path))
+		ds.Viz = vz
+	}
+	return nil
+}
+
+// DerefDatasetReadme dereferences a dataset's Readme element if required
+// should be a no-op if ds.Readme is nil or isn't a reference
+func DerefDatasetReadme(ctx context.Context, store cafs.Filestore, ds *dataset.Dataset) error {
+	if ds.Readme != nil && ds.Readme.IsEmpty() && ds.Readme.Path != "" {
+		rm, err := loadReadme(ctx, store, ds.Readme.Path)
+		if err != nil {
+			log.Debug(err.Error())
+			return fmt.Errorf("error loading dataset readme: %s", err.Error())
+		}
+		// assign path to retain internal reference to path
+		// rm.Assign(dataset.NewVizRef(ds.Readme.Path))
+		ds.Readme = rm
 	}
 	return nil
 }
@@ -533,26 +552,54 @@ func WriteDataset(ctx context.Context, store cafs.Filestore, ds *dataset.Dataset
 		vizScript := ds.Viz.ScriptFile()
 		vizRendered := ds.Viz.RenderedFile()
 		// add task for the viz.json
-		fileTasks++
 		if vizRendered != nil {
 			// add the rendered visualization
 			// and add working group for adding the viz script file
-			fileTasks += 2
 			vrFile := qfs.NewMemfileReader(PackageFileRenderedViz.String(), vizRendered)
 			defer vrFile.Close()
+			fileTasks++
 			adder.AddFile(ctx, vrFile)
 		} else if vizScript != nil {
 			// add the vizScript
-			fileTasks++
 			vsFile := qfs.NewMemfileReader(vizScriptFilename, vizScript)
 			defer vsFile.Close()
+			fileTasks++
 			adder.AddFile(ctx, vsFile)
 		} else {
 			vizdata, err := json.Marshal(ds.Viz)
 			if err != nil {
 				return "", fmt.Errorf("error marshalling dataset viz to json: %s", err.Error())
 			}
+			fileTasks++
 			adder.AddFile(ctx, qfs.NewMemfileBytes(PackageFileViz.String(), vizdata))
+		}
+	}
+
+	if ds.Readme != nil {
+		ds.Readme.DropTransientValues()
+		readmeScript := ds.Readme.ScriptFile()
+		readmeRendered := ds.Readme.RenderedFile()
+		// add task for the readme
+		if readmeRendered != nil {
+			// add the rendered visualization
+			// and add working group for adding the viz script file
+			rmFile := qfs.NewMemfileReader(PackageFileRenderedReadme.String(), readmeRendered)
+			defer rmFile.Close()
+			fileTasks++
+			adder.AddFile(ctx, rmFile)
+		} else if readmeScript != nil {
+			// add the readmeScript
+			rmFile := qfs.NewMemfileReader(readmeScriptFilename, readmeScript)
+			defer rmFile.Close()
+			fileTasks++
+			adder.AddFile(ctx, rmFile)
+		} else {
+			readmeData, err := json.Marshal(ds.Readme)
+			if err != nil {
+				return "", fmt.Errorf("error marshalling dataset readme to json: %s", err.Error())
+			}
+			fileTasks++
+			adder.AddFile(ctx, qfs.NewMemfileBytes(PackageFileReadme.String(), readmeData))
 		}
 	}
 
@@ -577,13 +624,12 @@ func WriteDataset(ctx context.Context, store cafs.Filestore, ds *dataset.Dataset
 		sr := ds.Transform.ScriptFile()
 		ds.Transform.DropTransientValues()
 		if sr != nil {
-			fileTasks++
 			tsFile := qfs.NewMemfileReader(transformScriptFilename, sr)
 			defer tsFile.Close()
+			fileTasks++
 			adder.AddFile(ctx, tsFile)
 			// NOTE - add wg for the transform.json file ahead of time, which isn't completed
 			// until after scriptPath has been added
-			fileTasks++
 		} else {
 			tfdata, err := json.Marshal(ds.Transform)
 			if err != nil {
@@ -645,11 +691,13 @@ func WriteDataset(ctx context.Context, store cafs.Filestore, ds *dataset.Dataset
 					return
 				}
 				// Add the encoded transform file, decrementing the stray fileTasks from above
+				fileTasks++
 				adder.AddFile(ctx, qfs.NewMemfileBytes(PackageFileTransform.String(), tfdata))
 			case PackageFileRenderedViz.String():
 				ds.Viz.RenderedPath = ao.Path
 				vsFile := qfs.NewMemfileReader(vizScriptFilename, ds.Viz.ScriptFile())
 				defer vsFile.Close()
+				fileTasks++
 				adder.AddFile(ctx, vsFile)
 			case vizScriptFilename:
 				ds.Viz.ScriptPath = ao.Path
@@ -659,7 +707,24 @@ func WriteDataset(ctx context.Context, store cafs.Filestore, ds *dataset.Dataset
 					return
 				}
 				// Add the encoded transform file, decrementing the stray fileTasks from above
+				fileTasks++
 				adder.AddFile(ctx, qfs.NewMemfileBytes(PackageFileViz.String(), vizdata))
+			case PackageFileRenderedReadme.String():
+				ds.Readme.RenderedPath = ao.Path
+				vsFile := qfs.NewMemfileReader(readmeScriptFilename, ds.Readme.ScriptFile())
+				defer vsFile.Close()
+				fileTasks++
+				adder.AddFile(ctx, vsFile)
+			case readmeScriptFilename:
+				ds.Readme.ScriptPath = ao.Path
+				readmeData, err := json.Marshal(ds.Readme)
+				if err != nil {
+					done <- err
+					return
+				}
+				// Add the encoded transform file, decrementing the stray fileTasks from above
+				fileTasks++
+				adder.AddFile(ctx, qfs.NewMemfileBytes(PackageFileReadme.String(), readmeData))
 			}
 
 			fileTasks--
