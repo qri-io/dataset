@@ -2,12 +2,12 @@ package dsfs
 
 import (
 	"context"
-	"encoding/json"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"testing"
 
 	crypto "github.com/libp2p/go-libp2p-crypto"
-	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dstest"
 	"github.com/qri-io/qfs/cafs"
 )
@@ -26,56 +26,6 @@ func TestLoadTransform(t *testing.T) {
 	// 	t.Errorf(err.Error())
 	// }
 	// TODO - other tests & stuff
-}
-
-func TestSaveTransform(t *testing.T) {
-	ctx := context.Background()
-	dsa := dataset.NewDatasetRef("/path/to/dataset/a")
-	dsa.Assign(&dataset.Dataset{Meta: &dataset.Meta{Title: "now dataset isn't empty"}})
-
-	store := cafs.NewMapstore()
-	q := &dataset.Transform{
-		Syntax: "sweet syntax",
-		Resources: map[string]*dataset.TransformResource{
-			"a": &dataset.TransformResource{Path: dsa.Path},
-		},
-	}
-
-	key, err := SaveTransform(ctx, store, q)
-	if err != nil {
-		t.Error(err.Error())
-		return
-	}
-
-	hash := "/map/QmVyDCTY92ouEFBvfwQzgsc4n2owpKJmnPeWHVV4s6FuXD"
-	if hash != key {
-		t.Errorf("key mismatch: %s != %s", hash, key)
-		return
-	}
-
-	expectedEntries := 1
-	if len(store.Files) != expectedEntries {
-		t.Errorf("invalid number of entries added to store: %d != %d", expectedEntries, len(store.Files))
-		return
-	}
-
-	f, err := store.Get(ctx, hash)
-	if err != nil {
-		t.Errorf("error getting dataset file: %s", err.Error())
-		return
-	}
-
-	res := &dataset.Transform{}
-	if err := json.NewDecoder(f).Decode(res); err != nil {
-		t.Errorf("error decoding transform json: %s", err.Error())
-		return
-	}
-
-	for name, ref := range res.Resources {
-		if ref.Path == "" {
-			t.Errorf("expected stored transform reference '%s' to have a path", name)
-		}
-	}
 }
 
 func TestLoadTransformScript(t *testing.T) {
@@ -131,4 +81,37 @@ func TestLoadTransformScript(t *testing.T) {
 	if _, err := ioutil.ReadAll(r); err != nil {
 		t.Error(err.Error())
 	}
+}
+
+var ErrStreamsNotEqual = fmt.Errorf("streams are not equal")
+
+// EqualReader confirms two readers are exactly the same, throwing an error
+// if they return
+type EqualReader struct {
+	a, b io.Reader
+}
+
+func (r *EqualReader) Read(p []byte) (int, error) {
+	pb := make([]byte, len(p))
+	readA, err := r.a.Read(p)
+	if err != nil {
+		return readA, err
+	}
+
+	readB, err := r.b.Read(pb)
+	if err != nil {
+		return readA, err
+	}
+
+	if readA != readB {
+		return readA, ErrStreamsNotEqual
+	}
+
+	for i, b := range p {
+		if pb[i] != b {
+			return readA, ErrStreamsNotEqual
+		}
+	}
+
+	return readA, nil
 }
