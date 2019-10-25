@@ -16,21 +16,20 @@ replace (
 
 require (
 	github.com/360EntSecGroup-Skylar/excelize v1.4.1
-	github.com/ghodss/yaml v1.0.0
-	github.com/google/go-cmp v0.2.0
-	github.com/ipfs/go-datastore v0.0.5
+	github.com/google/go-cmp v0.3.0
+	github.com/ipfs/go-datastore v0.1.0
 	github.com/ipfs/go-log v0.0.1
 	github.com/jinzhu/copier v0.0.0-20180308034124-7e38e58719c3
-	github.com/libp2p/go-libp2p-crypto v0.0.2
+	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
+	github.com/libp2p/go-libp2p-core v0.2.3
 	github.com/mr-tron/base58 v1.1.2
-	github.com/multiformats/go-multihash v0.0.5
+	github.com/multiformats/go-multihash v0.0.8
 	github.com/qri-io/compare v0.1.0
-	github.com/qri-io/dsdiff v0.1.1
 	github.com/qri-io/jsonschema v0.1.1
-	github.com/qri-io/qfs v0.1.1-0.20190927121847-9e99025ffde6
+	github.com/qri-io/qfs v0.1.1-0.20191025195012-9971677b190d
 	github.com/qri-io/varName v0.1.0
-	github.com/ugorji/go v1.1.7
 	github.com/ugorji/go/codec v1.1.7
 	github.com/yudai/gojsondiff v1.0.0
-	gopkg.in/yaml.v2 v2.2.2
+	github.com/yudai/golcs v0.0.0-20170316035057-ecda9a501e82 // indirect
+	github.com/yudai/pp v2.0.1+incompatible // indirect
 )
