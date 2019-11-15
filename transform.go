@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 
 	"github.com/qri-io/qfs"
 )
@@ -54,6 +55,29 @@ func (q *Transform) DropTransientValues() {
 func (q *Transform) DropDerivedValues() {
 	q.Qri = ""
 	q.Path = ""
+}
+
+// InlineScriptFile opens the script file, reads its contents, and assigns it to
+// scriptBytes
+func (q* Transform) InlineScriptFile(ctx context.Context, resolver qfs.PathResolver) error {
+	if resolver == nil {
+		return nil
+	}
+	err := q.OpenScriptFile(ctx, resolver)
+	if err != nil {
+		return err
+	}
+	file := q.ScriptFile()
+	if file == nil {
+		return nil
+	}
+	data, err := ioutil.ReadAll(file)
+	if err != nil {
+		return err
+	}
+	q.ScriptBytes = data
+	q.ScriptPath = ""
+	return nil
 }
 
 // OpenScriptFile generates a byte stream of script data prioritizing creating an
