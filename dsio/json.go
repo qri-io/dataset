@@ -314,7 +314,11 @@ func (r *JSONReader) readNumber() (interface{}, error) {
 		if isFloat {
 			return strconv.ParseFloat(r.extractFromBuffer(buff, i), 64)
 		}
-		return strconv.Atoi(r.extractFromBuffer(buff, i))
+		num, err := strconv.Atoi(r.extractFromBuffer(buff, i))
+		if err != nil {
+			return nil, err
+		}
+		return int64(num), nil
 	}
 	return 0, fmt.Errorf("Expected: number")
 }

@@ -117,12 +117,11 @@ func isType(in interface{}, eq string) (bool, error) {
 		_, ok := in.(bool)
 		return ok, nil
 	case "number":
-		_, ok := in.(float64)
-		if !ok {
-			_, ok = in.(int)
+		switch in.(type) {
+		case float64, int, int64:
+			return true, nil
 		}
-		return ok, nil
-
+		return false, nil
 	// TODO (b5):
 	// case "integer":
 	// TODO (b5):
