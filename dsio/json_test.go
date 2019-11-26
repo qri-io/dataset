@@ -97,8 +97,8 @@ func TestJSONReaderBasicParsing(t *testing.T) {
 		structure *dataset.Structure
 		expect    interface{}
 	}{
-		{`{"a":1}`, objSt, 1},
-		{`{"a": 1}`, objSt, 1},
+		{`{"a":1}`, objSt, int64(1)},
+		{`{"a": 1}`, objSt, int64(1)},
 		{`{"a":"abc"}`, objSt, "abc"},
 		{`{"a":4.56}`, objSt, 4.56},
 		{`{"a":""}`, objSt, ""},
