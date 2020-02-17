@@ -28,6 +28,12 @@ func TestConvertDecoded(t *testing.T) {
 			"e": "foo",
 			"f": []interface{}{},
 			"g": map[string]interface{}{},
+			"h": uint8(0),
+			"i": uint16(0),
+			"j": uint64(0),
+			"k": int32(0),
+			"l": int64(0),
+			"m": map[interface{}]interface{}{},
 		}, &Object{
 			"a": Integer(0),
 			"b": Number(0),
@@ -36,6 +42,12 @@ func TestConvertDecoded(t *testing.T) {
 			"e": String("foo"),
 			"f": &Array{},
 			"g": &Object{},
+			"h": Integer(0),
+			"i": Integer(0),
+			"j": Integer(0),
+			"k": Integer(0),
+			"l": Integer(0),
+			"m": &Object{},
 		}, ""},
 	}
 
