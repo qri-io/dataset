@@ -81,6 +81,7 @@ func TestColumnsFromJSONSchema(t *testing.T) {
 		{`{ "type": "string" }`, "invalid tabular schema: 'string' is not a valid type to describe the top level of a tablular schema"},
 		{`{ "type": "array" }`, "invalid tabular schema: top level 'items' property must be an object"},
 		{`{ "type": "array", "items": { "type" : "string" }}`, "invalid tabular schema: items.items must be an array"},
+		{`{ "type": "array", "items": { "type" : "array", "items": { "type": "array"}}}`, "invalid tabular schema: items.items must be an array"},
 	}
 	for _, c := range bad {
 		t.Run(fmt.Sprintf("bad_case_%s", c.err), func(t *testing.T) {
@@ -148,7 +149,7 @@ func TestColumnsJSON(t *testing.T) {
 	if err != nil {
 		t.Errorf("marshal error: %s", err)
 	}
-	
+
 	if diff := cmp.Diff(val, string(data)); diff != "" {
 		t.Errorf("result mismatch (-want +got):\n%s", diff)
 	}

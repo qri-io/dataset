@@ -9,6 +9,7 @@ import (
 
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsio/replacecr"
+	"github.com/qri-io/dataset/tabular"
 	"github.com/qri-io/dataset/vals"
 )
 
@@ -17,15 +18,25 @@ type CSVReader struct {
 	st         *dataset.Structure
 	readHeader bool
 	r          *csv.Reader
-	types      []string
+
+	// TODO (b5) - this will create problems if users define schemas that support
+	// mutiple types per column. Should replace with a tabular.Columns field
+	types []string
 }
 
 var _ EntryReader = (*CSVReader)(nil)
 
 // NewCSVReader creates a reader from a structure and read source
-func NewCSVReader(st *dataset.Structure, r io.Reader) *CSVReader {
-	// TODO - handle error
-	_, types, _ := terribleHackToGetHeaderRowAndTypes(st)
+func NewCSVReader(st *dataset.Structure, r io.Reader) (*CSVReader, error) {
+	cols, _, err := tabular.ColumnsFromJSONSchema(st.Schema)
+	if err != nil {
+		return nil, err
+	}
+
+	types := make([]string, len(cols))
+	for i, c := range cols {
+		types[i] = []string(*c.Type)[0]
+	}
 
 	csvr := csv.NewReader(replacecr.Reader(r))
 
@@ -45,7 +56,7 @@ func NewCSVReader(st *dataset.Structure, r io.Reader) *CSVReader {
 		st:    st,
 		r:     csvr,
 		types: types,
-	}
+	}, nil
 }
 
 // Structure gives this reader's structure
@@ -153,13 +164,24 @@ type CSVWriter struct {
 	rowsWritten int
 	w           *csv.Writer
 	st          *dataset.Structure
-	types       []string
+
+	// TODO (b5) - this will create problems if users define schemas that support
+	// mutiple types per column. Should replace with a tabular.Columns field
+	types []string
 }
 
 // NewCSVWriter creates a Writer from a structure and write destination
-func NewCSVWriter(st *dataset.Structure, w io.Writer) *CSVWriter {
+func NewCSVWriter(st *dataset.Structure, w io.Writer) (*CSVWriter, error) {
 	// TODO - capture error
-	titles, types, _ := terribleHackToGetHeaderRowAndTypes(st)
+	cols, _, err := tabular.ColumnsFromJSONSchema(st.Schema)
+	if err != nil {
+		return nil, err
+	}
+
+	types := make([]string, len(cols))
+	for i, c := range cols {
+		types[i] = []string(*c.Type)[0]
+	}
 
 	writer := csv.NewWriter(w)
 	opts, err := dataset.NewCSVOptions(st.FormatConfig)
@@ -177,44 +199,11 @@ func NewCSVWriter(st *dataset.Structure, w io.Writer) *CSVWriter {
 
 	if opts != nil {
 		if opts.HeaderRow {
-			writer.Write(titles)
+			writer.Write(cols.Titles())
 		}
 	}
 
-	return wr
-}
-
-// TODO - holy shit dis so bad. fix
-func terribleHackToGetHeaderRowAndTypes(st *dataset.Structure) ([]string, []string, error) {
-	sch := st.Schema
-	if itemObj, ok := sch["items"].(map[string]interface{}); ok {
-		if itemArr, ok := itemObj["items"].([]interface{}); ok {
-			titles := make([]string, len(itemArr))
-			types := make([]string, len(itemArr))
-			for i, f := range itemArr {
-				if field, ok := f.(map[string]interface{}); ok {
-					if title, ok := field["title"].(string); ok {
-						titles[i] = title
-					}
-
-					if ts, ok := field["type"].(string); ok {
-						types[i] = ts
-					} else if ta, ok := field["type"].([]interface{}); ok && len(ta) > 0 {
-						if st, ok := ta[0].(string); ok {
-							types[i] = st
-						} else {
-							types[i] = "string"
-						}
-					} else {
-						types[i] = "string"
-					}
-				}
-			}
-			return titles, types, nil
-		}
-	}
-	log.Debug("that terrible hack to detect header row & types just failed")
-	return nil, nil, fmt.Errorf("nope")
+	return wr, nil
 }
 
 // Structure gives this writer's structure

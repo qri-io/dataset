@@ -1,7 +1,7 @@
 // Package tabular defines functions for working with rectangular datasets.
 // qri positions tabular data as a special shape that comes with additional
 // constraints. This package defines the methods necessary to enforce and
-// interpret those conststraints
+// interpret those constraints
 package tabular
 
 import (
@@ -28,18 +28,19 @@ func (cols Columns) Titles() []string {
 	return titles
 }
 
+var validMachineTitle = regexp.MustCompile(`^[a-zA-Z_$][a-zA-Z_$0-9]*$`)
+
 // ValidMachineTitles confirms column titles are valid for machine-readability
 // using column titles that parse as proper variable names, and unique titles
 // across the column set
 func (cols Columns) ValidMachineTitles() error {
-	re := regexp.MustCompile(`^[a-zA-Z_$][a-zA-Z_$0-9]*$`)
 
 	var problems []string
 	set := map[string]struct{}{}
 
 	for i, col := range cols {
 		t := col.Title
-		if !re.MatchString(t) {
+		if !validMachineTitle.MatchString(t) {
 			problems = append(problems, fmt.Sprintf("col. %d name '%s' is not a valid column name", i, t))
 		}
 		if _, present := set[t]; present {
@@ -62,7 +63,7 @@ type Column struct {
 	Validation  map[string]interface{} `json:"validation,omitempty"`
 }
 
-// ColType implements type information for a tablular column. Column Types can
+// ColType implements type information for a tabular column. Column Types can
 // be one or more strings enumerating accepted types
 type ColType []string
 
@@ -96,7 +97,7 @@ func (ct *ColType) UnmarshalJSON(p []byte) error {
 	return fmt.Errorf("invalid data for ColType")
 }
 
-// ColumnsFromJSONSchema extrats column data from a jsonSchema object, erroring
+// ColumnsFromJSONSchema extracts column data from a jsonSchema object, erroring
 // if the provided schema cannot be used to describe a table. a slice of problem
 // strings describes non-breaking issues with the schema that should be
 // addressed like missing column titles or column types
@@ -137,7 +138,6 @@ func arrayWrapperColumns(sch map[string]interface{}) (Columns, []string, error) 
 
 	cols := make([]Column, len(itemArr))
 	for i, f := range itemArr {
-		// set defaults that
 		cols[i].Title = fmt.Sprintf("col_%d", i)
 		cols[i].Type = &ColType{"string"}
 

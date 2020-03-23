@@ -7,6 +7,16 @@ import (
 	"github.com/qri-io/dataset"
 )
 
+var basicTableSchema = map[string]interface{}{
+	"type": "array",
+	"items": map[string]interface{}{
+		"type": "array",
+		"items": []interface{}{
+			map[string]interface{}{"title": "column_one", "type": "string"},
+		},
+	},
+}
+
 func TestNewEntryReader(t *testing.T) {
 	cases := []struct {
 		st  *dataset.Structure
@@ -15,7 +25,8 @@ func TestNewEntryReader(t *testing.T) {
 		{&dataset.Structure{}, "structure must have a data format"},
 		{&dataset.Structure{Format: "cbor", Schema: dataset.BaseSchemaArray}, ""},
 		{&dataset.Structure{Format: "json", Schema: dataset.BaseSchemaArray}, ""},
-		{&dataset.Structure{Format: "csv", Schema: dataset.BaseSchemaArray}, ""},
+		{&dataset.Structure{Format: "csv", Schema: basicTableSchema}, ""},
+		// {&dataset.Structure{Format: "xlsx", Schema: basicTableSchema}, ""},
 	}
 
 	for i, c := range cases {
@@ -35,7 +46,8 @@ func TestNewEntryWriter(t *testing.T) {
 		{&dataset.Structure{}, "structure must have a data format"},
 		{&dataset.Structure{Format: "cbor", Schema: dataset.BaseSchemaArray}, ""},
 		{&dataset.Structure{Format: "json", Schema: dataset.BaseSchemaArray}, ""},
-		{&dataset.Structure{Format: "csv", Schema: dataset.BaseSchemaArray}, ""},
+		{&dataset.Structure{Format: "csv", Schema: basicTableSchema}, ""},
+		// {&dataset.Structure{Format: "xlsx", Schema: basicTableSchema}, ""},
 	}
 
 	for i, c := range cases {
