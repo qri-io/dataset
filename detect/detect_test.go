@@ -3,10 +3,12 @@ package detect
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/qri-io/dataset"
 )
 
@@ -101,5 +103,86 @@ func TestExtensionDataFormat(t *testing.T) {
 			t.Errorf("case %d datatype mismatch. expected: '%s', got: '%s'", i, c.expect, got)
 			continue
 		}
+	}
+}
+
+func TestTabularSchemaFromTabularData(t *testing.T) {
+	good := []struct {
+		name       string
+		input      interface{}
+		expectJSON string
+	}{
+		{"array of arrays, three columns",
+			[]interface{}{
+				[]interface{}{"one", "two", 3, false, nil},
+				[]interface{}{"four", "five", 6, false, nil},
+			}, `{
+			"type":"array", 
+			"items":{
+				"type":"array",
+				"items": [
+					{"title":"col_0","type":"string"},
+					{"title":"col_1","type":"string"},
+					{"title":"col_2","type":"number"},
+					{"title":"col_3","type":"boolean"},
+					{"title":"col_4","type":"null"}
+			]}
+		}`},
+	}
+
+	for _, c := range good {
+		t.Run(c.name, func(t *testing.T) {
+			got, err := TabularSchemaFromTabularData(c.input)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			expect := map[string]interface{}{}
+			if err := json.Unmarshal([]byte(c.expectJSON), &expect); err != nil {
+				t.Fatal(err)
+			}
+
+			if diff := cmp.Diff(expect, got); diff != "" {
+				t.Errorf("unexpected result (-want +got):\n%s", diff)
+			}
+		})
+	}
+
+	bad := []struct {
+		name  string
+		input interface{}
+		err   string
+	}{
+		{"no rows",
+			[]interface{}{},
+			"invalid tabular data: missing row data",
+		},
+		{"unsupported inner object",
+			[]interface{}{
+				map[string]interface{}{
+					"foo": "bar",
+				},
+			},
+			"invalid tabular data: array schemas must use an inner array for rows",
+		},
+		{"unsupported object wrapper",
+			map[string]interface{}{},
+			"invalid tabular data: cannot interpret object-based tabular schemas",
+		},
+	}
+
+	for _, c := range bad {
+		t.Run(c.name, func(t *testing.T) {
+			_, err := TabularSchemaFromTabularData(c.input)
+			if err == nil {
+				t.Fatal("expected error, got nil")
+			}
+			if !errors.Is(err, ErrInvalidTabularData) {
+				t.Error("expected returned error to be an instance of ErrInvalidTabularData")
+			}
+			if diff := cmp.Diff(c.err, err.Error()); diff != "" {
+				t.Errorf("err string mismatch (-want +got):\n%s", diff)
+			}
+		})
 	}
 }
