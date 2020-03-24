@@ -111,7 +111,7 @@ func TabularSchemaFromTabularData(source interface{}) (map[string]interface{}, e
 
 func goDataType(v interface{}) string {
 	switch v.(type) {
-	case int64, int, uint, float64:
+	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64:
 		return "number"
 	case bool:
 		return "boolean"
