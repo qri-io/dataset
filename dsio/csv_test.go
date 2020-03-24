@@ -2,10 +2,12 @@ package dsio
 
 import (
 	"bytes"
+	"errors"
 	"os"
 	"testing"
 
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/dataset/tabular"
 )
 
 const csvData = `col_a,col_b,col_c,col_d,col_3,col_f,col_g
@@ -90,6 +92,31 @@ func TestCSVReader(t *testing.T) {
 	}
 	if count != 5 {
 		t.Errorf("expected: %d rows, got: %d", 5, count)
+	}
+}
+
+func TestBadSchemaCSV(t *testing.T) {
+	buf := &bytes.Buffer{}
+	st := &dataset.Structure{
+		Format: "csv",
+		FormatConfig: map[string]interface{}{
+			"headerRow": true,
+		},
+		Schema: map[string]interface{}{"type": "array"},
+	}
+
+	_, err := NewEntryReader(st, buf)
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	} else if !errors.Is(err, tabular.ErrInvalidTabularSchema) {
+		t.Errorf("expected error to contain an invalid schema error. got: %s", err.Error())
+	}
+
+	_, err = NewEntryWriter(st, buf)
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	} else if !errors.Is(err, tabular.ErrInvalidTabularSchema) {
+		t.Errorf("expected error to contain an invalid schema error. got: %s", err.Error())
 	}
 }
 
@@ -245,7 +272,7 @@ func BenchmarkCSVWriterArrays(b *testing.B) {
 
 	for n := 0; n < b.N; n++ {
 		buf := &bytes.Buffer{}
-		w := NewCSVWriter(st, buf)
+		w, _ := NewCSVWriter(st, buf)
 		for i := 0; i < NumWrites; i++ {
 			// Write an array entry.
 			arrayEntry := Entry{Index: i, Value: "test"}
@@ -260,7 +287,7 @@ func BenchmarkCSVWriterObjects(b *testing.B) {
 
 	for n := 0; n < b.N; n++ {
 		buf := &bytes.Buffer{}
-		w := NewCSVWriter(st, buf)
+		w, _ := NewCSVWriter(st, buf)
 		for i := 0; i < NumWrites; i++ {
 			// Write an object entry.
 			objectEntry := Entry{Key: "key", Value: "test"}
@@ -277,7 +304,7 @@ func BenchmarkCSVReader(b *testing.B) {
 		if err != nil {
 			b.Errorf("unexpected error: %s", err.Error())
 		}
-		r := NewCSVReader(st, file)
+		r, _ := NewCSVReader(st, file)
 		for {
 			_, err = r.ReadEntry()
 			if err != nil {

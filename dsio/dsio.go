@@ -55,7 +55,7 @@ func NewEntryReader(st *dataset.Structure, r io.Reader) (EntryReader, error) {
 	case dataset.JSONDataFormat:
 		return NewJSONReader(st, r)
 	case dataset.CSVDataFormat:
-		return NewCSVReader(st, r), nil
+		return NewCSVReader(st, r)
 	case dataset.XLSXDataFormat:
 		return NewXLSXReader(st, r)
 	case dataset.UnknownDataFormat:
@@ -77,7 +77,7 @@ func NewEntryWriter(st *dataset.Structure, w io.Writer) (EntryWriter, error) {
 	case dataset.JSONDataFormat:
 		return NewJSONWriter(st, w)
 	case dataset.CSVDataFormat:
-		return NewCSVWriter(st, w), nil
+		return NewCSVWriter(st, w)
 	case dataset.XLSXDataFormat:
 		return NewXLSXWriter(st, w)
 	case dataset.UnknownDataFormat:

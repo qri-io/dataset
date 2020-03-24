@@ -8,6 +8,7 @@ import (
 
 	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/dataset/tabular"
 	"github.com/qri-io/dataset/vals"
 )
 
@@ -24,8 +25,15 @@ type XLSXReader struct {
 
 // NewXLSXReader creates a reader from a structure and read source
 func NewXLSXReader(st *dataset.Structure, r io.Reader) (*XLSXReader, error) {
-	// TODO - handle error
-	_, types, _ := terribleHackToGetHeaderRowAndTypes(st)
+	cols, _, err := tabular.ColumnsFromJSONSchema(st.Schema)
+	if err != nil {
+		return nil, err
+	}
+
+	types := make([]string, len(cols))
+	for i, c := range cols {
+		types[i] = []string(*c.Type)[0]
+	}
 
 	rdr := &XLSXReader{
 		st:    st,
@@ -144,8 +152,15 @@ type XLSXWriter struct {
 
 // NewXLSXWriter creates a Writer from a structure and write destination
 func NewXLSXWriter(st *dataset.Structure, w io.Writer) (*XLSXWriter, error) {
-	// TODO - capture error
-	_, types, _ := terribleHackToGetHeaderRowAndTypes(st)
+	cols, _, err := tabular.ColumnsFromJSONSchema(st.Schema)
+	if err != nil {
+		return nil, err
+	}
+
+	types := make([]string, len(cols))
+	for i, c := range cols {
+		types[i] = []string(*c.Type)[0]
+	}
 
 	wr := &XLSXWriter{
 		st:    st,
