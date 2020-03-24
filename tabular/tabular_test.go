@@ -2,6 +2,7 @@ package tabular
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -94,7 +95,9 @@ func TestColumnsFromJSONSchema(t *testing.T) {
 			if err == nil {
 				t.Fatal("expected error, got nil")
 			}
-
+			if !errors.Is(err, ErrInvalidTabularSchema) {
+				t.Errorf("err must be an instance of ErrInvalidTabularSchema")
+			}
 			if diff := cmp.Diff(c.err, err.Error()); diff != "" {
 				t.Errorf("result mismatch. (-want +got):\n%s", diff)
 			}
