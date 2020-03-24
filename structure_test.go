@@ -73,6 +73,22 @@ func TestStructureDataFormat(t *testing.T) {
 	t.Skip("TODO (b5)")
 }
 
+func TestStructureRequiresTabularSchema(t *testing.T) {
+	tabularFormats := map[string]struct{}{
+		CSVDataFormat.String():  struct{}{},
+		XLSXDataFormat.String(): struct{}{},
+	}
+
+	for _, f := range SupportedDataFormats() {
+		st := &Structure{Format: f.String()}
+		_, required := tabularFormats[f.String()]
+		got := st.RequiresTabularSchema()
+		if got != required {
+			t.Errorf("format %s must return '%t', got '%t'", f, required, got)
+		}
+	}
+}
+
 func TestStructureAbstract(t *testing.T) {
 	cases := []struct {
 		in, out *Structure

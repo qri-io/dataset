@@ -124,6 +124,12 @@ func (s *Structure) DataFormat() DataFormat {
 	return df
 }
 
+// RequiresTabularSchema returns true if the structure's specified data format
+// requires a JSON schema that describes a rectangular data shape
+func (s *Structure) RequiresTabularSchema() bool {
+	return s.Format == CSVDataFormat.String() || s.Format == XLSXDataFormat.String()
+}
+
 // Abstract returns this structure instance in it's "Abstract" form
 // stripping all nonessential values &
 // renaming all schema field names to standard variable names
