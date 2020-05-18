@@ -28,6 +28,12 @@ var _ EntryReader = (*CSVReader)(nil)
 
 // NewCSVReader creates a reader from a structure and read source
 func NewCSVReader(st *dataset.Structure, r io.Reader) (*CSVReader, error) {
+	// Huge buffer (a quarter of a MB) to speed up string reads.
+	return NewCSVReaderSize(st, r, 256*1024)
+}
+
+// NewCSVReaderSize creates a reader from a structure, read source, and buffer size
+func NewCSVReaderSize(st *dataset.Structure, r io.Reader, size int) (*CSVReader, error) {
 	cols, _, err := tabular.ColumnsFromJSONSchema(st.Schema)
 	if err != nil {
 		return nil, err
@@ -38,7 +44,7 @@ func NewCSVReader(st *dataset.Structure, r io.Reader) (*CSVReader, error) {
 		types[i] = []string(*c.Type)[0]
 	}
 
-	csvr := csv.NewReader(replacecr.Reader(r))
+	csvr := csv.NewReader(replacecr.ReaderWithSize(r, size))
 
 	if fopts, err := dataset.ParseFormatConfigMap(dataset.CSVDataFormat, st.FormatConfig); err == nil {
 		if opts, ok := fopts.(*dataset.CSVOptions); ok {
