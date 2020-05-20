@@ -22,6 +22,13 @@ func Reader(data io.Reader) io.Reader {
 	}
 }
 
+// ReaderWithSize instaties a reader with a given buffer size
+func ReaderWithSize(data io.Reader, size int) io.Reader {
+	return crlfReplaceReader{
+		rdr: bufio.NewReaderSize(data, size),
+	}
+}
+
 // crlfReplaceReader wraps a reader
 type crlfReplaceReader struct {
 	rdr *bufio.Reader
