@@ -44,22 +44,22 @@ not,possible,to,tell,if,this,csv,data,has,a,header
 func TestDetermineCSVSchema(t *testing.T) {
 
 	runTestCase(t, "noHeaderData1", egNoHeaderData1,
-		map[string]interface {}{
+		map[string]interface{}{
 			"items": map[string]interface{}{
-				"items": []interface {}{
-					map[string]interface {}{
+				"items": []interface{}{
+					map[string]interface{}{
 						"title": "field_1",
-						"type": "string",
+						"type":  "string",
 					},
-					map[string]interface {}{
+					map[string]interface{}{
 						"title": "field_2",
-						"type": "boolean",
-					}, map[string]interface {}{
+						"type":  "boolean",
+					}, map[string]interface{}{
 						"title": "field_3",
-						"type": "string",
-					}, map[string]interface {}{
+						"type":  "string",
+					}, map[string]interface{}{
 						"title": "field_4",
-						"type": "string",
+						"type":  "string",
 					},
 				},
 				"type": "array",
@@ -68,31 +68,31 @@ func TestDetermineCSVSchema(t *testing.T) {
 		})
 
 	runTestCase(t, "noHeaderData2", egNoHeaderData2,
-		map[string]interface {}{
+		map[string]interface{}{
 			"items": map[string]interface{}{
-				"items": []interface {}{
-					map[string]interface {}{
+				"items": []interface{}{
+					map[string]interface{}{
 						"title": "field_1",
-						"type": "string",
+						"type":  "string",
 					},
-					map[string]interface {}{
+					map[string]interface{}{
 						"title": "field_2",
-						"type": "string",
-					}, map[string]interface {}{
+						"type":  "string",
+					}, map[string]interface{}{
 						"title": "field_3",
-						"type": "string",
-					}, map[string]interface {}{
+						"type":  "string",
+					}, map[string]interface{}{
 						"title": "field_4",
-						"type": "string",
-					}, map[string]interface {}{
+						"type":  "string",
+					}, map[string]interface{}{
 						"title": "field_5",
-						"type": "string",
-					}, map[string]interface {}{
+						"type":  "string",
+					}, map[string]interface{}{
 						"title": "field_6",
-						"type": "string",
-					}, map[string]interface {}{
+						"type":  "string",
+					}, map[string]interface{}{
 						"title": "field_7",
-						"type": "integer",
+						"type":  "integer",
 					},
 				},
 				"type": "array",
@@ -101,19 +101,19 @@ func TestDetermineCSVSchema(t *testing.T) {
 		})
 
 	runTestCase(t, "noHeaderData3", egNoHeaderData3,
-		map[string]interface {}{
+		map[string]interface{}{
 			"items": map[string]interface{}{
-				"items": []interface {}{
-					map[string]interface {}{
+				"items": []interface{}{
+					map[string]interface{}{
 						"title": "field_1",
-						"type": "string",
+						"type":  "string",
 					},
-					map[string]interface {}{
+					map[string]interface{}{
 						"title": "field_2",
-						"type": "integer",
-					}, map[string]interface {}{
+						"type":  "integer",
+					}, map[string]interface{}{
 						"title": "field_3",
-						"type": "string",
+						"type":  "string",
 					},
 				},
 				"type": "array",
@@ -122,19 +122,19 @@ func TestDetermineCSVSchema(t *testing.T) {
 		})
 
 	runTestCase(t, "noHeaderData4", egNoHeaderData4,
-		map[string]interface {}{
+		map[string]interface{}{
 			"items": map[string]interface{}{
-				"items": []interface {}{
-					map[string]interface {}{
+				"items": []interface{}{
+					map[string]interface{}{
 						"title": "field_1",
-						"type": "string",
+						"type":  "string",
 					},
-					map[string]interface {}{
+					map[string]interface{}{
 						"title": "field_2",
-						"type": "string",
-					}, map[string]interface {}{
+						"type":  "string",
+					}, map[string]interface{}{
 						"title": "field_3",
-						"type": "integer",
+						"type":  "integer",
 					},
 				},
 				"type": "array",

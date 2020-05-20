@@ -59,7 +59,7 @@ func (q *Transform) DropDerivedValues() {
 
 // InlineScriptFile opens the script file, reads its contents, and assigns it to
 // scriptBytes
-func (q* Transform) InlineScriptFile(ctx context.Context, resolver qfs.PathResolver) error {
+func (q *Transform) InlineScriptFile(ctx context.Context, resolver qfs.PathResolver) error {
 	if resolver == nil {
 		return nil
 	}

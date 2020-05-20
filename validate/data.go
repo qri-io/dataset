@@ -1,6 +1,8 @@
 package validate
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/qri-io/dataset"
@@ -8,14 +10,48 @@ import (
 	"github.com/qri-io/jsonschema"
 )
 
+const batchSize = 5000
+
+func flushBatch(ctx context.Context, buf *dsio.EntryBuffer, st *dataset.Structure, jsch *jsonschema.Schema, errs *[]jsonschema.KeyError) error {
+	if len(buf.Bytes()) == 0 {
+		return nil
+	}
+
+	if e := buf.Close(); e != nil {
+		return fmt.Errorf("error closing buffer: %s", e.Error())
+	}
+
+	var doc interface{}
+	if err := json.Unmarshal(buf.Bytes(), &doc); err != nil {
+		return fmt.Errorf("error parsing JSON bytes: %s", err.Error())
+	}
+	validationState := jsch.Validate(ctx, doc)
+	*errs = append(*errs, *validationState.Errs...)
+
+	buf, err := dsio.NewEntryBuffer(&dataset.Structure{
+		Format: "json",
+		Schema: st.Schema,
+	})
+	if err != nil {
+		return fmt.Errorf("error allocating data buffer: %s", err.Error())
+	}
+	return nil
+}
+
 // EntryReader consumes a reader & returns any validation errors present
 // TODO - refactor this to wrap a reader & return a struct that gives an
 // error or nil on each entry read.
-func EntryReader(r dsio.EntryReader) ([]jsonschema.ValError, error) {
+func EntryReader(r dsio.EntryReader) ([]jsonschema.KeyError, error) {
+	ctx := context.Background()
 	st := r.Structure()
 
-	// TODO (b5) - do we really need to parse this as JSON? can't we just read and
-	// valudate golang values?
+	jsch, err := st.JSONSchema()
+	if err != nil {
+		return nil, err
+	}
+
+	valErrors := []jsonschema.KeyError{}
+
 	buf, err := dsio.NewEntryBuffer(&dataset.Structure{
 		Format: "json",
 		Schema: st.Schema,
@@ -28,10 +64,19 @@ func EntryReader(r dsio.EntryReader) ([]jsonschema.ValError, error) {
 		if err != nil {
 			return fmt.Errorf("error reading row %d: %s", i, err.Error())
 		}
+
+		if i%batchSize == 0 {
+			flushErr := flushBatch(ctx, buf, st, jsch, &valErrors)
+			if flushErr != nil {
+				return flushErr
+			}
+		}
+
 		err = buf.WriteEntry(ent)
 		if err != nil {
 			return fmt.Errorf("error writing row %d: %s", i, err.Error())
 		}
+
 		return nil
 	})
 
@@ -39,21 +84,9 @@ func EntryReader(r dsio.EntryReader) ([]jsonschema.ValError, error) {
 		return nil, fmt.Errorf("error reading values: %s", err.Error())
 	}
 
-	if e := buf.Close(); e != nil {
-		return nil, fmt.Errorf("error closing buffer: %s", e.Error())
-	}
-
-	data := buf.Bytes()
-
-	if len(data) == 0 {
-		// TODO (b5): - wut?
-		return nil, fmt.Errorf("err reading data")
-	}
-
-	jsch, err := st.JSONSchema()
-	if err != nil {
+	if err := flushBatch(ctx, buf, st, jsch, &valErrors); err != nil {
 		return nil, err
 	}
 
-	return jsch.ValidateBytes(data)
+	return valErrors, nil
 }

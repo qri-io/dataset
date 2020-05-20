@@ -25,7 +25,7 @@ require (
 	github.com/mr-tron/base58 v1.1.2
 	github.com/multiformats/go-multihash v0.0.8
 	github.com/qri-io/compare v0.1.0
-	github.com/qri-io/jsonschema v0.1.1
+	github.com/qri-io/jsonschema v0.2.0
 	github.com/qri-io/qfs v0.1.1-0.20191025195012-9971677b190d
 	github.com/qri-io/varName v0.1.0
 	github.com/ugorji/go/codec v1.1.7
