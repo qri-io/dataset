@@ -53,7 +53,7 @@ func (r *Readme) DropDerivedValues() {
 }
 
 // InlineScriptFile opens the script file, reads its contents, and assigns it to scriptBytes.
-func (r* Readme) InlineScriptFile(ctx context.Context, resolver qfs.PathResolver) error {
+func (r *Readme) InlineScriptFile(ctx context.Context, resolver qfs.PathResolver) error {
 	if resolver == nil {
 		return nil
 	}

@@ -100,7 +100,7 @@ func (s *Structure) DropDerivedValues() {
 }
 
 // JSONSchema parses the Schema field into a json-schema
-func (s *Structure) JSONSchema() (*jsonschema.RootSchema, error) {
+func (s *Structure) JSONSchema() (*jsonschema.Schema, error) {
 	// TODO (b5): SLOW. we should teach the jsonschema package to parse native go types,
 	// replacing this nonsense. Someone's even filed an issue on regarding this:
 	// https://github.comqri-io/jsonschema/issues/32
@@ -109,7 +109,7 @@ func (s *Structure) JSONSchema() (*jsonschema.RootSchema, error) {
 		return nil, err
 	}
 
-	rs := &jsonschema.RootSchema{}
+	rs := &jsonschema.Schema{}
 	if err := json.Unmarshal(data, rs); err != nil {
 		return nil, err
 	}

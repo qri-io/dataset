@@ -16,8 +16,8 @@ func TestEntryReader(t *testing.T) {
 	}{
 		{"craigslist", "", nil},
 		{"movies", "", []string{
-			`/0/1: "" type should be integer`,
-			`/1/1: "" type should be integer`,
+			`/0/1: "" type should be integer, got string`,
+			`/1/1: "" type should be integer, got string`,
 		}},
 	}
 
