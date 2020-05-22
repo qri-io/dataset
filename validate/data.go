@@ -28,13 +28,6 @@ func flushBatch(ctx context.Context, buf *dsio.EntryBuffer, st *dataset.Structur
 	validationState := jsch.Validate(ctx, doc)
 	*errs = append(*errs, *validationState.Errs...)
 
-	buf, err := dsio.NewEntryBuffer(&dataset.Structure{
-		Format: "json",
-		Schema: st.Schema,
-	})
-	if err != nil {
-		return fmt.Errorf("error allocating data buffer: %s", err.Error())
-	}
 	return nil
 }
 
@@ -69,6 +62,14 @@ func EntryReader(r dsio.EntryReader) ([]jsonschema.KeyError, error) {
 			flushErr := flushBatch(ctx, buf, st, jsch, &valErrors)
 			if flushErr != nil {
 				return flushErr
+			}
+			var bufErr error
+			buf, bufErr = dsio.NewEntryBuffer(&dataset.Structure{
+				Format: "json",
+				Schema: st.Schema,
+			})
+			if bufErr != nil {
+				return fmt.Errorf("error allocating data buffer: %s", bufErr.Error())
 			}
 		}
 
