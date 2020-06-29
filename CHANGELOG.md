@@ -1,3 +1,37 @@
+<a name="v0.2.0"></a>
+# [v0.2.0](https://github.com/qri-io/dataset/compare/v0.1.4...v0.2.0) (2020-06-29)
+
+A minor release that introduces a number of small fixes, an overhauled `gen` package based on new tabular type detection.
+
+
+### Bug Fixes
+
+* **detect:** Don't treat strings starting with 't','f','n' as the wrong type ([1eb7656](https://github.com/qri-io/dataset/commit/1eb7656))
+* **detect:** Iterate type counts in a deterministic manner ([6427bdd](https://github.com/qri-io/dataset/commit/6427bdd))
+* **dsfs.getDepth:** fix algorithm & add tests ([f67cfd6](https://github.com/qri-io/dataset/commit/f67cfd6))
+* **dsio:** json decoder emits int64 instead of int ([8a8404c](https://github.com/qri-io/dataset/commit/8a8404c))
+* **dsio:** remove stub schema function for CSV & XLSX formats ([94a15a5](https://github.com/qri-io/dataset/commit/94a15a5))
+* **dsutil:** use a context cancel instead of not loading viz ([53231a0](https://github.com/qri-io/dataset/commit/53231a0))
+* **entryreader:** json over batch size propperly unmarshals now ([#227](https://github.com/qri-io/dataset/issues/227)) ([71e64eb](https://github.com/qri-io/dataset/commit/71e64eb))
+* **NewJSONPrettyWriter:** now writer correctly writes object values when indenting ([2d2e247](https://github.com/qri-io/dataset/commit/2d2e247))
+
+
+### Features
+
+* **detect:** detect tabular schemas from go types ([cdaceda](https://github.com/qri-io/dataset/commit/cdaceda))
+* **dsgen:** add dsgen command for generating datasets, overhaul gen pkg ([bf363af](https://github.com/qri-io/dataset/commit/bf363af))
+* **readme:** Readme component for datasets ([c2db273](https://github.com/qri-io/dataset/commit/c2db273))
+* **structure:** add RequiresTabularSchema method ([9f24359](https://github.com/qri-io/dataset/commit/9f24359))
+* **tabular:** package tabular defines tools for tabular datasets ([9fec0a3](https://github.com/qri-io/dataset/commit/9fec0a3))
+* **transform:** add InlineScript method, matching readme ([8929f14](https://github.com/qri-io/dataset/commit/8929f14))
+
+
+### Performance Improvements
+
+* **csv:** increase read buffer size for csv reader ([#225](https://github.com/qri-io/dataset/issues/225)) ([a8aa566](https://github.com/qri-io/dataset/commit/a8aa566))
+
+
+
 # [0.1.4](https://github.com/qri-io/dataset/compare/v0.1.2...v0.1.4) (2019-09-04)
 
 This patch release include small fixes for dsio.JSON format reader, strict valdation error returns in dsfs.SaveDataset, and a method for Dropping _derived_ values from a Dataset & Components
