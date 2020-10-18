@@ -107,3 +107,50 @@ func GetTopLevelType(st *dataset.Structure) (string, error) {
 	}
 	return tlt, nil
 }
+
+// ReadAll consumes an EntryReader, returning it's values
+func ReadAll(r EntryReader) (interface{}, error) {
+	tlt, err := GetTopLevelType(r.Structure())
+	if err != nil {
+		return nil, err
+	}
+
+	if tlt == "object" {
+		return ReadAllObject(r)
+	}
+	return ReadAllArray(r)
+}
+
+// ReadAllObject consumes an EntryReader with an "object" top level type,
+// returning a map[string]interface{} of values
+func ReadAllObject(r EntryReader) (map[string]interface{}, error) {
+	obj := make(map[string]interface{})
+	for i := 0; ; i++ {
+		val, err := r.ReadEntry()
+		if err != nil {
+			if err.Error() == "EOF" {
+				break
+			}
+			return nil, err
+		}
+		obj[val.Key] = val.Value
+	}
+	return obj, nil
+}
+
+// ReadAllArray consumes an EntryReader with an "array" top level type,
+// returning a map[string]interface{} of values
+func ReadAllArray(r EntryReader) ([]interface{}, error) {
+	array := make([]interface{}, 0)
+	for i := 0; ; i++ {
+		val, err := r.ReadEntry()
+		if err != nil {
+			if err.Error() == "EOF" {
+				break
+			}
+			return nil, err
+		}
+		array = append(array, val.Value)
+	}
+	return array, nil
+}

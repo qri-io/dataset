@@ -44,5 +44,4 @@ func EachEntry(rr EntryReader, fn DataIteratorFunc) error {
 		}
 		num++
 	}
-
 }
