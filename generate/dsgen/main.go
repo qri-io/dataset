@@ -23,22 +23,27 @@ Usage:
 	dsgen fixed --rows [num_rows]
 `
 
-func main() {
-	rowsPtr := flag.Int("rows", 1000, "number of entries (rows) to generate")
+var rows int
 
+func init() {
+	flag.IntVar(&rows, "rows", 1000, "number of entries (rows) to generate")
+}
+
+func main() {
 	flag.Parse()
 	args := flag.Args()
+
 	if len(args) < 1 {
 		fmt.Println(help)
 		os.Exit(1)
 	}
 	if args[0] == "fixed" {
-		if err := writeFixedFile(*rowsPtr, 0); err != nil {
+		if err := writeFixedFile(rows, 0); err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
 	} else {
-		if err := generateFile(args[0], *rowsPtr); err != nil {
+		if err := generateFile(args[0], rows); err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
