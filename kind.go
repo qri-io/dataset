@@ -11,17 +11,19 @@ const CurrentSpecVersion = "0"
 const (
 	// KindDataset is the current kind for datasets
 	KindDataset = Kind("ds:" + CurrentSpecVersion)
-	// KindMeta is the current kind for metadata
+	// KindBody is the current kind for body components
+	KindBody = Kind("bd:" + CurrentSpecVersion)
+	// KindMeta is the current kind for metadata components
 	KindMeta = Kind("md:" + CurrentSpecVersion)
-	// KindStructure is the current kind for dataset structures
+	// KindStructure is the current kind for structure components
 	KindStructure = Kind("st:" + CurrentSpecVersion)
-	// KindTransform is the current kind for dataset transforms
+	// KindTransform is the current kind for transform components
 	KindTransform = Kind("tf:" + CurrentSpecVersion)
-	// KindCommit is the current kind for dataset commit
+	// KindCommit is the current kind for commit components
 	KindCommit = Kind("cm:" + CurrentSpecVersion)
-	// KindViz is the current kind for dataset viz
+	// KindViz is the current kind for viz components
 	KindViz = Kind("vz:" + CurrentSpecVersion)
-	// KindReadme is the current kind for dataset readme
+	// KindReadme is the current kind for readme components
 	KindReadme = Kind("rm:" + CurrentSpecVersion)
 )
 
@@ -65,4 +67,11 @@ func (k *Kind) UnmarshalJSON(data []byte) error {
 	}
 	*k = Kind(_k)
 	return k.Valid()
+}
+
+// ComponentTypePrefix prefixes a string with a two letter component type
+// identifier & a colon. Example:
+// ComponentTypePrefix(KindDataset, "hello") == "ds:hello"
+func ComponentTypePrefix(k Kind, str string) string {
+	return fmt.Sprintf("%s:%s", k.Type(), str)
 }
