@@ -287,12 +287,12 @@ func formatColumnName(colID []int) string {
 			// range 0-25, all other numbers are 1-26,
 			// hence we use a differente offset for the
 			// last part.
-			result += string(part + 65)
+			result += string(rune(part + 65))
 		} else {
 			// Don't output leading 0s, as there is no
 			// representation of 0 in this format.
 			if part > 0 {
-				result += string(part + 64)
+				result += string(rune(part + 64))
 			}
 		}
 	}
