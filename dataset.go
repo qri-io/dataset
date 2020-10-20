@@ -27,6 +27,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/qri-io/qfs"
@@ -111,12 +112,57 @@ func NewDatasetRef(path string) *Dataset {
 	return &Dataset{Path: path}
 }
 
+// SigningBytes produces a set of bytes for signing to establish authorship of a
+// dataset. The signing bytes is a newline-delimited, alpha-sorted list of
+// components within the dataset, where each component is identified by a two
+// letter prefix and a colon ':' character:
+//
+//   two_letter_component_type ':' component_value
+//
+// the component value for all components except commit is the path of the
+// component. For the commit component, the value is the value of
+// commit.Timestamp in nanosecond-RFC3339 format, UTC timezone
+//
+// When used in conjunction with a merkelizd filesystem path values are also
+// content checksums. A signature of SigningBytes on a merkelized filesystem
+// affirms time, author, and contents
+// When used in with a mutable filesystem, SigningBytes is a weaker claim that
+// only affirms time, author, and path values
+func (ds *Dataset) SigningBytes() []byte {
+	var sigComponents []string
+
+	if ds.BodyPath != "" {
+		sigComponents = append(sigComponents, ComponentTypePrefix(KindBody, ds.BodyPath))
+	}
+	if ds.Commit != nil && !ds.Commit.Timestamp.IsZero() {
+		sigComponents = append(sigComponents, ComponentTypePrefix(KindCommit, ds.Commit.Timestamp.UTC().Format(time.RFC3339)))
+	}
+	if ds.Meta != nil && ds.Meta.Path != "" {
+		sigComponents = append(sigComponents, ComponentTypePrefix(KindMeta, ds.Meta.Path))
+	}
+	if ds.Readme != nil && ds.Readme.Path != "" {
+		sigComponents = append(sigComponents, ComponentTypePrefix(KindReadme, ds.Readme.Path))
+	}
+	if ds.Structure != nil && ds.Structure.Path != "" {
+		sigComponents = append(sigComponents, ComponentTypePrefix(KindStructure, ds.Structure.Path))
+	}
+	if ds.Transform != nil && ds.Transform.Path != "" {
+		sigComponents = append(sigComponents, ComponentTypePrefix(KindTransform, ds.Transform.Path))
+	}
+	if ds.Viz != nil && ds.Viz.Path != "" {
+		sigComponents = append(sigComponents, ComponentTypePrefix(KindViz, ds.Viz.Path))
+	}
+
+	return []byte(strings.Join(sigComponents, "\n"))
+}
+
 // SignableBytes produces the portion of a commit message used for signing
 // the format for signable bytes is:
-// *  commit timestamp in RFC3339 format, UTC timezone
+// *  commit timestamp in nanosecond-RFC3339 format, UTC timezone
 // *  newline character
 // *  dataset structure checksum string
 // checksum string should be a base58-encoded multihash of the dataset data
+// DEPRECATED - use SigningBytes instead
 func (ds *Dataset) SignableBytes() ([]byte, error) {
 	if ds.Commit == nil {
 		return nil, fmt.Errorf("commit is required")

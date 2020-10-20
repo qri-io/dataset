@@ -177,6 +177,32 @@ func TestDatasetSignableBytes(t *testing.T) {
 	}
 }
 
+func TestSigningBytes(t *testing.T) {
+	ds := &Dataset{
+		Commit:    &Commit{Timestamp: time.Date(2001, 1, 1, 1, 1, 1, 1, time.UTC)},
+		BodyPath:  "body",
+		Meta:      &Meta{Path: "meta"},
+		Readme:    &Readme{Path: "readme"},
+		Structure: &Structure{Path: "structure"},
+		Transform: &Transform{Path: "transform"},
+		Viz:       &Viz{Path: "viz"},
+	}
+
+	got := ds.SigningBytes()
+
+	expect := `bd:body
+cm:2001-01-01T01:01:01Z
+md:meta
+rm:readme
+st:structure
+tf:transform
+vz:viz`
+
+	if diff := cmp.Diff(expect, string(got)); diff != "" {
+		t.Errorf("result mismatch (-want +got):\n%s", diff)
+	}
+}
+
 func TestDatasetMarshalJSON(t *testing.T) {
 	cases := []struct {
 		in  *Dataset
