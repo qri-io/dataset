@@ -177,7 +177,8 @@ func NewTestCaseFromDir(dir string) (tc TestCase, err error) {
 		}
 	} else {
 		foundTestData = true
-		tc.Input.SetBodyFile(qfs.NewMemfileBytes(tc.BodyFilename, tc.Body))
+		// tc.Input.SetBodyFile(qfs.NewMemfileBytes(tc.BodyFilename, tc.Body))
+		tc.Input.SetBodyFile(qfs.NewMemfileBytes(fmt.Sprintf("/%s", tc.BodyFilename), tc.Body))
 	}
 
 	if tc.TransformScript, tc.TransformScriptFilename, err = ReadInputTransformScript(dir); err != nil {
