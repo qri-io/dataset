@@ -30,10 +30,10 @@ func CompareDatasets(a, b *Dataset) error {
 		return fmt.Errorf("BodyPath: %s != %s", a.BodyPath, b.BodyPath)
 	}
 	if err := CompareCommits(a.Commit, b.Commit); err != nil {
-		return fmt.Errorf("Commit: %s", err.Error())
+		return fmt.Errorf("Commit: %w", err)
 	}
 	if err := CompareMetas(a.Meta, b.Meta); err != nil {
-		return fmt.Errorf("Meta: %s", err.Error())
+		return fmt.Errorf("Meta: %w", err)
 	}
 	if a.Path != b.Path {
 		return fmt.Errorf("Path: %s != %s", a.Path, b.Path)
@@ -45,13 +45,16 @@ func CompareDatasets(a, b *Dataset) error {
 		return fmt.Errorf("Qri: %s != %s", a.Qri, b.Qri)
 	}
 	if err := CompareStructures(a.Structure, b.Structure); err != nil {
-		return fmt.Errorf("Structure: %s", err.Error())
+		return fmt.Errorf("Structure: %w", err)
 	}
 	if err := CompareTransforms(a.Transform, b.Transform); err != nil {
-		return fmt.Errorf("Transform: %s", err.Error())
+		return fmt.Errorf("Transform: %w", err)
+	}
+	if err := CompareStats(a.Stats, b.Stats); err != nil {
+		return fmt.Errorf("Stats: %w", err)
 	}
 	if err := CompareVizs(a.Viz, b.Viz); err != nil {
-		return fmt.Errorf("Transform: %s", err.Error())
+		return fmt.Errorf("Transform: %w", err)
 	}
 
 	return nil
@@ -271,6 +274,26 @@ func CompareCommits(a, b *Commit) error {
 	if a.Message != b.Message {
 		return fmt.Errorf("Message: %s != %s", a.Message, b.Message)
 	}
+
+	return nil
+}
+
+// CompareStats checks if all fields of a Commit are equal,
+// returning an error on the first, nil if equal
+func CompareStats(a, b *Stats) error {
+	if a == nil && b == nil {
+		return nil
+	} else if a == nil && b != nil {
+		return fmt.Errorf("nil: <nil> != <not nil>")
+	} else if a != nil && b == nil {
+		return fmt.Errorf("nil: <not nil> != <nil>")
+	}
+
+	if a.Qri != b.Qri {
+		return fmt.Errorf("Qri: %s != %s", a.Qri, b.Qri)
+	}
+
+	// TODO (b5) - compare Stats field
 
 	return nil
 }

@@ -25,6 +25,8 @@ const (
 	KindViz = Kind("vz:" + CurrentSpecVersion)
 	// KindReadme is the current kind for readme components
 	KindReadme = Kind("rm:" + CurrentSpecVersion)
+	// KindStats is the current kind for stats components
+	KindStats = Kind("st:" + CurrentSpecVersion)
 )
 
 // Kind is a short identifier for all types of qri dataset objects
@@ -32,7 +34,7 @@ const (
 // 1. Distinguish qri datasets from other formats
 // 2. Distinguish different types (Dataset/Structure/Transform/etc.)
 // 3. Distinguish between versions of the dataset spec
-// Kind is a string in the format ds:[version]
+// Kind is a string in the format 2_letter_prefix + ':' + version
 type Kind string
 
 // String implements the stringer interface
