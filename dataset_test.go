@@ -197,7 +197,7 @@ md:meta
 rm:readme
 st:structure
 tf:transform
-st:stats
+sa:stats
 vz:viz`
 
 	if diff := cmp.Diff(expect, string(got)); diff != "" {

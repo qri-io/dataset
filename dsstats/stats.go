@@ -65,7 +65,7 @@ func CalculateFromEntryReader(r dsio.EntryReader) (st *dataset.Stats, err error)
 	}
 
 	return &dataset.Stats{
-		Qri:   dataset.KindStats,
+		Qri:   dataset.KindStats.String(),
 		Stats: ToMap(acc),
 	}, nil
 }

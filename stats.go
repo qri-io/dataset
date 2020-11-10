@@ -1,7 +1,11 @@
 package dataset
 
+import "encoding/json"
+
+// Stats is a component that contains statistical metadata about the body of a
+// dataset
 type Stats struct {
-	Qri   Kind        `json:"qri,omitempty"`
+	Qri   string      `json:"qri,omitempty"`
 	Stats interface{} `json:"stats,omitempty"`
 	Path  string      `json:"path,omitempty"`
 }
@@ -11,13 +15,59 @@ func NewStatsRef(path string) *Stats {
 	return &Stats{Path: path}
 }
 
-// type Stat struct {
-// 	Type   string `json:"type,omitempty"`
-// 	Fields map[string]interface{}
-// }
-
 // DropDerivedValues resets all set-on-save fields to their default values
-func (st *Stats) DropDerivedValues() {
-	st.Qri = ""
-	st.Path = ""
+func (sa *Stats) DropDerivedValues() {
+	sa.Qri = ""
+	sa.Path = ""
+}
+
+// IsEmpty checks to see if stats has any fields other than Path set
+func (sa *Stats) IsEmpty() bool {
+	return sa.Stats == nil
+}
+
+// _stats is a private struct for marshaling into & out of.
+// fields must remain sorted in lexographical order
+type _stats Stats
+
+// MarshalJSON satisfies the json.Marshaler interface
+func (sa Stats) MarshalJSON() ([]byte, error) {
+	// if we're dealing with an empty object that has a path specified, marshal to
+	// a string instead
+	if sa.Path != "" && sa.IsEmpty() {
+		return json.Marshal(sa.Path)
+	}
+	return sa.MarshalJSONObject()
+}
+
+// MarshalJSONObject always marshals to a json Object, even if Stats is empty or
+// a reference
+func (sa Stats) MarshalJSONObject() ([]byte, error) {
+	kind := sa.Qri
+	if kind == "" {
+		kind = KindStats.String()
+	}
+
+	return json.Marshal(&_stats{
+		Stats: sa.Stats,
+		Path:  sa.Path,
+		Qri:   kind,
+	})
+}
+
+// UnmarshalJSON satisfies the json.Unmarshaler interface
+func (sa *Stats) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err == nil {
+		*sa = Stats{Path: s}
+		return nil
+	}
+
+	_sa := _stats{}
+	if err := json.Unmarshal(data, &_sa); err != nil {
+		return err
+	}
+
+	*sa = Stats(_sa)
+	return nil
 }

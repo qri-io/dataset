@@ -26,7 +26,7 @@ const (
 	// KindReadme is the current kind for readme components
 	KindReadme = Kind("rm:" + CurrentSpecVersion)
 	// KindStats is the current kind for stats components
-	KindStats = Kind("st:" + CurrentSpecVersion)
+	KindStats = Kind("sa:" + CurrentSpecVersion)
 )
 
 // Kind is a short identifier for all types of qri dataset objects
