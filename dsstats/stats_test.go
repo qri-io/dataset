@@ -1,9 +1,7 @@
 package dsstats
 
 import (
-	"context"
 	"encoding/json"
-	"io/ioutil"
 	"strings"
 	"testing"
 
@@ -337,7 +335,6 @@ func ReadAllDiscard(r dsio.EntryReader) (err error) {
 	return err
 }
 func TestJSON(t *testing.T) {
-	ctx := context.Background()
 	bodyFile := qfs.NewMemfileBytes("bodyfile", []byte("[bad body file]"))
 	structure := &dataset.Structure{
 		Format: "json",
@@ -360,8 +357,7 @@ func TestJSON(t *testing.T) {
 	}
 
 	for _, c := range badCases {
-		s := New(nil)
-		_, err := s.JSON(ctx, c.dataset)
+		_, err := Calculate(c.dataset)
 		if c.err != err.Error() {
 			t.Errorf("case '%s', error mismatch, expected: '%s', got: '%s'", c.description, c.err, err.Error())
 		}
@@ -469,15 +465,16 @@ func TestJSON(t *testing.T) {
 		bodyFile := qfs.NewMemfileBytes("bodyfile", []byte(c.Input))
 		ds.SetBodyFile(bodyFile)
 
-		s := New(nil)
-		r, err := s.JSON(ctx, ds)
+		stats, err := Calculate(ds)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		got, err := json.Marshal(stats.Stats)
 		if err != nil {
 			t.Errorf("%d. %s unexpected error: %s", i, c.Description, err)
 		}
-		got, err := ioutil.ReadAll(r)
-		if err != nil {
-			t.Errorf("%d. %s unexpected read error: %s", i, c.Description, err)
-		}
+
 		if diff := cmp.Diff(c.Expect, got); diff != "" {
 			t.Errorf("%d. '%s' result mismatch (-want +got):%s\n", i, c.Description, diff)
 		}
