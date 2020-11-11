@@ -22,6 +22,7 @@ func TestCompareDatasets(t *testing.T) {
 		{&Dataset{}, &Dataset{Structure: &Structure{}}, "Structure: nil: <nil> != <not nil>"},
 		{&Dataset{}, &Dataset{Transform: &Transform{}}, "Transform: nil: <nil> != <not nil>"},
 		{&Dataset{}, &Dataset{Commit: &Commit{}}, "Commit: nil: <nil> != <not nil>"},
+		{&Dataset{}, &Dataset{Stats: &Stats{}}, "Stats: nil: <nil> != <not nil>"},
 	}
 
 	for i, c := range cases {

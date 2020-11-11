@@ -185,6 +185,7 @@ func TestSigningBytes(t *testing.T) {
 		Readme:    &Readme{Path: "readme"},
 		Structure: &Structure{Path: "structure"},
 		Transform: &Transform{Path: "transform"},
+		Stats:     &Stats{Path: "stats"},
 		Viz:       &Viz{Path: "viz"},
 	}
 
@@ -196,6 +197,7 @@ md:meta
 rm:readme
 st:structure
 tf:transform
+sa:stats
 vz:viz`
 
 	if diff := cmp.Diff(expect, string(got)); diff != "" {
@@ -312,6 +314,7 @@ func TestDatasetIsEmpty(t *testing.T) {
 		{&Dataset{PreviousPath: "nope"}},
 		{&Dataset{Structure: &Structure{}}},
 		{&Dataset{Transform: &Transform{}}},
+		{&Dataset{Stats: &Stats{}}},
 		{&Dataset{Viz: &Viz{}}},
 	}
 

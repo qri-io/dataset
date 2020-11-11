@@ -4,6 +4,9 @@ go 1.13
 
 require (
 	github.com/360EntSecGroup-Skylar/excelize v1.4.1
+	github.com/axiomhq/hyperloglog v0.0.0-20191112132149-a4c4c47bc57f
+	github.com/dgryski/go-sip13 v0.0.0-20200911182023-62edffca9245 // indirect
+	github.com/dgryski/go-topk v0.0.0-20191119021947-593b4f2374c9
 	github.com/google/go-cmp v0.4.0
 	github.com/ipfs/go-datastore v0.4.4
 	github.com/ipfs/go-log v1.0.4

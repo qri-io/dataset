@@ -82,6 +82,8 @@ type Dataset struct {
 	Qri string `json:"qri"`
 	// Structure of this dataset
 	Structure *Structure `json:"structure,omitempty"`
+	// Stats is a component containing statistical metadata about the dataset body
+	Stats *Stats `json:"stats,omitempty"`
 	// Transform is a path to the transformation that generated this resource
 	Transform *Transform `json:"transform,omitempty"`
 	// Viz stores configuration data related to representing a dataset as
@@ -103,6 +105,7 @@ func (ds *Dataset) IsEmpty() bool {
 		ds.Structure == nil &&
 		ds.Transform == nil &&
 		ds.Readme == nil &&
+		ds.Stats == nil &&
 		ds.Viz == nil
 }
 
@@ -148,6 +151,9 @@ func (ds *Dataset) SigningBytes() []byte {
 	}
 	if ds.Transform != nil && ds.Transform.Path != "" {
 		sigComponents = append(sigComponents, ComponentTypePrefix(KindTransform, ds.Transform.Path))
+	}
+	if ds.Stats != nil && ds.Stats.Path != "" {
+		sigComponents = append(sigComponents, ComponentTypePrefix(KindStats, ds.Stats.Path))
 	}
 	if ds.Viz != nil && ds.Viz.Path != "" {
 		sigComponents = append(sigComponents, ComponentTypePrefix(KindViz, ds.Viz.Path))
@@ -206,6 +212,9 @@ func (ds *Dataset) DropDerivedValues() {
 	}
 	if ds.Readme != nil {
 		ds.Readme.DropDerivedValues()
+	}
+	if ds.Stats != nil {
+		ds.Stats.DropDerivedValues()
 	}
 	if ds.Viz != nil {
 		ds.Viz.DropDerivedValues()
@@ -326,7 +335,11 @@ func (ds *Dataset) Assign(datasets ...*Dataset) {
 		if d.ProfileID != "" {
 			ds.ProfileID = d.ProfileID
 		}
-
+		if ds.Stats == nil && d.Stats != nil {
+			ds.Stats = d.Stats
+		} else if ds.Stats != nil {
+			ds.Stats.Assign(d.Stats)
+		}
 		if ds.Structure == nil && d.Structure != nil {
 			ds.Structure = d.Structure
 		} else if ds.Structure != nil {
