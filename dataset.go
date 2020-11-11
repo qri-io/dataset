@@ -337,6 +337,8 @@ func (ds *Dataset) Assign(datasets ...*Dataset) {
 		}
 		if ds.Stats == nil && d.Stats != nil {
 			ds.Stats = d.Stats
+		} else if ds.Stats != nil {
+			ds.Stats.Assign(d.Stats)
 		}
 		if ds.Structure == nil && d.Structure != nil {
 			ds.Structure = d.Structure

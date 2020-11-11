@@ -5,9 +5,9 @@ import "encoding/json"
 // Stats is a component that contains statistical metadata about the body of a
 // dataset
 type Stats struct {
+	Path  string      `json:"path,omitempty"`
 	Qri   string      `json:"qri,omitempty"`
 	Stats interface{} `json:"stats,omitempty"`
-	Path  string      `json:"path,omitempty"`
 }
 
 // NewStatsRef creates an empty struct with it's path set
@@ -24,6 +24,25 @@ func (sa *Stats) DropDerivedValues() {
 // IsEmpty checks to see if stats has any fields other than Path set
 func (sa *Stats) IsEmpty() bool {
 	return sa.Stats == nil
+}
+
+// Assign collapses all properties of a group of Stats components onto one
+func (sa *Stats) Assign(sas ...*Stats) {
+	for _, s := range sas {
+		if s == nil {
+			continue
+		}
+
+		if s.Stats != nil {
+			sa.Stats = s.Stats
+		}
+		if s.Path != "" {
+			sa.Path = s.Path
+		}
+		if s.Qri != "" {
+			sa.Qri = s.Qri
+		}
+	}
 }
 
 // _stats is a private struct for marshaling into & out of.
