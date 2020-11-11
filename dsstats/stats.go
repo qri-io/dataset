@@ -24,7 +24,7 @@ var (
 	HistogramCentroidCount uint = 32
 
 	// package logger
-	log = logger.Logger("stats")
+	log = logger.Logger("dsstats")
 )
 
 // Calculate determines a stats component by reading each entry in the Body of a
@@ -49,15 +49,18 @@ func Calculate(ds *dataset.Dataset) (st *dataset.Stats, err error) {
 // CalculateFromEntryReader consumes an entry reader to generate a Stats
 // component
 func CalculateFromEntryReader(r dsio.EntryReader) (st *dataset.Stats, err error) {
-	acc := NewAccumulator(r)
+	acc := NewAccumulator(r.Structure())
 	defer acc.Close()
-	for {
-		if _, err := acc.ReadEntry(); err != nil {
-			if err.Error() == "EOF" {
-				break
-			}
-			return nil, err
+
+	err = dsio.EachEntry(r, func(i int, ent dsio.Entry, e error) error {
+		if e != nil {
+			return e
 		}
+		acc.WriteEntry(ent)
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	if err := acc.Close(); err != nil {
@@ -103,19 +106,19 @@ type Stat interface {
 // Consumers can only assume the return value of Accumulator.Stats is final
 // after a call to Close
 type Accumulator struct {
-	r     dsio.EntryReader
+	st    *dataset.Structure
 	stats accumulator
 }
 
 var (
-	// compile time assertions that Accumulator is an EntryReader & Statser
-	_ dsio.EntryReader = (*Accumulator)(nil)
+	// compile time assertions that Accumulator is an EntryWriter & Statser
+	_ dsio.EntryWriter = (*Accumulator)(nil)
 	_ Statser          = (*Accumulator)(nil)
 )
 
 // NewAccumulator wraps an entry reader to create a stat accumulator
-func NewAccumulator(r dsio.EntryReader) *Accumulator {
-	return &Accumulator{r: r}
+func NewAccumulator(st *dataset.Structure) *Accumulator {
+	return &Accumulator{st: st}
 }
 
 // Stats gets the statistics created by the accumulator
@@ -131,26 +134,22 @@ func (r *Accumulator) Stats() []Stat {
 
 // Structure gives the structure being read
 func (r *Accumulator) Structure() *dataset.Structure {
-	return r.r.Structure()
+	return r.st
 }
 
-// ReadEntry reads one row of structured data from the reader
-func (r *Accumulator) ReadEntry() (dsio.Entry, error) {
-	ent, err := r.r.ReadEntry()
-	if err != nil {
-		return ent, err
-	}
+// WriteEntry adds one row of structured data to accumulated stats
+func (r *Accumulator) WriteEntry(ent dsio.Entry) error {
 	if r.stats == nil {
 		r.stats = newAccumulator(ent.Value)
 	}
 	r.stats.Write(ent)
-	return ent, nil
+	return nil
 }
 
 // Close finalizes the Reader
 func (r *Accumulator) Close() error {
 	r.stats.Close()
-	return r.r.Close()
+	return nil
 }
 
 // accumulator is the common internal inferface for creating a stat
