@@ -15,6 +15,7 @@ func TestDatasetDropTransientValues(t *testing.T) {
 	ds := Dataset{
 		Body:        []int{1, 2, 3},
 		Name:        "three numbers",
+		Peername:    "foo",
 		Path:        "/tmp/ds",
 		ProfileID:   "QmBlahBlah",
 		NumVersions: 4,
@@ -27,6 +28,7 @@ func TestDatasetDropTransientValues(t *testing.T) {
 	ds = Dataset{
 		Body:        []int{1, 2, 3},
 		Name:        "three numbers",
+		Peername:    "foo",
 		Path:        "/tmp/ds",
 		ProfileID:   "QmBlahBlah",
 		NumVersions: 4,

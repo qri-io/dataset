@@ -188,6 +188,7 @@ func (ds *Dataset) DropTransientValues() {
 	ds.Body = nil
 	ds.BodyBytes = nil
 	ds.Name = ""
+	ds.Peername = ""
 	ds.Path = ""
 	ds.ProfileID = ""
 	ds.NumVersions = 0
