@@ -199,6 +199,7 @@ func (s Structure) MarshalJSONObject() ([]byte, error) {
 		Format:       s.Format,
 		FormatConfig: opt,
 		Length:       s.Length,
+		Path:         s.Path,
 		Qri:          kind,
 		Schema:       s.Schema,
 		Strict:       s.Strict,
