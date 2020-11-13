@@ -6,7 +6,12 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
+
+func compareStats(a, b *Stats) string {
+	return cmp.Diff(a, b, cmpopts.IgnoreUnexported(Stats{}))
+}
 
 func TestStatsDropTransientValues(t *testing.T) {
 	t.Log("TODO (b5)")
@@ -44,19 +49,19 @@ func TestStatsAssign(t *testing.T) {
 		Qri:  "change",
 	})
 
-	if err := CompareStats(expect, got); err != nil {
-		t.Error(err)
+	if diff := compareStats(expect, got); diff != "" {
+		t.Errorf("result mismatch (-want +got):\n%s", diff)
 	}
 
 	got.Assign(nil, nil)
-	if err := CompareStats(expect, got); err != nil {
-		t.Error(err)
+	if diff := compareStats(expect, got); diff != "" {
+		t.Errorf("result mismatch (-want +got):\n%s", diff)
 	}
 
 	emptySa := &Stats{}
 	emptySa.Assign(expect)
-	if err := CompareStats(expect, emptySa); err != nil {
-		t.Error(err)
+	if diff := compareStats(expect, emptySa); diff != "" {
+		t.Errorf("result mismatch (-want +got):\n%s", diff)
 	}
 }
 
@@ -67,7 +72,7 @@ func TestStatsUnmarshalJSON(t *testing.T) {
 		err   string
 	}{
 		{`{}`, &Stats{}, ""},
-		{`{"stats":{"foo": "/not/a/real/path"}}`, &Stats{Stats: map[string]interface{}{"foo": map[string]interface{}{"foo": "/not/a/real/path"}}}, ""},
+		{`{"stats":{"foo": "/not/a/real/path"}}`, &Stats{Stats: map[string]interface{}{"foo": "/not/a/real/path"}}, ""},
 	}
 
 	for i, c := range cases {
@@ -78,8 +83,8 @@ func TestStatsUnmarshalJSON(t *testing.T) {
 			continue
 		}
 
-		if err := CompareStats(c.Stats, got); err != nil {
-			t.Errorf("case %d Stats mismatch: %s", i, err)
+		if diff := compareStats(c.Stats, got); diff != "" {
+			t.Errorf("case %d Stats mismatch (-want +got):\n%s", i, diff)
 			continue
 		}
 	}

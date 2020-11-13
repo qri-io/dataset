@@ -7,7 +7,12 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
+
+func compareCommits(a, b *Commit) string {
+	return cmp.Diff(a, b, cmpopts.IgnoreUnexported(Commit{}))
+}
 
 func TestCommit(t *testing.T) {
 	ref := NewCommitRef("a")
@@ -49,19 +54,19 @@ func TestCommitAssign(t *testing.T) {
 		Signature: "sig",
 	})
 
-	if err := CompareCommits(expect, got); err != nil {
-		t.Error(err)
+	if diff := compareCommits(expect, got); diff != "" {
+		t.Errorf("result mismatch (-want +got):\n%s", diff)
 	}
 
 	got.Assign(nil, nil)
-	if err := CompareCommits(expect, got); err != nil {
-		t.Error(err)
+	if diff := compareCommits(expect, got); diff != "" {
+		t.Errorf("result mismatch (-want +got):\n%s", diff)
 	}
 
 	emptyMsg := &Commit{}
 	emptyMsg.Assign(expect)
-	if err := CompareCommits(expect, emptyMsg); err != nil {
-		t.Error(err)
+	if diff := compareCommits(expect, emptyMsg); diff != "" {
+		t.Errorf("result mismatch (-want +got):\n%s", diff)
 	}
 }
 
@@ -176,25 +181,33 @@ func TestCommitUnmarshalJSON(t *testing.T) {
 	cases := []struct {
 		data   string
 		result *Commit
-		err    string
 	}{
-		{`{}`, &Commit{}, ""},
-		{`{ "title": "title", "message": "message"}`, &Commit{Title: "title", Message: "message"}, ""},
-		{`{ "author" : { "id": "id", "email": "email@email.com"} }`, &Commit{Author: &User{ID: "id", Email: "email@email.com"}}, ""},
-		{`{`, &Commit{Author: &User{ID: "id", Email: "email@email.com"}}, "error unmarshling commit: unexpected end of JSON input"},
+		{`{}`, &Commit{}},
+		{`{ "title": "title", "message": "message"}`, &Commit{Title: "title", Message: "message"}},
+		{`{ "author" : { "id": "id", "email": "email@email.com"} }`, &Commit{Author: &User{ID: "id", Email: "email@email.com"}}},
 	}
 
 	for i, c := range cases {
 		cm := &Commit{}
-		err := cm.UnmarshalJSON([]byte(c.data))
-		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
-			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
+		if err := cm.UnmarshalJSON([]byte(c.data)); err != nil {
+			t.Errorf("case %d unexpected error %q", i, err)
 			continue
 		}
 
-		if err := CompareCommits(cm, c.result); err != nil {
-			t.Errorf("case %d comparison error: %s", i, err)
+		if diff := compareCommits(cm, c.result); diff != "" {
+			t.Errorf("result %d mismatch (-want +got):\n%s", i, diff)
 			continue
+		}
+	}
+
+	cm := &Commit{}
+	err := cm.UnmarshalJSON([]byte(`{`))
+	if err == nil {
+		t.Errorf("expected error unmarshaling bad JSON, got nil")
+	} else {
+		expect := "error unmarshling commit: unexpected end of JSON input"
+		if expect != err.Error() {
+			t.Errorf("output mismatch.\nwant: %q\ngot:  %q", expect, err)
 		}
 	}
 
@@ -230,8 +243,8 @@ func TestUnmarshalCommit(t *testing.T) {
 			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
 			continue
 		}
-		if err := CompareCommits(c.out, got); err != nil {
-			t.Errorf("case %d dataset mismatch: %s", i, err.Error())
+		if diff := compareCommits(c.out, got); diff != "" {
+			t.Errorf("result %d mismatch (-want +got):\n%s", i, diff)
 			continue
 		}
 	}

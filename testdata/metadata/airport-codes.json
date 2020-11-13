@@ -4,5 +4,11 @@
   "license": { 
     "type":"PDDL-1.0"
   },
-  "title": "Airport Codes"
+  "title": "Airport Codes",
+  "citations": [
+    {
+      "name" : "Our Airports",
+      "url" :  "http://ourairports.com/data/"
+    }
+  ]
 }

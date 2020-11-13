@@ -15,6 +15,7 @@ func TestDatasetDropTransientValues(t *testing.T) {
 	ds := Dataset{
 		Body:        []int{1, 2, 3},
 		Name:        "three numbers",
+		Peername:    "foo",
 		Path:        "/tmp/ds",
 		ProfileID:   "QmBlahBlah",
 		NumVersions: 4,
@@ -27,6 +28,7 @@ func TestDatasetDropTransientValues(t *testing.T) {
 	ds = Dataset{
 		Body:        []int{1, 2, 3},
 		Name:        "three numbers",
+		Peername:    "foo",
 		Path:        "/tmp/ds",
 		ProfileID:   "QmBlahBlah",
 		NumVersions: 4,
@@ -81,17 +83,8 @@ func TestDatasetDropDerivedValues(t *testing.T) {
 		Transform: &Transform{},
 	}
 
-	if !cmp.Equal(ds, exp, cmpopts.IgnoreUnexported(Dataset{}, Meta{}, Viz{}, Transform{})) {
-		t.Errorf("expected dropping a dataset of only derived values to be empty")
-		t.Logf("%#v", ds)
-		// data, _ := json.MarshalIndent(ds, "", "  ")
-		// t.Logf(string(data))
-	}
-	if ds.Path != "" {
-		t.Errorf("expected dataset .Path field to be empty")
-	}
-	if ds.Qri != "" {
-		t.Errorf("expected dataset .Qri field to be empty")
+	if diff := compareDatasets(ds, exp); diff != "" {
+		t.Logf("result mismatch (-want +got):\n%s", diff)
 	}
 }
 
@@ -117,9 +110,9 @@ func TestDatasetAssign(t *testing.T) {
 	for i, c := range cases {
 		got := &Dataset{}
 		got.Assign(c.in)
-		// assign resets the path:
-		if err := CompareDatasets(c.in, got); err != nil {
-			t.Errorf("case %d error: %s", i, err.Error())
+
+		if diff := compareDatasets(c.in, got); diff != "" {
+			t.Errorf("case %d result mismatch. (-want +got):\n%s", i, diff)
 			continue
 		}
 	}
@@ -139,8 +132,8 @@ func TestDatasetAssign(t *testing.T) {
 	}
 	mads.Assign(madsa)
 
-	if err := CompareDatasets(mads, madsa); err != nil {
-		t.Errorf("error testing assigning to existing substructs: %s", err.Error())
+	if diff := compareDatasets(mads, madsa); diff != "" {
+		t.Errorf("error testing assigning to existing substructs (-want +got):\n%s", diff)
 		return
 	}
 }
@@ -278,8 +271,8 @@ func TestDatasetUnmarshalJSON(t *testing.T) {
 			continue
 		}
 
-		if err = CompareDatasets(ds, c.result); err != nil {
-			t.Errorf("case %d resource comparison error: %s", i, err)
+		if diff := compareDatasets(ds, c.result); diff != "" {
+			t.Errorf("case %d resource comparison error:(-want +got):\n%s", i, diff)
 			continue
 		}
 	}
@@ -345,9 +338,19 @@ func TestUnmarshalDataset(t *testing.T) {
 			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
 			continue
 		}
-		if err := CompareDatasets(c.out, got); err != nil {
-			t.Errorf("case %d dataset mismatch: %s", i, err.Error())
+		if diff := compareDatasets(c.out, got); diff != "" {
+			t.Errorf("case %d dataset mismatch (-want +got):\n%s", i, diff)
 			continue
 		}
 	}
+}
+
+func compareDatasets(a, b *Dataset) string {
+	return cmp.Diff(a, b, cmpopts.IgnoreUnexported(
+		Dataset{},
+		Meta{},
+		Transform{},
+		Readme{},
+		Viz{},
+	))
 }

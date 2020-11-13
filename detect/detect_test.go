@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/dataset/dstest"
 )
 
 func TestFromFile(t *testing.T) {
@@ -51,10 +51,8 @@ func TestFromFile(t *testing.T) {
 				continue
 			}
 
-			if err := dataset.CompareStructures(expect, st); err != nil {
-				fmt.Printf("exp: %#v\n", expect.FormatConfig)
-				fmt.Printf("got: %#v\n\n", st.FormatConfig)
-				t.Errorf("case %d structure mismatch: %s", i, err.Error())
+			if diff := dstest.CompareStructures(expect, st); diff != "" {
+				t.Errorf("case %d structure mismatch (-want +got):\n%s", i, diff)
 				continue
 			}
 

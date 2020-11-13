@@ -10,6 +10,10 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
+func compareVizs(a, b *Viz) string {
+	return cmp.Diff(a, b, cmpopts.IgnoreUnexported(Viz{}))
+}
+
 func TestVizDropTransientValues(t *testing.T) {
 	t.Log("TODO (b5)")
 }
@@ -22,8 +26,8 @@ func TestVizDropDerivedValues(t *testing.T) {
 
 	vz.DropDerivedValues()
 
-	if !cmp.Equal(vz, &Viz{}, cmpopts.IgnoreUnexported(Viz{})) {
-		t.Errorf("expected dropping a viz of only derived values to be empt")
+	if diff := compareVizs(vz, &Viz{}); diff != "" {
+		t.Errorf("expected dropping a viz of only derived values to be empty. diff (-want +got):\n%s", diff)
 	}
 }
 
@@ -59,22 +63,21 @@ func TestVizAssign(t *testing.T) {
 		got    *Viz
 		assign *Viz
 		expect *Viz
-		err    string
 	}{
-		{nil, nil, nil, ""},
-		{&Viz{}, viz1, viz1, ""},
+		{nil, nil, nil},
+		{&Viz{}, viz1, viz1},
 		{&Viz{
 			Format:     "bar",
 			Qri:        KindViz.String(),
 			ScriptPath: "replace me",
 		},
-			viz2, viz2, ""},
-		{&Viz{
-			Format:     "bar",
-			Qri:        KindViz.String(),
-			ScriptPath: "replace me",
-		},
-			viz2, viz3, "ScriptPath: three != two"},
+			viz2, viz2},
+		// {&Viz{
+		// 	Format:     "bar",
+		// 	Qri:        KindViz.String(),
+		// 	ScriptPath: "replace me",
+		// },
+		// 	viz2, viz3, "ScriptPath: three != two"},
 		{&Viz{
 			Path:       "foo",
 			Format:     "foo",
@@ -83,18 +86,17 @@ func TestVizAssign(t *testing.T) {
 		},
 			&Viz{Path: "bar", Format: "bar", RenderedPath: "rendered"},
 			&Viz{
-				Path:         "foo",
+				Path:         "bar",
 				Format:       "bar",
 				Qri:          KindViz.String(),
 				ScriptPath:   "bat",
 				RenderedPath: "rendered",
-			}, ""},
+			}},
 	}
 	for i, c := range cases {
 		c.got.Assign(c.assign)
-		err := CompareVizs(c.expect, c.got)
-		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
-			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
+		if diff := compareVizs(c.expect, c.got); diff != "" {
+			t.Errorf("case %d result mismatch. (-want +got):\n%s", i, diff)
 		}
 	}
 
@@ -149,8 +151,8 @@ func TestVizUnmarshalJSON(t *testing.T) {
 			}
 		}
 
-		if err = CompareVizs(vc, c.result); err != nil {
-			t.Errorf("case %d resource comparison error: %s", i, err)
+		if diff := compareVizs(vc, c.result); diff != "" {
+			t.Errorf("case %d resource comparison error (-want +got):\n%s", i, diff)
 			continue
 		}
 	}
@@ -253,8 +255,8 @@ func TestUnmarshalViz(t *testing.T) {
 			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
 			continue
 		}
-		if err := CompareVizs(c.out, got); err != nil {
-			t.Errorf("case %d Viz mismatch: %s", i, err.Error())
+		if diff := compareVizs(c.out, got); diff != "" {
+			t.Errorf("case %d Viz mismatch (-want +got):\n%s", i, diff)
 			continue
 		}
 	}

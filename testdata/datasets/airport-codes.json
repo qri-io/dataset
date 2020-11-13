@@ -10,7 +10,7 @@
     "citations": [
       {
         "name": "Our Airports",
-        "web": "http://ourairports.com/data/"
+        "url": "http://ourairports.com/data/"
       }
     ]
   },
@@ -23,6 +23,7 @@
     "formatConfig": {
       "headerRow": true
     },
+    "errCount": 5,
     "schema": {
       "type": "array",
       "items": {

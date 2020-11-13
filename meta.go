@@ -361,6 +361,9 @@ func (md *Meta) MarshalJSONObject() ([]byte, error) {
 	if md.License != nil {
 		data["license"] = md.License
 	}
+	if md.Path != "" {
+		data["path"] = md.Path
+	}
 	if md.ReadmeURL != "" {
 		data["readmeURL"] = md.ReadmeURL
 	}

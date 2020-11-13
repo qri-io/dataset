@@ -9,6 +9,10 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
+func compareTransforms(a, b *Transform) string {
+	return cmp.Diff(a, b, cmpopts.IgnoreUnexported(Transform{}))
+}
+
 func TestTransformDropTransientValues(t *testing.T) {
 	t.Log("TODO (b5)")
 }
@@ -21,8 +25,8 @@ func TestTransformDropDerivedValues(t *testing.T) {
 
 	tf.DropDerivedValues()
 
-	if !cmp.Equal(tf, &Transform{}, cmpopts.IgnoreUnexported(Transform{})) {
-		t.Errorf("expected dropping a struct only derived values to be empty")
+	if diff := compareTransforms(tf, &Transform{}); diff != "" {
+		t.Errorf("expected dropping a struct only derived values to be empty. diff (-want +got):\n%s", diff)
 	}
 }
 
@@ -69,19 +73,19 @@ func TestTransformAssign(t *testing.T) {
 		},
 	})
 
-	if err := CompareTransforms(expect, got); err != nil {
-		t.Error(err)
+	if diff := compareTransforms(expect, got); diff != "" {
+		t.Errorf("result mismatch (-want +got):\n%s", diff)
 	}
 
 	got.Assign(nil, nil)
-	if err := CompareTransforms(expect, got); err != nil {
-		t.Error(err)
+	if diff := compareTransforms(expect, got); diff != "" {
+		t.Errorf("result mismatch (-want +got):\n%s", diff)
 	}
 
 	emptyTf := &Transform{}
 	emptyTf.Assign(expect)
-	if err := CompareTransforms(expect, emptyTf); err != nil {
-		t.Error(err)
+	if diff := compareTransforms(expect, emptyTf); diff != "" {
+		t.Errorf("result mismatch (-want +got):\n%s", diff)
 	}
 }
 
@@ -105,8 +109,8 @@ func TestTransformUnmarshalJSON(t *testing.T) {
 			continue
 		}
 
-		if err := CompareTransforms(c.transform, got); err != nil {
-			t.Errorf("case %d transform mismatch: %s", i, err)
+		if diff := compareTransforms(c.transform, got); diff != "" {
+			t.Errorf("case %d transform mismatch (-want +got):\n%s", i, diff)
 			continue
 		}
 	}

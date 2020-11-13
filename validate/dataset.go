@@ -14,12 +14,6 @@ func Dataset(ds *dataset.Dataset) error {
 		return nil
 	}
 
-	// if ds.Abstract != nil {
-	// 	if err := dataset.CompareDatasets(ds.Abstract, dataset.Abstract(ds)); err != nil {
-	// 		return fmt.Errorf("abstract field is not an abstract dataset. %s", err.Error())
-	// 	}
-	// }
-
 	if ds.Commit == nil {
 		err := fmt.Errorf("commit is required")
 		log.Debug(err.Error())
