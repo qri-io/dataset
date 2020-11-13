@@ -309,10 +309,8 @@ func runTestCases(t *testing.T, cases ...TestCase) {
 			t.Errorf("%d. %s error creating json reader: %s", i, c.Description, err)
 			continue
 		}
-		acc := NewAccumulator(r)
-
-		err = ReadAllDiscard(acc)
-		got := ToMap(acc)
+		sa, err := CalculateFromEntryReader(r)
+		got := sa.Stats
 		if diff := cmp.Diff(c.Expect, got); diff != "" {
 			t.Errorf("%d. '%s' result mismatch (-want +got):%s\n", i, c.Description, diff)
 		}
@@ -353,7 +351,7 @@ func TestJSON(t *testing.T) {
 	}{
 		{"no body", &dataset.Dataset{Path: "path"}, "stats: dataset has no body file"},
 		{"no structure", dsWithBody, "stats: dataset is missing structure"},
-		{"reader error", dsWithStructure, "Expected: separator ','"},
+		{"reader error", dsWithStructure, `error reading row 1: Expected: separator ','`},
 	}
 
 	for _, c := range badCases {
