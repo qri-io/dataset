@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/dataset/dstest"
 	"github.com/qri-io/dataset/tabular"
 )
 
@@ -209,8 +210,8 @@ func TestCSVWriter(t *testing.T) {
 		return
 	}
 	st := rw.Structure()
-	if err := dataset.CompareStructures(st, csvStruct); err != nil {
-		t.Errorf("structure mismatch: %s", err.Error())
+	if diff := dstest.CompareStructures(st, csvStruct); diff != "" {
+		t.Errorf("structure mismatch (-want +got):\n%s", diff)
 		return
 	}
 
@@ -247,8 +248,8 @@ a	12	23	"[""foo"",""bar""]"`
 		return
 	}
 	st := rw.Structure()
-	if err := dataset.CompareStructures(st, tsvStruct); err != nil {
-		t.Errorf("structure mismatch: %s", err.Error())
+	if diff := dstest.CompareStructures(st, tsvStruct); diff != "" {
+		t.Errorf("structure mismatch (-want +got):\n%s", diff)
 		return
 	}
 

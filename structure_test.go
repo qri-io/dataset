@@ -7,8 +7,13 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/qri-io/dataset/compression"
 )
+
+func compareStructures(a, b *Structure) string {
+	return cmp.Diff(a, b, cmpopts.IgnoreUnexported(Structure{}))
+}
 
 func TestStrucureHash(t *testing.T) {
 	cases := []struct {
@@ -97,8 +102,8 @@ func TestStructureAbstract(t *testing.T) {
 	}
 
 	for i, c := range cases {
-		if err := CompareStructures(c.in.Abstract(), c.out); err != nil {
-			t.Errorf("case %d error: %s", i, err.Error())
+		if diff := compareStructures(c.in.Abstract(), c.out); diff != "" {
+			t.Errorf("case %d error (-want +got):\n%s", i, diff)
 			continue
 		}
 	}
@@ -158,19 +163,19 @@ func TestStructureAssign(t *testing.T) {
 		Strict:      true,
 	})
 
-	if err := CompareStructures(expect, got); err != nil {
-		t.Error(err)
+	if diff := compareStructures(expect, got); diff != "" {
+		t.Errorf("result mismatch (-want +got):\n%s", diff)
 	}
 
 	got.Assign(nil, nil)
-	if err := CompareStructures(expect, got); err != nil {
-		t.Error(err)
+	if diff := compareStructures(expect, got); diff != "" {
+		t.Errorf("result mismatch (-want +got):\n%s", diff)
 	}
 
 	emptySt := &Structure{}
 	emptySt.Assign(expect)
-	if err := CompareStructures(expect, emptySt); err != nil {
-		t.Error(err)
+	if diff := compareStructures(expect, emptySt); diff != "" {
+		t.Errorf("result mismatch (-want +got):\n%s", diff)
 	}
 }
 
@@ -197,7 +202,7 @@ func TestStructureUnmarshalJSON(t *testing.T) {
 			continue
 		}
 
-		if err = CompareStructures(st, c.result); err != nil {
+		if diff := compareStructures(st, c.result); diff != "" {
 			t.Errorf("case %d resource comparison error: %s", i, err)
 			continue
 		}
@@ -298,7 +303,7 @@ func TestUnmarshalStructure(t *testing.T) {
 			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
 			continue
 		}
-		if err := CompareStructures(c.out, got); err != nil {
+		if diff := compareStructures(c.out, got); diff != "" {
 			t.Errorf("case %d structure mismatch: %s", i, err.Error())
 			continue
 		}

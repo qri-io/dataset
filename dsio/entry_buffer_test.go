@@ -45,8 +45,8 @@ func TestEntryBuffer(t *testing.T) {
 	}
 
 	bst := rbuf.Structure()
-	if err := dataset.CompareStructures(outst, bst); err != nil {
-		t.Errorf("buffer structure mismatch: %s", err.Error())
+	if diff := dstest.CompareStructures(outst, bst); diff != "" {
+		t.Errorf("buffer structure mismatch (-wnt +got):\n%s", diff)
 		return
 	}
 

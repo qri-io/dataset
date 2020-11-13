@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/qri-io/dataset"
 )
 
@@ -40,8 +41,8 @@ func TestJSONSchema(t *testing.T) {
 			return
 		}
 
-		if err := dataset.CompareSchemas(got, c.expect); err != nil {
-			t.Errorf("case %d returned schema mismatch: %s", i, err)
+		if diff := cmp.Diff(c.expect, got); diff != "" {
+			t.Errorf("case %d returned schema mismatch (-want +got):\n%s", i, diff)
 		}
 	}
 }

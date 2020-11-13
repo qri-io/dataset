@@ -8,7 +8,12 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
+
+func compareMetas(a, b *Meta) string {
+	return cmp.Diff(a, b, cmpopts.IgnoreUnexported(Meta{}))
+}
 
 func TestMetaDropDerivedValues(t *testing.T) {
 	md := &Meta{
@@ -49,8 +54,8 @@ func TestMetaAssign(t *testing.T) {
 	for i, c := range cases {
 		got := &Meta{}
 		got.Assign(c.in)
-		if err := CompareMetas(c.in, got); err != nil {
-			t.Errorf("case %d error: %s", i, err.Error())
+		if diff := compareMetas(c.in, got); diff != "" {
+			t.Errorf("case %d result mismatch: (-want +got):\n%s", i, diff)
 			continue
 		}
 	}
@@ -71,19 +76,19 @@ func TestMetaAssign(t *testing.T) {
 		AccessURL:   "AccessURL",
 	})
 
-	if err := CompareMetas(expect, got); err != nil {
-		t.Error(err)
+	if diff := compareMetas(expect, got); diff != "" {
+		t.Errorf("result mismatch (-want +got):\n%s", diff)
 	}
 
 	got.Assign(nil, nil)
-	if err := CompareMetas(expect, got); err != nil {
-		t.Error(err)
+	if diff := compareMetas(expect, got); diff != "" {
+		t.Errorf("result mismatch (-want +got):\n%s", diff)
 	}
 
 	emptyDs := &Meta{}
 	emptyDs.Assign(expect)
-	if err := CompareMetas(expect, emptyDs); err != nil {
-		t.Error(err)
+	if diff := compareMetas(expect, emptyDs); diff != "" {
+		t.Errorf("result mismatch (-want +got):\n%s", diff)
 	}
 }
 
@@ -159,8 +164,8 @@ func TestMetaSet(t *testing.T) {
 			continue
 		}
 		if c.meta != nil {
-			if err := CompareMetas(m, c.meta); err != nil {
-				t.Errorf("case %d (%s) meta mismatch: %s", i, c.key, err.Error())
+			if diff := compareMetas(m, c.meta); diff != "" {
+				t.Errorf("case %d (%s) meta mismatch (-want +got):\n%s", i, c.key, diff)
 				continue
 			}
 		}
@@ -240,8 +245,8 @@ func TestMetaUnmarshalJSON(t *testing.T) {
 			continue
 		}
 
-		if err = CompareMetas(ds, c.result); err != nil {
-			t.Errorf("case %d resource comparison error: %s", i, err)
+		if diff := compareMetas(ds, c.result); diff != "" {
+			t.Errorf("case %d resource comparison error (-want +got):\n%s", i, diff)
 			continue
 		}
 	}
@@ -278,8 +283,8 @@ func TestUnmarshalMeta(t *testing.T) {
 			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
 			continue
 		}
-		if err := CompareMetas(c.out, got); err != nil {
-			t.Errorf("case %d metadata mismatch: %s", i, err.Error())
+		if diff := compareMetas(c.out, got); diff != "" {
+			t.Errorf("case %d metadata mismatch (-want +got):\n%s", i, diff)
 			continue
 		}
 	}

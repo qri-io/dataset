@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/dataset/dstest"
 )
 
 var xlsxStruct = &dataset.Structure{
@@ -103,8 +104,8 @@ func TestXLSXWriter(t *testing.T) {
 		return
 	}
 	st := rw.Structure()
-	if err := dataset.CompareStructures(st, xlsxStruct); err != nil {
-		t.Errorf("structure mismatch: %s", err.Error())
+	if diff := dstest.CompareStructures(st, xlsxStruct); diff != "" {
+		t.Errorf("structure mismatch: %s", diff)
 		return
 	}
 
