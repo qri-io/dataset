@@ -16,8 +16,9 @@ import (
 var (
 	// StopFreqCountThreshold is the number of unique values past which we will
 	// stop keeping frequencies. This is a simplistic line of defense against
-	// unweildly memory consumption
-	StopFreqCountThreshold = 10000
+	// unweildly memory consumption. 200 because more is not really user friendly
+	// output
+	StopFreqCountThreshold = 200
 	// HistogramCentroidCount is the max number of centroids/bins for our histogram
 	// calculations more bins give better precision at the tradeoff of more CPU
 	// and memory usage. 32 is a pretty decent count for fairly large datasets.
