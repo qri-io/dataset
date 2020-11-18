@@ -262,31 +262,22 @@ func TestMetaUnmarshalJSON(t *testing.T) {
 		t.Errorf("unmarshal didn't set proper path: %s != %s", path, strds.Path)
 		return
 	}
-}
 
-func TestUnmarshalMeta(t *testing.T) {
-	dsa := Meta{Qri: KindMeta.String()}
-	cases := []struct {
-		value interface{}
-		out   *Meta
-		err   string
-	}{
-		{dsa, &dsa, ""},
-		{&dsa, &dsa, ""},
-		{[]byte("{\"qri\":\"md:0\"}"), &Meta{Qri: KindMeta.String()}, ""},
-		{5, nil, "couldn't parse metadata, value is invalid type"},
+	// confirm direct marshalling empty meta component to-and-from JSON doesn't
+	// have side effects
+	md := &Meta{}
+	data, err := md.MarshalJSON()
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	for i, c := range cases {
-		got, err := UnmarshalMeta(c.value)
-		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
-			t.Errorf("case %d error mismatch. expected: '%s', got: '%s'", i, c.err, err)
-			continue
-		}
-		if diff := compareMetas(c.out, got); diff != "" {
-			t.Errorf("case %d metadata mismatch (-want +got):\n%s", i, diff)
-			continue
-		}
+	md = &Meta{}
+	if err := json.Unmarshal(data, md); err != nil {
+		t.Fatal(err)
+	}
+
+	if md.meta != nil {
+		t.Errorf("expected deserialized meta to be nil")
 	}
 }
 
