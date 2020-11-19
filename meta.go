@@ -105,24 +105,11 @@ func (md *Meta) Meta() map[string]interface{} {
 	if md.meta == nil {
 		md.meta = map[string]interface{}{}
 	}
-	return md.meta
-}
-
-// UnmarshalMeta tries to extract a metadata type from an empty
-// interface. Pairs nicely with datastore.Get() from github.com/ipfs/go-datastore
-func UnmarshalMeta(v interface{}) (*Meta, error) {
-	switch r := v.(type) {
-	case *Meta:
-		return r, nil
-	case Meta:
-		return &r, nil
-	case []byte:
-		metadata := &Meta{}
-		err := json.Unmarshal(r, metadata)
-		return metadata, err
-	default:
-		return nil, fmt.Errorf("couldn't parse metadata, value is invalid type")
+	shallowCopy := map[string]interface{}{}
+	for key, val := range md.meta {
+		shallowCopy[key] = val
 	}
+	return shallowCopy
 }
 
 // strVal confirms an interface is a string
@@ -166,6 +153,8 @@ func (md *Meta) Set(key string, val interface{}) (err error) {
 
 	switch strings.TrimSpace(strings.ToLower(key)) {
 	// string meta fields
+	case "qri":
+		md.Qri, err = strVal(val)
 	case "accessurl":
 		md.AccessURL, err = strVal(val)
 	case "accrualperiodicity":
@@ -431,7 +420,9 @@ func (md *Meta) UnmarshalJSON(data []byte) error {
 		delete(meta, f)
 	}
 
-	d.meta = meta
+	if len(meta) > 0 {
+		d.meta = meta
+	}
 	*md = Meta(d)
 	return nil
 }
