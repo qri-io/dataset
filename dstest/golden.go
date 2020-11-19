@@ -14,6 +14,18 @@ import (
 // before writing
 const UpdateGoldenFileEnvVarname = "QRI_UPDATE_GOLDEN_FILES"
 
+// CompareGoldenDatasetAndUpdateIfEnvVarSet is a convenience wrapper for the
+// common case of loading a golden file, comparing it to a dataset, and updating
+// the dataset if it fails and the "update" enviornment variable is set
+func CompareGoldenDatasetAndUpdateIfEnvVarSet(t *testing.T, goldenFilepath string, got *dataset.Dataset) {
+	t.Helper()
+	expect := LoadGoldenFile(t, goldenFilepath)
+	if diff := CompareDatasets(expect, got); diff != "" {
+		t.Errorf("dataset golden file mismatch (-want +got):\n%s", diff)
+		UpdateGoldenFileIfEnvVarSet(goldenFilepath, got)
+	}
+}
+
 // LoadGoldenFile loads a dataset from a JSON file
 func LoadGoldenFile(t *testing.T, filename string) *dataset.Dataset {
 	t.Helper()
