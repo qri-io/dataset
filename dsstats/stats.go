@@ -149,7 +149,9 @@ func (r *Accumulator) WriteEntry(ent dsio.Entry) error {
 
 // Close finalizes the Reader
 func (r *Accumulator) Close() error {
-	r.stats.Close()
+	if r != nil && r.stats != nil {
+		r.stats.Close()
+	}
 	return nil
 }
 
