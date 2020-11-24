@@ -115,6 +115,53 @@ func NewDatasetRef(path string) *Dataset {
 	return &Dataset{Path: path}
 }
 
+// PathMap converts all path references in a dataset into a map keyed by
+// component name. Keys are only present in the map if the component exists
+// on the dataset. Present components that do not have a path are represented
+// by the empty string
+// any components specified in ignore are omitted from the map
+func (ds *Dataset) PathMap(ignore ...string) map[string]string {
+	igMap := map[string]bool{}
+	for _, ignore := range ignore {
+		igMap[ignore] = true
+	}
+
+	componentPaths := map[string]string{}
+
+	if ds == nil {
+		return componentPaths
+	}
+
+	if ds.BodyPath != "" && !igMap["body"] {
+		componentPaths["body"] = ds.BodyPath
+	}
+	if ds.Commit != nil && !igMap["commit"] {
+		componentPaths["commit"] = ds.Commit.Path
+	}
+	if ds.Meta != nil && !igMap["meta"] {
+		componentPaths["meta"] = ds.Meta.Path
+	}
+	if ds.Path != "" && !igMap["dataset"] {
+		componentPaths["dataset"] = ds.Path
+	}
+	if ds.Readme != nil && !igMap["readme"] {
+		componentPaths["readme"] = ds.Readme.Path
+	}
+	if ds.Structure != nil && !igMap["structure"] {
+		componentPaths["structure"] = ds.Structure.Path
+	}
+	if ds.Transform != nil && !igMap["transform"] {
+		componentPaths["transform"] = ds.Transform.Path
+	}
+	if ds.Viz != nil && !igMap["viz"] {
+		componentPaths["viz"] = ds.Viz.Path
+	}
+	if ds.Stats != nil && !igMap["stats"] {
+		componentPaths["stats"] = ds.Stats.Path
+	}
+	return componentPaths
+}
+
 // SigningBytes produces a set of bytes for signing to establish authorship of a
 // dataset. The signing bytes is a newline-delimited, alpha-sorted list of
 // components within the dataset, where each component is identified by a two

@@ -3,6 +3,7 @@ package dataset
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -86,6 +87,39 @@ func TestTransformAssign(t *testing.T) {
 	emptyTf.Assign(expect)
 	if diff := compareTransforms(expect, emptyTf); diff != "" {
 		t.Errorf("result mismatch (-want +got):\n%s", diff)
+	}
+}
+
+func TestTransformShallowCompare(t *testing.T) {
+	cases := []struct {
+		a, b   *Transform
+		expect bool
+	}{
+		{nil, nil, true},
+		{nil, &Transform{}, false},
+		{&Transform{}, nil, false},
+
+		{&Transform{Path: "a"}, &Transform{Path: "NOT_A"}, true},
+
+		{&Transform{Qri: "a"}, &Transform{Qri: "b"}, false},
+		{&Transform{Syntax: "a"}, &Transform{Syntax: "b"}, false},
+		{&Transform{ScriptBytes: []byte("a")}, &Transform{ScriptBytes: []byte("b")}, false},
+		{&Transform{ScriptPath: "a"}, &Transform{ScriptPath: "b"}, false},
+
+		{
+			&Transform{Qri: "a", Syntax: "b", SyntaxVersion: "c", ScriptBytes: []byte("d"), ScriptPath: "e", Secrets: map[string]string{"f": "f"}, Config: map[string]interface{}{"g": "g"}, Resources: map[string]*TransformResource{"h": nil}},
+			&Transform{Qri: "a", Syntax: "b", SyntaxVersion: "c", ScriptBytes: []byte("d"), ScriptPath: "e", Secrets: map[string]string{"f": "f"}, Config: map[string]interface{}{"g": "g"}, Resources: map[string]*TransformResource{"h": nil}},
+			true,
+		},
+	}
+
+	for i, c := range cases {
+		t.Run(fmt.Sprintf("case_%d", i), func(t *testing.T) {
+			got := c.a.ShallowCompare(c.b)
+			if c.expect != got {
+				t.Errorf("wanted %t, got %t", c.expect, got)
+			}
+		})
 	}
 }
 

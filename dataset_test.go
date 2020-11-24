@@ -3,6 +3,7 @@ package dataset
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"testing"
 	"time"
@@ -317,6 +318,89 @@ func TestDatasetIsEmpty(t *testing.T) {
 			continue
 		}
 	}
+}
+
+func TestPathMap(t *testing.T) {
+	cases := []struct {
+		Ds         *Dataset
+		Ignore     []string
+		ExpectJSON string
+	}{
+		{nil, nil, `{}`},
+		{
+			&Dataset{Path: "ds"},
+			nil,
+			`{ "dataset": "ds"}`,
+		},
+		{
+			&Dataset{
+				Path:      "ds",
+				BodyPath:  "bd",
+				Commit:    &Commit{Path: "cm"},
+				Transform: &Transform{Path: "tf"},
+				Structure: &Structure{Path: "st"},
+				Stats:     &Stats{Path: "sa"},
+				Meta:      &Meta{Path: "md"},
+				Readme:    &Readme{Path: "rm"},
+				Viz:       &Viz{Path: "vz"},
+			},
+			nil,
+			`{ 
+				"dataset": "ds", 
+				"body": "bd", 
+				"commit": "cm",
+				"transform": "tf",
+				"structure": "st",
+				"stats": "sa",
+				"meta": "md",
+				"readme": "rm",
+				"viz": "vz"
+			}`,
+		},
+		{
+			&Dataset{
+				Path:      "ds",
+				BodyPath:  "bd",
+				Commit:    &Commit{Path: "cm"},
+				Transform: &Transform{Path: "tf"},
+				Structure: &Structure{Path: "st"},
+				Stats:     &Stats{Path: "sa"},
+				Meta:      &Meta{Path: "md"},
+				Readme:    &Readme{Path: "rm"},
+				Viz:       &Viz{Path: "vz"},
+			},
+			[]string{
+				"dataset",
+				"body",
+				"commit",
+				"meta",
+				"transform",
+				"structure",
+				"stats",
+				"readme",
+				"viz",
+			},
+			`{}`,
+		},
+	}
+
+	for i, c := range cases {
+		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
+			expect := mustJSONMap(c.ExpectJSON)
+			got := c.Ds.PathMap(c.Ignore...)
+			if diff := cmp.Diff(expect, got); diff != "" {
+				t.Errorf("result mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func mustJSONMap(data string) (out map[string]string) {
+	out = map[string]string{}
+	if err := json.Unmarshal([]byte(data), &out); err != nil {
+		panic(err)
+	}
+	return out
 }
 
 func TestUnmarshalDataset(t *testing.T) {
