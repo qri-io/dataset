@@ -1,6 +1,7 @@
 package dataset
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -49,6 +50,25 @@ func (v *Viz) DropTransientValues() {
 func (v *Viz) DropDerivedValues() {
 	v.Qri = ""
 	v.Path = ""
+}
+
+// ShallowCompare is an equality check that ignores Path values
+// Intended for comparing viz components across different persistence states,
+// ShallowCompare returns true if all exported fields in the component have the
+// same value (with the exception of Path). ShallowCompare does not consider
+// scriptFile or renderedFile
+func (v *Viz) ShallowCompare(b *Viz) bool {
+	if v == nil && b == nil {
+		return true
+	} else if v == nil && b != nil || v != nil && b == nil {
+		return false
+	}
+
+	return v.Format == b.Format &&
+		v.Qri == b.Qri &&
+		v.ScriptPath == b.ScriptPath &&
+		v.RenderedPath == b.RenderedPath &&
+		bytes.Equal(v.ScriptBytes, b.ScriptBytes)
 }
 
 // OpenScriptFile generates a byte stream of script data prioritizing creating an

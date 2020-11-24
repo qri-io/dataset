@@ -3,6 +3,7 @@ package dataset
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"testing"
 
@@ -119,6 +120,40 @@ func TestVizIsEmpty(t *testing.T) {
 			t.Errorf("case %d improperly reported visconfig as empty == %v", i, c.expected)
 			continue
 		}
+	}
+}
+
+func TestVizShallowCompare(t *testing.T) {
+	cases := []struct {
+		a, b   *Viz
+		expect bool
+	}{
+		{nil, nil, true},
+		{nil, &Viz{}, false},
+		{&Viz{}, nil, false},
+
+		{&Viz{Path: "a"}, &Viz{Path: "NOT_A"}, true},
+
+		{&Viz{Qri: "a"}, &Viz{Qri: "b"}, false},
+		{&Viz{Format: "a"}, &Viz{Format: "b"}, false},
+		{&Viz{ScriptBytes: []byte("a")}, &Viz{ScriptBytes: []byte("b")}, false},
+		{&Viz{ScriptPath: "a"}, &Viz{ScriptPath: "b"}, false},
+		{&Viz{RenderedPath: "a"}, &Viz{RenderedPath: "b"}, false},
+
+		{
+			&Viz{Qri: "a", Format: "a", ScriptBytes: []byte("a"), ScriptPath: "a", RenderedPath: "a"},
+			&Viz{Qri: "a", Format: "a", ScriptBytes: []byte("a"), ScriptPath: "a", RenderedPath: "a"},
+			true,
+		},
+	}
+
+	for i, c := range cases {
+		t.Run(fmt.Sprintf("case_%d", i), func(t *testing.T) {
+			got := c.a.ShallowCompare(c.b)
+			if c.expect != got {
+				t.Errorf("wanted %t, got %t", c.expect, got)
+			}
+		})
 	}
 }
 

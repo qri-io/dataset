@@ -1,6 +1,7 @@
 package dataset
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -50,6 +51,25 @@ func (r *Readme) DropTransientValues() {
 func (r *Readme) DropDerivedValues() {
 	r.Qri = ""
 	r.Path = ""
+}
+
+// ShallowCompare is an equality check that ignores Path values
+// Intended for comparing components across different persistence states,
+// ShallowCompare returns true if all exported fields in the component have the
+// same value (with the exception of Path). ShallowCompare does not consider
+// scriptFile or renderedFile
+func (r *Readme) ShallowCompare(b *Readme) bool {
+	if r == nil && b == nil {
+		return true
+	} else if r == nil && b != nil || r != nil && b == nil {
+		return false
+	}
+
+	return r.Format == b.Format &&
+		r.Qri == b.Qri &&
+		r.ScriptPath == b.ScriptPath &&
+		r.RenderedPath == b.RenderedPath &&
+		bytes.Equal(r.ScriptBytes, b.ScriptBytes)
 }
 
 // InlineScriptFile opens the script file, reads its contents, and assigns it to scriptBytes.

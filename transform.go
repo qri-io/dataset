@@ -1,10 +1,12 @@
 package dataset
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"reflect"
 
 	"github.com/qri-io/qfs"
 )
@@ -157,6 +159,28 @@ func (q *Transform) IsEmpty() bool {
 		q.Secrets == nil &&
 		q.Syntax == "" &&
 		q.SyntaxVersion == ""
+}
+
+// ShallowCompare is an equality check that ignores Path values
+// Intended for comparing transform components across different persistence states,
+// ShallowCompare returns true if all exported fields in the component have the
+// same value (with the exception of Path). ShallowCompare does not consider
+// scriptFile or renderedFile
+func (q *Transform) ShallowCompare(b *Transform) bool {
+	if q == nil && b == nil {
+		return true
+	} else if q == nil && b != nil || q != nil && b == nil {
+		return false
+	}
+
+	return q.Syntax == b.Syntax &&
+		q.SyntaxVersion == b.SyntaxVersion &&
+		q.Qri == b.Qri &&
+		q.ScriptPath == b.ScriptPath &&
+		bytes.Equal(q.ScriptBytes, b.ScriptBytes) &&
+		reflect.DeepEqual(q.Config, b.Config) &&
+		reflect.DeepEqual(q.Secrets, b.Secrets) &&
+		reflect.DeepEqual(q.Resources, b.Resources)
 }
 
 // Assign collapses all properties of a group of queries onto one.
