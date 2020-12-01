@@ -67,6 +67,16 @@ type Column struct {
 // be one or more strings enumerating accepted types
 type ColType []string
 
+// HasType ranges over the column types and returns true if the type is present
+func (ct ColType) HasType(t string) bool {
+	for _, x := range ct {
+		if x == t {
+			return true
+		}
+	}
+	return false
+}
+
 // MarshalJSON encodes to string in the common case of a single type, an array
 // of strings for a type enumeration
 func (ct ColType) MarshalJSON() ([]byte, error) {
