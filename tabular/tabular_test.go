@@ -172,6 +172,28 @@ func TestColumnsTitles(t *testing.T) {
 	}
 }
 
+func TestColTypeHasType(t *testing.T) {
+	cases := []struct {
+		cs     ColType
+		typ    string
+		expect bool
+	}{
+		{ColType{}, "", false},
+		{ColType{}, "foo", false},
+		{ColType{"foo"}, "foo", true},
+		{ColType{"string", "boolean"}, "boolean", true},
+	}
+
+	for i, c := range cases {
+		t.Run(fmt.Sprintf("case_%d", i), func(t *testing.T) {
+			got := c.cs.HasType(c.typ)
+			if c.expect != got {
+				t.Errorf("result mismatch. %t != %t", c.expect, got)
+			}
+		})
+	}
+}
+
 func TestValidMachineTitles(t *testing.T) {
 	good := []struct {
 		description string
