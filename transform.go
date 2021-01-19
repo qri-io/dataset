@@ -49,6 +49,8 @@ type Transform struct {
 	// produced the result
 	// Deprecated - use steps.Syntax with a version suffix instead
 	SyntaxVersion string `json:"syntaxVersion,omitempty"`
+	// map of syntaxes used in this transform to their version identifier.
+	Syntaxes map[string]string `json:"syntaxes,omitempty"`
 }
 
 // DropTransientValues removes values that cannot be recorded when the
@@ -165,7 +167,8 @@ func (q *Transform) IsEmpty() bool {
 		q.Secrets == nil &&
 		q.Steps == nil &&
 		q.Syntax == "" &&
-		q.SyntaxVersion == ""
+		q.SyntaxVersion == "" &&
+		q.Syntaxes == nil
 }
 
 // ShallowCompare is an equality check that ignores Path values
@@ -188,7 +191,8 @@ func (q *Transform) ShallowCompare(b *Transform) bool {
 		reflect.DeepEqual(q.Config, b.Config) &&
 		reflect.DeepEqual(q.Secrets, b.Secrets) &&
 		reflect.DeepEqual(q.Steps, b.Steps) &&
-		reflect.DeepEqual(q.Resources, b.Resources)
+		reflect.DeepEqual(q.Resources, b.Resources) &&
+		reflect.DeepEqual(q.Syntaxes, b.Syntaxes)
 }
 
 // Assign collapses all properties of a group of queries onto one.
@@ -252,6 +256,9 @@ func (q *Transform) Assign(qs ...*Transform) {
 		if q2.SyntaxVersion != "" {
 			q.SyntaxVersion = q2.SyntaxVersion
 		}
+		if q2.Syntaxes != nil {
+			q.Syntaxes = q2.Syntaxes
+		}
 	}
 }
 
@@ -285,6 +292,7 @@ func (q Transform) MarshalJSONObject() ([]byte, error) {
 		Steps:         q.Steps,
 		Syntax:        q.Syntax,
 		SyntaxVersion: q.SyntaxVersion,
+		Syntaxes:      q.Syntaxes,
 	})
 }
 

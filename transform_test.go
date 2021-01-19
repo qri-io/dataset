@@ -44,6 +44,7 @@ func TestTransformAssign(t *testing.T) {
 		Path:          "path",
 		Syntax:        "a",
 		SyntaxVersion: "b",
+		Syntaxes:      map[string]string{"c": "d"},
 		Steps: []*TransformStep{
 			{Name: "h", Path: "i", Syntax: "j", Category: "k", Script: "l"},
 		},
@@ -57,6 +58,7 @@ func TestTransformAssign(t *testing.T) {
 	got := &Transform{
 		Syntax:        "no",
 		SyntaxVersion: "change",
+		Syntaxes:      map[string]string{"change": "change"},
 		Config: map[string]interface{}{
 			"foo": "baz",
 		},
@@ -76,6 +78,7 @@ func TestTransformAssign(t *testing.T) {
 			"a": &TransformResource{Path: "/path/to/a"},
 		},
 	}, &Transform{
+		Syntaxes: map[string]string{"c": "d"},
 		Steps: []*TransformStep{
 			{Name: "h", Path: "i", Syntax: "j", Category: "k", Script: "l"},
 		},
@@ -112,6 +115,7 @@ func TestTransformShallowCompare(t *testing.T) {
 		{&Transform{Syntax: "a"}, &Transform{Syntax: "b"}, false},
 		{&Transform{ScriptBytes: []byte("a")}, &Transform{ScriptBytes: []byte("b")}, false},
 		{&Transform{ScriptPath: "a"}, &Transform{ScriptPath: "b"}, false},
+		{&Transform{Syntaxes: map[string]string{"c": "d"}}, &Transform{Syntaxes: map[string]string{"c": "e"}}, false},
 
 		{
 			&Transform{Qri: "a", Syntax: "b", SyntaxVersion: "c", ScriptBytes: []byte("d"), ScriptPath: "e", Secrets: map[string]string{"f": "f"}, Config: map[string]interface{}{"g": "g"}, Resources: map[string]*TransformResource{"h": nil}},
@@ -183,6 +187,7 @@ func TestTransformMarshalJSONObject(t *testing.T) {
 	}{
 		{&Transform{}, `{"qri":"tf:0"}`, nil},
 		{&Transform{Syntax: "sql", ScriptPath: "foo.star"}, `{"qri":"tf:0","scriptPath":"foo.star","syntax":"sql"}`, nil},
+		{&Transform{Syntaxes: map[string]string{"sql": "1"}, ScriptPath: "foo.star"}, `{"qri":"tf:0","scriptPath":"foo.star","syntaxes":{"sql":"1"}}`, nil},
 		{&Transform{Syntax: "starlark", Steps: []*TransformStep{
 			{Syntax: "starlark", Category: "download", Name: "download", Script: `# get the popular baby names dataset as a csv
 		def download(ctx):
@@ -230,6 +235,7 @@ func TestTransformMarshalJSON(t *testing.T) {
 	}{
 		{&Transform{}, `{"qri":"tf:0"}`, nil},
 		{&Transform{Syntax: "sql", ScriptPath: "foo.star"}, `{"qri":"tf:0","scriptPath":"foo.star","syntax":"sql"}`, nil},
+		{&Transform{Syntaxes: map[string]string{"sql": "1"}, ScriptPath: "foo.star"}, `{"qri":"tf:0","scriptPath":"foo.star","syntaxes":{"sql":"1"}}`, nil},
 		{&Transform{Syntax: "starlark", Steps: []*TransformStep{
 			{Syntax: "starlark", Category: "download", Name: "download", Script: `# get the popular baby names dataset as a csv
 		def download(ctx):
@@ -272,6 +278,7 @@ func TestTransformIsEmpty(t *testing.T) {
 		{&Transform{}, true},
 		{&Transform{Syntax: "foo"}, false},
 		{&Transform{SyntaxVersion: "0"}, false},
+		{&Transform{Syntaxes: map[string]string{}}, false},
 		{&Transform{ScriptPath: "foo"}, false},
 		{&Transform{Config: nil}, true},
 		{&Transform{Config: map[string]interface{}{}}, false},
