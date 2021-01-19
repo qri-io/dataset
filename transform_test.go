@@ -43,7 +43,11 @@ func TestTransformAssign(t *testing.T) {
 	expect := &Transform{
 		Path:          "path",
 		Syntax:        "a",
-		SyntaxVersion: "change",
+		SyntaxVersion: "b",
+		Syntaxes:      map[string]string{"c": "d"},
+		Steps: []*TransformStep{
+			{Name: "h", Path: "i", Syntax: "j", Category: "k", Script: "l"},
+		},
 		Config: map[string]interface{}{
 			"foo": "bar",
 		},
@@ -53,7 +57,8 @@ func TestTransformAssign(t *testing.T) {
 	}
 	got := &Transform{
 		Syntax:        "no",
-		SyntaxVersion: "b",
+		SyntaxVersion: "change",
+		Syntaxes:      map[string]string{"change": "change"},
 		Config: map[string]interface{}{
 			"foo": "baz",
 		},
@@ -62,7 +67,7 @@ func TestTransformAssign(t *testing.T) {
 
 	got.Assign(&Transform{
 		Syntax:        "a",
-		SyntaxVersion: "change",
+		SyntaxVersion: "b",
 		Config: map[string]interface{}{
 			"foo": "bar",
 		},
@@ -71,6 +76,11 @@ func TestTransformAssign(t *testing.T) {
 		Path: "path",
 		Resources: map[string]*TransformResource{
 			"a": &TransformResource{Path: "/path/to/a"},
+		},
+	}, &Transform{
+		Syntaxes: map[string]string{"c": "d"},
+		Steps: []*TransformStep{
+			{Name: "h", Path: "i", Syntax: "j", Category: "k", Script: "l"},
 		},
 	})
 
@@ -105,10 +115,17 @@ func TestTransformShallowCompare(t *testing.T) {
 		{&Transform{Syntax: "a"}, &Transform{Syntax: "b"}, false},
 		{&Transform{ScriptBytes: []byte("a")}, &Transform{ScriptBytes: []byte("b")}, false},
 		{&Transform{ScriptPath: "a"}, &Transform{ScriptPath: "b"}, false},
+		{&Transform{Syntaxes: map[string]string{"c": "d"}}, &Transform{Syntaxes: map[string]string{"c": "e"}}, false},
 
 		{
 			&Transform{Qri: "a", Syntax: "b", SyntaxVersion: "c", ScriptBytes: []byte("d"), ScriptPath: "e", Secrets: map[string]string{"f": "f"}, Config: map[string]interface{}{"g": "g"}, Resources: map[string]*TransformResource{"h": nil}},
 			&Transform{Qri: "a", Syntax: "b", SyntaxVersion: "c", ScriptBytes: []byte("d"), ScriptPath: "e", Secrets: map[string]string{"f": "f"}, Config: map[string]interface{}{"g": "g"}, Resources: map[string]*TransformResource{"h": nil}},
+			true,
+		},
+
+		{
+			&Transform{Qri: "a", Syntax: "b", SyntaxVersion: "c", Secrets: map[string]string{"f": "f"}, Config: map[string]interface{}{"g": "g"}, Steps: []*TransformStep{{Name: "h", Path: "i", Syntax: "j", Category: "k", Script: "l"}}, Resources: map[string]*TransformResource{"h": nil}},
+			&Transform{Qri: "a", Syntax: "b", SyntaxVersion: "c", Secrets: map[string]string{"f": "f"}, Config: map[string]interface{}{"g": "g"}, Steps: []*TransformStep{{Name: "h", Path: "i", Syntax: "j", Category: "k", Script: "l"}}, Resources: map[string]*TransformResource{"h": nil}},
 			true,
 		},
 	}
@@ -170,6 +187,21 @@ func TestTransformMarshalJSONObject(t *testing.T) {
 	}{
 		{&Transform{}, `{"qri":"tf:0"}`, nil},
 		{&Transform{Syntax: "sql", ScriptPath: "foo.star"}, `{"qri":"tf:0","scriptPath":"foo.star","syntax":"sql"}`, nil},
+		{&Transform{Syntaxes: map[string]string{"sql": "1"}, ScriptPath: "foo.star"}, `{"qri":"tf:0","scriptPath":"foo.star","syntaxes":{"sql":"1"}}`, nil},
+		{&Transform{Syntax: "starlark", Steps: []*TransformStep{
+			{Syntax: "starlark", Category: "download", Name: "download", Script: `# get the popular baby names dataset as a csv
+		def download(ctx):
+			csvDownloadUrl = "https://data.cityofnewyork.us/api/views/25th-nujf/rows.csv?accessType=DOWNLOAD"
+			return http.get(csvDownloadUrl).body()`,
+			},
+			{Name: "transform", Syntax: "starlark", Category: "transform", Script: `# set the body
+def transform(ds, ctx):
+	# ctx.download is whatever download() returned
+	csv = ctx.download
+	# set the dataset body
+	ds.set_body(csv, parse_as='csv')`,
+			},
+		}}, `{"qri":"tf:0","steps":[{"name":"download","syntax":"starlark","category":"download","script":"# get the popular baby names dataset as a csv\n\t\tdef download(ctx):\n\t\t\tcsvDownloadUrl = \"https://data.cityofnewyork.us/api/views/25th-nujf/rows.csv?accessType=DOWNLOAD\"\n\t\t\treturn http.get(csvDownloadUrl).body()"},{"name":"transform","syntax":"starlark","category":"transform","script":"# set the body\ndef transform(ds, ctx):\n\t# ctx.download is whatever download() returned\n\tcsv = ctx.download\n\t# set the dataset body\n\tds.set_body(csv, parse_as='csv')"}],"syntax":"starlark"}`, nil},
 	}
 
 	for i, c := range cases {
@@ -203,6 +235,21 @@ func TestTransformMarshalJSON(t *testing.T) {
 	}{
 		{&Transform{}, `{"qri":"tf:0"}`, nil},
 		{&Transform{Syntax: "sql", ScriptPath: "foo.star"}, `{"qri":"tf:0","scriptPath":"foo.star","syntax":"sql"}`, nil},
+		{&Transform{Syntaxes: map[string]string{"sql": "1"}, ScriptPath: "foo.star"}, `{"qri":"tf:0","scriptPath":"foo.star","syntaxes":{"sql":"1"}}`, nil},
+		{&Transform{Syntax: "starlark", Steps: []*TransformStep{
+			{Syntax: "starlark", Category: "download", Name: "download", Script: `# get the popular baby names dataset as a csv
+		def download(ctx):
+			csvDownloadUrl = "https://data.cityofnewyork.us/api/views/25th-nujf/rows.csv?accessType=DOWNLOAD"
+			return http.get(csvDownloadUrl).body()`,
+			},
+			{Name: "transform", Syntax: "starlark", Category: "transform", Script: `# set the body
+def transform(ds, ctx):
+	# ctx.download is whatever download() returned
+	csv = ctx.download
+	# set the dataset body
+	ds.set_body(csv, parse_as='csv')`,
+			},
+		}}, `{"qri":"tf:0","steps":[{"name":"download","syntax":"starlark","type":"download","value":"# get the popular baby names dataset as a csv\n\t\tdef download(ctx):\n\t\t\tcsvDownloadUrl = \"https://data.cityofnewyork.us/api/views/25th-nujf/rows.csv?accessType=DOWNLOAD\"\n\t\t\treturn http.get(csvDownloadUrl).body()"},{"name":"transform","syntax":"starlark","type":"transform","value":"# set the body\ndef transform(ds, ctx):\n\t# ctx.download is whatever download() returned\n\tcsv = ctx.download\n\t# set the dataset body\n\tds.set_body(csv, parse_as='csv')"}],"syntax":"starlark"}`, nil},
 	}
 
 	for i, c := range cases {
@@ -231,11 +278,13 @@ func TestTransformIsEmpty(t *testing.T) {
 		{&Transform{}, true},
 		{&Transform{Syntax: "foo"}, false},
 		{&Transform{SyntaxVersion: "0"}, false},
+		{&Transform{Syntaxes: map[string]string{}}, false},
 		{&Transform{ScriptPath: "foo"}, false},
 		{&Transform{Config: nil}, true},
 		{&Transform{Config: map[string]interface{}{}}, false},
 		{&Transform{Resources: nil}, true},
 		{&Transform{Resources: map[string]*TransformResource{}}, false},
+		{&Transform{Steps: []*TransformStep{}}, false},
 	}
 
 	for i, c := range cases {

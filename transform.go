@@ -30,19 +30,27 @@ type Transform struct {
 	Resources map[string]*TransformResource `json:"resources,omitempty"`
 
 	// script file reader, doesn't serialize
+	// Deprecated - use Steps instead
 	scriptFile qfs.File
 	// ScriptBytes is for representing a script as a slice of bytes, transient
+	// Deprecated - use Steps instead
 	ScriptBytes []byte `json:"scriptBytes,omitempty"`
 	// ScriptPath is the path to the script that produced this transformation.
+	// Deprecated - use Steps instead
 	ScriptPath string `json:"scriptPath,omitempty"`
 	// Secrets is a map of secret values used in the transformation, transient.
 	// TODO (b5): make this not-transient by censoring the values used, but not keys
 	Secrets map[string]string `json:"secrets,omitempty"`
+	Steps   []*TransformStep  `json:"steps,omitempty"`
 	// Syntax this transform was written in
+	// Deprecated - syntax is defined per-step
 	Syntax string `json:"syntax,omitempty"`
 	// SyntaxVersion is an identifier for the application and version number that
 	// produced the result
+	// Deprecated - use steps.Syntax with a version suffix instead
 	SyntaxVersion string `json:"syntaxVersion,omitempty"`
+	// map of syntaxes used in this transform to their version identifier.
+	Syntaxes map[string]string `json:"syntaxes,omitempty"`
 }
 
 // DropTransientValues removes values that cannot be recorded when the
@@ -157,8 +165,10 @@ func (q *Transform) IsEmpty() bool {
 		q.ScriptBytes == nil &&
 		q.ScriptPath == "" &&
 		q.Secrets == nil &&
+		q.Steps == nil &&
 		q.Syntax == "" &&
-		q.SyntaxVersion == ""
+		q.SyntaxVersion == "" &&
+		q.Syntaxes == nil
 }
 
 // ShallowCompare is an equality check that ignores Path values
@@ -180,7 +190,9 @@ func (q *Transform) ShallowCompare(b *Transform) bool {
 		bytes.Equal(q.ScriptBytes, b.ScriptBytes) &&
 		reflect.DeepEqual(q.Config, b.Config) &&
 		reflect.DeepEqual(q.Secrets, b.Secrets) &&
-		reflect.DeepEqual(q.Resources, b.Resources)
+		reflect.DeepEqual(q.Steps, b.Steps) &&
+		reflect.DeepEqual(q.Resources, b.Resources) &&
+		reflect.DeepEqual(q.Syntaxes, b.Syntaxes)
 }
 
 // Assign collapses all properties of a group of queries onto one.
@@ -230,11 +242,22 @@ func (q *Transform) Assign(qs ...*Transform) {
 				q.Secrets[key] = val
 			}
 		}
+		if q2.Steps != nil {
+			if q.Steps == nil {
+				q.Steps = []*TransformStep{}
+			}
+			for _, val := range q2.Steps {
+				q.Steps = append(q.Steps, val)
+			}
+		}
 		if q2.Syntax != "" {
 			q.Syntax = q2.Syntax
 		}
 		if q2.SyntaxVersion != "" {
 			q.SyntaxVersion = q2.SyntaxVersion
+		}
+		if q2.Syntaxes != nil {
+			q.Syntaxes = q2.Syntaxes
 		}
 	}
 }
@@ -266,8 +289,10 @@ func (q Transform) MarshalJSONObject() ([]byte, error) {
 		Resources:     q.Resources,
 		ScriptBytes:   q.ScriptBytes,
 		ScriptPath:    q.ScriptPath,
+		Steps:         q.Steps,
 		Syntax:        q.Syntax,
 		SyntaxVersion: q.SyntaxVersion,
+		Syntaxes:      q.Syntaxes,
 	})
 }
 
@@ -304,4 +329,13 @@ func UnmarshalTransform(v interface{}) (*Transform, error) {
 		err := fmt.Errorf("couldn't parse transform")
 		return nil, err
 	}
+}
+
+// TransformStep is a unit of operation in a transform script
+type TransformStep struct {
+	Name     string      `json:"name"`           //  human-readable name for the step, used for display purposes
+	Path     string      `json:"path,omitempty"` // path to this step if persisted separately on disk
+	Syntax   string      `json:"syntax"`         // execution environment, eg: "starlark", "qri-sql"
+	Category string      `json:"category"`       // syntax-specific sub-typing
+	Script   interface{} `json:"script"`         // input text for transform step. often code, or a query.
 }
