@@ -44,6 +44,16 @@ func TestReadInputTransformScript(t *testing.T) {
 	}
 }
 
+func TestReadInputReadmeScript(t *testing.T) {
+	if _, _, err := ReadInputReadmeScript("bad_dir"); err != os.ErrNotExist {
+		t.Error("expected os.ErrNotExist on bad tf script read")
+	}
+	_, _, err := ReadInputReadmeScript("testdata/complete")
+	if err != nil {
+		t.Fatal("could not open 'readme.md' file: %w", err)
+	}
+}
+
 func TestNewTestCaseFromDir(t *testing.T) {
 	var err error
 	if _, err = NewTestCaseFromDir("testdata"); err == nil {
@@ -105,6 +115,18 @@ raleigh,250000,50.65,true
 	tc.VizScript = nil
 	if _, ok := tc.VizScriptFile(); ok {
 		t.Error("shouldn't generate VizScript File if bytes are nil")
+	}
+
+	if rm, ok := tc.ReadmeScriptFile(); !ok {
+		t.Errorf("expected readme script to load")
+	} else {
+		if rm.FileName() != "readme.md" {
+			t.Errorf("expected ReadmeScript filename to be template.html")
+		}
+	}
+	tc.ReadmeScript = nil
+	if _, ok := tc.ReadmeScriptFile(); ok {
+		t.Error("shouldn't generate ReadmeScript File if bytes are nil")
 	}
 
 	mfdata, err := ioutil.ReadAll(mf)
