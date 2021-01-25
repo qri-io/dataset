@@ -28,6 +28,9 @@ type Commit struct {
 	Timestamp time.Time `json:"timestamp"`
 	// Title of the commit. Required.
 	Title string `json:"title"`
+	// RunID is only present if an automated script was executed durning the commit time
+	// Commits with non-empty `RunID`s imply the existance of a transform component
+	RunID string `json:"runID,omitempty"`
 }
 
 // NewCommitRef creates an empty struct with it's
@@ -55,7 +58,8 @@ func (cm *Commit) IsEmpty() bool {
 		cm.Message == "" &&
 		cm.Signature == "" &&
 		cm.Timestamp.IsZero() &&
-		cm.Title == ""
+		cm.Title == "" &&
+		cm.RunID == ""
 }
 
 // Assign collapses all properties of a set of Commit onto one.
@@ -87,6 +91,9 @@ func (cm *Commit) Assign(msgs ...*Commit) {
 		if !m.Timestamp.IsZero() {
 			cm.Timestamp = m.Timestamp
 		}
+		if m.RunID != "" {
+			cm.RunID = m.RunID
+		}
 	}
 }
 
@@ -116,6 +123,7 @@ func (cm *Commit) MarshalJSONObject() ([]byte, error) {
 		Signature: cm.Signature,
 		Timestamp: cm.Timestamp,
 		Title:     cm.Title,
+		RunID:     cm.RunID,
 	}
 	return json.Marshal(m)
 }
