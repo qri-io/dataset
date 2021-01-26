@@ -16,6 +16,15 @@ import (
 // all parsing errors in this package can be errors.Is() to this one
 var ErrInvalidTabularSchema = errors.New("invalid tabular schema")
 
+// BaseTabularSchema is the base schema for tabular data
+var BaseTabularSchema = map[string]interface{}{
+	"type": "array",
+	"items": map[string]interface{}{
+		"type":  "array",
+		"items": []interface{}{},
+	},
+}
+
 // Columns is an ordered list of column information
 type Columns []Column
 

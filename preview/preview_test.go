@@ -56,4 +56,12 @@ func TestCreatePreview(t *testing.T) {
 		t.Errorf("result mismatch. (-want +got):\n%s", diff)
 		dstest.UpdateGoldenFileIfEnvVarSet("testdata/earthquakes/golden.dataset.json", got)
 	}
+
+	// make sure you can create a preview of a dataset without a body file
+	tc.Input.SetBodyFile(nil)
+
+	got, err = CreatePreview(ctx, tc.Input)
+	if err != nil {
+		t.Fatalf("unexpected error creating a preview of a dataset without a body: %s", err)
+	}
 }

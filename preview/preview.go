@@ -1,7 +1,6 @@
 package preview
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -11,7 +10,6 @@ import (
 	logger "github.com/ipfs/go-log"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsio"
-	"github.com/qri-io/qfs"
 )
 
 var (
@@ -40,10 +38,14 @@ const (
 //    - viz: all
 //    - transform: all
 func CreatePreview(ctx context.Context, ds *dataset.Dataset) (*dataset.Dataset, error) {
-
 	var err error
 
-	if ds == nil || ds.IsEmpty() {
+	if ds == nil {
+		log.Debugf("CreatePreview: nil dataset")
+		return nil, fmt.Errorf("nil dataset")
+	}
+
+	if ds.IsEmpty() {
 		log.Debugf("CreatePreview: empty dataset")
 		return nil, fmt.Errorf("empty dataset")
 	}
@@ -61,19 +63,19 @@ func CreatePreview(ctx context.Context, ds *dataset.Dataset) (*dataset.Dataset, 
 		ds.Readme.SetScriptFile(nil)
 	}
 
-	if ds.BodyFile() == nil {
-		return nil, fmt.Errorf("no body file")
-	}
+	if ds.BodyFile() != nil {
+		st := &dataset.Structure{
+			Format: "json",
+			Schema: ds.Structure.Schema,
+		}
 
-	st := &dataset.Structure{
-		Format: "json",
-		Schema: ds.Structure.Schema,
-	}
+		data, err := dsio.ConvertFile(ds.BodyFile(), ds.Structure, st, MaxNumDatasetRowsInPreview, 0, false)
+		if err != nil {
+			log.Errorf("CreatePreview converting body file: %s", err.Error())
+			return nil, err
+		}
 
-	data, err := ConvertBodyFile(ds.BodyFile(), ds.Structure, st, MaxNumDatasetRowsInPreview, 0, false)
-	if err != nil {
-		log.Errorf("CreatePreview converting body file: %s", err.Error())
-		return nil, err
+		ds.Body = json.RawMessage(data)
 	}
 
 	// TODO (b5) - previews currently don't include the new stats component, because
@@ -83,49 +85,5 @@ func CreatePreview(ctx context.Context, ds *dataset.Dataset) (*dataset.Dataset, 
 	// previews should include stats
 	ds.Stats = nil
 
-	ds.Body = json.RawMessage(data)
 	return ds, nil
-}
-
-// ConvertBodyFile takes an input file & structure, and converts a specified selection
-// to the structure specified by out
-func ConvertBodyFile(file qfs.File, in, out *dataset.Structure, limit, offset int, all bool) (data []byte, err error) {
-	buf := &bytes.Buffer{}
-
-	w, err := dsio.NewEntryWriter(out, buf)
-	if err != nil {
-		return
-	}
-
-	// TODO(dlong): Kind of a hacky one-off. Generalize this for other format options.
-	if out.DataFormat() == dataset.JSONDataFormat {
-		ok, pretty := out.FormatConfig["pretty"].(bool)
-		if ok && pretty {
-			w, err = dsio.NewJSONPrettyWriter(out, buf, " ")
-		}
-	}
-	if err != nil {
-		return
-	}
-
-	rr, err := dsio.NewEntryReader(in, file)
-	if err != nil {
-		err = fmt.Errorf("error allocating data reader: %s", err)
-		return
-	}
-
-	if !all {
-		rr = &dsio.PagedReader{
-			Reader: rr,
-			Limit:  limit,
-			Offset: offset,
-		}
-	}
-	err = dsio.Copy(rr, w)
-
-	if err := w.Close(); err != nil {
-		return nil, fmt.Errorf("error closing row buffer: %s", err.Error())
-	}
-
-	return buf.Bytes(), nil
 }
