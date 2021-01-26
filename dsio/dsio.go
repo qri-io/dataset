@@ -2,11 +2,13 @@
 package dsio
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 
 	logger "github.com/ipfs/go-log"
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/qfs"
 )
 
 var log = logger.Logger("dsio")
@@ -153,4 +155,47 @@ func ReadAllArray(r EntryReader) ([]interface{}, error) {
 		array = append(array, val.Value)
 	}
 	return array, nil
+}
+
+// ConvertFile takes an input file & structure, and converts a specified selection
+// to the structure specified by out
+func ConvertFile(file qfs.File, in, out *dataset.Structure, limit, offset int, all bool) (data []byte, err error) {
+	buf := &bytes.Buffer{}
+
+	w, err := NewEntryWriter(out, buf)
+	if err != nil {
+		return
+	}
+
+	// TODO(dlong): Kind of a hacky one-off. Generalize this for other format options.
+	if out.DataFormat() == dataset.JSONDataFormat {
+		ok, pretty := out.FormatConfig["pretty"].(bool)
+		if ok && pretty {
+			w, err = NewJSONPrettyWriter(out, buf, " ")
+		}
+	}
+	if err != nil {
+		return
+	}
+
+	rr, err := NewEntryReader(in, file)
+	if err != nil {
+		err = fmt.Errorf("error allocating data reader: %s", err)
+		return
+	}
+
+	if !all {
+		rr = &PagedReader{
+			Reader: rr,
+			Limit:  limit,
+			Offset: offset,
+		}
+	}
+	err = Copy(rr, w)
+
+	if err := w.Close(); err != nil {
+		return nil, fmt.Errorf("error closing row buffer: %s", err.Error())
+	}
+
+	return buf.Bytes(), nil
 }

@@ -1,0 +1,144 @@
+{
+  "qri":"ds:0",
+  "meta": {
+    "description": "List of earthquakes recorded by the USGS from Jan 12th",
+    "keywords": [
+      "earthquakes",
+      "usgs",
+      "geology"
+    ],
+    "path": "/ipfs/QmaTUEjSnonrVpDA47e9yBiK9yb1hQA6rAJkvrF2WotJnR",
+    "qri": "md:0",
+    "theme": [
+      "geology"
+    ],
+    "title": "USGS Earthquakes"
+    },
+  "structure": {
+    "checksum": "QmWsTpdYkiKThJh4uB8dXqScMYFrFLbYxTr5XkV36XR6Ed",
+    "depth": 2,
+    "entries": 240,
+    "errCount": 410,
+    "format": "csv",
+    "formatConfig": {
+      "headerRow": true,
+      "lazyQuotes": true
+    },
+    "length": 44883,
+    "path": "/ipfs/QmXXGgzEfyYBBGFdbMM1uKQ97kgqdjjoDdk8S1AaaqWrC2",
+    "qri": "st:0",
+    "schema": {
+      "items": {
+      "items": [
+        {
+        "title": "time",
+        "type": "string"
+        },
+        {
+        "title": "latitude",
+        "type": "number"
+        },
+        {
+        "title": "longitude",
+        "type": "number"
+        },
+        {
+        "title": "depth",
+        "type": "number"
+        },
+        {
+        "title": "mag",
+        "type": "number"
+        },
+        {
+        "title": "mag_type",
+        "type": "string"
+        },
+        {
+        "title": "nst",
+        "type": "integer"
+        },
+        {
+        "title": "gap",
+        "type": "integer"
+        },
+        {
+        "title": "dmin",
+        "type": "number"
+        },
+        {
+        "title": "rms",
+        "type": "number"
+        },
+        {
+        "title": "net",
+        "type": "string"
+        },
+        {
+        "title": "id",
+        "type": "string"
+        },
+        {
+        "title": "updated",
+        "type": "string"
+        },
+        {
+        "title": "place",
+        "type": "string"
+        },
+        {
+        "title": "type",
+        "type": "string"
+        },
+        {
+        "title": "horizontal_error",
+        "type": "number"
+        },
+        {
+        "title": "depth_error",
+        "type": "number"
+        },
+        {
+        "title": "mag_error",
+        "type": "number"
+        },
+        {
+        "title": "mag_nst",
+        "type": "integer"
+        },
+        {
+        "title": "status",
+        "type": "string"
+        },
+        {
+        "title": "location_source",
+        "type": "string"
+        },
+        {
+        "title": "mag_source",
+        "type": "string"
+        }
+      ],
+      "type": "array"
+      },
+      "type": "array"
+    }
+  },
+  "commit": {
+    "author": {
+      "id": "QmeitTcgUPiw1PyUDdaCbMcNotx84yR8EwJVjTv7MRmELA"
+    },
+    "message": "meta added\nreadme added",
+    "path": "/ipfs/QmWH51TF5EcAjF4NyffgHF1hfd4VL8Xq8ctgK7rR2xdwdy",
+    "qri": "cm:0",
+    "signature": "MpfKssuFkcLpvkVMSzbJxsxDMXhLSnnfeEWs9usvduttdzSt8sAM0DD1UmEwRsDziE9oYe3GbGqu5eWqs9KYqmMbkMZU8cPrIQ4JYRUfPxQYDQh8cQhe65hTU30UM29+KR1DfhdWZzlNIu6NkIX4YHUMCNIJUk5HFU90BzYpB5agvp5ZxqDzHDVgDYflqalchkyl2jQ/OdWPQgj1BYoP7O5QGgq3ZhPnloq440y0QEengwix30nIdOiGFEH3lFNtFeHYktSAaOQY5/X8co3ttv6iI2XwyE9jvPWDtx1o8bNpgmlVFUP4oteb9iRDT7e6byRLQC7k3WHZ/JiXL7mAAw==",
+    "timestamp": "2021-01-25T16:33:26.588501Z",
+    "title": "Add meta \u0026 readme"
+  },
+  "readme": {
+    "qri":"rm:0"
+  },
+  "stats": {
+    "qri":"sa:0"
+  }
+}

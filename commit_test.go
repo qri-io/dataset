@@ -36,6 +36,7 @@ func TestCommitAssign(t *testing.T) {
 		Title:     "expect title",
 		Message:   "expect message",
 		Signature: "sig",
+		RunID:     "runid",
 	}
 	got := &Commit{
 		Author:  &User{ID: "maha_id", Email: "maha@example.com"},
@@ -52,6 +53,7 @@ func TestCommitAssign(t *testing.T) {
 		Timestamp: t1,
 		Message:   "expect message",
 		Signature: "sig",
+		RunID:     "runid",
 	})
 
 	if diff := compareCommits(expect, got); diff != "" {
@@ -104,6 +106,7 @@ func TestCommitIsEmpty(t *testing.T) {
 		{&Commit{Message: "a"}},
 		{&Commit{Signature: "a"}},
 		{&Commit{Timestamp: time.Now()}},
+		{&Commit{RunID: "runid"}},
 	}
 
 	for i, c := range cases {
@@ -123,6 +126,7 @@ func TestCommitMarshalJSON(t *testing.T) {
 	}{
 		{&Commit{Title: "title", Timestamp: ts}, []byte(`{"qri":"cm:0","timestamp":"2001-01-01T01:01:01Z","title":"title"}`), nil},
 		{&Commit{Author: &User{ID: "foo"}, Timestamp: ts}, []byte(`{"author":{"id":"foo"},"qri":"cm:0","timestamp":"2001-01-01T01:01:01Z","title":""}`), nil},
+		{&Commit{Author: &User{ID: "foo"}, Timestamp: ts, RunID: "runID"}, []byte(`{"author":{"id":"foo"},"qri":"cm:0","timestamp":"2001-01-01T01:01:01Z","title":"","runID":"runID"}`), nil},
 	}
 
 	for i, c := range cases {
@@ -158,6 +162,7 @@ func TestCommitMarshalJSONObject(t *testing.T) {
 	}{
 		{&Commit{Title: "title", Timestamp: ts}, []byte(`{"qri":"cm:0","timestamp":"2001-01-01T01:01:01Z","title":"title"}`), nil},
 		{&Commit{Author: &User{ID: "foo"}, Timestamp: ts}, []byte(`{"author":{"id":"foo"},"qri":"cm:0","timestamp":"2001-01-01T01:01:01Z","title":""}`), nil},
+		{&Commit{Author: &User{ID: "foo"}, Timestamp: ts, RunID: "runID"}, []byte(`{"author":{"id":"foo"},"qri":"cm:0","timestamp":"2001-01-01T01:01:01Z","title":"","runID":"runID"}`), nil},
 	}
 
 	for i, c := range cases {
@@ -183,6 +188,7 @@ func TestCommitUnmarshalJSON(t *testing.T) {
 		result *Commit
 	}{
 		{`{}`, &Commit{}},
+		{`{"runID":"foo"}`, &Commit{RunID: "foo"}},
 		{`{ "title": "title", "message": "message"}`, &Commit{Title: "title", Message: "message"}},
 		{`{ "author" : { "id": "id", "email": "email@email.com"} }`, &Commit{Author: &User{ID: "id", Email: "email@email.com"}}},
 	}
@@ -233,6 +239,7 @@ func TestUnmarshalCommit(t *testing.T) {
 	}{
 		{cma, &cma, ""},
 		{&cma, &cma, ""},
+		{[]byte("{\"runID\":\"foo\"}"), &Commit{RunID: "foo"}, ""},
 		{[]byte("{\"qri\":\"cm:0\"}"), &Commit{Qri: KindCommit.String()}, ""},
 		{5, nil, "couldn't parse commitMsg, value is invalid type"},
 	}

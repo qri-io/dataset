@@ -51,6 +51,10 @@ type TestCase struct {
 	VizScriptFilename string
 	// VizScript bytes if one exists
 	VizScript []byte
+	// Filename of Readme Script
+	ReadmeScriptFilename string
+	// ReadmeScript bytes is one exists
+	ReadmeScript []byte
 	// Input is intended file for test input
 	// loads from input.dataset.json
 	Input *dataset.Dataset
@@ -94,6 +98,14 @@ func (t TestCase) VizScriptFile() (qfs.File, bool) {
 		return nil, false
 	}
 	return qfs.NewMemfileBytes(t.VizScriptFilename, t.VizScript), true
+}
+
+// ReadmeScriptFile creates a qfs.File from testCase readme script data
+func (t TestCase) ReadmeScriptFile() (qfs.File, bool) {
+	if t.ReadmeScript == nil {
+		return nil, false
+	}
+	return qfs.NewMemfileBytes(t.ReadmeScriptFilename, t.ReadmeScript), true
 }
 
 // RenderedFile returns a qfs.File of the rendered file if one exists
@@ -211,6 +223,21 @@ func NewTestCaseFromDir(dir string) (tc TestCase, err error) {
 		tc.Input.Viz.SetScriptFile(qfs.NewMemfileBytes(tc.VizScriptFilename, tc.VizScript))
 	}
 
+	if tc.ReadmeScript, tc.ReadmeScriptFilename, err = ReadInputReadmeScript(dir); err != nil {
+		if err == os.ErrNotExist {
+			// ReadmeScript is optional
+			err = nil
+		} else {
+			return tc, fmt.Errorf("reading readme script: %s", err.Error())
+		}
+	} else {
+		foundTestData = true
+		if tc.Input.Readme == nil {
+			tc.Input.Readme = &dataset.Readme{}
+		}
+		tc.Input.Readme.SetScriptFile(qfs.NewMemfileBytes(tc.ReadmeScriptFilename, tc.ReadmeScript))
+	}
+
 	tc.Expect, err = ReadDataset(dir, ExpectDatasetFilename)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -272,6 +299,16 @@ func ReadInputVizScript(dir string) ([]byte, string, error) {
 	if f, err := os.Open(path); err == nil {
 		data, err := ioutil.ReadAll(f)
 		return data, "template.html", err
+	}
+	return nil, "", os.ErrNotExist
+}
+
+// ReadInputReadmeScript grabs input readme script bytes
+func ReadInputReadmeScript(dir string) ([]byte, string, error) {
+	path := filepath.Join(dir, "readme.md")
+	if f, err := os.Open(path); err == nil {
+		data, err := ioutil.ReadAll(f)
+		return data, "readme.md", err
 	}
 	return nil, "", os.ErrNotExist
 }

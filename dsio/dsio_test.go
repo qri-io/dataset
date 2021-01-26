@@ -2,11 +2,14 @@ package dsio
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/dataset/tabular"
+	"github.com/qri-io/qfs"
 )
 
 var basicTableSchema = map[string]interface{}{
@@ -142,5 +145,60 @@ func TestReadAll(t *testing.T) {
 	}
 	if diff := cmp.Diff(expectObj, got); diff != "" {
 		t.Errorf("object result mismatch (-want +got):\n%s", diff)
+	}
+}
+
+func TestConvertFile(t *testing.T) {
+	jsonStructure := &dataset.Structure{Format: "json", Schema: dataset.BaseSchemaArray}
+	csvStructure := &dataset.Structure{Format: "csv", Schema: tabular.BaseTabularSchema}
+
+	// CSV -> JSON
+	body := qfs.NewMemfileBytes("", []byte("a,b,c"))
+	got, err := ConvertFile(body, csvStructure, jsonStructure, 0, 0, true)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	if !bytes.Equal(got, []byte(`[["a","b","c"]]`)) {
+		t.Error(fmt.Errorf("converted body didn't match, got: %s", got))
+	}
+
+	// CSV -> JSON, multiple lines
+	body = qfs.NewMemfileBytes("", []byte("a,b,c\n\rd,e,f\n\rg,h,i"))
+	got, err = ConvertFile(body, csvStructure, jsonStructure, 0, 0, true)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	if !bytes.Equal(got, []byte(`[["a","b","c"],["d","e","f"],["g","h","i"]]`)) {
+		t.Error(fmt.Errorf("converted body didn't match, got: %s", got))
+	}
+
+	// JSON -> CSV
+	body = qfs.NewMemfileBytes("", []byte(`[["a","b","c"]]`))
+	got, err = ConvertFile(body, jsonStructure, csvStructure, 0, 0, true)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	if !bytes.Equal(got, []byte("a,b,c\n")) {
+		t.Error(fmt.Errorf("converted body didn't match, got: %s", got))
+	}
+
+	// CSV -> CSV
+	body = qfs.NewMemfileBytes("", []byte("a,b,c"))
+	got, err = ConvertFile(body, csvStructure, csvStructure, 0, 0, true)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	if !bytes.Equal(got, []byte("a,b,c\n")) {
+		t.Error(fmt.Errorf("converted body didn't match, got: %s", got))
+	}
+
+	// JSON -> JSON
+	body = qfs.NewMemfileBytes("", []byte(`[["a","b","c"]]`))
+	got, err = ConvertFile(body, jsonStructure, jsonStructure, 0, 0, true)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	if !bytes.Equal(got, []byte(`[["a","b","c"]]`)) {
+		t.Error(fmt.Errorf("converted body didn't match, got: %s", got))
 	}
 }
