@@ -1,6 +1,7 @@
 package preview
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	logger "github.com/ipfs/go-log"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dsio"
+	"github.com/qri-io/qfs"
 )
 
 var (
@@ -25,7 +27,7 @@ const (
 	MaxReadmePreviewBytes = 997
 )
 
-// CreatePreview generates a preview for a dataset version
+// Create generates a preview for a dataset version
 // It expects the passed in dataset to have any relevant script files already
 // loaded
 // Preview currently includes:
@@ -37,21 +39,29 @@ const (
 //    - stats: none
 //    - viz: all
 //    - transform: all
-func CreatePreview(ctx context.Context, ds *dataset.Dataset) (*dataset.Dataset, error) {
-	var err error
+func Create(ctx context.Context, ds *dataset.Dataset) (*dataset.Dataset, error) {
+	var (
+		err error
+		p   = &dataset.Dataset{}
+	)
 
 	if ds == nil {
-		log.Debugf("CreatePreview: nil dataset")
+		log.Debugf("Create: nil dataset")
 		return nil, fmt.Errorf("nil dataset")
 	}
-
 	if ds.IsEmpty() {
-		log.Debugf("CreatePreview: empty dataset")
+		log.Debugf("Create: empty dataset")
 		return nil, fmt.Errorf("empty dataset")
 	}
 
+	p.Assign(ds)
+
 	if ds.Readme != nil && ds.Readme.ScriptFile() != nil {
-		ds.Readme.ScriptBytes, err = ioutil.ReadAll(io.LimitReader(ds.Readme.ScriptFile(), MaxReadmePreviewBytes))
+		buf := &bytes.Buffer{}
+		f := ds.Readme.ScriptFile()
+		tr := io.TeeReader(f, buf)
+
+		ds.Readme.ScriptBytes, err = ioutil.ReadAll(io.LimitReader(tr, MaxReadmePreviewBytes))
 		if err != nil {
 			log.Errorf("Reading Readme: %s", err.Error())
 			return nil, err
@@ -60,7 +70,7 @@ func CreatePreview(ctx context.Context, ds *dataset.Dataset) (*dataset.Dataset, 
 		if len(ds.Readme.ScriptBytes) == MaxReadmePreviewBytes {
 			ds.Readme.ScriptBytes = append(ds.Readme.ScriptBytes, []byte(`...`)...)
 		}
-		ds.Readme.SetScriptFile(nil)
+		ds.Readme.SetScriptFile(qfs.NewMemfileReader(f.FullPath(), io.MultiReader(buf, f)))
 	}
 
 	if ds.BodyFile() != nil {
@@ -69,13 +79,19 @@ func CreatePreview(ctx context.Context, ds *dataset.Dataset) (*dataset.Dataset, 
 			Schema: ds.Structure.Schema,
 		}
 
-		data, err := dsio.ConvertFile(ds.BodyFile(), ds.Structure, st, MaxNumDatasetRowsInPreview, 0, false)
+		buf := &bytes.Buffer{}
+		f := ds.BodyFile()
+		tr := io.TeeReader(f, buf)
+		teedFile := qfs.NewMemfileReader(f.FullPath(), tr)
+
+		data, err := dsio.ConvertFile(teedFile, ds.Structure, st, MaxNumDatasetRowsInPreview, 0, false)
 		if err != nil {
-			log.Errorf("CreatePreview converting body file: %s", err.Error())
+			log.Errorf("Create converting body file: %s", err.Error())
 			return nil, err
 		}
 
 		ds.Body = json.RawMessage(data)
+		ds.SetBodyFile(qfs.NewMemfileReader(f.FullPath(), io.MultiReader(buf, f)))
 	}
 
 	// TODO (b5) - previews currently don't include the new stats component, because
