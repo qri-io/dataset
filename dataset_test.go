@@ -98,6 +98,7 @@ func TestDatasetAssign(t *testing.T) {
 	cases := []struct {
 		in *Dataset
 	}{
+		{&Dataset{ID: "id"}},
 		{&Dataset{Path: "/a"}},
 		{&Dataset{Structure: &Structure{Format: "csv"}}},
 		{&Dataset{Transform: &Transform{ScriptPath: "some_transform_script.star"}}},
@@ -173,6 +174,7 @@ func TestDatasetSignableBytes(t *testing.T) {
 
 func TestSigningBytes(t *testing.T) {
 	ds := &Dataset{
+		ID:        "identifier",
 		Commit:    &Commit{Timestamp: time.Date(2001, 1, 1, 1, 1, 1, 1, time.UTC)},
 		BodyPath:  "body",
 		Meta:      &Meta{Path: "meta"},
@@ -185,14 +187,16 @@ func TestSigningBytes(t *testing.T) {
 
 	got := ds.SigningBytes()
 
-	expect := `bd:body
+	expect := `
+id:identifier
+bd:body
 cm:2001-01-01T01:01:01Z
 md:meta
 rm:readme
 st:structure
 tf:transform
 sa:stats
-vz:viz`
+vz:viz`[1:]
 
 	if diff := cmp.Diff(expect, string(got)); diff != "" {
 		t.Errorf("result mismatch (-want +got):\n%s", diff)
