@@ -58,6 +58,8 @@ type Dataset struct {
 	// Commit contains author & change message information that describes this
 	// version of a dataset
 	Commit *Commit `json:"commit,omitempty"`
+	// ID is an identifier string for this dataset.
+	ID string `json:"id,omitempty"`
 	// Meta contains all human-readable meta about this dataset intended to aid
 	// in discovery and organization of this document
 	Meta *Meta `json:"meta,omitempty"`
@@ -97,6 +99,7 @@ func (ds *Dataset) IsEmpty() bool {
 		ds.BodyBytes == nil &&
 		ds.BodyPath == "" &&
 		ds.Commit == nil &&
+		ds.ID == "" &&
 		ds.Meta == nil &&
 		ds.Name == "" &&
 		ds.Peername == "" &&
@@ -181,6 +184,9 @@ func (ds *Dataset) PathMap(ignore ...string) map[string]string {
 func (ds *Dataset) SigningBytes() []byte {
 	var sigComponents []string
 
+	if ds.ID != "" {
+		sigComponents = append(sigComponents, fmt.Sprintf("id:%s", ds.ID))
+	}
 	if ds.BodyPath != "" {
 		sigComponents = append(sigComponents, ComponentTypePrefix(KindBody, ds.BodyPath))
 	}
@@ -362,6 +368,9 @@ func (ds *Dataset) Assign(datasets ...*Dataset) {
 			ds.Commit = d.Commit
 		} else if ds.Commit != nil {
 			ds.Commit.Assign(d.Commit)
+		}
+		if ds.ID == "" && d.ID != "" {
+			ds.ID = d.ID
 		}
 		if ds.Meta == nil && d.Meta != nil {
 			ds.Meta = d.Meta
