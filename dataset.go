@@ -339,6 +339,9 @@ func (ds *Dataset) SetBodyFile(file qfs.File) {
 // BodyFile exposes bodyFile if one is set. Callers that use the file in any
 // way (eg. by calling Read) should consume the entire file and call Close
 func (ds *Dataset) BodyFile() qfs.File {
+	if ds == nil {
+		return nil
+	}
 	return ds.bodyFile
 }
 
