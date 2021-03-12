@@ -276,6 +276,8 @@ func (ds *Dataset) DropDerivedValues() {
 }
 
 var (
+	// ErrNoBody occurs when a dataset has no body component, but one is expected
+	ErrNoBody = fmt.Errorf("dataset has no body component")
 	// ErrInlineBody is the error for attempting to generate a body file when
 	// body data is stored as native go types
 	ErrInlineBody = fmt.Errorf("dataset body is inlined")

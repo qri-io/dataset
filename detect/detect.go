@@ -30,9 +30,16 @@ func Structure(ds *dataset.Dataset) error {
 		return fmt.Errorf("empty dataset")
 	}
 
+	// fast path if nothing needs to be inferred
+	if ds.Structure != nil && ds.Structure.Format != "" &&
+		ds.Structure.Schema != nil &&
+		!needsFormatConfig(ds.Structure) {
+		return nil
+	}
+
 	body := ds.BodyFile()
 	if body == nil {
-		return fmt.Errorf("empty body")
+		return dataset.ErrNoBody
 	}
 	// use a TeeReader that writes to a buffer to preserve data
 	buf := &bytes.Buffer{}
@@ -70,6 +77,26 @@ func Structure(ds *dataset.Dataset) error {
 	// we should consider a method on qfs.File that allows this non-destructive read pattern
 	ds.SetBodyFile(qfs.NewMemfileReader(body.FileName(), io.MultiReader(buf, body)))
 	return nil
+}
+
+// needsFormatConfig returns true if a given structure needs a FormatConfig
+// field and doesn't have one
+// This only returns true for formats that are known to need a FormatConfig,
+// defaults to false (no FormatConfig required)
+func needsFormatConfig(st *dataset.Structure) bool {
+	switch st.Format {
+	case dataset.XLSXDataFormat.String():
+		// XLSX should always have a format config
+		return st.FormatConfig == nil
+	case dataset.CSVDataFormat.String():
+		// CSVs should always have a format config
+		return st.FormatConfig == nil
+	case dataset.JSONDataFormat.String():
+		// JSON doesn't need a format config
+		return false
+	default:
+		return false
+	}
 }
 
 // FromFile takes a filepath & tries to work out the corresponding dataset

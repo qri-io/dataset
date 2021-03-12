@@ -15,6 +15,11 @@ import (
 
 func TestStructure(t *testing.T) {
 	ds := &dataset.Dataset{}
+	if err := Structure(ds); !errors.Is(err, dataset.ErrNoBody) {
+		t.Errorf("expected dataset without an open body file to return dataset.ErrNoBody, got: %v", err)
+	}
+
+	ds = &dataset.Dataset{}
 	ds.SetBodyFile(qfs.NewMemfileBytes("animals.csv",
 		[]byte("Animal,Sound,Weight\ncat,meow,1.4\ndog,bark,3.7\n")))
 
@@ -97,6 +102,15 @@ func TestStructure(t *testing.T) {
 	if ds.Structure.FormatConfig != nil {
 		t.Errorf("format config should not be set when inferred format & input format don't match")
 	}
+	if diff := cmp.Diff(expect, ds.Structure); diff != "" {
+		t.Errorf("mismatched resulting structure (-want +got):\n%s", diff)
+	}
+
+	// fully hydrated structure should hit the fast path, change nothing
+	if err := Structure(ds); err != nil {
+		t.Error(err)
+	}
+
 	if diff := cmp.Diff(expect, ds.Structure); diff != "" {
 		t.Errorf("mismatched resulting structure (-want +got):\n%s", diff)
 	}
