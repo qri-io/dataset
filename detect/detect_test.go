@@ -10,7 +10,97 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/dstest"
+	"github.com/qri-io/qfs"
 )
+
+func TestStructure(t *testing.T) {
+	ds := &dataset.Dataset{}
+	ds.SetBodyFile(qfs.NewMemfileBytes("animals.csv",
+		[]byte("Animal,Sound,Weight\ncat,meow,1.4\ndog,bark,3.7\n")))
+
+	if err := Structure(ds); err != nil {
+		t.Error(err)
+	}
+
+	expect := &dataset.Structure{
+		Format: dataset.CSVDataFormat.String(),
+		FormatConfig: map[string]interface{}{
+			"headerRow":  true,
+			"lazyQuotes": true,
+		},
+		Schema: mustParseJSONSchema([]byte(`{
+			"items":{
+				"items":[
+					{"title":"animal","type":"string"},
+					{"title":"sound","type":"string"},
+					{"title":"weight","type":"number"}
+				],
+				"type":"array"},
+				"type":"array"
+			}`)),
+	}
+
+	if diff := cmp.Diff(expect, ds.Structure); diff != "" {
+		t.Errorf("mismatched resulting structure (-want +got):\n%s", diff)
+	}
+
+	ds = &dataset.Dataset{
+		Structure: &dataset.Structure{},
+	}
+	ds.SetBodyFile(qfs.NewMemfileBytes("animals.json",
+		[]byte(`[{"animal":"cat","sound":"meow","weight: 1.4},{"animal":"dog","sound":"bark","weight":3.7}]`)))
+
+	if err := Structure(ds); err != nil {
+		t.Error(err)
+	}
+
+	expect = &dataset.Structure{
+		Format:       dataset.JSONDataFormat.String(),
+		FormatConfig: nil,
+		Schema:       mustParseJSONSchema([]byte(`{"type":"array"}`)),
+	}
+
+	if diff := cmp.Diff(expect, ds.Structure); diff != "" {
+		t.Errorf("mismatched resulting structure (-want +got):\n%s", diff)
+	}
+
+	ds = &dataset.Dataset{
+		Structure: &dataset.Structure{
+			Format: dataset.JSONDataFormat.String(),
+		},
+	}
+	ds.SetBodyFile(qfs.NewMemfileBytes("animals.csv",
+		[]byte("Animal,Sound,Weight\ncat,meow,1.4\ndog,bark,3.7\n")))
+
+	if err := Structure(ds); err != nil {
+		t.Error(err)
+	}
+
+	expect = &dataset.Structure{
+		Format:       dataset.JSONDataFormat.String(),
+		FormatConfig: nil,
+		Schema: mustParseJSONSchema([]byte(`{
+			"items":{
+				"items":[
+					{"title":"animal","type":"string"},
+					{"title":"sound","type":"string"},
+					{"title":"weight","type":"number"}
+				],
+				"type":"array"},
+				"type":"array"
+			}`)),
+	}
+
+	if ds.Structure.Format != dataset.JSONDataFormat.String() {
+		t.Errorf("format was already set to %s, should not be changed to %s", dataset.JSONDataFormat.String(), ds.Structure.Format)
+	}
+	if ds.Structure.FormatConfig != nil {
+		t.Errorf("format config should not be set when inferred format & input format don't match")
+	}
+	if diff := cmp.Diff(expect, ds.Structure); diff != "" {
+		t.Errorf("mismatched resulting structure (-want +got):\n%s", diff)
+	}
+}
 
 func TestFromFile(t *testing.T) {
 	cases := []struct {
@@ -183,4 +273,12 @@ func TestTabularSchemaFromTabularData(t *testing.T) {
 			}
 		})
 	}
+}
+
+func mustParseJSONSchema(data []byte) map[string]interface{} {
+	v := map[string]interface{}{}
+	if err := json.Unmarshal(data, &v); err != nil {
+		panic(err)
+	}
+	return v
 }

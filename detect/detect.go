@@ -1,6 +1,7 @@
 package detect
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -10,6 +11,7 @@ import (
 
 	logger "github.com/ipfs/go-log"
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/qfs"
 )
 
 var (
@@ -17,6 +19,58 @@ var (
 	nonAlpha = regexp.MustCompile(`[^a-zA-z0-9_]`)
 	log      = logger.Logger("detect")
 )
+
+// Structure examines the contents of a dataset body, setting any missing
+// elements of a structure component required to make the dataset readable.
+// A minimum structure component has non-zero Format and Schema fields, and
+// may need additional FormatConfig settings to parse properly.
+// Structure will not mutate any component fields that are not a default value
+func Structure(ds *dataset.Dataset) error {
+	if ds == nil {
+		return fmt.Errorf("empty dataset")
+	}
+
+	body := ds.BodyFile()
+	if body == nil {
+		return fmt.Errorf("empty body")
+	}
+	// use a TeeReader that writes to a buffer to preserve data
+	buf := &bytes.Buffer{}
+	tr := io.TeeReader(body, buf)
+	var df dataset.DataFormat
+
+	df, err := ExtensionDataFormat(body.FileName())
+	if err != nil {
+		log.Debug(err.Error())
+		return fmt.Errorf("invalid data format: %w", err)
+	}
+
+	guessedStructure, _, err := FromReader(df, tr)
+	if err != nil {
+		log.Debug(err.Error())
+		return fmt.Errorf("determining dataset structure: %w", err)
+	}
+
+	// attach the structure, schema, and formatConfig, as appropriate
+	if ds.Structure == nil {
+		ds.Structure = guessedStructure
+	}
+	if ds.Structure.Format == "" {
+		ds.Structure.Format = guessedStructure.Format
+	}
+	if ds.Structure.FormatConfig == nil && ds.Structure.Format == guessedStructure.Format {
+		ds.Structure.FormatConfig = guessedStructure.FormatConfig
+	}
+	if ds.Structure.Schema == nil {
+		ds.Structure.Schema = guessedStructure.Schema
+	}
+
+	// glue whatever we just read back onto the reader
+	// TODO (b5)- this may ruin readers that transparently depend on a read-closer
+	// we should consider a method on qfs.File that allows this non-destructive read pattern
+	ds.SetBodyFile(qfs.NewMemfileReader(body.FileName(), io.MultiReader(buf, body)))
+	return nil
+}
 
 // FromFile takes a filepath & tries to work out the corresponding dataset
 // for the sake of speed, it only works with files that have a recognized extension
