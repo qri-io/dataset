@@ -52,7 +52,7 @@ func TestTransformAssign(t *testing.T) {
 			"foo": "bar",
 		},
 		Resources: map[string]*TransformResource{
-			"a": &TransformResource{Path: "/path/to/a"},
+			"a": {Path: "/path/to/a"},
 		},
 	}
 	got := &Transform{
@@ -75,7 +75,7 @@ func TestTransformAssign(t *testing.T) {
 	}, &Transform{
 		Path: "path",
 		Resources: map[string]*TransformResource{
-			"a": &TransformResource{Path: "/path/to/a"},
+			"a": {Path: "/path/to/a"},
 		},
 	}, &Transform{
 		Syntaxes: map[string]string{"c": "d"},
@@ -96,6 +96,31 @@ func TestTransformAssign(t *testing.T) {
 	emptyTf := &Transform{}
 	emptyTf.Assign(expect)
 	if diff := compareTransforms(expect, emptyTf); diff != "" {
+		t.Errorf("result mismatch (-want +got):\n%s", diff)
+	}
+
+	expect = &Transform{
+		Steps: []*TransformStep{
+			{Name: "a"},
+			{Name: "b"},
+			{Name: "c"},
+		},
+	}
+
+	shouldReplaceSteps := &Transform{
+		Steps: []*TransformStep{
+			{Name: "f"},
+		},
+	}
+	shouldReplaceSteps.Assign(&Transform{
+		Steps: []*TransformStep{
+			{Name: "a"},
+			{Name: "b"},
+			{Name: "c"},
+		},
+	})
+
+	if diff := compareTransforms(expect, shouldReplaceSteps); diff != "" {
 		t.Errorf("result mismatch (-want +got):\n%s", diff)
 	}
 }

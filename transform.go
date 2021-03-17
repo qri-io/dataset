@@ -243,12 +243,7 @@ func (q *Transform) Assign(qs ...*Transform) {
 			}
 		}
 		if q2.Steps != nil {
-			if q.Steps == nil {
-				q.Steps = []*TransformStep{}
-			}
-			for _, val := range q2.Steps {
-				q.Steps = append(q.Steps, val)
-			}
+			q.Steps = q2.Steps
 		}
 		if q2.Syntax != "" {
 			q.Syntax = q2.Syntax
