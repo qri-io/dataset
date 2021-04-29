@@ -8,7 +8,6 @@ require (
 	github.com/dgryski/go-sip13 v0.0.0-20200911182023-62edffca9245 // indirect
 	github.com/dgryski/go-topk v0.0.0-20191119021947-593b4f2374c9
 	github.com/google/go-cmp v0.5.0
-	github.com/ipfs/go-datastore v0.4.4
 	github.com/ipfs/go-log v1.0.4
 	github.com/jinzhu/copier v0.0.0-20190924061706-b57f9002281a
 	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
