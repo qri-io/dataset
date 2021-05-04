@@ -1,3 +1,55 @@
+<a name="v0.3.0"></a>
+# [v0.3.0](https://github.com/qri-io/dataset/compare/v0.2.0...v) (2021-05-04)
+
+This release of the `dataset` package includes one major change, adding a `Stats` component, as well as a few minor changes and a bunch of bug fixes that are listed below.
+
+## Stats component
+Introducing the `stats` component, a top-level component that provides the mechanics to quickly generate the stats using probabilistic structures. Unlike previous iterations of calculating stats, it is not bound to size/time limitations. We calculate and store different kinds of stats based on the content of the given column or fields. The different types as of this release are numeric, boolean, and string. We've moved the `qri/stats` package into `dataset` under the name `dsstats`.
+
+Take a look at our [spec](https://github.com/qri-io/specs/blob/master/content/subsystems/stats.md) for details on how stats are calculated.
+
+### Bug Fixes
+
+* **`dataset.BodyFile`:** if no dataset exists, return nil ([84c88eb](https://github.com/qri-io/dataset/commit/84c88eb))
+* **dataset:** DropTransients drops peername field ([656948d](https://github.com/qri-io/dataset/commit/656948d))
+* **dsgen:** fix flag for number of rows in dsgen CLI ([8a042f1](https://github.com/qri-io/dataset/commit/8a042f1))
+* **meta:** marshalling to json object should not modify private meta field ([5a55038](https://github.com/qri-io/dataset/commit/5a55038))
+* **meta,structure:** serializing to JSON includes path value ([cfd5aca](https://github.com/qri-io/dataset/commit/cfd5aca))
+* **preview:** rename CreatePreview -> Preview, don't consume input dataset files ([b7a9395](https://github.com/qri-io/dataset/commit/b7a9395))
+* **stats:** avoid nil ptr panic ([#242](https://github.com/qri-io/dataset/issues/242)) ([556268c](https://github.com/qri-io/dataset/commit/556268c))
+* **stats:** limiting top-k frequencies to 200 ([#239](https://github.com/qri-io/dataset/issues/239)) ([74e6f19](https://github.com/qri-io/dataset/commit/74e6f19))
+* **transform:** Assign() overwrites Steps field ([ce73c09](https://github.com/qri-io/dataset/commit/ce73c09))
+
+
+### Features
+
+* **`commit`:** add `RunID` field to `Commit` struct ([ecaf655](https://github.com/qri-io/dataset/commit/ecaf655))
+* **`preview`:** `CreatePreview` takes a `dataset.Dataset` and returns a truncated version ([1fae175](https://github.com/qri-io/dataset/commit/1fae175))
+* **dataset:** add ID field to dataset.Dataset ([ceb9ee1](https://github.com/qri-io/dataset/commit/ceb9ee1))
+* **detect.Structure:** move struture detection function down from qri ([2330b0f](https://github.com/qri-io/dataset/commit/2330b0f))
+* **dsio.ReadAll:** add ReadAll, ReadAllObject, ReadAllArray functions ([80263b4](https://github.com/qri-io/dataset/commit/80263b4))
+* **dsstats:** move stats package from qri core, rename to dsstats ([e5257e0](https://github.com/qri-io/dataset/commit/e5257e0))
+* **dstest:** Add `Readme` support ([d480331](https://github.com/qri-io/dataset/commit/d480331))
+* **dstest:** add CompareGoldenDatasetAndUpdate convenience function ([577ff3f](https://github.com/qri-io/dataset/commit/577ff3f))
+* **dstest:** add Template function ([f588dde](https://github.com/qri-io/dataset/commit/f588dde))
+* **dstest:** configuraable CompareDatasets, Golden File Functions ([1019334](https://github.com/qri-io/dataset/commit/1019334))
+* **ShallowCompare,PathMap:** add utility methods for comparing components ([80c9f61](https://github.com/qri-io/dataset/commit/80c9f61))
+* **SigningBytes:** new SigningBytes includes all components ([1b5ddf1](https://github.com/qri-io/dataset/commit/1b5ddf1))
+* **stats:** add Assign method, stats component tests ([23fb3fd](https://github.com/qri-io/dataset/commit/23fb3fd))
+* **stats:** add stats component ([4e9ca61](https://github.com/qri-io/dataset/commit/4e9ca61))
+* **stats:** use 'sa' as kind prefix, marshal stats to/from JSON ([5235164](https://github.com/qri-io/dataset/commit/5235164))
+* **transform:** add `Syntaxes` field to `Transform` struct ([8a30d20](https://github.com/qri-io/dataset/commit/8a30d20))
+* **type:** utility to check type presence for columns in tabular ([#244](https://github.com/qri-io/dataset/issues/244)) ([9b4fc79](https://github.com/qri-io/dataset/commit/9b4fc79))
+
+
+### BREAKING CHANGES
+
+* **dataset:** older versions of qri that attempt to verify the signature of datasets with a
+non-empty ID string field will error.
+* removed Compare* functions, use dstest.Compare instead
+
+
+
 <a name="v0.2.0"></a>
 # [v0.2.0](https://github.com/qri-io/dataset/compare/v0.1.4...v0.2.0) (2020-06-29)
 
