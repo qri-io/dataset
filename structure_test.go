@@ -114,7 +114,7 @@ func TestStructureIsEmpty(t *testing.T) {
 		st *Structure
 	}{
 		{&Structure{Checksum: "a"}},
-		{&Structure{Compression: compression.ZStandard.String()}},
+		{&Structure{Compression: compression.FmtZStandard.String()}},
 		{&Structure{Depth: 1}},
 		{&Structure{Encoding: "a"}},
 		{&Structure{Entries: 1}},
@@ -138,7 +138,7 @@ func TestStructureAssign(t *testing.T) {
 	expect := &Structure{
 		Length:      2503,
 		Checksum:    "hey",
-		Compression: compression.ZStandard.String(),
+		Compression: compression.FmtZStandard.String(),
 		Depth:       11,
 		ErrCount:    12,
 		Encoding:    "UTF-8",
@@ -154,7 +154,7 @@ func TestStructureAssign(t *testing.T) {
 	got.Assign(&Structure{
 		Length:      2503,
 		Checksum:    "hey",
-		Compression: compression.ZStandard.String(),
+		Compression: compression.FmtZStandard.String(),
 		Depth:       11,
 		ErrCount:    12,
 		Encoding:    "UTF-8",

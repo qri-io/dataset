@@ -21,11 +21,11 @@ func (s Format) String() string {
 const (
 	// FmtZStandard compression https://facebook.github.io/zstd/
 	FmtZStandard Format = "zstd"
-	// Gzip GNU zip compression https://www.gnu.org/software/gzip/
+	// FmtGZip GNU zip compression https://www.gnu.org/software/gzip/
 	FmtGZip Format = "gzip"
 )
 
-// Supported formats indexes suppoorted formats in a map for easy lookups
+// SupportedFormats indexes suppoorted formats in a map for lookups
 var SupportedFormats = map[Format]struct{}{
 	FmtZStandard: {},
 	FmtGZip:      {},
