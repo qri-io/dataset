@@ -67,7 +67,7 @@ func TestCompressionCycle(t *testing.T) {
 			}
 
 			if result.String() != plainText {
-				t.Errorf("compression roun trip result mismatch.\nwant: %s\ngot: %s", plainText, result.String())
+				t.Errorf("compression round trip result mismatch.\nwant: %s\ngot: %s", plainText, result.String())
 			}
 		})
 

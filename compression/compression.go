@@ -1,5 +1,5 @@
-// Package compression is a horrible hack & should be replaced
-// as soon as humanly possible
+// Package compression presents a uniform interface for a set of compression
+// readers & writers in various formats
 package compression
 
 import (
@@ -27,7 +27,7 @@ const (
 	FmtGZip Format = "gzip"
 )
 
-// SupportedFormats indexes suppoorted formats in a map for lookups
+// SupportedFormats indexes supported formats in a map for lookups
 var SupportedFormats = map[Format]struct{}{
 	FmtZStandard: {},
 	FmtGZip:      {},
@@ -75,7 +75,7 @@ func Decompressor(compressionFormat string, r io.Reader) (io.ReadCloser, error) 
 		if err != nil {
 			return nil, err
 		}
-		return zstdErrorDecoderShim{rdr}, nil
+		return zstdReadCloserShim{rdr}, nil
 	case FmtGZip:
 		return gzip.NewReader(r)
 	}
@@ -83,14 +83,14 @@ func Decompressor(compressionFormat string, r io.Reader) (io.ReadCloser, error) 
 	return nil, fmt.Errorf("no available decompressor for %q format", f)
 }
 
-// small struct to compensate for the the fact that zstd's decoder Close()
-// method returns no error, breaking the io.ReadCloser interface. shim in an
-// error function that will never occur
-type zstdErrorDecoderShim struct {
+// small struct to compensate for zstd's decoder Close() method, which returns
+// no error. This breaks the io.ReadCloser interface. shim in an
+// error function with an error that will never occur
+type zstdReadCloserShim struct {
 	*zstd.Decoder
 }
 
-func (d zstdErrorDecoderShim) Close() error {
+func (d zstdReadCloserShim) Close() error {
 	d.Decoder.Close()
 	return nil
 }

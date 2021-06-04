@@ -134,7 +134,7 @@ func FromReader(format dataset.DataFormat, comp compression.Format, data io.Read
 }
 
 // FormatFromFilename extracts data & compression formats from a filename string
-// by examining file extensions. Assumes that when multiple exentions are
+// by examining file extensions. Assumes that when multiple extensions are
 // present they come in the order: filename.[data_format].[compression_format]
 func FormatFromFilename(path string) (dataset.DataFormat, compression.Format, error) {
 	ext := filepath.Ext(path)
