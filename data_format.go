@@ -12,7 +12,6 @@ var ErrUnknownDataFormat = fmt.Errorf("Unknown Data Format")
 // DataFormat represents different types of data formats.
 // formats specified here have some degree of support within
 // the dataset packages
-// TODO - consider placing this in a subpackage: dataformats
 type DataFormat int
 
 const (
@@ -24,6 +23,9 @@ const (
 	CSVDataFormat
 	// JSONDataFormat specifies Javascript Object Notation-formatted data
 	JSONDataFormat
+	// NDJSONDataFormat newline-delimited JSON files
+	// https://github.com/ndjson/ndjson-spec
+	NDJSONDataFormat
 	// CBORDataFormat specifies RFC 7049 Concise Binary Object Representation
 	// read more at cbor.io
 	CBORDataFormat
@@ -44,6 +46,7 @@ func SupportedDataFormats() []DataFormat {
 		JSONDataFormat,
 		CSVDataFormat,
 		XLSXDataFormat,
+		NDJSONDataFormat,
 	}
 }
 
@@ -56,6 +59,7 @@ func (f DataFormat) String() string {
 		XMLDataFormat:     "xml",
 		XLSXDataFormat:    "xlsx",
 		CBORDataFormat:    "cbor",
+		NDJSONDataFormat:  "ndjson",
 	}[f]
 
 	if !ok {
@@ -69,17 +73,21 @@ func (f DataFormat) String() string {
 // TODO (b5): trim "." prefix, remove prefixed map keys
 func ParseDataFormatString(s string) (df DataFormat, err error) {
 	df, ok := map[string]DataFormat{
-		"":      UnknownDataFormat,
-		".csv":  CSVDataFormat,
-		"csv":   CSVDataFormat,
-		".json": JSONDataFormat,
-		"json":  JSONDataFormat,
-		".xml":  XMLDataFormat,
-		"xml":   XMLDataFormat,
-		".xlsx": XLSXDataFormat,
-		"xlsx":  XLSXDataFormat,
-		"cbor":  CBORDataFormat,
-		".cbor": CBORDataFormat,
+		"":        UnknownDataFormat,
+		".csv":    CSVDataFormat,
+		"csv":     CSVDataFormat,
+		".json":   JSONDataFormat,
+		"json":    JSONDataFormat,
+		".xml":    XMLDataFormat,
+		"xml":     XMLDataFormat,
+		".xlsx":   XLSXDataFormat,
+		"xlsx":    XLSXDataFormat,
+		"cbor":    CBORDataFormat,
+		".cbor":   CBORDataFormat,
+		".ndjson": NDJSONDataFormat,
+		"ndjson":  NDJSONDataFormat,
+		".jsonl":  NDJSONDataFormat,
+		"jsonl":   NDJSONDataFormat,
 	}[s]
 	if !ok {
 		err = fmt.Errorf("invalid data format: `%s`", s)
