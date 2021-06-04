@@ -37,8 +37,10 @@ func Schema(r *dataset.Structure, data io.Reader) (schema map[string]interface{}
 		return CSVSchema(r, data)
 	case dataset.XLSXDataFormat:
 		return XLSXSchema(r, data)
+	case dataset.NDJSONDataFormat:
+		return NDJSONSchema(r, data)
 	default:
-		err = fmt.Errorf("'%s' is not supported for field detection", r.Format)
+		err = fmt.Errorf("%q is not supported for field detection", r.Format)
 		return
 	}
 }
