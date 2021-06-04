@@ -8,9 +8,11 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	logger "github.com/ipfs/go-log"
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/dataset/compression"
 	"github.com/qri-io/qfs"
 )
 
@@ -46,13 +48,13 @@ func Structure(ds *dataset.Dataset) error {
 	tr := io.TeeReader(body, buf)
 	var df dataset.DataFormat
 
-	df, err := ExtensionDataFormat(body.FileName())
+	df, comp, err := FormatFromFilename(body.FileName())
 	if err != nil {
 		log.Debug(err.Error())
 		return fmt.Errorf("invalid data format: %w", err)
 	}
 
-	guessedStructure, _, err := FromReader(df, tr)
+	guessedStructure, _, err := FromReader(df, comp, tr)
 	if err != nil {
 		log.Debug(err.Error())
 		return fmt.Errorf("determining dataset structure: %w", err)
@@ -64,6 +66,9 @@ func Structure(ds *dataset.Dataset) error {
 	}
 	if ds.Structure.Format == "" {
 		ds.Structure.Format = guessedStructure.Format
+	}
+	if ds.Structure.Compression == "" {
+		ds.Structure.Compression = guessedStructure.Compression
 	}
 	if ds.Structure.FormatConfig == nil && ds.Structure.Format == guessedStructure.Format {
 		ds.Structure.FormatConfig = guessedStructure.FormatConfig
@@ -108,44 +113,54 @@ func FromFile(path string) (st *dataset.Structure, err error) {
 	}
 	defer f.Close()
 
-	format, err := ExtensionDataFormat(path)
+	format, comp, err := FormatFromFilename(path)
 	if err != nil {
 		return nil, err
 	}
 
-	st, _, err = FromReader(format, f)
+	st, _, err = FromReader(format, comp, f)
 	return st, err
 }
 
 // FromReader detects a dataset structure from a reader and data format, returning a detected dataset
 // structure, the number of bytes read from the reader, and any error
-func FromReader(format dataset.DataFormat, data io.Reader) (st *dataset.Structure, n int, err error) {
+func FromReader(format dataset.DataFormat, comp compression.Format, data io.Reader) (st *dataset.Structure, n int, err error) {
 	st = &dataset.Structure{
-		Format: format.String(),
+		Format:      format.String(),
+		Compression: comp.String(),
 	}
 	st.Schema, n, err = Schema(st, data)
 	return
 }
 
-// ExtensionDataFormat returns the corresponding DataFormat for a given file extension if one exists
-// TODO - this should probably come from the dataset package
-func ExtensionDataFormat(path string) (format dataset.DataFormat, err error) {
+// FormatFromFilename extracts data & compression formats from a filename string
+// by examining file extensions. Assumes that when multiple extensions are
+// present they come in the order: filename.[data_format].[compression_format]
+func FormatFromFilename(path string) (dataset.DataFormat, compression.Format, error) {
 	ext := filepath.Ext(path)
+
+	compFmt, e := compression.ParseFormat(strings.TrimPrefix(ext, "."))
+	if e == nil {
+		ext = filepath.Ext(strings.TrimSuffix(path, ext))
+	} else {
+		compFmt = compression.FmtNone
+	}
+
 	switch ext {
 	case ".cbor":
-		return dataset.CBORDataFormat, nil
+		return dataset.CBORDataFormat, compFmt, nil
 	case ".json":
-		return dataset.JSONDataFormat, nil
+		return dataset.JSONDataFormat, compFmt, nil
 	case ".csv":
-		return dataset.CSVDataFormat, nil
+		return dataset.CSVDataFormat, compFmt, nil
 	case ".xml":
-		return dataset.XMLDataFormat, nil
+		return dataset.XMLDataFormat, compFmt, nil
 	case ".xlsx":
-		return dataset.XLSXDataFormat, nil
+		return dataset.XLSXDataFormat, compFmt, nil
 	case "":
-		return dataset.UnknownDataFormat, errors.New("no file extension provided")
+		return dataset.UnknownDataFormat, compFmt, errors.New("no file extension provided")
 	default:
-		return dataset.UnknownDataFormat, fmt.Errorf("unsupported file type: '%s'", ext)
+		return dataset.UnknownDataFormat, compFmt, fmt.Errorf("unsupported file type: '%s'", ext)
 	}
 }
 

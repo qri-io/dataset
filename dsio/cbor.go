@@ -16,6 +16,7 @@ import (
 type CBORReader struct {
 	rowsRead int
 	rdr      *bufio.Reader
+	close    func() error // close func from wrapped reader
 	st       *dataset.Structure
 	topLevel byte
 	length   int
@@ -35,6 +36,11 @@ func NewCBORReader(st *dataset.Structure, r io.Reader) (*CBORReader, error) {
 		return nil, err
 	}
 
+	r, close, err := maybeWrapDecompressor(st, r)
+	if err != nil {
+		return nil, err
+	}
+
 	tlt, err := GetTopLevelType(st)
 	if err != nil {
 		log.Debug(err.Error())
@@ -51,6 +57,7 @@ func NewCBORReader(st *dataset.Structure, r io.Reader) (*CBORReader, error) {
 		st:       st,
 		rdr:      bufio.NewReader(r),
 		topLevel: topLevel,
+		close:    close,
 	}, nil
 }
 
@@ -98,7 +105,9 @@ func (r *CBORReader) ReadEntry() (ent Entry, err error) {
 
 // Close finalizes the reader
 func (r *CBORReader) Close() error {
-	// TODO (b5): check if underlying reader is an io.ReadCloser, call close here if so
+	if r.close != nil {
+		return r.close()
+	}
 	return nil
 }
 
@@ -439,6 +448,7 @@ type CBORWriter struct {
 	tlt         string
 	st          *dataset.Structure
 	wr          io.Writer
+	close       func() error // close func from wrapped writer
 	arr         []interface{}
 	obj         map[string]interface{}
 }
@@ -453,10 +463,17 @@ func NewCBORWriter(st *dataset.Structure, w io.Writer) (*CBORWriter, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	w, close, err := maybeWrapCompressor(st, w)
+	if err != nil {
+		return nil, err
+	}
+
 	cw := &CBORWriter{
-		st:  st,
-		wr:  w,
-		tlt: tlt,
+		st:    st,
+		wr:    w,
+		close: close,
+		tlt:   tlt,
 	}
 
 	if cw.tlt == "object" {
@@ -502,9 +519,17 @@ func (w *CBORWriter) Close() error {
 	h.Canonical = true
 	enc := codec.NewEncoder(w.wr, h)
 
+	var v interface{} = w.arr
 	if w.tlt == "object" {
-		return enc.Encode(w.obj)
+		v = w.obj
+	}
+	if err := enc.Encode(v); err != nil {
+		return err
 	}
 
-	return enc.Encode(w.arr)
+	if w.close != nil {
+		return w.close()
+	}
+
+	return nil
 }

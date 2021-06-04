@@ -4,11 +4,14 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+	"io"
 	"os"
 	"reflect"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/dataset/compression"
 	"github.com/qri-io/dataset/dstest"
 )
 
@@ -396,6 +399,50 @@ func TestCBORWriterCanonical(t *testing.T) {
 		}
 
 		buf.Reset()
+	}
+}
+
+func TestCBORCompression(t *testing.T) {
+	invalidCompressionSt := &dataset.Structure{Format: "cbor", Compression: "invalid", Schema: dataset.BaseSchemaArray}
+	if _, err := NewCBORReader(invalidCompressionSt, nil); err == nil {
+		t.Errorf("constructing reader with invalid compression should error")
+	}
+	if _, err := NewCBORWriter(invalidCompressionSt, nil); err == nil {
+		t.Errorf("constructing writer with invalid compression should error")
+	}
+
+	data, _ := hex.DecodeString(`a56161616161626162616361636164616461656165`)
+
+	compressed := &bytes.Buffer{}
+	compressor, _ := compression.Compressor("zstd", compressed)
+	io.Copy(compressor, bytes.NewBuffer(data))
+	compressor.Close()
+
+	st := &dataset.Structure{
+		Format:      "cbor",
+		Compression: "zstd",
+		Schema:      dataset.BaseSchemaObject,
+	}
+
+	rdr, err := NewCBORReader(st, compressed)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	compressed2 := &bytes.Buffer{}
+	wr, err := NewCBORWriter(st, compressed2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := Copy(rdr, wr); err != nil {
+		t.Fatal(err)
+	}
+	rdr.Close()
+	wr.Close()
+
+	if diff := cmp.Diff(compressed.Bytes(), compressed2.Bytes()); diff != "" {
+		t.Errorf("result mismatch expect (-want +got):\n%s", diff)
 	}
 }
 

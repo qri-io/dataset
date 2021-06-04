@@ -24,3 +24,12 @@ func (tr *TrackedReader) Read(p []byte) (n int, err error) {
 func (tr *TrackedReader) BytesRead() int {
 	return tr.read
 }
+
+// Close implements the io.Closer interface, closes the underlying reader if
+// it's an io.Closer
+func (tr *TrackedReader) Close() error {
+	if cl, ok := tr.r.(io.Closer); ok {
+		return cl.Close()
+	}
+	return nil
+}

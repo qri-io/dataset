@@ -121,6 +121,15 @@ func TestXLSXWriter(t *testing.T) {
 	}
 }
 
+func TestXLSXCompression(t *testing.T) {
+	if _, err := NewXLSXReader(&dataset.Structure{Format: "xlsx", Compression: "gzip"}, nil); err == nil {
+		t.Error("expected xlsx to fail when using compression")
+	}
+	if _, err := NewXLSXWriter(&dataset.Structure{Format: "xlsx", Compression: "gzip"}, nil); err == nil {
+		t.Error("expected xlsx to fail when using compression")
+	}
+}
+
 func BenchmarkXLSXReader(b *testing.B) {
 	st := &dataset.Structure{Format: "xlsx", Schema: dataset.BaseSchemaArray}
 

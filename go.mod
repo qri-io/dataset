@@ -12,6 +12,7 @@ require (
 	github.com/ipfs/go-log v1.0.4
 	github.com/jinzhu/copier v0.0.0-20190924061706-b57f9002281a
 	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
+	github.com/klauspost/compress v1.13.0
 	github.com/libp2p/go-libp2p-core v0.5.7
 	github.com/mr-tron/base58 v1.1.3
 	github.com/multiformats/go-multihash v0.0.13

@@ -20,7 +20,8 @@ type JSONReader struct {
 	st          *dataset.Structure
 	objKey      string
 	reader      *bufio.Reader
-	prevSize    int // when buffer is extended, remember how much of the old buffer to discard
+	close       func() error // close func from wrapped reader
+	prevSize    int          // when buffer is extended, remember how much of the old buffer to discard
 }
 
 var _ EntryReader = (*JSONReader)(nil)
@@ -39,14 +40,20 @@ func NewJSONReaderSize(st *dataset.Structure, r io.Reader, size int) (*JSONReade
 		return nil, err
 	}
 
-	reader := bufio.NewReaderSize(r, size)
 	tlt, err := GetTopLevelType(st)
 	if err != nil {
 		return nil, err
 	}
+
+	r, close, err := maybeWrapDecompressor(st, r)
+	if err != nil {
+		return nil, err
+	}
+
 	jr := &JSONReader{
 		st:     st,
-		reader: reader,
+		reader: bufio.NewReaderSize(r, size),
+		close:  close,
 		tlt:    tlt,
 	}
 	return jr, nil
@@ -120,8 +127,9 @@ func (r *JSONReader) ReadEntry() (Entry, error) {
 
 // Close finalizes the reader
 func (r *JSONReader) Close() error {
-	// TODO (b5): we should retain a reference to the underlying reader &
-	// check if it's an io.ReadCloser, calling close here if so
+	if r.close != nil {
+		return r.close()
+	}
 	return nil
 }
 
@@ -408,6 +416,7 @@ type JSONWriter struct {
 	indent      string
 	st          *dataset.Structure
 	wr          io.Writer
+	close       func() error // close func from wrapped writer
 	keysWritten map[string]bool
 }
 
@@ -423,10 +432,17 @@ func NewJSONWriter(st *dataset.Structure, w io.Writer) (*JSONWriter, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	w, close, err := maybeWrapCompressor(st, w)
+	if err != nil {
+		return nil, err
+	}
+
 	jw := &JSONWriter{
-		st:  st,
-		wr:  w,
-		tlt: tlt,
+		st:    st,
+		wr:    w,
+		close: close,
+		tlt:   tlt,
 	}
 
 	if jw.tlt == "object" {
@@ -537,7 +553,7 @@ func (w *JSONWriter) valBytes(ent Entry) (data []byte, err error) {
 // Close finalizes the writer, indicating no more records
 // will be written
 func (w *JSONWriter) Close() error {
-	// if WriteEntry is never called, write an empty array
+	// if WriteEntry is never called, write an empty top level type
 	if w.rowsWritten == 0 {
 		data := []byte("[]")
 		if w.tlt == "object" {
@@ -547,6 +563,9 @@ func (w *JSONWriter) Close() error {
 		if _, err := w.wr.Write(data); err != nil {
 			log.Debug(err.Error())
 			return fmt.Errorf("error writing empty closure '%s': %s", string(data), err.Error())
+		}
+		if w.close != nil {
+			return w.close()
 		}
 		return nil
 	}
@@ -564,6 +583,9 @@ func (w *JSONWriter) Close() error {
 	if err != nil {
 		log.Debug(err.Error())
 		return fmt.Errorf("error closing writer: %s", err.Error())
+	}
+	if w.close != nil {
+		return w.close()
 	}
 	return nil
 }

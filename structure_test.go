@@ -3,6 +3,7 @@ package dataset
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"testing"
 
@@ -78,6 +79,27 @@ func TestStructureDataFormat(t *testing.T) {
 	t.Skip("TODO (b5)")
 }
 
+func TestStructureBodyFilename(t *testing.T) {
+	cases := []struct {
+		st     *Structure
+		expect string
+	}{
+		{st: &Structure{}, expect: "body"},
+		{st: &Structure{Format: "snark", Compression: "middle_out"}, expect: "body.snark.middle_out"},
+		{st: &Structure{Compression: "middle_out"}, expect: "body.middle_out"},
+		{st: &Structure{Format: "snark"}, expect: "body.snark"},
+	}
+
+	for i, c := range cases {
+		t.Run(fmt.Sprintf("case_%d", i), func(t *testing.T) {
+			got := c.st.BodyFilename()
+			if diff := cmp.Diff(c.expect, got); diff != "" {
+				t.Errorf("result mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
 func TestStructureRequiresTabularSchema(t *testing.T) {
 	tabularFormats := map[string]struct{}{
 		CSVDataFormat.String():  struct{}{},
@@ -114,7 +136,7 @@ func TestStructureIsEmpty(t *testing.T) {
 		st *Structure
 	}{
 		{&Structure{Checksum: "a"}},
-		{&Structure{Compression: compression.Tar.String()}},
+		{&Structure{Compression: compression.FmtZStandard.String()}},
 		{&Structure{Depth: 1}},
 		{&Structure{Encoding: "a"}},
 		{&Structure{Entries: 1}},
@@ -138,7 +160,7 @@ func TestStructureAssign(t *testing.T) {
 	expect := &Structure{
 		Length:      2503,
 		Checksum:    "hey",
-		Compression: compression.Gzip.String(),
+		Compression: compression.FmtZStandard.String(),
 		Depth:       11,
 		ErrCount:    12,
 		Encoding:    "UTF-8",
@@ -154,7 +176,7 @@ func TestStructureAssign(t *testing.T) {
 	got.Assign(&Structure{
 		Length:      2503,
 		Checksum:    "hey",
-		Compression: compression.Gzip.String(),
+		Compression: compression.FmtZStandard.String(),
 		Depth:       11,
 		ErrCount:    12,
 		Encoding:    "UTF-8",

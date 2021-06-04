@@ -18,6 +18,7 @@ type CSVReader struct {
 	st         *dataset.Structure
 	readHeader bool
 	r          *csv.Reader
+	close      func() error
 
 	// TODO (b5) - this will create problems if users define schemas that support
 	// mutiple types per column. Should replace with a tabular.Columns field
@@ -44,7 +45,12 @@ func NewCSVReaderSize(st *dataset.Structure, r io.Reader, size int) (*CSVReader,
 		types[i] = []string(*c.Type)[0]
 	}
 
-	csvr := csv.NewReader(replacecr.ReaderWithSize(r, size))
+	dr, close, err := maybeWrapDecompressor(st, r)
+	if err != nil {
+		return nil, err
+	}
+
+	csvr := csv.NewReader(replacecr.ReaderWithSize(dr, size))
 
 	if fopts, err := dataset.ParseFormatConfigMap(dataset.CSVDataFormat, st.FormatConfig); err == nil {
 		if opts, ok := fopts.(*dataset.CSVOptions); ok {
@@ -62,6 +68,7 @@ func NewCSVReaderSize(st *dataset.Structure, r io.Reader, size int) (*CSVReader,
 		st:    st,
 		r:     csvr,
 		types: types,
+		close: close,
 	}, nil
 }
 
@@ -101,8 +108,9 @@ func (r *CSVReader) ReadEntry() (Entry, error) {
 
 // Close finalizes the reader
 func (r *CSVReader) Close() error {
-	// TODO (b5): we should retain a reference to the underlying reader &
-	// check if it's an io.ReadCloser, calling close here if so
+	if r.close != nil {
+		return r.close()
+	}
 	return nil
 }
 
@@ -170,6 +178,7 @@ type CSVWriter struct {
 	rowsWritten int
 	w           *csv.Writer
 	st          *dataset.Structure
+	close       func() error
 
 	// TODO (b5) - this will create problems if users define schemas that support
 	// mutiple types per column. Should replace with a tabular.Columns field
@@ -189,7 +198,12 @@ func NewCSVWriter(st *dataset.Structure, w io.Writer) (*CSVWriter, error) {
 		types[i] = []string(*c.Type)[0]
 	}
 
-	writer := csv.NewWriter(w)
+	cw, close, err := maybeWrapCompressor(st, w)
+	if err != nil {
+		return nil, err
+	}
+
+	writer := csv.NewWriter(cw)
 	opts, err := dataset.NewCSVOptions(st.FormatConfig)
 	if opts != nil && err == nil {
 		if opts.Separator != rune(0) {
@@ -201,6 +215,7 @@ func NewCSVWriter(st *dataset.Structure, w io.Writer) (*CSVWriter, error) {
 		st:    st,
 		w:     writer,
 		types: types,
+		close: close,
 	}
 
 	if opts != nil {
@@ -271,5 +286,8 @@ func encode(vs []interface{}) ([]string, error) {
 // will be written
 func (w *CSVWriter) Close() error {
 	w.w.Flush()
+	if w.close != nil {
+		return w.close()
+	}
 	return nil
 }
