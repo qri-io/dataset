@@ -157,6 +157,10 @@ func FormatFromFilename(path string) (dataset.DataFormat, compression.Format, er
 		return dataset.XMLDataFormat, compFmt, nil
 	case ".xlsx":
 		return dataset.XLSXDataFormat, compFmt, nil
+	case ".jsonl":
+		return dataset.NDJSONDataFormat, compFmt, nil
+	case ".ndjson":
+		return dataset.NDJSONDataFormat, compFmt, nil
 	case "":
 		return dataset.UnknownDataFormat, compFmt, errors.New("no file extension provided")
 	default:

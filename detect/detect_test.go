@@ -198,6 +198,8 @@ func TestFormatFromFilename(t *testing.T) {
 		{"foo/bar/baz.json.gzip", dataset.JSONDataFormat, compression.FmtGZip, ""},
 		{"foo/bar/baz.xlsx", dataset.XLSXDataFormat, compression.FmtNone, ""},
 		{"foo/bar/baz.cbor", dataset.CBORDataFormat, compression.FmtNone, ""},
+		{"foo/bar/baz.jsonl", dataset.NDJSONDataFormat, compression.FmtNone, ""},
+		{"foo/bar/baz.ndjson", dataset.NDJSONDataFormat, compression.FmtNone, ""},
 
 		{"foo/bar/baz.xml.blarg", dataset.UnknownDataFormat, compression.FmtNone, "unsupported file type: '.blarg'"},
 		{"foo/bar/baz", dataset.UnknownDataFormat, compression.FmtNone, "no file extension provided"},
