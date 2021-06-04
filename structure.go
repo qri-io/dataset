@@ -124,6 +124,25 @@ func (s *Structure) DataFormat() DataFormat {
 	return df
 }
 
+// BodyFilename interprets structure into a file name, adding extensions for
+// data and compression formats. BodyFilename always uses "body" as the princple
+// file name
+func (s *Structure) BodyFilename() string {
+	return s.AddFileFormatExtensions("body")
+}
+
+// AddFileFormatExtensions appends extensions for data and compression formats
+// to a filename
+func (s *Structure) AddFileFormatExtensions(filename string) string {
+	if s.Format != "" {
+		filename = fmt.Sprintf("%s.%s", filename, s.Format)
+	}
+	if s.Compression != "" {
+		filename = fmt.Sprintf("%s.%s", filename, s.Compression)
+	}
+	return filename
+}
+
 // RequiresTabularSchema returns true if the structure's specified data format
 // requires a JSON schema that describes a rectangular data shape
 func (s *Structure) RequiresTabularSchema() bool {
