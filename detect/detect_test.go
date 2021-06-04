@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/dataset/compression"
 	"github.com/qri-io/dataset/dstest"
 	"github.com/qri-io/qfs"
 )
@@ -180,31 +181,43 @@ func TestFromFile(t *testing.T) {
 	}
 }
 
-func TestExtensionDataFormat(t *testing.T) {
+func TestFormatFromFilename(t *testing.T) {
 	cases := []struct {
-		path   string
-		expect dataset.DataFormat
-		err    string
+		path       string
+		expectFmt  dataset.DataFormat
+		expectComp compression.Format
+		err        string
 	}{
-		{"foo/bar/baz.csv", dataset.CSVDataFormat, ""},
-		{"foo/bar/baz.json", dataset.JSONDataFormat, ""},
-		{"foo/bar/baz.xml", dataset.XMLDataFormat, ""},
-		{"foo/bar/baz.xlsx", dataset.XLSXDataFormat, ""},
-		{"foo/bar/baz.cbor", dataset.CBORDataFormat, ""},
-		{"foo/bar/baz", dataset.UnknownDataFormat, "no file extension provided"},
-		{"foo/bar/baz.jpg", dataset.UnknownDataFormat, "unsupported file type: '.jpg'"},
+		{"foo/bar/baz.csv", dataset.CSVDataFormat, compression.FmtNone, ""},
+		{"foo/bar/baz.json", dataset.JSONDataFormat, compression.FmtNone, ""},
+		{"foo/bar/baz.xml", dataset.XMLDataFormat, compression.FmtNone, ""},
+		{"foo/bar/baz.xlsx", dataset.XLSXDataFormat, compression.FmtNone, ""},
+		{"foo/bar/baz.cbor", dataset.CBORDataFormat, compression.FmtNone, ""},
+
+		{"foo/bar/baz.csv.zstd", dataset.CSVDataFormat, compression.FmtZStandard, ""},
+		{"foo/bar/baz.json.gzip", dataset.JSONDataFormat, compression.FmtGZip, ""},
+		{"foo/bar/baz.xlsx", dataset.XLSXDataFormat, compression.FmtNone, ""},
+		{"foo/bar/baz.cbor", dataset.CBORDataFormat, compression.FmtNone, ""},
+
+		{"foo/bar/baz.xml.blarg", dataset.UnknownDataFormat, compression.FmtNone, "unsupported file type: '.blarg'"},
+		{"foo/bar/baz", dataset.UnknownDataFormat, compression.FmtNone, "no file extension provided"},
+		{"foo/bar/baz.jpg", dataset.UnknownDataFormat, compression.FmtNone, "unsupported file type: '.jpg'"},
 	}
 
-	for i, c := range cases {
-		got, err := ExtensionDataFormat(c.path)
-		if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
-			t.Errorf("case %d error expected: '%s', got: '%s'", i, c.err, err)
-			continue
-		}
-		if got != c.expect {
-			t.Errorf("case %d datatype mismatch. expected: '%s', got: '%s'", i, c.expect, got)
-			continue
-		}
+	for _, c := range cases {
+		t.Run(c.path, func(t *testing.T) {
+			gotF, gotComp, err := FormatFromFilename(c.path)
+			if !(err == nil && c.err == "" || err != nil && err.Error() == c.err) {
+				t.Fatalf("error expected: %q, got: %q", c.err, err)
+			}
+
+			if c.expectFmt != gotF {
+				t.Errorf("data format mismatch. expected: %q, got: %q", c.expectFmt, gotF)
+			}
+			if c.expectComp != gotComp {
+				t.Errorf("compression format mismatch. expected: %q, got: %q", c.expectComp, gotComp)
+			}
+		})
 	}
 }
 

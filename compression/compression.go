@@ -19,6 +19,8 @@ func (s Format) String() string {
 }
 
 const (
+	// FmtNone is a sentinel for no compression
+	FmtNone Format = ""
 	// FmtZStandard compression https://facebook.github.io/zstd/
 	FmtZStandard Format = "zstd"
 	// FmtGZip GNU zip compression https://www.gnu.org/software/gzip/
@@ -31,13 +33,14 @@ var SupportedFormats = map[Format]struct{}{
 	FmtGZip:      {},
 }
 
-// ParseFormat interprets a string into a compression format
+// ParseFormat interprets a string into a supported compression format
+// errors when provided the empty string ("no compression" format)
 func ParseFormat(s string) (f Format, err error) {
 	f = Format(s)
 	if _, ok := SupportedFormats[f]; !ok {
-		err = fmt.Errorf("unsupported compression format: %q", s)
+		return FmtNone, fmt.Errorf("unsupported compression format: %q", s)
 	}
-	return f, err
+	return f, nil
 }
 
 // Compressor wraps a given writer with a specified comrpession format
