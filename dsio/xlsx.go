@@ -25,6 +25,10 @@ type XLSXReader struct {
 
 // NewXLSXReader creates a reader from a structure and read source
 func NewXLSXReader(st *dataset.Structure, r io.Reader) (*XLSXReader, error) {
+	if st.Compression != "" {
+		return nil, fmt.Errorf("xlsx format does not support compression")
+	}
+
 	cols, _, err := tabular.ColumnsFromJSONSchema(st.Schema)
 	if err != nil {
 		return nil, err
@@ -40,7 +44,6 @@ func NewXLSXReader(st *dataset.Structure, r io.Reader) (*XLSXReader, error) {
 		types: types,
 	}
 
-	// xlsxr := xlsx.NewReader(ReplaceSoloCarriageReturns(r))
 	rdr.file, rdr.err = excelize.OpenReader(r)
 	if rdr.err != nil {
 		return rdr, rdr.err
@@ -152,6 +155,10 @@ type XLSXWriter struct {
 
 // NewXLSXWriter creates a Writer from a structure and write destination
 func NewXLSXWriter(st *dataset.Structure, w io.Writer) (*XLSXWriter, error) {
+	if st.Compression != "" {
+		return nil, fmt.Errorf("xlsx format does not support compression")
+	}
+
 	cols, _, err := tabular.ColumnsFromJSONSchema(st.Schema)
 	if err != nil {
 		return nil, err

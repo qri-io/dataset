@@ -3,9 +3,12 @@ package dsio
 import (
 	"bytes"
 	"errors"
+	"io"
 	"os"
+	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/qri-io/dataset"
 	"github.com/qri-io/dataset/compression"
 	"github.com/qri-io/dataset/dstest"
@@ -153,29 +156,79 @@ func TestCSVReaderLazyQuotes(t *testing.T) {
 	if err != nil {
 		t.Errorf("expected no error: %s", err.Error())
 	}
+	if err := rdr.Close(); err != nil {
+		t.Errorf("closing reader: %s", err)
+	}
 }
 
-func TestCompression(t *testing.T) {
-	data := `number,str
-	2,"HYDROCHLORIC ACID (1995 AND AFTER "ACID AEROSOLS" ONLY)"`
-
-	st := &dataset.Structure{
+func TestCSVCompression(t *testing.T) {
+	invalidCompressionSt := &dataset.Structure{
 		Format:      "csv",
-		Compression: compression.GZip.String(),
-		FormatConfig: map[string]interface{}{
-			"headerRow":  true,
-			"lazyQuotes": true,
-		},
+		Compression: "invalid",
 		Schema: map[string]interface{}{
 			"type": "array",
 			"items": map[string]interface{}{
 				"type": "array",
 				"items": []interface{}{
 					map[string]interface{}{"type": "number"},
-					map[string]interface{}{"type": "string"},
 				},
 			},
 		},
+	}
+	if _, err := NewCSVReader(invalidCompressionSt, nil); err == nil {
+		t.Errorf("constructing reader with invalid compression should error")
+	}
+	if _, err := NewCSVWriter(invalidCompressionSt, nil); err == nil {
+		t.Errorf("constructing writer with invalid compression should error")
+	}
+
+	data := `num,str
+2,oh hai
+5,goodbye
+`
+
+	compressed := &bytes.Buffer{}
+	compressor, _ := compression.Compressor("zstd", compressed)
+	io.Copy(compressor, strings.NewReader(data))
+	compressor.Close()
+
+	st := &dataset.Structure{
+		Format:      "csv",
+		Compression: compression.FmtZStandard.String(),
+		FormatConfig: map[string]interface{}{
+			"headerRow": true,
+		},
+		Schema: map[string]interface{}{
+			"type": "array",
+			"items": map[string]interface{}{
+				"type": "array",
+				"items": []interface{}{
+					map[string]interface{}{"title": "num", "type": "number"},
+					map[string]interface{}{"title": "str", "type": "string"},
+				},
+			},
+		},
+	}
+
+	rdr, err := NewCSVReader(st, compressed)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	compressed2 := &bytes.Buffer{}
+	wr, err := NewCSVWriter(st, compressed2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := Copy(rdr, wr); err != nil {
+		t.Fatal(err)
+	}
+	rdr.Close()
+	wr.Close()
+
+	if diff := cmp.Diff(compressed.Bytes(), compressed2.Bytes()); diff != "" {
+		t.Errorf("result mismatch expect (-want +got):\n%s", diff)
 	}
 }
 

@@ -198,7 +198,7 @@ func NewCSVWriter(st *dataset.Structure, w io.Writer) (*CSVWriter, error) {
 		types[i] = []string(*c.Type)[0]
 	}
 
-	cw, close, err := maybeWrapCompresspor(st, w)
+	cw, close, err := maybeWrapCompressor(st, w)
 	if err != nil {
 		return nil, err
 	}
@@ -287,7 +287,7 @@ func encode(vs []interface{}) ([]string, error) {
 func (w *CSVWriter) Close() error {
 	w.w.Flush()
 	if w.close != nil {
-		return w.Close()
+		return w.close()
 	}
 	return nil
 }

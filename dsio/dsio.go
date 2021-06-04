@@ -100,15 +100,21 @@ func maybeWrapDecompressor(st *dataset.Structure, r io.Reader) (io.Reader, func(
 	}
 
 	rc, err := compression.Decompressor(st.Compression, r)
+	if err != nil {
+		return nil, nil, err
+	}
 	return rc, rc.Close, err
 }
 
-func maybeWrapCompresspor(st *dataset.Structure, w io.Writer) (io.Writer, func() error, error) {
+func maybeWrapCompressor(st *dataset.Structure, w io.Writer) (io.Writer, func() error, error) {
 	if st.Compression == "" {
 		return w, nil, nil
 	}
 
 	wc, err := compression.Compressor(st.Compression, w)
+	if err != nil {
+		return nil, nil, err
+	}
 	return wc, wc.Close, err
 }
 

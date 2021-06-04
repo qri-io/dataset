@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/dataset/compression"
 	"github.com/qri-io/dataset/dstest"
 )
 
@@ -451,6 +453,50 @@ func TestJSONPrettyWriter(t *testing.T) {
 		if diff := cmp.Diff(c.expect, result); diff != "" {
 			t.Errorf("JSON Pretty Print contents (-want +got):\n%s", diff)
 		}
+	}
+}
+
+func TestJSONCompression(t *testing.T) {
+	invalidCompressionSt := &dataset.Structure{Format: "json", Compression: "invalid", Schema: dataset.BaseSchemaArray}
+	if _, err := NewJSONReader(invalidCompressionSt, nil); err == nil {
+		t.Errorf("constructing reader with invalid compression should error")
+	}
+	if _, err := NewJSONWriter(invalidCompressionSt, nil); err == nil {
+		t.Errorf("constructing writer with invalid compression should error")
+	}
+
+	data := `[["a","b","c"]]`
+
+	compressed := &bytes.Buffer{}
+	compressor, _ := compression.Compressor("zstd", compressed)
+	io.Copy(compressor, strings.NewReader(data))
+	compressor.Close()
+
+	st := &dataset.Structure{
+		Format:      "json",
+		Compression: "zstd",
+		Schema:      dataset.BaseSchemaArray,
+	}
+
+	rdr, err := NewJSONReader(st, compressed)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	compressed2 := &bytes.Buffer{}
+	wr, err := NewJSONWriter(st, compressed2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := Copy(rdr, wr); err != nil {
+		t.Fatal(err)
+	}
+	rdr.Close()
+	wr.Close()
+
+	if diff := cmp.Diff(compressed.Bytes(), compressed2.Bytes()); diff != "" {
+		t.Errorf("result mismatch expect (-want +got):\n%s", diff)
 	}
 }
 
