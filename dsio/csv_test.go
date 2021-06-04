@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/dataset/compression"
 	"github.com/qri-io/dataset/dstest"
 	"github.com/qri-io/dataset/tabular"
 )
@@ -151,6 +152,30 @@ func TestCSVReaderLazyQuotes(t *testing.T) {
 	_, err = rdr.ReadEntry()
 	if err != nil {
 		t.Errorf("expected no error: %s", err.Error())
+	}
+}
+
+func TestCompression(t *testing.T) {
+	data := `number,str
+	2,"HYDROCHLORIC ACID (1995 AND AFTER "ACID AEROSOLS" ONLY)"`
+
+	st := &dataset.Structure{
+		Format:      "csv",
+		Compression: compression.GZip.String(),
+		FormatConfig: map[string]interface{}{
+			"headerRow":  true,
+			"lazyQuotes": true,
+		},
+		Schema: map[string]interface{}{
+			"type": "array",
+			"items": map[string]interface{}{
+				"type": "array",
+				"items": []interface{}{
+					map[string]interface{}{"type": "number"},
+					map[string]interface{}{"type": "string"},
+				},
+			},
+		},
 	}
 }
 

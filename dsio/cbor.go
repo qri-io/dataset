@@ -19,6 +19,7 @@ type CBORReader struct {
 	st       *dataset.Structure
 	topLevel byte
 	length   int
+	close    func() error
 }
 
 var _ EntryReader = (*CBORReader)(nil)
@@ -32,6 +33,11 @@ func NewCBORReader(st *dataset.Structure, r io.Reader) (*CBORReader, error) {
 	if st.Schema == nil {
 		err := fmt.Errorf("schema required for CBOR reader")
 		log.Debug(err.Error())
+		return nil, err
+	}
+
+	r, close, err := maybeWrapDecompressor(st, r)
+	if err != nil {
 		return nil, err
 	}
 
@@ -51,6 +57,7 @@ func NewCBORReader(st *dataset.Structure, r io.Reader) (*CBORReader, error) {
 		st:       st,
 		rdr:      bufio.NewReader(r),
 		topLevel: topLevel,
+		close:    close,
 	}, nil
 }
 
@@ -98,7 +105,9 @@ func (r *CBORReader) ReadEntry() (ent Entry, err error) {
 
 // Close finalizes the reader
 func (r *CBORReader) Close() error {
-	// TODO (b5): check if underlying reader is an io.ReadCloser, call close here if so
+	if r.close != nil {
+		return r.close()
+	}
 	return nil
 }
 

@@ -8,6 +8,7 @@ import (
 
 	logger "github.com/ipfs/go-log"
 	"github.com/qri-io/dataset"
+	"github.com/qri-io/dataset/compression"
 	"github.com/qri-io/qfs"
 )
 
@@ -91,6 +92,24 @@ func NewEntryWriter(st *dataset.Structure, w io.Writer) (EntryWriter, error) {
 		log.Debug(err.Error())
 		return nil, err
 	}
+}
+
+func maybeWrapDecompressor(st *dataset.Structure, r io.Reader) (io.Reader, func() error, error) {
+	if st.Compression == "" {
+		return r, nil, nil
+	}
+
+	rc, err := compression.Decompressor(st.Compression, r)
+	return rc, rc.Close, err
+}
+
+func maybeWrapCompresspor(st *dataset.Structure, w io.Writer) (io.Writer, func() error, error) {
+	if st.Compression == "" {
+		return w, nil, nil
+	}
+
+	wc, err := compression.Compressor(st.Compression, w)
+	return wc, wc.Close, err
 }
 
 // GetTopLevelType returns the top-level type of the structure, only if it is

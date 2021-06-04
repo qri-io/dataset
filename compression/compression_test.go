@@ -7,6 +7,27 @@ import (
 	"testing"
 )
 
+func TestNew(t *testing.T) {
+	if _, err := Compressor("invalid", &bytes.Buffer{}); err == nil {
+		t.Error("expected error constructing with invalid compression format string")
+	}
+
+	if _, err := Decompressor("invalid", &bytes.Buffer{}); err == nil {
+		t.Error("expected error constructing with invalid decompression format string")
+	}
+
+	SupportedFormats[Format("invalid")] = struct{}{}
+	defer delete(SupportedFormats, Format("invalid"))
+
+	if _, err := Compressor("invalid", &bytes.Buffer{}); err == nil {
+		t.Error("expected error constructing with compression format without backing compressor")
+	}
+
+	if _, err := Decompressor("invalid", &bytes.Buffer{}); err == nil {
+		t.Error("expected error constructing with decompression format without backing decompressor")
+	}
+}
+
 func TestCompressionCycle(t *testing.T) {
 	for f := range SupportedFormats {
 		t.Run(string(f), func(t *testing.T) {
@@ -38,7 +59,7 @@ func TestCompressionCycle(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			defer comp.Close()
+			defer decomp.Close()
 
 			result := &bytes.Buffer{}
 			if _, err := io.Copy(result, decomp); err != nil {

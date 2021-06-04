@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/klauspost/compress/gzip"
 	"github.com/klauspost/compress/zstd"
 )
 
@@ -18,20 +19,23 @@ func (s Format) String() string {
 }
 
 const (
-	// ZStandard compression https://facebook.github.io/zstd/
-	ZStandard Format = "zstd"
+	// FmtZStandard compression https://facebook.github.io/zstd/
+	FmtZStandard Format = "zstd"
+	// Gzip GNU zip compression https://www.gnu.org/software/gzip/
+	FmtGZip Format = "gzip"
 )
 
 // Supported formats indexes suppoorted formats in a map for easy lookups
 var SupportedFormats = map[Format]struct{}{
-	ZStandard: {},
+	FmtZStandard: {},
+	FmtGZip:      {},
 }
 
 // ParseFormat interprets a string into a compression format
-func ParseFormat(t string) (f Format, err error) {
-	f = Format(t)
+func ParseFormat(s string) (f Format, err error) {
+	f = Format(s)
 	if _, ok := SupportedFormats[f]; !ok {
-		err = fmt.Errorf("unsupported compression format: %q", t)
+		err = fmt.Errorf("unsupported compression format: %q", s)
 	}
 	return f, err
 }
@@ -45,8 +49,10 @@ func Compressor(compressionFormat string, w io.Writer) (io.WriteCloser, error) {
 	}
 
 	switch f {
-	case ZStandard:
+	case FmtZStandard:
 		return zstd.NewWriter(w)
+	case FmtGZip:
+		return gzip.NewWriter(w), nil
 	}
 
 	return nil, fmt.Errorf("no available compressor for %q format", f)
@@ -61,12 +67,14 @@ func Decompressor(compressionFormat string, r io.Reader) (io.ReadCloser, error) 
 	}
 
 	switch f {
-	case ZStandard:
+	case FmtZStandard:
 		rdr, err := zstd.NewReader(r)
 		if err != nil {
 			return nil, err
 		}
 		return zstdErrorDecoderShim{rdr}, nil
+	case FmtGZip:
+		return gzip.NewReader(r)
 	}
 
 	return nil, fmt.Errorf("no available decompressor for %q format", f)
