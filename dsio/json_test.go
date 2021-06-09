@@ -468,13 +468,13 @@ func TestJSONCompression(t *testing.T) {
 	data := `[["a","b","c"]]`
 
 	compressed := &bytes.Buffer{}
-	compressor, _ := compression.Compressor("zstd", compressed)
+	compressor, _ := compression.Compressor("zst", compressed)
 	io.Copy(compressor, strings.NewReader(data))
 	compressor.Close()
 
 	st := &dataset.Structure{
 		Format:      "json",
-		Compression: "zstd",
+		Compression: "zst",
 		Schema:      dataset.BaseSchemaArray,
 	}
 

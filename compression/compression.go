@@ -22,7 +22,7 @@ const (
 	// FmtNone is a sentinel for no compression
 	FmtNone Format = ""
 	// FmtZStandard compression https://facebook.github.io/zstd/
-	FmtZStandard Format = "zstd"
+	FmtZStandard Format = "zst"
 	// FmtGZip GNU zip compression https://www.gnu.org/software/gzip/
 	FmtGZip Format = "gzip"
 )

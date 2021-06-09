@@ -194,7 +194,7 @@ func TestFormatFromFilename(t *testing.T) {
 		{"foo/bar/baz.xlsx", dataset.XLSXDataFormat, compression.FmtNone, ""},
 		{"foo/bar/baz.cbor", dataset.CBORDataFormat, compression.FmtNone, ""},
 
-		{"foo/bar/baz.csv.zstd", dataset.CSVDataFormat, compression.FmtZStandard, ""},
+		{"foo/bar/baz.csv.zst", dataset.CSVDataFormat, compression.FmtZStandard, ""},
 		{"foo/bar/baz.json.gzip", dataset.JSONDataFormat, compression.FmtGZip, ""},
 		{"foo/bar/baz.xlsx", dataset.XLSXDataFormat, compression.FmtNone, ""},
 		{"foo/bar/baz.cbor", dataset.CBORDataFormat, compression.FmtNone, ""},
