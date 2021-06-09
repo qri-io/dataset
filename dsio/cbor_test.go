@@ -414,13 +414,13 @@ func TestCBORCompression(t *testing.T) {
 	data, _ := hex.DecodeString(`a56161616161626162616361636164616461656165`)
 
 	compressed := &bytes.Buffer{}
-	compressor, _ := compression.Compressor("zstd", compressed)
+	compressor, _ := compression.Compressor("zst", compressed)
 	io.Copy(compressor, bytes.NewBuffer(data))
 	compressor.Close()
 
 	st := &dataset.Structure{
 		Format:      "cbor",
-		Compression: "zstd",
+		Compression: "zst",
 		Schema:      dataset.BaseSchemaObject,
 	}
 

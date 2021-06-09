@@ -188,7 +188,7 @@ func TestCSVCompression(t *testing.T) {
 `
 
 	compressed := &bytes.Buffer{}
-	compressor, _ := compression.Compressor("zstd", compressed)
+	compressor, _ := compression.Compressor("zst", compressed)
 	io.Copy(compressor, strings.NewReader(data))
 	compressor.Close()
 
