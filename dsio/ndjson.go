@@ -13,7 +13,7 @@ import (
 type NDJSONReader struct {
 	entriesRead int
 	st          *dataset.Structure
-	scanner     *bufio.Scanner
+	buf         *bufio.Reader
 	close       func() error // close func from wrapped reader
 	prevSize    int          // when buffer is extended, remember how much of the old buffer to discard
 }
@@ -22,12 +22,6 @@ var _ EntryReader = (*NDJSONReader)(nil)
 
 // NewNDJSONReader creates a reader from a structure and read source
 func NewNDJSONReader(st *dataset.Structure, r io.Reader) (*NDJSONReader, error) {
-	// Huge buffer 5MiB, b/c NDJSON lines can be very long
-	return NewNDJSONReaderSize(st, r, 5*1000000)
-}
-
-// NewNDJSONReaderSize creates a reader from a structure, read source, and buffer size
-func NewNDJSONReaderSize(st *dataset.Structure, r io.Reader, size int) (*NDJSONReader, error) {
 	if st.Schema == nil {
 		err := fmt.Errorf("schema required for NDJSON reader")
 		log.Debug(err.Error())
@@ -47,13 +41,10 @@ func NewNDJSONReaderSize(st *dataset.Structure, r io.Reader, size int) (*NDJSONR
 		return nil, err
 	}
 
-	sc := bufio.NewScanner(r)
-	sc.Buffer(make([]byte, 1000, size), size)
-
 	ndjr := &NDJSONReader{
-		st:      st,
-		scanner: sc,
-		close:   close,
+		st:    st,
+		buf:   bufio.NewReader(r),
+		close: close,
 	}
 	return ndjr, nil
 }
@@ -65,15 +56,13 @@ func (r *NDJSONReader) Structure() *dataset.Structure {
 
 // ReadEntry reads one JSON record from the reader
 func (r *NDJSONReader) ReadEntry() (Entry, error) {
-	if more := r.scanner.Scan(); !more {
-		if err := r.scanner.Err(); err != nil {
-			return Entry{}, err
-		}
-		return Entry{}, io.EOF
+	line, err := r.buf.ReadBytes('\n')
+	if err != nil {
+		return Entry{}, err
 	}
 
 	var v interface{}
-	if err := json.Unmarshal(r.scanner.Bytes(), &v); err != nil {
+	if err := json.Unmarshal(line, &v); err != nil {
 		return Entry{}, err
 	}
 

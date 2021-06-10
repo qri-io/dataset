@@ -2,6 +2,7 @@ package dsio
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"strings"
 	"testing"
@@ -91,5 +92,46 @@ null
 
 	if diff := cmp.Diff(compressed.Bytes(), compressed2.Bytes()); diff != "" {
 		t.Errorf("result mismatch expect (-want +got):\n%s", diff)
+	}
+}
+
+func TestNDJSONReaderSizeOverflow(t *testing.T) {
+	// run a test with one 24,000-character long string to ensure the reader
+	// doesn't choke on a long line of JSON
+	st := &dataset.Structure{
+		Format: "ndjson",
+		Schema: dataset.BaseSchemaArray,
+	}
+	data := fmt.Sprintf(`"hi"
+false
+%q
+null
+"bye"
+`, strings.Repeat("long", 1024*6))
+
+	rdr, err := NewNDJSONReader(st, strings.NewReader(data))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	vals, err := ReadAll(rdr)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if err := rdr.Close(); err != nil {
+		t.Error(err)
+	}
+
+	expect := []interface{}{
+		"hi",
+		false,
+		strings.Repeat("long", 1024*6),
+		nil,
+		"bye",
+	}
+
+	if diff := cmp.Diff(expect, vals); diff != "" {
+		t.Errorf("result mismatch (-want +got):\n%s", diff)
 	}
 }
