@@ -52,3 +52,8 @@ func JSONSchema(resource *dataset.Structure, data io.Reader) (schema map[string]
 		}
 	}
 }
+
+// NDJSONSchema returns an array identity schema
+func NDJSONSchema(resource *dataset.Structure, data io.Reader) (schema map[string]interface{}, n int, err error) {
+	return dataset.BaseSchemaArray, 0, nil
+}

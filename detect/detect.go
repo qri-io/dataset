@@ -80,7 +80,11 @@ func Structure(ds *dataset.Dataset) error {
 	// glue whatever we just read back onto the reader
 	// TODO (b5)- this may ruin readers that transparently depend on a read-closer
 	// we should consider a method on qfs.File that allows this non-destructive read pattern
-	ds.SetBodyFile(qfs.NewMemfileReader(body.FileName(), io.MultiReader(buf, body)))
+	size := int64(-1)
+	if sizef, ok := body.(qfs.SizeFile); ok {
+		size = sizef.Size()
+	}
+	ds.SetBodyFile(qfs.NewMemfileReaderSize(body.FileName(), io.MultiReader(buf, body), size))
 	return nil
 }
 
@@ -157,6 +161,10 @@ func FormatFromFilename(path string) (dataset.DataFormat, compression.Format, er
 		return dataset.XMLDataFormat, compFmt, nil
 	case ".xlsx":
 		return dataset.XLSXDataFormat, compFmt, nil
+	case ".jsonl":
+		return dataset.NDJSONDataFormat, compFmt, nil
+	case ".ndjson":
+		return dataset.NDJSONDataFormat, compFmt, nil
 	case "":
 		return dataset.UnknownDataFormat, compFmt, errors.New("no file extension provided")
 	default:

@@ -61,6 +61,8 @@ func NewEntryReader(st *dataset.Structure, r io.Reader) (EntryReader, error) {
 		return NewCSVReader(st, r)
 	case dataset.XLSXDataFormat:
 		return NewXLSXReader(st, r)
+	case dataset.NDJSONDataFormat:
+		return NewNDJSONReader(st, r)
 	case dataset.UnknownDataFormat:
 		err := fmt.Errorf("structure must have a data format")
 		log.Debug(err.Error())
@@ -83,6 +85,8 @@ func NewEntryWriter(st *dataset.Structure, w io.Writer) (EntryWriter, error) {
 		return NewCSVWriter(st, w)
 	case dataset.XLSXDataFormat:
 		return NewXLSXWriter(st, w)
+	case dataset.NDJSONDataFormat:
+		return NewNDJSONWriter(st, w)
 	case dataset.UnknownDataFormat:
 		err := fmt.Errorf("structure must have a data format")
 		log.Debug(err.Error())
