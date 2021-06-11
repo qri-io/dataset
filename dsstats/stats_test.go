@@ -2,6 +2,7 @@ package dsstats
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -476,5 +477,53 @@ func TestJSON(t *testing.T) {
 		if diff := cmp.Diff(c.Expect, got); diff != "" {
 			t.Errorf("%d. '%s' result mismatch (-want +got):%s\n", i, c.Description, diff)
 		}
+	}
+}
+
+func TestLongStringValues(t *testing.T) {
+	ds := &dataset.Dataset{
+		Structure: &dataset.Structure{
+			Format: dataset.NDJSONDataFormat.String(),
+			Schema: dataset.BaseSchemaArray,
+		},
+	}
+
+	rows := []string{
+		`{"val": "wave" }`,
+		fmt.Sprintf(`{ "val": %q }`, strings.Repeat("hello", 100)),
+		fmt.Sprintf(`{ "val": "%s12345" }`, strings.Repeat("hello", 99)),
+		fmt.Sprintf(`{ "val": %q }`, strings.Repeat("world", 100)),
+	}
+	data := strings.Join(rows, "\n") + "\n"
+	bodyFile := qfs.NewMemfileBytes("bodyfile", []byte(data))
+	ds.SetBodyFile(bodyFile)
+
+	got, err := Calculate(ds)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expect := &dataset.Stats{
+		Qri: string(dataset.KindStats),
+		Stats: []map[string]interface{}{
+			{
+				"count": 4,
+				"frequencies": map[string]int{
+					"hellohellohellohellohellohellohellohello... 500 chars (0)": 1,
+					"hellohellohellohellohellohellohellohello... 500 chars (1)": 1,
+					"wave": 1,
+					"worldworldworldworldworldworldworldworld... 500 chars (3)": 1,
+				},
+				"key":       "val",
+				"maxLength": 500,
+				"minLength": 4,
+				"type":      "string",
+				"unique":    4,
+			},
+		},
+	}
+
+	if diff := cmp.Diff(expect, got); diff != "" {
+		t.Errorf("result mismatch (-want +got):%s\n", diff)
 	}
 }

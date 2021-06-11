@@ -392,6 +392,10 @@ func (acc *numericAcc) Close() {
 	acc.median = acc.histogramSketch.Median()
 }
 
+// maximum length of a key before it's value is truncated in finalized stats
+// output
+const maxKeyLen = 40
+
 type stringAcc struct {
 	count       int
 	minLength   int
@@ -462,8 +466,12 @@ func (acc *stringAcc) Map() map[string]interface{} {
 func (acc *stringAcc) Close() {
 	acc.frequencies = map[string]int{}
 	top := acc.topk.Keys()
-	for _, k := range top {
-		acc.frequencies[k.Key] = k.Count
+	for i, k := range top {
+		key := k.Key
+		if len(key) > maxKeyLen {
+			key = fmt.Sprintf("%s... %d chars (%d)", k.Key[:maxKeyLen], len(key), i)
+		}
+		acc.frequencies[key] = k.Count
 	}
 	acc.unique = int(acc.hll.Estimate())
 }
