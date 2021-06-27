@@ -139,6 +139,7 @@
     "qri":"rm:0"
   },
   "stats": {
-    "qri":"sa:0"
+    "qri":"sa:0",
+    "stats": {"todo": "add real stats"}
   }
 }
