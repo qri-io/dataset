@@ -17,7 +17,7 @@ require (
 	github.com/multiformats/go-multihash v0.0.15
 	github.com/qri-io/compare v0.1.0
 	github.com/qri-io/jsonschema v0.2.2-0.20210618085106-a515144d7449
-	github.com/qri-io/qfs v0.6.1-0.20210628010151-c6696e2693f3
+	github.com/qri-io/qfs v0.6.1-0.20210629014446-45bdcdb57434
 	github.com/qri-io/varName v0.1.0
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/ugorji/go/codec v1.1.7
