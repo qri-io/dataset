@@ -1041,8 +1041,8 @@ github.com/qri-io/jsonpointer v0.1.1 h1:prVZBZLL6TW5vsSB9fFHFAMBLI4b0ri5vribQlTJ
 github.com/qri-io/jsonpointer v0.1.1/go.mod h1:DnJPaYgiKu56EuDp8TU5wFLdZIcAnb/uH9v37ZaMV64=
 github.com/qri-io/jsonschema v0.2.2-0.20210618085106-a515144d7449 h1:cAOmZ7Wn2/lDhq8d0qq00pqvrhgwvLQMizMhr+3XLg4=
 github.com/qri-io/jsonschema v0.2.2-0.20210618085106-a515144d7449/go.mod h1:g7DPkiOsK1xv6T/Ao5scXRkd+yTFygcANPBaaqW+VrI=
-github.com/qri-io/qfs v0.6.1-0.20210628010151-c6696e2693f3 h1:Q5szeDxm4u8Vjf1YJAb5lz0tKhKtXO8+1XSl2YQo5Pc=
-github.com/qri-io/qfs v0.6.1-0.20210628010151-c6696e2693f3/go.mod h1:XX/caqvngrusufIrtnbo4iPtgsNfu0dfrE3pmLGte9w=
+github.com/qri-io/qfs v0.6.1-0.20210629014446-45bdcdb57434 h1:+ZB/sJ9tLuO0280+V+7cViyWCVw+gq/VTyC51+DudtQ=
+github.com/qri-io/qfs v0.6.1-0.20210629014446-45bdcdb57434/go.mod h1:XX/caqvngrusufIrtnbo4iPtgsNfu0dfrE3pmLGte9w=
 github.com/qri-io/varName v0.1.0 h1:dFP5qZHrxnn5fNoMbjfpMCRBYDrOsoyls7R07r+emk0=
 github.com/qri-io/varName v0.1.0/go.mod h1:IGWuuGOHhLJ9ZZg28C/+oMYm1QYP+pAorNZKQpdXhxQ=
 github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=

@@ -22,6 +22,11 @@ const (
 	// MaxNumDatasetRowsInPreview is the highest number of rows a dataset preview
 	// can contain
 	MaxNumDatasetRowsInPreview = 100
+	// MaxStatsBytes is the maximum number of bytes reserved in a preview for stats
+	// values.
+	// TODO(b5): this value is not currently honored, requires implementing
+	// dataset.Stats.Abbreviate
+	MaxStatsBytes = 10000
 	// MaxReadmePreviewBytes determines the maximum amount of bytes a readme
 	// preview can be. three bytes less than 1000 to make room for an elipsis
 	MaxReadmePreviewBytes = 997
@@ -36,7 +41,7 @@ const (
 //    - meta: all
 //    - commit: all
 //    - structure: all
-//    - stats: none
+//    - stats: all
 //    - viz: all
 //    - transform: all
 func Create(ctx context.Context, ds *dataset.Dataset) (*dataset.Dataset, error) {
@@ -46,11 +51,11 @@ func Create(ctx context.Context, ds *dataset.Dataset) (*dataset.Dataset, error) 
 	)
 
 	if ds == nil {
-		log.Debugf("Create: nil dataset")
+		log.Debug("Create: nil dataset")
 		return nil, fmt.Errorf("nil dataset")
 	}
 	if ds.IsEmpty() {
-		log.Debugf("Create: empty dataset")
+		log.Debug("Create: empty dataset")
 		return nil, fmt.Errorf("empty dataset")
 	}
 
@@ -63,7 +68,7 @@ func Create(ctx context.Context, ds *dataset.Dataset) (*dataset.Dataset, error) 
 
 		ds.Readme.ScriptBytes, err = ioutil.ReadAll(io.LimitReader(tr, MaxReadmePreviewBytes))
 		if err != nil {
-			log.Errorf("Reading Readme: %s", err.Error())
+			log.Debugw("Reading Readme", "err", err.Error())
 			return nil, err
 		}
 
@@ -83,23 +88,27 @@ func Create(ctx context.Context, ds *dataset.Dataset) (*dataset.Dataset, error) 
 		f := ds.BodyFile()
 		tr := io.TeeReader(f, buf)
 		teedFile := qfs.NewMemfileReader(f.FullPath(), tr)
+		size := -1
+		if sf, ok := f.(qfs.SizeFile); ok {
+			size = int(sf.Size())
+		}
 
 		data, err := dsio.ConvertFile(teedFile, ds.Structure, st, MaxNumDatasetRowsInPreview, 0, false)
 		if err != nil {
-			log.Errorf("Create converting body file: %s", err.Error())
+			log.Debugw("converting body file", "err", err.Error())
 			return nil, err
 		}
 
 		ds.Body = json.RawMessage(data)
-		ds.SetBodyFile(qfs.NewMemfileReader(f.FullPath(), io.MultiReader(buf, f)))
+		ds.SetBodyFile(qfs.NewMemfileReaderSize(f.FullPath(), io.MultiReader(buf, f), int64(size)))
 	}
 
-	// TODO (b5) - previews currently don't include the new stats component, because
-	// we don't have logic for dropping the space-intensive fields in stat structs
-	// Once we have a clear way to drop things like string frequency counts, and can
-	// get the byte-cost of stats to scale linearly with the dataset column count
-	// previews should include stats
-	ds.Stats = nil
+	// Note: stats can get arbitrarily large, potentially bloating the size
+	// of previews. Add a method for bounding the final size of stats to a
+	// constant byte size
+	if ds.Stats != nil && !ds.Stats.IsEmpty() {
+		p.Stats = ds.Stats
+	}
 
 	return ds, nil
 }

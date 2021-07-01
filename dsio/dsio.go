@@ -209,7 +209,7 @@ func ConvertFile(file qfs.File, in, out *dataset.Structure, limit, offset int, a
 
 	rr, err := NewEntryReader(in, file)
 	if err != nil {
-		err = fmt.Errorf("error allocating data reader: %s", err)
+		err = fmt.Errorf("creating entry reader: %w", err)
 		return
 	}
 
