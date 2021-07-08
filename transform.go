@@ -1,7 +1,6 @@
 package dataset
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -32,12 +31,11 @@ type Transform struct {
 	// script file reader, doesn't serialize
 	// Deprecated - use Steps instead
 	scriptFile qfs.File
-	// ScriptBytes is for representing a script as a slice of bytes, transient
-	// Deprecated - use Steps instead
-	ScriptBytes []byte `json:"scriptBytes,omitempty"`
 	// ScriptPath is the path to the script that produced this transformation.
 	// Deprecated - use Steps instead
 	ScriptPath string `json:"scriptPath,omitempty"`
+	// Text contains the contents of the script, transient
+	Text string `json:"text,omitempty"`
 	// Secrets is a map of secret values used in the transformation, transient.
 	// TODO (b5): make this not-transient by censoring the values used, but not keys
 	Secrets map[string]string `json:"secrets,omitempty"`
@@ -58,7 +56,7 @@ type Transform struct {
 func (q *Transform) DropTransientValues() {
 	q.Path = ""
 	q.Secrets = nil
-	q.ScriptBytes = nil
+	q.Text = ""
 }
 
 // DropDerivedValues resets all set-on-save fields to their default values
@@ -67,12 +65,12 @@ func (q *Transform) DropDerivedValues() {
 	q.Path = ""
 }
 
-// InlineScriptFile opens the script file, reads its contents, and assigns it to
-// scriptBytes
+// InlineScriptFile opens the script file, reads its contents, and assigns it to Text
 func (q *Transform) InlineScriptFile(ctx context.Context, resolver qfs.PathResolver) error {
 	if resolver == nil {
 		return nil
 	}
+	// TODO(dustmop): Support inlining step based transforms as well
 	err := q.OpenScriptFile(ctx, resolver)
 	if err != nil {
 		return err
@@ -85,17 +83,17 @@ func (q *Transform) InlineScriptFile(ctx context.Context, resolver qfs.PathResol
 	if err != nil {
 		return err
 	}
-	q.ScriptBytes = data
+	q.Text = string(data)
 	q.ScriptPath = ""
 	return nil
 }
 
 // OpenScriptFile generates a byte stream of script data prioritizing creating an
-// in-place file from ScriptBytes when defined, fetching from the
+// in-place file from Text when defined, fetching from the
 // passed-in resolver otherwise
 func (q *Transform) OpenScriptFile(ctx context.Context, resolver qfs.PathResolver) (err error) {
-	if q.ScriptBytes != nil {
-		q.scriptFile = qfs.NewMemfileBytes("transform.star", q.ScriptBytes)
+	if q.Text != "" {
+		q.scriptFile = qfs.NewMemfileBytes("transform.star", []byte(q.Text))
 		return nil
 	}
 
@@ -162,7 +160,7 @@ func NewTransformRef(path string) *Transform {
 func (q *Transform) IsEmpty() bool {
 	return q.Config == nil &&
 		q.Resources == nil &&
-		q.ScriptBytes == nil &&
+		q.Text == "" &&
 		q.ScriptPath == "" &&
 		q.Secrets == nil &&
 		q.Steps == nil &&
@@ -187,7 +185,7 @@ func (q *Transform) ShallowCompare(b *Transform) bool {
 		q.SyntaxVersion == b.SyntaxVersion &&
 		q.Qri == b.Qri &&
 		q.ScriptPath == b.ScriptPath &&
-		bytes.Equal(q.ScriptBytes, b.ScriptBytes) &&
+		q.Text == b.Text &&
 		reflect.DeepEqual(q.Config, b.Config) &&
 		reflect.DeepEqual(q.Secrets, b.Secrets) &&
 		reflect.DeepEqual(q.Steps, b.Steps) &&
@@ -228,8 +226,8 @@ func (q *Transform) Assign(qs ...*Transform) {
 		if q2.scriptFile != nil {
 			q.scriptFile = q2.scriptFile
 		}
-		if q2.ScriptBytes != nil {
-			q.ScriptBytes = q2.ScriptBytes
+		if q2.Text != "" {
+			q.Text = q2.Text
 		}
 		if q2.ScriptPath != "" {
 			q.ScriptPath = q2.ScriptPath
@@ -282,7 +280,7 @@ func (q Transform) MarshalJSONObject() ([]byte, error) {
 		Path:          q.Path,
 		Qri:           kind,
 		Resources:     q.Resources,
-		ScriptBytes:   q.ScriptBytes,
+		Text:          q.Text,
 		ScriptPath:    q.ScriptPath,
 		Steps:         q.Steps,
 		Syntax:        q.Syntax,

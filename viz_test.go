@@ -136,13 +136,13 @@ func TestVizShallowCompare(t *testing.T) {
 
 		{&Viz{Qri: "a"}, &Viz{Qri: "b"}, false},
 		{&Viz{Format: "a"}, &Viz{Format: "b"}, false},
-		{&Viz{ScriptBytes: []byte("a")}, &Viz{ScriptBytes: []byte("b")}, false},
+		{&Viz{Text: "a"}, &Viz{Text: "b"}, false},
 		{&Viz{ScriptPath: "a"}, &Viz{ScriptPath: "b"}, false},
 		{&Viz{RenderedPath: "a"}, &Viz{RenderedPath: "b"}, false},
 
 		{
-			&Viz{Qri: "a", Format: "a", ScriptBytes: []byte("a"), ScriptPath: "a", RenderedPath: "a"},
-			&Viz{Qri: "a", Format: "a", ScriptBytes: []byte("a"), ScriptPath: "a", RenderedPath: "a"},
+			&Viz{Qri: "a", Format: "a", Text: "a", ScriptPath: "a", RenderedPath: "a"},
+			&Viz{Qri: "a", Format: "a", Text: "a", ScriptPath: "a", RenderedPath: "a"},
 			true,
 		},
 	}

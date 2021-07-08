@@ -45,10 +45,6 @@ const (
 //    - viz: all
 //    - transform: all
 func Create(ctx context.Context, ds *dataset.Dataset) (*dataset.Dataset, error) {
-	var (
-		err error
-		p   = &dataset.Dataset{}
-	)
 
 	if ds == nil {
 		log.Debug("Create: nil dataset")
@@ -59,6 +55,7 @@ func Create(ctx context.Context, ds *dataset.Dataset) (*dataset.Dataset, error) 
 		return nil, fmt.Errorf("empty dataset")
 	}
 
+	p := &dataset.Dataset{}
 	p.Assign(ds)
 
 	if ds.Readme != nil && ds.Readme.ScriptFile() != nil {
@@ -66,15 +63,16 @@ func Create(ctx context.Context, ds *dataset.Dataset) (*dataset.Dataset, error) 
 		f := ds.Readme.ScriptFile()
 		tr := io.TeeReader(f, buf)
 
-		ds.Readme.ScriptBytes, err = ioutil.ReadAll(io.LimitReader(tr, MaxReadmePreviewBytes))
+		content, err := ioutil.ReadAll(io.LimitReader(tr, MaxReadmePreviewBytes))
 		if err != nil {
 			log.Debugw("Reading Readme", "err", err.Error())
 			return nil, err
 		}
-
-		if len(ds.Readme.ScriptBytes) == MaxReadmePreviewBytes {
-			ds.Readme.ScriptBytes = append(ds.Readme.ScriptBytes, []byte(`...`)...)
+		if len(content) >= MaxReadmePreviewBytes {
+			content = append(content, []byte("...")...)
 		}
+		ds.Readme.Text = string(content)
+
 		ds.Readme.SetScriptFile(qfs.NewMemfileReader(f.FullPath(), io.MultiReader(buf, f)))
 	}
 

@@ -1,7 +1,6 @@
 package dataset
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -27,10 +26,10 @@ type Readme struct {
 	scriptFile qfs.File
 	// rendered file reader, doesn't serialize
 	renderedFile qfs.File
-	// ScriptBytes is for representing a script as a slice of bytes, transient
-	ScriptBytes []byte `json:"scriptBytes,omitempty"`
 	// ScriptPath is the path to the script that created this
 	ScriptPath string `json:"scriptPath,omitempty"`
+	// Text contains the contents of the script, transient
+	Text string `json:"text,omitempty"`
 	// RenderedPath is the path to the file rendered using the readme script and the body
 	RenderedPath string `json:"renderedPath,omitempty"`
 }
@@ -44,7 +43,7 @@ func NewReadmeRef(path string) *Readme {
 // dataset is rendered immutable, usually by storing it in a cafs
 func (r *Readme) DropTransientValues() {
 	r.Path = ""
-	r.ScriptBytes = nil
+	r.Text = ""
 }
 
 // DropDerivedValues resets all set-on-save fields to their default values
@@ -69,10 +68,10 @@ func (r *Readme) ShallowCompare(b *Readme) bool {
 		r.Qri == b.Qri &&
 		r.ScriptPath == b.ScriptPath &&
 		r.RenderedPath == b.RenderedPath &&
-		bytes.Equal(r.ScriptBytes, b.ScriptBytes)
+		r.Text == b.Text
 }
 
-// InlineScriptFile opens the script file, reads its contents, and assigns it to scriptBytes.
+// InlineScriptFile opens the script file, reads its contents, and assigns it to text.
 func (r *Readme) InlineScriptFile(ctx context.Context, resolver qfs.PathResolver) error {
 	if resolver == nil {
 		return nil
@@ -89,17 +88,17 @@ func (r *Readme) InlineScriptFile(ctx context.Context, resolver qfs.PathResolver
 	if err != nil {
 		return err
 	}
-	r.ScriptBytes = data
+	r.Text = string(data)
 	r.ScriptPath = ""
 	return nil
 }
 
 // OpenScriptFile generates a byte stream of script data prioritizing creating an
-// in-place file from ScriptBytes when defined, fetching from the
+// in-place file from Text when defined, fetching from the
 // passed-in resolver otherwise
 func (r *Readme) OpenScriptFile(ctx context.Context, resolver qfs.PathResolver) (err error) {
-	if r.ScriptBytes != nil {
-		r.scriptFile = qfs.NewMemfileBytes("readme.md", r.ScriptBytes)
+	if r.Text != "" {
+		r.scriptFile = qfs.NewMemfileBytes("readme.md", []byte(r.Text))
 		return nil
 	}
 
@@ -154,7 +153,7 @@ func (r *Readme) RenderedFile() qfs.File {
 // IsEmpty checks to see if Readme has any fields other than the internal path
 func (r *Readme) IsEmpty() bool {
 	return r.Format == "" &&
-		r.ScriptBytes == nil &&
+		r.Text == "" &&
 		r.ScriptPath == "" &&
 		r.RenderedPath == ""
 }
@@ -176,8 +175,8 @@ func (r *Readme) Assign(readmeConfigs ...*Readme) {
 		if rs.Qri != "" {
 			r.Qri = rs.Qri
 		}
-		if rs.ScriptBytes != nil {
-			r.ScriptBytes = rs.ScriptBytes
+		if rs.Text != "" {
+			r.Text = rs.Text
 		}
 		if rs.scriptFile != nil {
 			r.scriptFile = rs.scriptFile
@@ -254,8 +253,8 @@ func (r *Readme) MarshalJSONObject() ([]byte, error) {
 	if r.Format != "" {
 		data["format"] = r.Format
 	}
-	if r.ScriptBytes != nil {
-		data["scriptBytes"] = r.ScriptBytes
+	if r.Text != "" {
+		data["text"] = r.Text
 	}
 	if r.ScriptPath != "" {
 		data["scriptPath"] = r.ScriptPath

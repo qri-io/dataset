@@ -1,10 +1,10 @@
 package dataset
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 
 	"github.com/qri-io/qfs"
 )
@@ -26,10 +26,10 @@ type Viz struct {
 	scriptFile qfs.File
 	// rendered file reader, doesn't serialize
 	renderedFile qfs.File
-	// ScriptBytes is for representing a script as a slice of bytes, transient
-	ScriptBytes []byte `json:"scriptBytes,omitempty"`
 	// ScriptPath is the path to the script that created this
 	ScriptPath string `json:"scriptPath,omitempty"`
+	// Text contains the contents of the script, transient
+	Text string `json:"text"`
 	// RenderedPath is the path to the file rendered using the viz script and the body
 	RenderedPath string `json:"renderedPath,omitempty"`
 }
@@ -43,13 +43,35 @@ func NewVizRef(path string) *Viz {
 // dataset is rendered immutable, usually by storing it in a cafs
 func (v *Viz) DropTransientValues() {
 	v.Path = ""
-	v.ScriptBytes = nil
+	v.Text = ""
 }
 
 // DropDerivedValues resets all set-on-save fields to their default values
 func (v *Viz) DropDerivedValues() {
 	v.Qri = ""
 	v.Path = ""
+}
+
+// InlineScriptFile opens the script file, reads its contents, and assigns it to Text
+func (v *Viz) InlineScriptFile(ctx context.Context, resolver qfs.PathResolver) error {
+	if resolver == nil {
+		return nil
+	}
+	err := v.OpenScriptFile(ctx, resolver)
+	if err != nil {
+		return err
+	}
+	file := v.ScriptFile()
+	if file == nil {
+		return nil
+	}
+	data, err := ioutil.ReadAll(file)
+	if err != nil {
+		return err
+	}
+	v.Text = string(data)
+	v.ScriptPath = ""
+	return nil
 }
 
 // ShallowCompare is an equality check that ignores Path values
@@ -68,15 +90,15 @@ func (v *Viz) ShallowCompare(b *Viz) bool {
 		v.Qri == b.Qri &&
 		v.ScriptPath == b.ScriptPath &&
 		v.RenderedPath == b.RenderedPath &&
-		bytes.Equal(v.ScriptBytes, b.ScriptBytes)
+		v.Text == b.Text
 }
 
 // OpenScriptFile generates a byte stream of script data prioritizing creating an
-// in-place file from ScriptBytes when defined, fetching from the
+// in-place file from Text when defined, fetching from the
 // passed-in resolver otherwise
 func (v *Viz) OpenScriptFile(ctx context.Context, resolver qfs.PathResolver) (err error) {
-	if v.ScriptBytes != nil {
-		v.scriptFile = qfs.NewMemfileBytes("template.html", v.ScriptBytes)
+	if v.Text != "" {
+		v.scriptFile = qfs.NewMemfileBytes("template.html", []byte(v.Text))
 		return nil
 	}
 
@@ -131,7 +153,7 @@ func (v *Viz) RenderedFile() qfs.File {
 // IsEmpty checks to see if Viz has any fields other than the internal path
 func (v *Viz) IsEmpty() bool {
 	return v.Format == "" &&
-		v.ScriptBytes == nil &&
+		v.Text == "" &&
 		v.ScriptPath == "" &&
 		v.RenderedPath == ""
 }
@@ -153,8 +175,8 @@ func (v *Viz) Assign(visConfigs ...*Viz) {
 		if vs.Qri != "" {
 			v.Qri = vs.Qri
 		}
-		if vs.ScriptBytes != nil {
-			v.ScriptBytes = vs.ScriptBytes
+		if vs.Text != "" {
+			v.Text = vs.Text
 		}
 		if vs.scriptFile != nil {
 			v.scriptFile = vs.scriptFile
@@ -233,8 +255,8 @@ func (v *Viz) MarshalJSONObject() ([]byte, error) {
 	if v.Format != "" {
 		data["format"] = v.Format
 	}
-	if v.ScriptBytes != nil {
-		data["scriptBytes"] = v.ScriptBytes
+	if v.Text != "" {
+		data["text"] = v.Text
 	}
 	if v.ScriptPath != "" {
 		data["scriptPath"] = v.ScriptPath
