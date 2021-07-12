@@ -138,13 +138,13 @@ func TestTransformShallowCompare(t *testing.T) {
 
 		{&Transform{Qri: "a"}, &Transform{Qri: "b"}, false},
 		{&Transform{Syntax: "a"}, &Transform{Syntax: "b"}, false},
-		{&Transform{ScriptBytes: []byte("a")}, &Transform{ScriptBytes: []byte("b")}, false},
+		{&Transform{Text: "a"}, &Transform{Text: "b"}, false},
 		{&Transform{ScriptPath: "a"}, &Transform{ScriptPath: "b"}, false},
 		{&Transform{Syntaxes: map[string]string{"c": "d"}}, &Transform{Syntaxes: map[string]string{"c": "e"}}, false},
 
 		{
-			&Transform{Qri: "a", Syntax: "b", SyntaxVersion: "c", ScriptBytes: []byte("d"), ScriptPath: "e", Secrets: map[string]string{"f": "f"}, Config: map[string]interface{}{"g": "g"}, Resources: map[string]*TransformResource{"h": nil}},
-			&Transform{Qri: "a", Syntax: "b", SyntaxVersion: "c", ScriptBytes: []byte("d"), ScriptPath: "e", Secrets: map[string]string{"f": "f"}, Config: map[string]interface{}{"g": "g"}, Resources: map[string]*TransformResource{"h": nil}},
+			&Transform{Qri: "a", Syntax: "b", SyntaxVersion: "c", Text: "d", ScriptPath: "e", Secrets: map[string]string{"f": "f"}, Config: map[string]interface{}{"g": "g"}, Resources: map[string]*TransformResource{"h": nil}},
+			&Transform{Qri: "a", Syntax: "b", SyntaxVersion: "c", Text: "d", ScriptPath: "e", Secrets: map[string]string{"f": "f"}, Config: map[string]interface{}{"g": "g"}, Resources: map[string]*TransformResource{"h": nil}},
 			true,
 		},
 

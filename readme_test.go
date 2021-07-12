@@ -130,13 +130,13 @@ func TestReadmeShallowCompare(t *testing.T) {
 
 		{&Readme{Qri: "a"}, &Readme{Qri: "b"}, false},
 		{&Readme{Format: "a"}, &Readme{Format: "b"}, false},
-		{&Readme{ScriptBytes: []byte("a")}, &Readme{ScriptBytes: []byte("b")}, false},
+		{&Readme{Text: "a"}, &Readme{Text: "b"}, false},
 		{&Readme{ScriptPath: "a"}, &Readme{ScriptPath: "b"}, false},
 		{&Readme{RenderedPath: "a"}, &Readme{RenderedPath: "b"}, false},
 
 		{
-			&Readme{Qri: "a", Format: "a", ScriptBytes: []byte("a"), ScriptPath: "a", RenderedPath: "a"},
-			&Readme{Qri: "a", Format: "a", ScriptBytes: []byte("a"), ScriptPath: "a", RenderedPath: "a"},
+			&Readme{Qri: "a", Format: "a", Text: "a", ScriptPath: "a", RenderedPath: "a"},
+			&Readme{Qri: "a", Format: "a", Text: "a", ScriptPath: "a", RenderedPath: "a"},
 			true,
 		},
 	}
