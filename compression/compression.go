@@ -10,14 +10,6 @@ import (
 	"github.com/klauspost/compress/zstd"
 )
 
-// Format represents a type of byte compression
-type Format string
-
-// String implements the stringer interface
-func (s Format) String() string {
-	return string(s)
-}
-
 const (
 	// FmtNone is a sentinel for no compression
 	FmtNone Format = ""
@@ -26,6 +18,14 @@ const (
 	// FmtGZip GNU zip compression https://www.gnu.org/software/gzip/
 	FmtGZip Format = "gzip"
 )
+
+// Format represents a type of byte compression
+type Format string
+
+// String implements the stringer interface
+func (s Format) String() string {
+	return string(s)
+}
 
 // SupportedFormats indexes supported formats in a map for lookups
 var SupportedFormats = map[Format]struct{}{
@@ -36,10 +36,21 @@ var SupportedFormats = map[Format]struct{}{
 // ParseFormat interprets a string into a supported compression format
 // errors when provided the empty string ("no compression" format)
 func ParseFormat(s string) (f Format, err error) {
-	f = Format(s)
+	f, ok := map[string]Format{
+		"gzip": FmtGZip,
+		"gz":   FmtGZip,
+		"zst":  FmtZStandard,
+		"zstd": FmtZStandard, // not a common file ending, but "zstd" is the shorthand name for the library
+	}[s]
+
+	if !ok {
+		return f, fmt.Errorf("invalid compression format %q", s)
+	}
+
 	if _, ok := SupportedFormats[f]; !ok {
 		return FmtNone, fmt.Errorf("unsupported compression format: %q", s)
 	}
+
 	return f, nil
 }
 
