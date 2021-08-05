@@ -7,6 +7,31 @@ import (
 	"testing"
 )
 
+func TestParseFormat(t *testing.T) {
+	good := []string{
+		"gz", "gzip", "zstd",
+	}
+
+	for _, s := range good {
+		f, err := ParseFormat(s)
+		if err != nil {
+			t.Errorf("unexpected error for format %q: %s", s, err)
+		}
+		if _, ok := SupportedFormats[f]; !ok {
+			t.Errorf("expected %q to be a supported format", s)
+		}
+	}
+
+	bad := []string{
+		"", "tar",
+	}
+	for _, s := range bad {
+		if _, err := ParseFormat(s); err == nil {
+			t.Errorf("expected format to error: %s, got nil", s)
+		}
+	}
+}
+
 func TestNew(t *testing.T) {
 	if _, err := Compressor("invalid", &bytes.Buffer{}); err == nil {
 		t.Error("expected error constructing with invalid compression format string")
@@ -70,7 +95,5 @@ func TestCompressionCycle(t *testing.T) {
 				t.Errorf("compression round trip result mismatch.\nwant: %s\ngot: %s", plainText, result.String())
 			}
 		})
-
 	}
-
 }
