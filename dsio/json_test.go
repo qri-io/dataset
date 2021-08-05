@@ -112,6 +112,7 @@ func TestJSONReaderBasicParsing(t *testing.T) {
 		{"{\"a\":\"say \\\"\\u72ac\\\"\"}", objSt, "say \"\xe7\x8a\xac\""},
 		{"{\n  \"a\" : \"b\" }", objSt, "b"},
 		{`{"a": "\/"}`, objSt, "/"},
+		{`{"body":"Template with:\r\n'''\r\n[[ \r\nvar email = (fin._meta.hashbang.match(/\\/([^\\/]+)\\/[^\\/]+$/) || ['',''])[1]\r\nvar activation_code = (fin._meta.hashbang.match(/\\/[^\\/]+\\/([^\\/]+)$/) || ['',''])[1]\r\n]]\r\n\r\n<form id=\"activateform\" ajaxform hashbang=\"blog/admin/forms\" command=\"activate\"\r\n\tvalidator=\"fin.fn.blog.activateValidator\" onSuccess=\"fin.fn.blog.activateSuccess\">\r\n\t\r\n\t<label for=\"email\">Email:</label>\r\n\t<input name=\"email\" type=\"text\" value=\"{{ email }}\"/>\r\n\r\n\t<br /><label for=\"activation_code\">Activation Code:</label>\r\n\t<input name=\"activation_code\" type=\"text\" value=\"{{ activation_code }}\" />\r\n\r\n\t<br /><input type=\"submit\" class=\"btn btn-primary\" value=\"Activate\" />\r\n\t<br /><a class=\"btn btn-inverse\" href=\"/#!/blog/admin/login\">Login</a>\r\n\r\n</form>\r\n'''"}`, objSt, "Template with:\r\n'''\r\n[[ \r\nvar email = (fin._meta.hashbang.match(/\\/([^\\/]+)\\/[^\\/]+$/) || ['',''])[1]\r\nvar activation_code = (fin._meta.hashbang.match(/\\/[^\\/]+\\/([^\\/]+)$/) || ['',''])[1]\r\n]]\r\n\r\n<form id=\"activateform\" ajaxform hashbang=\"blog/admin/forms\" command=\"activate\"\r\n\tvalidator=\"fin.fn.blog.activateValidator\" onSuccess=\"fin.fn.blog.activateSuccess\">\r\n\t\r\n\t<label for=\"email\">Email:</label>\r\n\t<input name=\"email\" type=\"text\" value=\"{{ email }}\"/>\r\n\r\n\t<br /><label for=\"activation_code\">Activation Code:</label>\r\n\t<input name=\"activation_code\" type=\"text\" value=\"{{ activation_code }}\" />\r\n\r\n\t<br /><input type=\"submit\" class=\"btn btn-primary\" value=\"Activate\" />\r\n\t<br /><a class=\"btn btn-inverse\" href=\"/#!/blog/admin/login\">Login</a>\r\n\r\n</form>\r\n'''"},
 	}
 
 	for i, c := range cases {
@@ -119,9 +120,10 @@ func TestJSONReaderBasicParsing(t *testing.T) {
 		ent, err := r.ReadEntry()
 		if err != nil {
 			t.Errorf("case %d error: %s", i, err)
+			continue
 		}
-		if ent.Value != c.expect {
-			t.Errorf("case %d value mismatch: %v <> %v", i, ent.Value, c.expect)
+		if diff := cmp.Diff(c.expect, ent.Value); diff != "" {
+			t.Errorf("result mismatch (-want +got):\n%s", diff)
 		}
 	}
 }
@@ -417,17 +419,17 @@ func TestJSONPrettyWriter(t *testing.T) {
 		{
 			&dataset.Structure{Schema: dataset.BaseSchemaArray},
 			[]Entry{
-				Entry{Value: map[string]string{"a": "hello"}},
-				Entry{Value: map[string]string{"b": "goodbye"}},
+				{Value: map[string]string{"a": "hello"}},
+				{Value: map[string]string{"b": "goodbye"}},
 			},
 			"[\n {\n  \"a\": \"hello\"\n },\n {\n  \"b\": \"goodbye\"\n }\n]",
 		},
 		{
 			&dataset.Structure{Schema: dataset.BaseSchemaObject},
 			[]Entry{
-				Entry{Key: "a", Value: "foo"},
-				Entry{Key: "b", Value: true},
-				Entry{Key: "c", Value: map[string]int{"depth_2": 2}},
+				{Key: "a", Value: "foo"},
+				{Key: "b", Value: true},
+				{Key: "c", Value: map[string]int{"depth_2": 2}},
 			},
 			"{\n \"a\": \"foo\",\n \"b\": true,\n \"c\": {\n  \"depth_2\": 2\n }\n}",
 		},

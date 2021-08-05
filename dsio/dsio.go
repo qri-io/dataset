@@ -143,7 +143,7 @@ func GetTopLevelType(st *dataset.Structure) (string, error) {
 func ReadAll(r EntryReader) (interface{}, error) {
 	tlt, err := GetTopLevelType(r.Structure())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("getting top level type: %w", err)
 	}
 
 	if tlt == "object" {
@@ -162,7 +162,7 @@ func ReadAllObject(r EntryReader) (map[string]interface{}, error) {
 			if err.Error() == "EOF" {
 				break
 			}
-			return nil, err
+			return nil, fmt.Errorf("row %d: %w", i+1, err)
 		}
 		obj[val.Key] = val.Value
 	}
@@ -179,7 +179,7 @@ func ReadAllArray(r EntryReader) ([]interface{}, error) {
 			if err.Error() == "EOF" {
 				break
 			}
-			return nil, err
+			return nil, fmt.Errorf("entry %d: %w", i+1, err)
 		}
 		array = append(array, val.Value)
 	}
