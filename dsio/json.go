@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"strconv"
-	"strings"
 
 	"github.com/qri-io/dataset"
 )
@@ -257,6 +256,13 @@ func (r *JSONReader) extractFromBuffer(buffer []byte, i int) string {
 	return text
 }
 
+func (r *JSONReader) extractBytesFromBuffer(buffer []byte, i int) []byte {
+	d := buffer[0:i]
+	_, _ = r.reader.Discard(i - r.prevSize)
+	r.prevSize = 0
+	return d
+}
+
 func (r *JSONReader) readString() (string, error) {
 	buff := r.currentBuffer()
 	i := 0
@@ -278,21 +284,17 @@ func (r *JSONReader) readString() (string, error) {
 			i++
 		} else if buff[i] == '"' {
 			i++
-			str := removeEscapes(r.extractFromBuffer(buff, i))
-			return strconv.Unquote(str)
+			// TODO(b5): this is slow, but necessary to properly handle complex JSON string
+			// escape sequences. We should replace this with a hand-rolled JSON string parser
+			// but add a benchmark first to confirm we're acutally engineering a performance
+			// pickup
+			var str string
+			err := json.Unmarshal(r.extractBytesFromBuffer(buff, i), &str)
+			return str, err
 		}
 		i++
 	}
 	return "", fmt.Errorf("Expected: closing '\"' for string")
-}
-
-// JSON allows at least one escape sequence that upsets strconv.Unquote:
-// escaping the forward slash: \/
-// TODO (b5) - this will silently convert "\/" to "/", which isn't great.
-// This might need to be expressed as a formatConfig option to override a default
-// we should also think about having this operate as the buffer is reading
-func removeEscapes(str string) string {
-	return strings.ReplaceAll(str, `\/`, "/")
 }
 
 func (r *JSONReader) readNumber() (interface{}, error) {
