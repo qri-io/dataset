@@ -3,6 +3,7 @@ package dsio
 import (
 	"bufio"
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -263,6 +264,84 @@ func (r *JSONReader) extractBytesFromBuffer(buffer []byte, i int) []byte {
 	return d
 }
 
+// unquoteJSONString removes quotes from the string, and converts json
+// escape sequences into the corresponding runes
+func unquoteJSONString(srcBuff []byte) string {
+	dstBuff := make([]byte, len(srcBuff))
+	// s is source, d is destination
+	s := 0
+	d := 0
+	limit := len(srcBuff)
+	// If the string stars or ends with a quote, remove it
+	if srcBuff[0] == '"' {
+		s++
+	}
+	if srcBuff[len(srcBuff)-1] == '"' {
+		limit--
+	}
+	for s < limit {
+		ch := srcBuff[s]
+		if ch == '\\' {
+			s++
+			if s >= limit {
+				break
+			}
+			ch = srcBuff[s]
+			// Escape sequences from https://www.json.org/json-en.html
+			if ch == 'b' {
+				dstBuff[d] = '\b'
+			} else if ch == 'f' {
+				dstBuff[d] = '\f'
+			} else if ch == 'n' {
+				dstBuff[d] = '\n'
+			} else if ch == 'r' {
+				dstBuff[d] = '\r'
+			} else if ch == 't' {
+				dstBuff[d] = '\t'
+			} else if ch == 'x' {
+				// Technically this is out of spec, but we handle it
+				// because some apps incorrectly output json with
+				// \xAA character sequences
+				hexChars := srcBuff[s+1 : s+3]
+				s += 3
+				bs, err := hex.DecodeString(string(hexChars))
+				if err == nil {
+					dstBuff[d] = bs[0]
+				} else {
+					dstBuff[d] = '?'
+				}
+				d++
+				continue
+			} else if ch == 'u' {
+				// A unicode code-point escape sequence
+				hexChars := srcBuff[s+1 : s+5]
+				s += 5
+				res, err := strconv.Unquote(fmt.Sprintf("'\\u%s'", hexChars))
+				if err == nil {
+					for _, b := range []byte(res) {
+						dstBuff[d] = b
+						d++
+					}
+				} else {
+					dstBuff[d] = '?'
+					d++
+				}
+				continue
+			} else {
+				// Unknown escape sequence is treated as the bare character
+				dstBuff[d] = ch
+			}
+			s++
+			d++
+			continue
+		}
+		dstBuff[d] = ch
+		s++
+		d++
+	}
+	return string(dstBuff[0:d])
+}
+
 func (r *JSONReader) readString() (string, error) {
 	buff := r.currentBuffer()
 	i := 0
@@ -281,16 +360,15 @@ func (r *JSONReader) readString() (string, error) {
 			}
 		}
 		if buff[i] == '\\' {
+			// Skip the backslash, which marks an escape sequence. This avoids
+			// ending the string early by mistakingly treating the
+			// characters `\"` as the end of the string. After we find the end
+			// of the string, then we replace the escape sequences with the
+			// correct bytes.
 			i++
 		} else if buff[i] == '"' {
 			i++
-			// TODO(b5): this is slow, but necessary to properly handle complex JSON string
-			// escape sequences. We should replace this with a hand-rolled JSON string parser
-			// but add a benchmark first to confirm we're acutally engineering a performance
-			// pickup
-			var str string
-			err := json.Unmarshal(r.extractBytesFromBuffer(buff, i), &str)
-			return str, err
+			return unquoteJSONString(r.extractBytesFromBuffer(buff, i)), nil
 		}
 		i++
 	}
