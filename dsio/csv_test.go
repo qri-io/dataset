@@ -347,11 +347,14 @@ a	12	23	"[""foo"",""bar""]"`
 }
 func BenchmarkCSVWriterArrays(b *testing.B) {
 	const NumWrites = 1000
-	st := &dataset.Structure{Format: "csv", Schema: dataset.BaseSchemaObject}
+	st := &dataset.Structure{Format: "csv", Schema: tabular.BaseTabularSchema}
 
 	for n := 0; n < b.N; n++ {
 		buf := &bytes.Buffer{}
-		w, _ := NewCSVWriter(st, buf)
+		w, err := NewCSVWriter(st, buf)
+		if err != nil {
+			b.Fatalf("could not create CSVWriter: %s", err)
+		}
 		for i := 0; i < NumWrites; i++ {
 			// Write an array entry.
 			arrayEntry := Entry{Index: i, Value: "test"}
@@ -362,11 +365,14 @@ func BenchmarkCSVWriterArrays(b *testing.B) {
 
 func BenchmarkCSVWriterObjects(b *testing.B) {
 	const NumWrites = 1000
-	st := &dataset.Structure{Format: "csv", Schema: dataset.BaseSchemaObject}
+	st := &dataset.Structure{Format: "csv", Schema: tabular.BaseTabularSchema}
 
 	for n := 0; n < b.N; n++ {
 		buf := &bytes.Buffer{}
-		w, _ := NewCSVWriter(st, buf)
+		w, err := NewCSVWriter(st, buf)
+		if err != nil {
+			b.Fatalf("could not create CSVWriterObjects: %s", err)
+		}
 		for i := 0; i < NumWrites; i++ {
 			// Write an object entry.
 			objectEntry := Entry{Key: "key", Value: "test"}
@@ -376,14 +382,17 @@ func BenchmarkCSVWriterObjects(b *testing.B) {
 }
 
 func BenchmarkCSVReader(b *testing.B) {
-	st := &dataset.Structure{Format: "csv", Schema: dataset.BaseSchemaArray}
+	st := &dataset.Structure{Format: "csv", Schema: tabular.BaseTabularSchema}
 
 	for n := 0; n < b.N; n++ {
 		file, err := os.Open(testdataFile("../dsio/testdata/movies/body.csv"))
 		if err != nil {
 			b.Errorf("unexpected error: %s", err.Error())
 		}
-		r, _ := NewCSVReader(st, file)
+		r, err := NewCSVReader(st, file)
+		if err != nil {
+			b.Fatalf("could not create CSVReader: %s", err)
+		}
 		for {
 			_, err = r.ReadEntry()
 			if err != nil {

@@ -130,8 +130,11 @@ func TestXLSXCompression(t *testing.T) {
 	}
 }
 
+/*
+TODO(dustmop): Disabled, testdata/movies/data.xlsx doesn't exist
+
 func BenchmarkXLSXReader(b *testing.B) {
-	st := &dataset.Structure{Format: "xlsx", Schema: dataset.BaseSchemaArray}
+	st := &dataset.Structure{Format: "xlsx", Schema: tabular.BaseTabularSchema}
 
 	for n := 0; n < b.N; n++ {
 		file, err := os.Open("testdata/movies/data.xlsx")
@@ -140,7 +143,7 @@ func BenchmarkXLSXReader(b *testing.B) {
 		}
 		r, err := NewXLSXReader(st, file)
 		if err != nil {
-			b.Errorf("unexpected error: %s", err.Error())
+			b.Fatalf("unexpected error: %s", err.Error())
 		}
 		for {
 			_, err = r.ReadEntry()
@@ -150,3 +153,4 @@ func BenchmarkXLSXReader(b *testing.B) {
 		}
 	}
 }
+*/
