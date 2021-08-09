@@ -339,7 +339,7 @@ func unquoteJSONString(srcBuff []byte) string {
 		s++
 		d++
 	}
-	return string(dstBuff[0:d])
+	return string(dstBuff[:d])
 }
 
 func (r *JSONReader) readString() (string, error) {
