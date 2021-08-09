@@ -112,7 +112,8 @@ func TestJSONReaderBasicParsing(t *testing.T) {
 		{"{\"a\":\"say \\\"\\u72ac\\\"\"}", objSt, "say \"\xe7\x8a\xac\""},
 		{"{\n  \"a\" : \"b\" }", objSt, "b"},
 		{`{"a": "\/"}`, objSt, "/"},
-		{`{"body":"Template with:\r\n'''\r\n[[ \r\nvar email = (fin._meta.hashbang.match(/\\/([^\\/]+)\\/[^\\/]+$/) || ['',''])[1]\r\nvar activation_code = (fin._meta.hashbang.match(/\\/[^\\/]+\\/([^\\/]+)$/) || ['',''])[1]\r\n]]\r\n\r\n<form id=\"activateform\" ajaxform hashbang=\"blog/admin/forms\" command=\"activate\"\r\n\tvalidator=\"fin.fn.blog.activateValidator\" onSuccess=\"fin.fn.blog.activateSuccess\">\r\n\t\r\n\t<label for=\"email\">Email:</label>\r\n\t<input name=\"email\" type=\"text\" value=\"{{ email }}\"/>\r\n\r\n\t<br /><label for=\"activation_code\">Activation Code:</label>\r\n\t<input name=\"activation_code\" type=\"text\" value=\"{{ activation_code }}\" />\r\n\r\n\t<br /><input type=\"submit\" class=\"btn btn-primary\" value=\"Activate\" />\r\n\t<br /><a class=\"btn btn-inverse\" href=\"/#!/blog/admin/login\">Login</a>\r\n\r\n</form>\r\n'''"}`, objSt, "Template with:\r\n'''\r\n[[ \r\nvar email = (fin._meta.hashbang.match(/\\/([^\\/]+)\\/[^\\/]+$/) || ['',''])[1]\r\nvar activation_code = (fin._meta.hashbang.match(/\\/[^\\/]+\\/([^\\/]+)$/) || ['',''])[1]\r\n]]\r\n\r\n<form id=\"activateform\" ajaxform hashbang=\"blog/admin/forms\" command=\"activate\"\r\n\tvalidator=\"fin.fn.blog.activateValidator\" onSuccess=\"fin.fn.blog.activateSuccess\">\r\n\t\r\n\t<label for=\"email\">Email:</label>\r\n\t<input name=\"email\" type=\"text\" value=\"{{ email }}\"/>\r\n\r\n\t<br /><label for=\"activation_code\">Activation Code:</label>\r\n\t<input name=\"activation_code\" type=\"text\" value=\"{{ activation_code }}\" />\r\n\r\n\t<br /><input type=\"submit\" class=\"btn btn-primary\" value=\"Activate\" />\r\n\t<br /><a class=\"btn btn-inverse\" href=\"/#!/blog/admin/login\">Login</a>\r\n\r\n</form>\r\n'''"},
+		{`{"a": "\\/"}`, objSt, "\\/"},
+		{`{"body":"regex:\r\n'/\\/_/'"}`, objSt, "regex:\r\n'/\\/_/'"},
 	}
 
 	for i, c := range cases {
@@ -499,6 +500,31 @@ func TestJSONCompression(t *testing.T) {
 
 	if diff := cmp.Diff(compressed.Bytes(), compressed2.Bytes()); diff != "" {
 		t.Errorf("result mismatch expect (-want +got):\n%s", diff)
+	}
+}
+
+func TestUnquoteJSONString(t *testing.T) {
+	cases := []struct {
+		description string
+		input       string
+		expect      string
+	}{
+		{"plain string", `"abc"`, "abc"},
+		{"easy escape", `"hi\r\nthere"`, "hi\r\nthere"},
+		{"same escape", "\"hi\\r\\nthere\"", "hi\r\nthere"},
+		{"unknown escape", `"just \a char"`, "just a char"},
+		{"escape backslash", `"windows \\path"`, "windows \\path"},
+		{"same backslash", "\"windows \\\\path\"", "windows \\path"},
+		{"hex character", `"\x41"`, "A"},
+		{"unicode as well", `"\u65e5\u672c\u8a9e"`, "日本語"},
+		{"incomplete hex", `"\x4"`, "?"},
+		{"incomplete unicode", `"\u65e"`, "?"},
+	}
+	for _, c := range cases {
+		res := unquoteJSONString([]byte(c.input))
+		if res != c.expect {
+			t.Errorf("result mismatch expect: %s, got: %s", c.expect, res)
+		}
 	}
 }
 
