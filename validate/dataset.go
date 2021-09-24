@@ -23,12 +23,10 @@ func Dataset(ds *dataset.Dataset) error {
 		log.Debug(err.Error())
 		return err
 	}
-	if ds.Structure == nil {
-		err := fmt.Errorf("structure is required")
-		log.Debug(err.Error())
-		return err
-	} else if err := Structure(ds.Structure); err != nil {
-		return fmt.Errorf("structure: %s", err.Error())
+	if ds.Structure != nil {
+		if err := Structure(ds.Structure); err != nil {
+			return fmt.Errorf("structure: %s", err.Error())
+		}
 	}
 
 	return nil
