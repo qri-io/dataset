@@ -17,11 +17,7 @@ func TestDataset(t *testing.T) {
 	}{
 		{nil, ""},
 		{&dataset.Dataset{}, "commit is required"},
-		// {&dataset.Dataset{Commit: &dataset.Commit{}}, "commit: title is required"},
-		{&dataset.Dataset{Commit: &dataset.Commit{}}, "structure is required"},
-		{&dataset.Dataset{Commit: cm}, "structure is required"},
 		{&dataset.Dataset{Commit: cm, Structure: &dataset.Structure{}}, "structure: format is required"},
-		// {&dataset.Dataset{Commit: cm, Abstract: &dataset.Dataset{Metadata: &dataset.Metadata{}}}, "abstract field is not an abstract dataset. Metadata: nil: <not nil> != <nil>"},
 		{&dataset.Dataset{Commit: cm, Structure: st}, ""},
 	}
 
